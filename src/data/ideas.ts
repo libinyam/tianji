@@ -1,0 +1,108 @@
+import type { Idea } from "@/types";
+
+export const ideas: Idea[] = [
+  {
+    id: "i-geo-dl",
+    title: "从微分几何重新审视几何深度学习",
+    summary:
+      "将流形、联络与曲率引入图神经网络，用纤维丛的语言统一描述消息传递，或许能解释 GNN 的过平滑现象。",
+    author: "秦望舒",
+    avatarColor: "#f3c969",
+    topic: "几何深度学习",
+    tags: ["微分几何", "图神经网络"],
+    resonance: 284,
+    replies: 23,
+    createdAt: "2025-06-10",
+  },
+  {
+    id: "i-ot-gen",
+    title: "最优传输：连接生成模型与概率度量的桥梁",
+    summary:
+      "Wasserstein 距离的 Monge-Kantorovich 对偶为 GAN 与扩散模型提供了统一的最优传输视角，梯度流视角值得深挖。",
+    author: "陆星阑",
+    avatarColor: "#5aa6f0",
+    topic: "最优传输",
+    tags: ["最优传输", "生成模型"],
+    resonance: 312,
+    replies: 31,
+    createdAt: "2025-06-07",
+  },
+  {
+    id: "i-tda",
+    title: "拓扑数据分析能否成为可解释性的新工具？",
+    summary:
+      "持续同调刻画数据形状，或许能为神经网络的表示空间提供拓扑层面的可解释性度量，连接代数拓扑与深度学习。",
+    author: "沈砚书",
+    avatarColor: "#7cc4ff",
+    topic: "拓扑数据分析",
+    tags: ["代数拓扑", "可解释性"],
+    resonance: 198,
+    replies: 17,
+    createdAt: "2025-06-04",
+  },
+  {
+    id: "i-kernel-fa",
+    title: "再生核希尔伯特空间与函数分析的统一视角",
+    summary:
+      "用泛函分析中的 RKHS 重新组织核方法理论，将表示定理、Mercer 定理与算子谱理论串联成一条主线。",
+    author: "柯北辰",
+    avatarColor: "#f3c969",
+    topic: "核方法",
+    tags: ["泛函分析", "核方法"],
+    resonance: 167,
+    replies: 14,
+    createdAt: "2025-05-30",
+  },
+  {
+    id: "i-cat-ml",
+    title: "范畴论能否为组合式机器学习提供形式化语言？",
+    summary:
+      "函子与自然变换或许能描述模型组合的代数结构，为模块化、可组合的 AI 系统提供严格的范畴语义。",
+    author: "宋知遥",
+    avatarColor: "#7cc4ff",
+    topic: "范畴论与AI",
+    tags: ["范畴论", "组合性"],
+    resonance: 143,
+    replies: 26,
+    createdAt: "2025-05-26",
+  },
+  {
+    id: "i-sobolev-train",
+    title: "Sobolev 训练：用索伯列夫范数约束梯度",
+    summary:
+      "在损失中加入梯度范数项，等价于在 Sobolev 空间中优化，可能提升模型光滑性与泛化能力，值得从 PDE 视角分析。",
+    author: "周怀瑾",
+    avatarColor: "#5aa6f0",
+    topic: "优化理论",
+    tags: ["索伯列夫空间", "泛化"],
+    resonance: 121,
+    replies: 9,
+    createdAt: "2025-05-22",
+  },
+  {
+    id: "i-measure-bn",
+    title: "测度论视角下的贝叶斯非参数方法",
+    summary:
+      "Dirichlet 过程与高斯过程本质是概率测度空间上的随机元，用测度论统一刻画或许能澄清其与可交换性的联系。",
+    author: "苏望舒",
+    avatarColor: "#7cc4ff",
+    topic: "贝叶斯非参数",
+    tags: ["测度论", "随机过程"],
+    resonance: 176,
+    replies: 19,
+    createdAt: "2025-05-18",
+  },
+  {
+    id: "i-info-bottleneck",
+    title: "信息瓶颈理论：压缩与相关的数学权衡",
+    summary:
+      "信息瓶颈 $\\min I(X;T) - \\beta I(T;Y)$ 用互信息刻画表示学习，深层的率失真结构或能解释深度网络的泛化。",
+    author: "林照夜",
+    avatarColor: "#7cc4ff",
+    topic: "信息论",
+    tags: ["信息瓶颈", "率失真"],
+    resonance: 229,
+    replies: 28,
+    createdAt: "2025-05-14",
+  },
+];

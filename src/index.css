@@ -1,0 +1,113 @@
+@import "katex/dist/katex.min.css";
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --font-display: "Fraunces", "Noto Serif SC", serif;
+  --font-sans: "Spline Sans", "Noto Sans SC", sans-serif;
+  --font-mono: "Space Mono", monospace;
+
+  font-family: var(--font-sans);
+  line-height: 1.6;
+  font-weight: 400;
+  color: #f1ede2;
+  background-color: #060914;
+
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  margin: 0;
+  min-height: 100vh;
+  background-color: #060914;
+  color: #f1ede2;
+}
+
+/* 自定义滚动条 */
+::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+::-webkit-scrollbar-track {
+  background: #0a0f2c;
+}
+::-webkit-scrollbar-thumb {
+  background: linear-gradient(#1b275e, #131d4a);
+  border-radius: 6px;
+  border: 2px solid #0a0f2c;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #2b66ab;
+}
+
+::selection {
+  background: rgba(243, 201, 105, 0.3);
+  color: #fbf3df;
+}
+
+@layer components {
+  .container-tj {
+    @apply mx-auto w-full max-w-7xl px-6 lg:px-10;
+  }
+
+  .heading-display {
+    @apply font-display font-light tracking-tight;
+  }
+
+  .pill {
+    @apply inline-flex items-center gap-1.5 rounded-full border border-void-600/60 bg-void-800/50 px-3 py-1 text-xs text-mist-300 transition-colors;
+  }
+
+  .pill-gold {
+    @apply inline-flex items-center gap-1.5 rounded-full border border-star-400/50 bg-star-400/10 px-3 py-1 text-xs text-star-200 transition-colors;
+  }
+
+  .pill-blue {
+    @apply inline-flex items-center gap-1.5 rounded-full border border-tian-400/40 bg-tian-400/10 px-3 py-1 text-xs text-tian-100 transition-colors;
+  }
+
+  .card-surface {
+    @apply rounded-xl border border-void-600/50 bg-void-800/40 backdrop-blur-sm;
+  }
+
+  .btn-gold {
+    @apply inline-flex items-center justify-center gap-2 rounded-lg border border-star-400/60 bg-gradient-to-b from-star-500/20 to-star-700/10 px-5 py-2.5 text-sm font-medium text-star-100 transition-all hover:border-star-400 hover:shadow-glow hover:from-star-500/30;
+  }
+
+  .btn-ghost {
+    @apply inline-flex items-center justify-center gap-2 rounded-lg border border-tian-400/30 bg-void-800/40 px-5 py-2.5 text-sm font-medium text-tian-100 transition-all hover:border-tian-400/70 hover:bg-void-700/50;
+  }
+
+  .link-underline {
+    @apply relative transition-colors after:absolute after:bottom-0 after:left-0 after:h-px after:w-0 after:bg-star-400 after:transition-all hover:after:w-full;
+  }
+}
+
+@layer utilities {
+  .text-glow-gold {
+    text-shadow: 0 0 24px rgba(243, 201, 105, 0.45);
+  }
+  .text-glow-blue {
+    text-shadow: 0 0 22px rgba(124, 196, 255, 0.4);
+  }
+  .grain {
+    position: relative;
+  }
+  .grain::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    opacity: 0.04;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3' /%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' /%3E%3C/svg%3E");
+  }
+}
