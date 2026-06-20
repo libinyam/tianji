@@ -24,10 +24,10 @@ export default function Ideas() {
         eyebrow="Ideas · 灵感广场"
         title={
           <>
-            让思维的<span className="text-star-400">星火</span>，连成研究星座
+            让思维的<span className="text-star-400">星火</span>，落地成真实作品
           </>
         }
-        subtitle="创新想法与研究思路的交流星图。微分几何、最优传输、拓扑数据分析……在这里，每一个尚在萌芽的念头，都可能点亮一片新的研究疆域。"
+        subtitle="项目创意与研究思路的交流星图。把数学、物理、金融、算法与领域知识做成可展示的作品，让每一个萌芽的念头，都可能长成一个能分享的 Demo。"
       >
         <button className="btn-gold">
           <Plus size={15} /> 分享灵感

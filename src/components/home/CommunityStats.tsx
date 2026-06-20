@@ -61,7 +61,7 @@ export default function CommunityStats() {
         {/* 活跃贡献者 */}
         <div className="relative mt-12 border-t border-void-600/40 pt-8">
           <p className="mb-5 text-center font-mono text-xs uppercase tracking-[0.2em] text-mist-400">
-            活跃星辰 · 本月贡献者
+            活跃贡献者 · 本月排行榜
           </p>
           <div className="flex flex-wrap items-center justify-center gap-3">
             {contributors.map((c, i) => (

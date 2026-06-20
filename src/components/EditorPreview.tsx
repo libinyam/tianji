@@ -47,8 +47,8 @@ export default function EditorPreview() {
       <div className="flex items-center justify-between border-b border-void-600/40 bg-void-900/50 px-5 py-3">
         <div className="flex items-center gap-3">
           <PenLine size={15} className="text-star-400" />
-          <span className="text-sm text-parchment-100">数学视角的深度学习</span>
-          <span className="pill-blue">第三章 · 反向传播的数学本质</span>
+          <span className="text-sm text-parchment-100">深度学习入门：从理论到实现</span>
+          <span className="pill-blue">第三章 · 链式法则与反向传播</span>
         </div>
         <div className="flex items-center gap-2">
           {/* 协作者在线指示 */}

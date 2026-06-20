@@ -3,7 +3,7 @@ import { Sparkles, Github, Mail, BookOpen } from "lucide-react";
 import Constellation from "./Constellation";
 
 const MODULES = [
-  { to: "/library", label: "书籍资源库" },
+  { to: "/library", label: "资源库" },
   { to: "/discussion", label: "讨论区" },
   { to: "/ideas", label: "灵感广场" },
   { to: "/workshop", label: "协作工坊" },
@@ -23,7 +23,7 @@ export default function Footer() {
               </span>
             </div>
             <p className="mt-4 max-w-sm text-sm leading-relaxed text-mist-400">
-              得名于北斗七星之天玑星。我们相信，每一颗单点的知识闪光，终将汇聚成完整的知识星座体系。这里是数学理论与人工智能实践的交汇之地。
+              得名于北斗七星之天玑星。无论你来自数学、物理、金融还是计算机，都能在这里从只会学理论，走向能做项目、会协作、能产出。让每一份专业积累，都汇聚成真实可用的作品。
             </p>
             <div className="mt-5 flex items-center gap-3">
               <a
@@ -79,7 +79,7 @@ export default function Footer() {
         </div>
 
         <div className="mt-12 flex flex-col items-center justify-between gap-3 border-t border-void-600/40 pt-6 text-xs text-mist-500 sm:flex-row">
-          <p>© 2025 天玑 Tianji · 数学与机器学习交汇之地</p>
+          <p>© 2025 天玑 Tianji · 跨专业 AI 学习与项目共创社区</p>
           <p className="font-mono">从单点闪光，到完整星图</p>
         </div>
       </div>

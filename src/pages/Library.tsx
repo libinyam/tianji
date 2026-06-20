@@ -8,9 +8,9 @@ import type { BookCategory } from "@/types";
 const CATEGORIES: ("全部" | BookCategory)[] = [
   "全部",
   "基础理论",
-  "深度学习",
-  "优化",
-  "概率统计",
+  "AI工具实战",
+  "项目实战",
+  "编程基础",
 ];
 
 type SortKey = "热度" | "最新" | "难度";
@@ -44,20 +44,20 @@ export default function Library() {
   return (
     <>
       <PageHero
-        eyebrow="Book Library · 书籍资源库"
+        eyebrow="Resource Library · 学习资源库"
         title={
           <>
-            机器学习的<span className="text-star-400">书目星图</span>
+            从理论到<span className="text-star-400">工具实战</span>的资源星图
           </>
         }
-        subtitle="从概率论到凸优化，从线性代数到信息论——按数学脉络系统组织的机器学习资源分享系统，为数学专业的你铺就通向 AI 的阅读路径。"
+        subtitle="从机器学习理论到 GitHub、AI 编程工具与项目部署——按学习阶段系统整理的资源库，为跨专业转型者铺就从知识到作品的路径。"
       >
         <div className="flex items-center gap-4 text-sm text-mist-400">
           <span className="flex items-center gap-1.5">
-            <BookOpen size={14} className="text-star-400" /> {books.length} 部精选书目
+            <BookOpen size={14} className="text-star-400" /> {books.length} 份精选资源
           </span>
           <span className="text-void-600">|</span>
-          <span>按数学基础分类，匹配你的知识起点</span>
+          <span>覆盖理论、工具、项目与编程基础，匹配你的学习起点</span>
         </div>
       </PageHero>
 

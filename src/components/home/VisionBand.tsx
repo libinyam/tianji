@@ -1,9 +1,9 @@
 import { motion } from "motion/react";
 
 const ITEMS = [
-  { k: "严谨", v: "以数学推导为骨，拒绝含糊其辞" },
-  { k: "实践", v: "以代码与模型为肉，理论落地生根" },
-  { k: "协同", v: "以共笔与讨论为径，孤星连成星座" },
+  { k: "路径", v: "清晰的学习路线，告别盲目试错" },
+  { k: "实战", v: "从工具配置到项目落地，边学边做" },
+  { k: "协作", v: "以共笔与共创为径，孤星连成星座" },
 ];
 
 export default function VisionBand() {
@@ -19,8 +19,7 @@ export default function VisionBand() {
           className="mx-auto max-w-3xl text-center"
         >
           <p className="heading-display text-2xl leading-relaxed text-parchment-100 sm:text-3xl">
-            “我们相信，数学不是人工智能的<span className="text-mist-500">注脚</span>，
-            而是它的<span className="text-glow-gold text-star-300">母语</span>。”
+            “我们相信，每一份专业积累，都不该止于考卷——它值得成为一个<span className="text-glow-gold text-star-300">真实可用的作品</span>。”
           </p>
         </motion.div>
 

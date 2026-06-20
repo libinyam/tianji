@@ -4,7 +4,7 @@ import { Menu, X, Sparkles } from "lucide-react";
 
 const NAV = [
   { to: "/", label: "首页", end: true },
-  { to: "/library", label: "书籍资源库" },
+  { to: "/library", label: "资源库" },
   { to: "/discussion", label: "讨论区" },
   { to: "/ideas", label: "灵感广场" },
   { to: "/workshop", label: "协作工坊" },

@@ -17,8 +17,8 @@ const MODULES: ModuleDef[] = [
     index: "01",
     to: "/library",
     icon: BookOpen,
-    title: "书籍资源库",
-    desc: "机器学习经典与前沿书目的资源分享系统，按数学脉络分类检索，从概率统计到凸优化一应俱全。",
+    title: "学习资源库",
+    desc: "从机器学习理论到 GitHub、AI 编程工具与项目部署教程，按学习阶段系统整理的资源与实战案例，降低新手入门试错成本。",
     accent: "#5aa6f0",
   },
   {
@@ -26,7 +26,7 @@ const MODULES: ModuleDef[] = [
     to: "/discussion",
     icon: MessagesSquare,
     title: "学问讨论",
-    desc: "数学与机器学习交叉领域的疑难问答，以严谨推导求解从谱理论到信息几何的深度问题。",
+    desc: "跨专业答疑与工具配置求助。从理论推导到 Codex、Claude Code、MCP 的使用，有人陪你打通从理论到实战的每一步。",
     accent: "#f3c969",
   },
   {
@@ -34,7 +34,7 @@ const MODULES: ModuleDef[] = [
     to: "/ideas",
     icon: Lightbulb,
     title: "灵感广场",
-    desc: "创新想法与研究思路的交流星图，让微分几何、最优传输、拓扑数据分析的灵感相互激发。",
+    desc: "项目创意与研究思路的交流星图。把专业知识做成可展示的作品，让每一个萌芽的念头都可能落地成 Demo。",
     accent: "#7cc4ff",
   },
   {
@@ -42,7 +42,7 @@ const MODULES: ModuleDef[] = [
     to: "/workshop",
     icon: PenLine,
     title: "协作工坊",
-    desc: "多人协作的教材编写与论文创作工具，实时协同编辑、批注讨论，共同打磨学术作品。",
+    desc: "多人协作的项目与文档创作空间，实时协同编辑、批注讨论，一起把零散知识打磨成完整的作品集。",
     accent: "#eccd6b",
   },
 ];
@@ -59,11 +59,11 @@ export default function ModuleCards() {
             </span>
           </div>
           <h2 className="heading-display text-3xl text-parchment-50 sm:text-4xl">
-            四重路径，通往数学与智能的交汇
+            四重路径，从理论走向真实作品
           </h2>
         </div>
         <p className="hidden max-w-xs text-sm leading-relaxed text-mist-400 lg:block">
-          每一个模块都是一颗引路星辰，指引你从理论走向实践，从个体走向协同。
+          每一个模块都是一颗引路星辰，指引你从学知识到做项目，从个体摸索到协同共创。
         </p>
       </div>
 

@@ -21,7 +21,7 @@ export default function Hero() {
           >
             <Compass className="h-4 w-4 text-star-400" strokeWidth={1.5} />
             <span className="font-mono text-xs uppercase tracking-[0.3em] text-mist-300">
-              Tianji · 数学专业机器学习社区
+              Tianji · 跨专业 AI 学习与项目共创社区
             </span>
           </motion.div>
 
@@ -59,9 +59,10 @@ export default function Hero() {
             transition={{ duration: 0.7, delay: 0.25 }}
             className="mt-8 max-w-xl text-base leading-relaxed text-mist-300 sm:text-lg"
           >
-            天玑，得名于北斗七星之一。在这里，数学的严谨推导与人工智能的实践创造相遇——
-            <span className="text-parchment-100">共享资源、求解疑难、交流灵感、协同著述</span>
-            ，构建连接数学理论与 AI 实践的专业社区生态。
+            天玑，得名于北斗七星之一。无论你来自数学、物理、金融还是计算机，都能在这里从
+            <span className="text-parchment-100">只会学理论</span>走向
+            <span className="text-parchment-100">能做项目、会协作、能产出</span>——
+            整合学习资源与工具教程，求解疑难、交流灵感、协同创作，让每一份专业积累都变成真实可用的作品。
           </motion.p>
 
           <motion.div
@@ -86,8 +87,8 @@ export default function Hero() {
             className="mt-12 flex items-center gap-8"
           >
             {[
-              { n: "8.6k+", l: "数学同道" },
-              { n: "1.3k+", l: "共享书目" },
+              { n: "8.6k+", l: "跨界学习者" },
+              { n: "1.3k+", l: "学习资源" },
               { n: "4.7k+", l: "疑难解答" },
             ].map((s) => (
               <div key={s.l}>

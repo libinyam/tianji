@@ -32,10 +32,10 @@ export default function Discussion() {
         eyebrow="Discussion · 学问讨论"
         title={
           <>
-            以严谨推导，求解<span className="text-star-400">交叉疑难</span>
+            跨专业答疑，打通<span className="text-star-400">从理论到实战</span>
           </>
         }
-        subtitle="数学与机器学习交叉领域的深度问答。从谱理论到信息几何，从测度论到自动微分——在这里，每一个问题都值得被认真对待。"
+        subtitle="工具配置、项目落地、跨专业转型……在这里每一个卡点都值得被认真解决。从 PowerShell 报错到论文复现，总有人陪你一步步走通。"
       >
         <button className="btn-gold">
           <Plus size={15} /> 发起讨论

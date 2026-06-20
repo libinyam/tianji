@@ -14,14 +14,14 @@ export default function Workshop() {
         eyebrow="Workshop · 协作工坊"
         title={
           <>
-            多人共笔，<span className="text-star-400">协同</span>打磨学术之作
+            多人共创，把知识打磨成<span className="text-star-400">作品集</span>
           </>
         }
-        subtitle="多人协作的教材编写与论文创作工具。实时协同编辑、行内批注、版本追踪——把分散的数学洞见，编织成一部部严谨而完整的学术作品。"
+        subtitle="多人协作的项目与文档创作空间。实时协同编辑、行内批注、版本追踪——把分散的学习与想法，编织成完整的教材、教程与作品集。"
       >
         <div className="flex flex-wrap items-center gap-4 text-sm text-mist-400">
           <span className="flex items-center gap-1.5">
-            <PenLine size={14} className="text-star-400" /> {docs.length} 部进行中
+            <PenLine size={14} className="text-star-400" /> {docs.length} 部共创中
           </span>
           <span className="text-void-600">|</span>
           <span className="flex items-center gap-1.5">
@@ -68,7 +68,7 @@ export default function Workshop() {
               </span>
             </div>
             <h2 className="heading-display text-2xl text-parchment-50 sm:text-3xl">
-              进行中的学术作品
+              进行中的共创作品
             </h2>
           </div>
         </div>

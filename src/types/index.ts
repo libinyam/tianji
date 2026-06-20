@@ -1,6 +1,6 @@
 // 天玑平台数据类型定义
 
-export type BookCategory = "基础理论" | "深度学习" | "优化" | "概率统计";
+export type BookCategory = "基础理论" | "AI工具实战" | "项目实战" | "编程基础";
 
 export interface Review {
   author: string;
