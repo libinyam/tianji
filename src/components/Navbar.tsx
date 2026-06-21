@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { Link, NavLink } from "react-router-dom";
-import { Menu, X, Sparkles } from "lucide-react";
+import { Menu, X, Sparkles, LogOut, User as UserIcon } from "lucide-react";
+import { useAuthStore } from "@/stores/auth";
 
 const NAV = [
   { to: "/", label: "首页", end: true },
@@ -10,13 +11,25 @@ const NAV = [
   { to: "/workshop", label: "协作工坊" },
 ];
 
-export default function Navbar() {
+interface NavbarProps {
+  onLoginClick: () => void;
+}
+
+export default function Navbar({ onLoginClick }: NavbarProps) {
   const [open, setOpen] = useState(false);
+  const { user, signOut } = useAuthStore();
 
   const linkClass = ({ isActive }: { isActive: boolean }) =>
     `relative text-sm transition-colors ${
       isActive ? "text-star-200" : "text-mist-300 hover:text-parchment-100"
     }`;
+
+  const displayName = user?.nickname || user?.username || user?.email || "成员";
+
+  const handleSignOut = async () => {
+    await signOut();
+    setOpen(false);
+  };
 
   return (
     <header className="sticky top-0 z-50 border-b border-void-600/40 bg-void-950/70 backdrop-blur-xl">
@@ -52,12 +65,35 @@ export default function Navbar() {
         </div>
 
         <div className="hidden items-center gap-3 lg:flex">
-          <button className="text-sm text-mist-300 transition-colors hover:text-parchment-100">
-            登录
-          </button>
-          <Link to="/workshop" className="btn-gold">
-            加入星辰
-          </Link>
+          {user ? (
+            <div className="flex items-center gap-3">
+              <span className="flex items-center gap-2 rounded-lg border border-void-600/50 bg-void-800/40 px-3 py-1.5">
+                <UserIcon size={14} className="text-star-400" />
+                <span className="max-w-[140px] truncate text-xs text-parchment-100">
+                  {displayName}
+                </span>
+              </span>
+              <button
+                onClick={handleSignOut}
+                className="flex items-center gap-1.5 text-xs text-mist-400 transition-colors hover:text-red-300"
+                title="退出登录"
+              >
+                <LogOut size={14} /> 退出
+              </button>
+            </div>
+          ) : (
+            <>
+              <button
+                onClick={onLoginClick}
+                className="text-sm text-mist-300 transition-colors hover:text-parchment-100"
+              >
+                登录
+              </button>
+              <button onClick={onLoginClick} className="btn-gold">
+                加入星辰
+              </button>
+            </>
+          )}
         </div>
 
         {/* Mobile toggle */}
@@ -91,13 +127,30 @@ export default function Navbar() {
                 {item.label}
               </NavLink>
             ))}
-            <Link
-              to="/workshop"
-              onClick={() => setOpen(false)}
-              className="btn-gold mt-3"
-            >
-              加入星辰
-            </Link>
+            {user ? (
+              <>
+                <div className="mt-3 flex items-center gap-2 rounded-lg border border-void-600/50 bg-void-800/40 px-3 py-2.5">
+                  <UserIcon size={14} className="text-star-400" />
+                  <span className="truncate text-sm text-parchment-100">{displayName}</span>
+                </div>
+                <button
+                  onClick={handleSignOut}
+                  className="mt-1 flex items-center gap-1.5 rounded-lg px-3 py-2.5 text-sm text-mist-400 transition-colors hover:text-red-300"
+                >
+                  <LogOut size={14} /> 退出登录
+                </button>
+              </>
+            ) : (
+              <button
+                onClick={() => {
+                  setOpen(false);
+                  onLoginClick();
+                }}
+                className="btn-gold mt-3"
+              >
+                登录 / 注册
+              </button>
+            )}
           </div>
         </div>
       )}

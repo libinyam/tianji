@@ -1,21 +1,54 @@
-import { useMemo, useState } from "react";
+import { useMemo, useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { motion } from "motion/react";
-import { MessageCircle, Eye, ThumbsUp, Star, Plus } from "lucide-react";
+import { MessageCircle, Eye, ThumbsUp, Star, Plus, Loader2 } from "lucide-react";
 import PageHero from "@/components/PageHero";
 import Avatar from "@/components/Avatar";
-import { questions } from "@/data/questions";
-
-const ALL_TAGS = Array.from(new Set(questions.flatMap((q) => q.tags)));
+import PostModal from "@/components/PostModal";
+import { questions as mockQuestions } from "@/data/questions";
+import { fetchPosts } from "@/lib/posts";
+import { useAuthStore } from "@/stores/auth";
+import type { Question } from "@/types";
 
 type SortKey = "最新" | "热度" | "悬赏";
 
 export default function Discussion() {
   const [activeTag, setActiveTag] = useState<string>("全部");
   const [sort, setSort] = useState<SortKey>("热度");
+  const [postModalOpen, setPostModalOpen] = useState(false);
+  const [realPosts, setRealPosts] = useState<Question[]>([]);
+  const [loading, setLoading] = useState(true);
+  const { user } = useAuthStore();
+
+  // 加载真实帖子
+  useEffect(() => {
+    let mounted = true;
+    (async () => {
+      setLoading(true);
+      const posts = await fetchPosts();
+      if (mounted) {
+        setRealPosts(posts);
+        setLoading(false);
+      }
+    })();
+    return () => {
+      mounted = false;
+    };
+  }, []);
+
+  // 真实帖子在前，Mock 帖子在后
+  const allQuestions = useMemo(() => {
+    const mockIds = new Set(realPosts.map((p) => p.id));
+    return [...realPosts, ...mockQuestions.filter((q) => !mockIds.has(q.id))];
+  }, [realPosts]);
+
+  const ALL_TAGS = useMemo(
+    () => Array.from(new Set(allQuestions.flatMap((q) => q.tags))),
+    [allQuestions]
+  );
 
   const filtered = useMemo(() => {
-    let list = questions.filter(
+    let list = allQuestions.filter(
       (q) => activeTag === "全部" || q.tags.includes(activeTag)
     );
     list = [...list].sort((a, b) => {
@@ -24,7 +57,20 @@ export default function Discussion() {
       return b.createdAt < a.createdAt ? 1 : -1;
     });
     return list;
-  }, [activeTag, sort]);
+  }, [allQuestions, activeTag, sort]);
+
+  const handleNewPost = (post: Question) => {
+    setRealPosts((prev) => [post, ...prev]);
+  };
+
+  const handlePostClick = () => {
+    if (!user) {
+      // 未登录时触发登录弹窗（通过全局事件）
+      window.dispatchEvent(new CustomEvent("tianji:open-auth"));
+      return;
+    }
+    setPostModalOpen(true);
+  };
 
   return (
     <>
@@ -37,7 +83,7 @@ export default function Discussion() {
         }
         subtitle="工具配置、项目落地、跨专业转型……在这里每一个卡点都值得被认真解决。从 PowerShell 报错到论文复现，总有人陪你一步步走通。"
       >
-        <button className="btn-gold">
+        <button onClick={handlePostClick} className="btn-gold">
           <Plus size={15} /> 发起讨论
         </button>
       </PageHero>
@@ -87,83 +133,102 @@ export default function Discussion() {
           </div>
         </div>
 
-        {/* 问题列表 */}
-        <div className="space-y-3">
-          {filtered.map((q, i) => (
-            <motion.div
-              key={q.id}
-              initial={{ opacity: 0, y: 16 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true, margin: "-40px" }}
-              transition={{ duration: 0.4, delay: (i % 6) * 0.06 }}
-            >
-              <Link
-                to={`/discussion/${q.id}`}
-                className="group flex items-start gap-5 rounded-xl border border-void-600/40 bg-void-800/30 p-5 transition-all hover:border-star-400/30 hover:bg-void-700/30"
-              >
-                {/* 投票/回答统计列 */}
-                <div className="hidden flex-col items-center gap-3 border-r border-void-600/40 pr-5 text-center sm:flex">
-                  <div>
-                    <div className="heading-display text-lg text-tian-300">{q.answers}</div>
-                    <div className="text-[10px] text-mist-500">回答</div>
-                  </div>
-                  <div>
-                    <div className="text-sm text-mist-300">{q.votes}</div>
-                    <div className="text-[10px] text-mist-500">票数</div>
-                  </div>
-                  <div>
-                    <div className="text-sm text-mist-300">{(q.views / 1000).toFixed(1)}k</div>
-                    <div className="text-[10px] text-mist-500">浏览</div>
-                  </div>
-                </div>
+        {/* 加载状态 */}
+        {loading && (
+          <div className="flex items-center justify-center py-20 text-mist-400">
+            <Loader2 size={20} className="mr-2 animate-spin" /> 加载讨论中…
+          </div>
+        )}
 
-                {/* 主体 */}
-                <div className="min-w-0 flex-1">
-                  <div className="flex items-start justify-between gap-3">
-                    <h3 className="heading-display text-lg leading-snug text-parchment-50 transition-colors group-hover:text-star-200">
-                      {q.title}
-                    </h3>
-                    {q.bounty && (
-                      <span className="pill-gold shrink-0">
-                        <Star size={10} className="fill-star-400" /> 悬赏 {q.bounty}
-                      </span>
-                    )}
+        {/* 问题列表 */}
+        {!loading && (
+          <div className="space-y-3">
+            {filtered.map((q, i) => (
+              <motion.div
+                key={q.id}
+                initial={{ opacity: 0, y: 16 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true, margin: "-40px" }}
+                transition={{ duration: 0.4, delay: (i % 6) * 0.06 }}
+              >
+                <Link
+                  to={`/discussion/${q.id}`}
+                  className="group flex items-start gap-5 rounded-xl border border-void-600/40 bg-void-800/30 p-5 transition-all hover:border-star-400/30 hover:bg-void-700/30"
+                >
+                  {/* 投票/回答统计列 */}
+                  <div className="hidden flex-col items-center gap-3 border-r border-void-600/40 pr-5 text-center sm:flex">
+                    <div>
+                      <div className="heading-display text-lg text-tian-300">{q.answers}</div>
+                      <div className="text-[10px] text-mist-500">回答</div>
+                    </div>
+                    <div>
+                      <div className="text-sm text-mist-300">{q.votes}</div>
+                      <div className="text-[10px] text-mist-500">票数</div>
+                    </div>
+                    <div>
+                      <div className="text-sm text-mist-300">
+                        {q.views >= 1000 ? `${(q.views / 1000).toFixed(1)}k` : q.views}
+                      </div>
+                      <div className="text-[10px] text-mist-500">浏览</div>
+                    </div>
                   </div>
-                  <p className="mt-2 line-clamp-2 text-sm leading-relaxed text-mist-400">
-                    {q.excerpt}
-                  </p>
-                  <div className="mt-3 flex flex-wrap items-center gap-2">
-                    {q.tags.map((t) => (
-                      <span key={t} className="pill">
-                        {t}
-                      </span>
-                    ))}
+
+                  {/* 主体 */}
+                  <div className="min-w-0 flex-1">
+                    <div className="flex items-start justify-between gap-3">
+                      <h3 className="heading-display text-lg leading-snug text-parchment-50 transition-colors group-hover:text-star-200">
+                        {q.title}
+                      </h3>
+                      {q.bounty && (
+                        <span className="pill-gold shrink-0">
+                          <Star size={10} className="fill-star-400" /> 悬赏 {q.bounty}
+                        </span>
+                      )}
+                    </div>
+                    <p className="mt-2 line-clamp-2 text-sm leading-relaxed text-mist-400">
+                      {q.excerpt}
+                    </p>
+                    <div className="mt-3 flex flex-wrap items-center gap-2">
+                      {q.tags.map((t) => (
+                        <span key={t} className="pill">
+                          {t}
+                        </span>
+                      ))}
+                    </div>
+                    <div className="mt-3 flex items-center gap-3 text-xs text-mist-500">
+                      <Avatar name={q.author} color={q.avatarColor} size={20} />
+                      <span className="text-mist-300">{q.author}</span>
+                      <span>·</span>
+                      <span className="font-mono">{q.createdAt}</span>
+                    </div>
                   </div>
-                  <div className="mt-3 flex items-center gap-3 text-xs text-mist-500">
-                    <Avatar name={q.author} color={q.avatarColor} size={20} />
-                    <span className="text-mist-300">{q.author}</span>
-                    <span>·</span>
-                    <span className="font-mono">{q.createdAt}</span>
-                  </div>
-                </div>
-              </Link>
-            </motion.div>
-          ))}
-        </div>
+                </Link>
+              </motion.div>
+            ))}
+          </div>
+        )}
 
         {/* 移动端统计提示 */}
-        <div className="mt-6 flex items-center justify-center gap-6 text-xs text-mist-500 sm:hidden">
-          <span className="flex items-center gap-1">
-            <MessageCircle size={12} /> 回答数
-          </span>
-          <span className="flex items-center gap-1">
-            <ThumbsUp size={12} /> 票数
-          </span>
-          <span className="flex items-center gap-1">
-            <Eye size={12} /> 浏览
-          </span>
-        </div>
+        {!loading && (
+          <div className="mt-6 flex items-center justify-center gap-6 text-xs text-mist-500 sm:hidden">
+            <span className="flex items-center gap-1">
+              <MessageCircle size={12} /> 回答数
+            </span>
+            <span className="flex items-center gap-1">
+              <ThumbsUp size={12} /> 票数
+            </span>
+            <span className="flex items-center gap-1">
+              <Eye size={12} /> 浏览
+            </span>
+          </div>
+        )}
       </section>
+
+      <PostModal
+        open={postModalOpen}
+        onClose={() => setPostModalOpen(false)}
+        onCreated={handleNewPost}
+      />
     </>
   );
 }

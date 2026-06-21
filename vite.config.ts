@@ -8,6 +8,9 @@ export default defineConfig({
   build: {
     sourcemap: 'hidden',
   },
+  optimizeDeps: {
+    include: ['@cloudbase/js-sdk'],
+  },
   plugins: [
     react({
       babel: {

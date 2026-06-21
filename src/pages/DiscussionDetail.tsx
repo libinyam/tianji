@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Link, useParams } from "react-router-dom";
 import { motion } from "motion/react";
 import {
@@ -9,16 +9,98 @@ import {
   Eye,
   MessageCircle,
   CornerDownRight,
+  Loader2,
 } from "lucide-react";
-import { questions } from "@/data/questions";
+import { questions as mockQuestions } from "@/data/questions";
+import { fetchPostById, submitAnswer, incrementViews } from "@/lib/posts";
+import { useAuthStore } from "@/stores/auth";
 import MathText from "@/components/MathText";
 import Avatar from "@/components/Avatar";
+import type { Question } from "@/types";
 
 export default function DiscussionDetail() {
   const { id } = useParams();
-  const question = questions.find((q) => q.id === id);
+  const { user } = useAuthStore();
+
+  // 先从 Mock 中查找（同步，快速渲染）
+  const mockQuestion = mockQuestions.find((q) => q.id === id);
+
+  const [question, setQuestion] = useState<Question | null>(mockQuestion ?? null);
+  const [loading, setLoading] = useState(!mockQuestion);
   const [voted, setVoted] = useState<Record<string, boolean>>({});
 
+  // 回答框
+  const [answerText, setAnswerText] = useState("");
+  const [submitting, setSubmitting] = useState(false);
+  const [answerError, setAnswerError] = useState<string | null>(null);
+
+  // 如果 Mock 中没有，从数据库加载
+  useEffect(() => {
+    if (mockQuestion) {
+      setQuestion(mockQuestion);
+      setLoading(false);
+      return;
+    }
+    if (!id) return;
+
+    let mounted = true;
+    (async () => {
+      setLoading(true);
+      const post = await fetchPostById(id);
+      if (mounted) {
+        setQuestion(post);
+        setLoading(false);
+        if (post) {
+          // 增加浏览量（异步，不阻塞渲染）
+          incrementViews(id);
+        }
+      }
+    })();
+    return () => {
+      mounted = false;
+    };
+  }, [id, mockQuestion]);
+
+  const toggleVote = (aid: string) =>
+    setVoted((v) => ({ ...v, [aid]: !v[aid] }));
+
+  const handleSubmitAnswer = async () => {
+    if (!user) {
+      window.dispatchEvent(new CustomEvent("tianji:open-auth"));
+      return;
+    }
+    if (!answerText.trim() || !question) return;
+
+    setSubmitting(true);
+    setAnswerError(null);
+    try {
+      const answer = await submitAnswer(question.id, answerText.trim());
+      if (answer) {
+        // 更新本地状态
+        setQuestion({
+          ...question,
+          answerList: [...question.answerList, answer],
+          answers: question.answers + 1,
+        });
+        setAnswerText("");
+      }
+    } catch (err) {
+      setAnswerError((err as Error).message);
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  // 加载中
+  if (loading) {
+    return (
+      <div className="container-tj flex items-center justify-center py-40 text-mist-400">
+        <Loader2 size={20} className="mr-2 animate-spin" /> 加载讨论中…
+      </div>
+    );
+  }
+
+  // 未找到
   if (!question) {
     return (
       <div className="container-tj py-40 text-center">
@@ -29,9 +111,6 @@ export default function DiscussionDetail() {
       </div>
     );
   }
-
-  const toggleVote = (aid: string) =>
-    setVoted((v) => ({ ...v, [aid]: !v[aid] }));
 
   return (
     <div className="container-tj py-10">
@@ -171,11 +250,29 @@ export default function DiscussionDetail() {
               </p>
               <textarea
                 rows={5}
-                placeholder="撰写你的推导与解答…"
-                className="mt-3 w-full resize-none rounded-lg border border-void-600/50 bg-void-950/50 p-3 text-sm text-parchment-100 placeholder:text-mist-500 focus:border-star-400/50 focus:outline-none"
+                value={answerText}
+                onChange={(e) => setAnswerText(e.target.value)}
+                placeholder={user ? "撰写你的推导与解答…" : "请先登录后再回答…"}
+                disabled={!user}
+                className="mt-3 w-full resize-none rounded-lg border border-void-600/50 bg-void-950/50 p-3 text-sm text-parchment-100 placeholder:text-mist-500 focus:border-star-400/50 focus:outline-none disabled:opacity-50"
               />
+              {answerError && (
+                <p className="mt-2 text-xs text-red-300">{answerError}</p>
+              )}
               <div className="mt-3 flex justify-end">
-                <button className="btn-gold">提交回答</button>
+                <button
+                  onClick={handleSubmitAnswer}
+                  disabled={submitting || !answerText.trim()}
+                  className="btn-gold disabled:cursor-not-allowed disabled:opacity-60"
+                >
+                  {submitting ? (
+                    <>
+                      <Loader2 size={14} className="animate-spin" /> 提交中…
+                    </>
+                  ) : (
+                    "提交回答"
+                  )}
+                </button>
               </div>
             </div>
           </div>
