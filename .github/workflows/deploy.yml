@@ -15,7 +15,7 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: 20
+          node-version: 22
           cache: npm
 
       - name: Install dependencies
@@ -29,9 +29,8 @@ jobs:
 
       - name: Deploy to CloudBase
         env:
-          TCB_SECRET_ID: ${{ secrets.TCB_SECRET_ID }}
-          TCB_SECRET_KEY: ${{ secrets.TCB_SECRET_KEY }}
+          TENCENTCLOUD_SECRETID: ${{ secrets.TCB_SECRET_ID }}
+          TENCENTCLOUD_SECRETKEY: ${{ secrets.TCB_SECRET_KEY }}
           TCB_ENV_ID: ${{ secrets.TCB_ENV_ID }}
         run: |
-          tcb login --secretId "$TCB_SECRET_ID" --secretKey "$TCB_SECRET_KEY"
           tcb hosting deploy ./dist --envId "$TCB_ENV_ID" --force
