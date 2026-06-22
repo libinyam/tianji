@@ -33,4 +33,4 @@ jobs:
           TENCENTCLOUD_SECRETKEY: ${{ secrets.TCB_SECRET_KEY }}
           TCB_ENV_ID: ${{ secrets.TCB_ENV_ID }}
         run: |
-          tcb hosting deploy ./dist --envId "$TCB_ENV_ID" --force
+          tcb hosting deploy ./dist --envId "$TCB_ENV_ID"
