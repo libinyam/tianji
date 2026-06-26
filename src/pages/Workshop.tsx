@@ -1,12 +1,51 @@
-import { Plus, PenLine, Users, Sparkles } from "lucide-react";
+import { useState, useEffect } from "react";
+import { Link } from "react-router-dom";
+import { motion } from "motion/react";
+import { Plus, PenLine, Users, Sparkles, BookOpen, FileText, Lock, Loader2 } from "lucide-react";
 import PageHero from "@/components/PageHero";
-import DocCard from "@/components/DocCard";
 import EditorPreview from "@/components/EditorPreview";
-import { docs } from "@/data/docs";
+import WorkshopCreateModal from "@/components/WorkshopCreateModal";
+import { fetchWorkshops, canViewContent, type WorkshopProject } from "@/lib/workshops";
+import { useAuthStore } from "@/stores/auth";
+import { docs as mockDocs } from "@/data/docs";
 import { contributors } from "@/data/community";
 
 export default function Workshop() {
-  const totalContributors = new Set(docs.flatMap((d) => d.contributors)).size;
+  const [createOpen, setCreateOpen] = useState(false);
+  const [realProjects, setRealProjects] = useState<WorkshopProject[]>([]);
+  const [loading, setLoading] = useState(true);
+  const { user } = useAuthStore();
+
+  useEffect(() => {
+    let mounted = true;
+    (async () => {
+      setLoading(true);
+      const projects = await fetchWorkshops();
+      if (mounted) {
+        setRealProjects(projects);
+        setLoading(false);
+      }
+    })();
+    return () => {
+      mounted = false;
+    };
+  }, []);
+
+  const handleCreateClick = () => {
+    if (!user) {
+      window.dispatchEvent(new CustomEvent("tianji:open-auth"));
+      return;
+    }
+    setCreateOpen(true);
+  };
+
+  const handleNewProject = (project: WorkshopProject) => {
+    setRealProjects((prev) => [project, ...prev]);
+  };
+
+  const totalContributors = new Set(
+    [...realProjects.flatMap((p) => p.participants.map((uid) => uid))].join(",")
+  ).size;
 
   return (
     <>
@@ -17,18 +56,18 @@ export default function Workshop() {
             多人共创，把知识打磨成<span className="text-star-400">作品集</span>
           </>
         }
-        subtitle="多人协作的项目与文档创作空间。实时协同编辑、行内批注、版本追踪——把分散的学习与想法，编织成完整的教材、教程与作品集。"
+        subtitle="多人协作的项目与文档创作空间。发起大纲、邀请贡献者、共同书写教材与论文——把分散的学习与想法，编织成完整的作品。"
       >
         <div className="flex flex-wrap items-center gap-4 text-sm text-mist-400">
           <span className="flex items-center gap-1.5">
-            <PenLine size={14} className="text-star-400" /> {docs.length} 部共创中
+            <PenLine size={14} className="text-star-400" /> {realProjects.length + mockDocs.length} 部共创中
           </span>
           <span className="text-void-600">|</span>
           <span className="flex items-center gap-1.5">
-            <Users size={14} className="text-star-400" /> {totalContributors} 位协作者
+            <Users size={14} className="text-star-400" /> {totalContributors || contributors.length} 位协作者
           </span>
-          <button className="btn-gold ml-2">
-            <Plus size={15} /> 新建文档
+          <button onClick={handleCreateClick} className="btn-gold ml-2">
+            <Plus size={15} /> 新建项目
           </button>
         </div>
       </PageHero>
@@ -57,25 +96,134 @@ export default function Workshop() {
         <EditorPreview />
       </section>
 
-      {/* 文档列表 */}
+      {/* 真实项目列表 */}
       <section className="container-tj py-14">
         <div className="mb-8 flex items-end justify-between gap-4">
           <div>
             <div className="mb-3 flex items-center gap-2">
               <span className="h-px w-8 bg-gradient-to-r from-transparent to-star-400" />
               <span className="font-mono text-xs uppercase tracking-[0.25em] text-star-300">
-                协作文档 · 全部
+                协作项目 · 进行中
               </span>
             </div>
             <h2 className="heading-display text-2xl text-parchment-50 sm:text-3xl">
-              进行中的共创作品
+              {loading ? "加载中…" : "共创作品"}
             </h2>
           </div>
         </div>
 
+        {loading && (
+          <div className="flex items-center justify-center py-20 text-mist-400">
+            <Loader2 size={20} className="mr-2 animate-spin" /> 加载项目中…
+          </div>
+        )}
+
+        {!loading && realProjects.length > 0 && (
+          <div className="mb-10 grid gap-5 md:grid-cols-2 xl:grid-cols-3">
+            {realProjects.map((p, i) => {
+              const canView = canViewContent(p);
+              return (
+                <motion.div
+                  key={p.id}
+                  initial={{ opacity: 0, y: 22 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  viewport={{ once: true, margin: "-50px" }}
+                  transition={{ duration: 0.45, delay: (i % 3) * 0.08 }}
+                >
+                  <Link
+                    to={`/workshop/${p.id}`}
+                    className="group flex h-full flex-col rounded-xl border border-void-600/50 bg-void-800/40 p-6 transition-all duration-300 hover:-translate-y-1 hover:border-star-400/40 hover:shadow-card"
+                  >
+                    <div className="mb-3 flex items-center justify-between">
+                      <span
+                        className={`flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-xs ${
+                          p.type === "教材"
+                            ? "border-star-400/40 bg-star-400/10 text-star-300"
+                            : "border-tian-400/40 bg-tian-400/10 text-tian-200"
+                        }`}
+                      >
+                        {p.type === "教材" ? <BookOpen size={11} /> : <FileText size={11} />}
+                        {p.type}
+                      </span>
+                      <span className="text-[11px] text-mist-500">{p.status}</span>
+                    </div>
+
+                    <h3 className="heading-display text-lg leading-snug text-parchment-50 transition-colors group-hover:text-star-200">
+                      {p.title}
+                    </h3>
+                    <p className="mt-2 line-clamp-2 flex-1 text-sm leading-relaxed text-mist-300">
+                      {p.description}
+                    </p>
+
+                    {!canView && (
+                      <div className="mt-3 flex items-center gap-1.5 rounded-lg border border-tian-400/20 bg-tian-400/5 px-3 py-2 text-xs text-tian-200">
+                        <Lock size={11} /> 加入后查看内容
+                      </div>
+                    )}
+
+                    {canView && (
+                      <div className="mt-3 text-xs text-mist-500">
+                        {p.outline.length} 章大纲 · {p.contributions.length} 份贡献
+                      </div>
+                    )}
+
+                    <div className="mt-4 flex items-center justify-between border-t border-void-600/30 pt-3 text-xs text-mist-400">
+                      <div className="flex items-center gap-2">
+                        <span
+                          className="flex h-6 w-6 items-center justify-center rounded-full text-[10px] font-medium text-void-900"
+                          style={{ background: p.avatarColor }}
+                        >
+                          {p.creator.charAt(0)}
+                        </span>
+                        <span className="text-mist-300">{p.creator}</span>
+                      </div>
+                      <span className="flex items-center gap-1">
+                        <Users size={11} /> {p.participants.length}
+                      </span>
+                    </div>
+                  </Link>
+                </motion.div>
+              );
+            })}
+          </div>
+        )}
+
+        {/* Mock 项目 */}
         <div className="grid gap-5 md:grid-cols-2 xl:grid-cols-3">
-          {docs.map((d, i) => (
-            <DocCard key={d.id} doc={d} index={i} />
+          {mockDocs.map((d) => (
+            <div key={d.id} className="opacity-70">
+              <div className="flex h-full flex-col rounded-xl border border-void-600/30 bg-void-800/20 p-6">
+                <div className="mb-3 flex items-center justify-between">
+                  <span className="rounded-full border border-void-600/40 px-2.5 py-1 text-xs text-mist-400">
+                    {d.type}
+                  </span>
+                  <span className="text-[11px] text-mist-500">精选</span>
+                </div>
+                <h3 className="heading-display text-lg leading-snug text-parchment-50">
+                  {d.title}
+                </h3>
+                <p className="mt-2 line-clamp-2 flex-1 text-sm leading-relaxed text-mist-300">
+                  {d.description}
+                </p>
+                <div className="mt-3 text-xs text-mist-500">
+                  {d.chapters} 章 · {d.contributors.length} 位贡献者
+                </div>
+                <div className="mt-4 flex items-center gap-2 border-t border-void-600/30 pt-3">
+                  {d.contributorColors.slice(0, 4).map((c, ci) => (
+                    <span
+                      key={ci}
+                      className="flex h-6 w-6 items-center justify-center rounded-full text-[10px] font-medium text-void-900"
+                      style={{ background: c }}
+                    >
+                      {d.contributors[ci]?.charAt(0) ?? "?"}
+                    </span>
+                  ))}
+                  {d.contributors.length > 4 && (
+                    <span className="text-xs text-mist-500">+{d.contributors.length - 4}</span>
+                  )}
+                </div>
+              </div>
+            </div>
           ))}
         </div>
       </section>
@@ -129,6 +277,12 @@ export default function Workshop() {
           </div>
         </div>
       </section>
+
+      <WorkshopCreateModal
+        open={createOpen}
+        onClose={() => setCreateOpen(false)}
+        onCreated={handleNewProject}
+      />
     </>
   );
 }

@@ -6,6 +6,7 @@ export interface TianjiUser {
   email: string | null;
   username: string | null;
   nickname: string | null;
+  avatarUrl: string | null;
 }
 
 type SignUpResult = "otp-sent" | "signed-in";
@@ -32,6 +33,8 @@ interface AuthState {
   signInWithGitHub: () => Promise<void>;
   /** 退出登录 */
   signOut: () => Promise<void>;
+  /** 更新用户资料（昵称、头像） */
+  updateProfile: (data: { nickname?: string; avatarUrl?: string }) => Promise<boolean>;
   clearPendingSignUp: () => void;
   clearError: () => void;
 }
@@ -48,6 +51,7 @@ function extractUser(session: unknown): TianjiUser | null {
     email: (user.email as string) ?? null,
     username: (meta.username as string) ?? null,
     nickname: (meta.nickname as string) ?? (meta.nickName as string) ?? null,
+    avatarUrl: (meta.avatarUrl as string) ?? (meta.avatar_url as string) ?? null,
   };
 }
 
@@ -174,6 +178,34 @@ export const useAuthStore = create<AuthState>((set) => ({
         pendingSignUpEmail: null,
         pendingSignUpVerifier: null,
       });
+    }
+  },
+
+  updateProfile: async (data) => {
+    set({ loading: true, error: null });
+    try {
+      const params: Record<string, string> = {};
+      if (data.nickname !== undefined) params.nickname = data.nickname;
+      if (data.avatarUrl !== undefined) params.avatar_url = data.avatarUrl;
+
+      await auth.updateUser(params);
+
+      // 直接用本地状态更新，不重新 getSession（updateUser 后 token 可能正在刷新，
+      // 重新获取会话可能返回空导致用户状态丢失）
+      set((state) => ({
+        user: state.user
+          ? {
+              ...state.user,
+              nickname: data.nickname ?? state.user.nickname,
+              avatarUrl: data.avatarUrl ?? state.user.avatarUrl,
+            }
+          : state.user,
+        loading: false,
+      }));
+      return true;
+    } catch (e) {
+      set({ error: (e as Error).message, loading: false });
+      return false;
     }
   },
 

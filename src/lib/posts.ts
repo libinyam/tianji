@@ -1,5 +1,5 @@
 import { app } from "@/lib/cloudbase";
-import type { Question, Answer } from "@/types";
+import type { Question, Answer, Comment } from "@/types";
 
 const db = app.database();
 const POSTS_COLLECTION = "posts";
@@ -182,4 +182,46 @@ export async function submitAnswer(
   });
 
   return answer;
+}
+
+/** 对某个回答添加评论/回复 */
+export async function submitComment(
+  postId: string,
+  answerId: string,
+  content: string,
+  replyTo?: string
+): Promise<Comment | null> {
+  const uid = getCurrentUid();
+  if (!uid) throw new Error("请先登录");
+
+  const docRef = db.collection(POSTS_COLLECTION).doc(postId);
+  const { data } = await docRef.get();
+  if (!data || data.length === 0) return null;
+
+  const post = data[0] as PostDoc;
+  const answerList = post.answerList ?? [];
+  const answerIndex = answerList.findIndex((a) => a.id === answerId);
+  if (answerIndex === -1) return null;
+
+  const comment: Comment = {
+    id: `c_${Date.now()}`,
+    author: getCurrentUserName(),
+    avatarColor: AVATAR_COLORS[Math.floor(Math.random() * AVATAR_COLORS.length)],
+    content,
+    date: new Date().toISOString().slice(0, 10),
+    replyTo,
+  };
+
+  const targetAnswer = answerList[answerIndex];
+  const updatedAnswer: Answer = {
+    ...targetAnswer,
+    comments: [...(targetAnswer.comments ?? []), comment],
+  };
+
+  const newAnswerList = [...answerList];
+  newAnswerList[answerIndex] = updatedAnswer;
+
+  await docRef.update({ answerList: newAnswerList });
+
+  return comment;
 }

@@ -12,11 +12,11 @@ import {
   Loader2,
 } from "lucide-react";
 import { questions as mockQuestions } from "@/data/questions";
-import { fetchPostById, submitAnswer, incrementViews } from "@/lib/posts";
+import { fetchPostById, submitAnswer, submitComment, incrementViews } from "@/lib/posts";
 import { useAuthStore } from "@/stores/auth";
 import MathText from "@/components/MathText";
 import Avatar from "@/components/Avatar";
-import type { Question } from "@/types";
+import type { Question, Comment } from "@/types";
 
 export default function DiscussionDetail() {
   const { id } = useParams();
@@ -33,6 +33,12 @@ export default function DiscussionDetail() {
   const [answerText, setAnswerText] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [answerError, setAnswerError] = useState<string | null>(null);
+
+  // 评论框：记录哪个回答正在输入评论，以及回复目标
+  const [commentingAnswerId, setCommentingAnswerId] = useState<string | null>(null);
+  const [commentText, setCommentText] = useState("");
+  const [replyTarget, setReplyTarget] = useState<{ answerId: string; commentId: string; author: string } | null>(null);
+  const [commentSubmitting, setCommentSubmitting] = useState(false);
 
   // 如果 Mock 中没有，从数据库加载
   useEffect(() => {
@@ -88,6 +94,61 @@ export default function DiscussionDetail() {
       setAnswerError((err as Error).message);
     } finally {
       setSubmitting(false);
+    }
+  };
+
+  // 打开/关闭评论框
+  const openComment = (answerId: string) => {
+    if (!user) {
+      window.dispatchEvent(new CustomEvent("tianji:open-auth"));
+      return;
+    }
+    setCommentingAnswerId(commentingAnswerId === answerId ? null : answerId);
+    setCommentText("");
+    setReplyTarget(null);
+  };
+
+  // 回复某条评论
+  const openReply = (answerId: string, comment: Comment) => {
+    if (!user) {
+      window.dispatchEvent(new CustomEvent("tianji:open-auth"));
+      return;
+    }
+    setCommentingAnswerId(answerId);
+    setReplyTarget({ answerId, commentId: comment.id, author: comment.author });
+    setCommentText(`@${comment.author} `);
+  };
+
+  // 提交评论
+  const handleSubmitComment = async (answerId: string) => {
+    if (!question) return;
+    if (!commentText.trim()) return;
+
+    setCommentSubmitting(true);
+    try {
+      const comment = await submitComment(
+        question.id,
+        answerId,
+        commentText.trim(),
+        replyTarget?.commentId
+      );
+      if (comment) {
+        // 更新本地状态
+        const newAnswerList = question.answerList.map((a) => {
+          if (a.id === answerId) {
+            return { ...a, comments: [...(a.comments ?? []), comment] };
+          }
+          return a;
+        });
+        setQuestion({ ...question, answerList: newAnswerList });
+        setCommentText("");
+        setReplyTarget(null);
+        setCommentingAnswerId(null);
+      }
+    } catch {
+      // 静默处理
+    } finally {
+      setCommentSubmitting(false);
     }
   };
 
@@ -224,9 +285,94 @@ export default function DiscussionDetail() {
                         content={a.content}
                         className="text-sm leading-relaxed text-mist-200"
                       />
+
+                      {/* 评论列表 */}
+                      {a.comments && a.comments.length > 0 && (
+                        <div className="mt-4 space-y-2 border-l-2 border-void-600/40 pl-4">
+                          {a.comments.map((c) => {
+                            const repliedComment = c.replyTo
+                              ? a.comments?.find((rc) => rc.id === c.replyTo)
+                              : null;
+                            return (
+                              <div
+                                key={c.id}
+                                onClick={() => openReply(a.id, c)}
+                                className="cursor-pointer rounded-lg bg-void-900/40 p-3 transition-colors hover:bg-void-900/60"
+                              >
+                                <div className="mb-1 flex items-center gap-2 text-xs text-mist-500">
+                                  <Avatar name={c.author} color={c.avatarColor} size={18} />
+                                  <span className="text-mist-300">{c.author}</span>
+                                  {repliedComment && (
+                                    <span className="text-tian-300">
+                                      回复 @{repliedComment.author}
+                                    </span>
+                                  )}
+                                  <span>·</span>
+                                  <span className="font-mono">{c.date}</span>
+                                </div>
+                                <p className="text-sm text-mist-200">{c.content}</p>
+                              </div>
+                            );
+                          })}
+                        </div>
+                      )}
+
+                      {/* 评论输入框 */}
+                      {commentingAnswerId === a.id && (
+                        <div className="mt-3 rounded-lg border border-void-600/40 bg-void-900/40 p-3">
+                          {replyTarget && (
+                            <div className="mb-2 flex items-center gap-1 text-xs text-tian-300">
+                              <CornerDownRight size={11} />
+                              回复 @{replyTarget.author}
+                              <button
+                                onClick={() => {
+                                  setReplyTarget(null);
+                                  setCommentText("");
+                                }}
+                                className="ml-1 text-mist-500 hover:text-red-300"
+                              >
+                                ✕
+                              </button>
+                            </div>
+                          )}
+                          <textarea
+                            rows={2}
+                            value={commentText}
+                            onChange={(e) => setCommentText(e.target.value)}
+                            placeholder="写下你的评论…"
+                            className="w-full resize-none rounded-md border border-void-600/50 bg-void-950/50 p-2.5 text-sm text-parchment-100 placeholder:text-mist-500 focus:border-star-400/50 focus:outline-none"
+                          />
+                          <div className="mt-2 flex justify-end gap-2">
+                            <button
+                              onClick={() => {
+                                setCommentingAnswerId(null);
+                                setCommentText("");
+                                setReplyTarget(null);
+                              }}
+                              className="btn-ghost text-xs"
+                            >
+                              取消
+                            </button>
+                            <button
+                              onClick={() => handleSubmitComment(a.id)}
+                              disabled={commentSubmitting || !commentText.trim()}
+                              className="btn-gold text-xs disabled:opacity-60"
+                            >
+                              {commentSubmitting ? "提交中…" : "发送"}
+                            </button>
+                          </div>
+                        </div>
+                      )}
+
                       <div className="mt-4 flex items-center justify-between">
-                        <button className="inline-flex items-center gap-1 text-xs text-mist-500 transition-colors hover:text-tian-200">
-                          <CornerDownRight size={12} /> 添加评论
+                        <button
+                          onClick={() => openComment(a.id)}
+                          className="inline-flex items-center gap-1 text-xs text-mist-500 transition-colors hover:text-tian-200"
+                        >
+                          <CornerDownRight size={12} />
+                          {a.comments && a.comments.length > 0
+                            ? `${a.comments.length} 条评论 · 添加评论`
+                            : "添加评论"}
                         </button>
                         <div className="flex items-center gap-2 text-xs text-mist-500">
                           <Avatar name={a.author} color={a.avatarColor} size={22} />

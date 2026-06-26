@@ -1,7 +1,8 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Link, NavLink } from "react-router-dom";
-import { Menu, X, Sparkles, LogOut, User as UserIcon } from "lucide-react";
+import { Menu, X, Sparkles, LogOut, User as UserIcon, Search } from "lucide-react";
 import { useAuthStore } from "@/stores/auth";
+import SearchModal from "./SearchModal";
 
 const NAV = [
   { to: "/", label: "首页", end: true },
@@ -17,7 +18,20 @@ interface NavbarProps {
 
 export default function Navbar({ onLoginClick }: NavbarProps) {
   const [open, setOpen] = useState(false);
+  const [searchOpen, setSearchOpen] = useState(false);
   const { user, signOut } = useAuthStore();
+
+  // 全局快捷键 Cmd/Ctrl + K 打开搜索
+  useEffect(() => {
+    const handler = (e: KeyboardEvent) => {
+      if ((e.metaKey || e.ctrlKey) && e.key === "k") {
+        e.preventDefault();
+        setSearchOpen(true);
+      }
+    };
+    window.addEventListener("keydown", handler);
+    return () => window.removeEventListener("keydown", handler);
+  }, []);
 
   const linkClass = ({ isActive }: { isActive: boolean }) =>
     `relative text-sm transition-colors ${
@@ -65,14 +79,31 @@ export default function Navbar({ onLoginClick }: NavbarProps) {
         </div>
 
         <div className="hidden items-center gap-3 lg:flex">
+          {/* 搜索按钮 */}
+          <button
+            onClick={() => setSearchOpen(true)}
+            className="flex items-center gap-2 rounded-lg border border-void-600/50 bg-void-800/40 px-3 py-1.5 text-xs text-mist-500 transition-colors hover:border-star-400/40 hover:text-mist-300"
+            title="搜索 (Ctrl+K)"
+          >
+            <Search size={14} />
+            <span className="hidden xl:inline">搜索…</span>
+            <kbd className="hidden rounded border border-void-600 px-1 font-mono text-[9px] xl:inline">
+              ⌘K
+            </kbd>
+          </button>
+
           {user ? (
             <div className="flex items-center gap-3">
-              <span className="flex items-center gap-2 rounded-lg border border-void-600/50 bg-void-800/40 px-3 py-1.5">
+              <Link
+                to="/profile"
+                className="flex items-center gap-2 rounded-lg border border-void-600/50 bg-void-800/40 px-3 py-1.5 transition-colors hover:border-star-400/40"
+                title="个人主页"
+              >
                 <UserIcon size={14} className="text-star-400" />
                 <span className="max-w-[140px] truncate text-xs text-parchment-100">
                   {displayName}
                 </span>
-              </span>
+              </Link>
               <button
                 onClick={handleSignOut}
                 className="flex items-center gap-1.5 text-xs text-mist-400 transition-colors hover:text-red-300"
@@ -96,14 +127,23 @@ export default function Navbar({ onLoginClick }: NavbarProps) {
           )}
         </div>
 
-        {/* Mobile toggle */}
-        <button
-          className="flex h-10 w-10 items-center justify-center rounded-lg border border-void-600/60 text-mist-300 lg:hidden"
-          onClick={() => setOpen((v) => !v)}
-          aria-label="切换菜单"
-        >
-          {open ? <X size={18} /> : <Menu size={18} />}
-        </button>
+        {/* Mobile: search + menu toggle */}
+        <div className="flex items-center gap-2 lg:hidden">
+          <button
+            onClick={() => setSearchOpen(true)}
+            className="flex h-10 w-10 items-center justify-center rounded-lg border border-void-600/60 text-mist-300"
+            aria-label="搜索"
+          >
+            <Search size={18} />
+          </button>
+          <button
+            className="flex h-10 w-10 items-center justify-center rounded-lg border border-void-600/60 text-mist-300"
+            onClick={() => setOpen((v) => !v)}
+            aria-label="切换菜单"
+          >
+            {open ? <X size={18} /> : <Menu size={18} />}
+          </button>
+        </div>
       </nav>
 
       {/* Mobile drawer */}
@@ -129,6 +169,22 @@ export default function Navbar({ onLoginClick }: NavbarProps) {
             ))}
             {user ? (
               <>
+                <NavLink
+                  to="/profile"
+                  end
+                  onClick={() => setOpen(false)}
+                  className={({ isActive }) =>
+                    `rounded-lg px-3 py-2.5 text-sm transition-colors ${
+                      isActive
+                        ? "bg-star-400/10 text-star-200"
+                        : "text-mist-300 hover:bg-void-800/60"
+                    }`
+                  }
+                >
+                  <span className="flex items-center gap-2">
+                    <UserIcon size={14} /> 个人主页
+                  </span>
+                </NavLink>
                 <div className="mt-3 flex items-center gap-2 rounded-lg border border-void-600/50 bg-void-800/40 px-3 py-2.5">
                   <UserIcon size={14} className="text-star-400" />
                   <span className="truncate text-sm text-parchment-100">{displayName}</span>
@@ -154,6 +210,8 @@ export default function Navbar({ onLoginClick }: NavbarProps) {
           </div>
         </div>
       )}
+      
+      <SearchModal open={searchOpen} onClose={() => setSearchOpen(false)} />
     </header>
   );
 }

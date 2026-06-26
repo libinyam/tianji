@@ -26,6 +26,15 @@ export interface Book {
   reviews: Review[];
 }
 
+export interface Comment {
+  id: string;
+  author: string;
+  avatarColor: string;
+  content: string;
+  date: string;
+  replyTo?: string; // 回复的评论 id（可选，用于嵌套回复）
+}
+
 export interface Answer {
   id: string;
   author: string;
@@ -34,6 +43,7 @@ export interface Answer {
   accepted: boolean;
   content: string;
   date: string;
+  comments?: Comment[];
 }
 
 export interface Question {

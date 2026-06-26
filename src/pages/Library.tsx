@@ -1,9 +1,12 @@
-import { useMemo, useState } from "react";
-import { Search, SlidersHorizontal, BookOpen } from "lucide-react";
+import { useMemo, useState, useEffect } from "react";
+import { Search, SlidersHorizontal, BookOpen, Plus, Loader2 } from "lucide-react";
 import PageHero from "@/components/PageHero";
 import BookCard from "@/components/BookCard";
-import { books } from "@/data/books";
-import type { BookCategory } from "@/types";
+import BookUploadModal from "@/components/BookUploadModal";
+import { books as mockBooks } from "@/data/books";
+import { fetchBooks } from "@/lib/books";
+import { useAuthStore } from "@/stores/auth";
+import type { Book, BookCategory } from "@/types";
 
 const CATEGORIES: ("全部" | BookCategory)[] = [
   "全部",
@@ -21,9 +24,35 @@ export default function Library() {
   const [query, setQuery] = useState("");
   const [category, setCategory] = useState<"全部" | BookCategory>("全部");
   const [sort, setSort] = useState<SortKey>("热度");
+  const [uploadOpen, setUploadOpen] = useState(false);
+  const [realBooks, setRealBooks] = useState<Book[]>([]);
+  const [loading, setLoading] = useState(true);
+  const { user } = useAuthStore();
+
+  // 加载真实书籍
+  useEffect(() => {
+    let mounted = true;
+    (async () => {
+      setLoading(true);
+      const books = await fetchBooks();
+      if (mounted) {
+        setRealBooks(books);
+        setLoading(false);
+      }
+    })();
+    return () => {
+      mounted = false;
+    };
+  }, []);
+
+  // 真实书籍在前，Mock 在后
+  const allBooks = useMemo(() => {
+    const mockIds = new Set(realBooks.map((b) => b.id));
+    return [...realBooks, ...mockBooks.filter((b) => !mockIds.has(b.id))];
+  }, [realBooks]);
 
   const filtered = useMemo(() => {
-    let list = books.filter((b) => {
+    let list = allBooks.filter((b) => {
       const matchCat = category === "全部" || b.category === category;
       const q = query.trim().toLowerCase();
       const matchQ =
@@ -39,7 +68,19 @@ export default function Library() {
       return b.difficulty - a.difficulty;
     });
     return list;
-  }, [query, category, sort]);
+  }, [allBooks, query, category, sort]);
+
+  const handleUploadClick = () => {
+    if (!user) {
+      window.dispatchEvent(new CustomEvent("tianji:open-auth"));
+      return;
+    }
+    setUploadOpen(true);
+  };
+
+  const handleNewBook = (book: Book) => {
+    setRealBooks((prev) => [book, ...prev]);
+  };
 
   return (
     <>
@@ -54,10 +95,15 @@ export default function Library() {
       >
         <div className="flex items-center gap-4 text-sm text-mist-400">
           <span className="flex items-center gap-1.5">
-            <BookOpen size={14} className="text-star-400" /> {books.length} 份精选资源
+            <BookOpen size={14} className="text-star-400" /> {allBooks.length} 份精选资源
           </span>
           <span className="text-void-600">|</span>
-          <span>覆盖理论、工具、项目与编程基础，匹配你的学习起点</span>
+          <button
+            onClick={handleUploadClick}
+            className="btn-gold inline-flex"
+          >
+            <Plus size={14} /> 上传资源
+          </button>
         </div>
       </PageHero>
 
@@ -98,6 +144,11 @@ export default function Library() {
         <div className="mb-6 flex items-center justify-between">
           <p className="text-sm text-mist-400">
             共 <span className="text-star-300">{filtered.length}</span> 部书目
+            {loading && (
+              <span className="ml-2 inline-flex items-center gap-1 text-xs">
+                <Loader2 size={12} className="animate-spin" /> 加载中…
+              </span>
+            )}
           </p>
           <div className="flex items-center gap-2">
             <SlidersHorizontal size={14} className="text-mist-500" />
@@ -117,18 +168,26 @@ export default function Library() {
         </div>
 
         {/* 书卡网格 */}
-        {filtered.length > 0 ? (
+        {!loading && filtered.length > 0 && (
           <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
             {filtered.map((b, i) => (
               <BookCard key={b.id} book={b} index={i} />
             ))}
           </div>
-        ) : (
+        )}
+
+        {!loading && filtered.length === 0 && (
           <div className="rounded-xl border border-dashed border-void-600/50 py-20 text-center text-mist-400">
             未找到匹配的书目，试试其他关键词。
           </div>
         )}
       </section>
+
+      <BookUploadModal
+        open={uploadOpen}
+        onClose={() => setUploadOpen(false)}
+        onCreated={handleNewBook}
+      />
     </>
   );
 }
