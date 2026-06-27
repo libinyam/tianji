@@ -7,13 +7,16 @@ import Avatar from "@/components/Avatar";
 import PostModal from "@/components/PostModal";
 import { questions as mockQuestions } from "@/data/questions";
 import { fetchPosts } from "@/lib/posts";
+import { PRESET_TAGS } from "@/lib/tags";
 import { useAuthStore } from "@/stores/auth";
 import type { Question } from "@/types";
 
 type SortKey = "最新" | "热度" | "悬赏";
+type CategoryFilter = "全部" | "学科" | "工具与部署";
 
 export default function Discussion() {
   const [activeTag, setActiveTag] = useState<string>("全部");
+  const [categoryFilter, setCategoryFilter] = useState<CategoryFilter>("全部");
   const [sort, setSort] = useState<SortKey>("热度");
   const [postModalOpen, setPostModalOpen] = useState(false);
   const [realPosts, setRealPosts] = useState<Question[]>([]);
@@ -48,16 +51,21 @@ export default function Discussion() {
   );
 
   const filtered = useMemo(() => {
-    let list = allQuestions.filter(
-      (q) => activeTag === "全部" || q.tags.includes(activeTag)
-    );
+    let list = allQuestions.filter((q) => {
+      // 一级分类筛选
+      if (categoryFilter === "学科" && !q.tags.some((t) => PRESET_TAGS.subject.includes(t))) return false;
+      if (categoryFilter === "工具与部署" && !q.tags.some((t) => PRESET_TAGS.tool.includes(t))) return false;
+      // 二级标签筛选
+      if (activeTag !== "全部" && !q.tags.includes(activeTag)) return false;
+      return true;
+    });
     list = [...list].sort((a, b) => {
       if (sort === "热度") return b.views - a.views;
       if (sort === "悬赏") return (b.bounty ?? 0) - (a.bounty ?? 0);
       return b.createdAt < a.createdAt ? 1 : -1;
     });
     return list;
-  }, [allQuestions, activeTag, sort]);
+  }, [allQuestions, activeTag, categoryFilter, sort]);
 
   const handleNewPost = (post: Question) => {
     setRealPosts((prev) => [post, ...prev]);
@@ -89,7 +97,27 @@ export default function Discussion() {
       </PageHero>
 
       <section className="container-tj py-12">
-        {/* 筛选标签栏 */}
+        {/* 一级分类筛选 */}
+        <div className="mb-4 flex items-center gap-2">
+          {(["全部", "学科", "工具与部署"] as CategoryFilter[]).map((c) => (
+            <button
+              key={c}
+              onClick={() => {
+                setCategoryFilter(c);
+                setActiveTag("全部");
+              }}
+              className={`rounded-lg border px-4 py-2 text-xs font-medium transition-all ${
+                categoryFilter === c
+                  ? "border-star-400/60 bg-star-400/15 text-star-200"
+                  : "border-void-600/50 bg-void-800/40 text-mist-400 hover:border-mist-400/40 hover:text-mist-200"
+              }`}
+            >
+              {c}
+            </button>
+          ))}
+        </div>
+
+        {/* 二级标签筛选 */}
         <div className="mb-8 flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
           <div className="flex flex-wrap items-center gap-2">
             <button

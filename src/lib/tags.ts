@@ -2,10 +2,12 @@ import { app } from "@/lib/cloudbase";
 
 const db = app.database();
 
+export type TagCategory = "subject" | "tool";
+
 export interface TagInfo {
   name: string;
   count: number;
-  category?: string;
+  category?: TagCategory;
 }
 
 export interface TagContentItem {
@@ -16,6 +18,32 @@ export interface TagContentItem {
   author: string;
   createdAt: string;
   link: string;
+}
+
+/** 预设两级标签 */
+export const PRESET_TAGS: Record<TagCategory, string[]> = {
+  subject: [
+    "数学", "人工智能", "物理", "哲学", "金融", "计算机",
+    "文学", "历史", "化学", "生物", "经济学", "统计学",
+  ],
+  tool: [
+    "Codex", "Trae", "CloudBase", "GitHub Actions",
+    "网站部署", "报错排查", "环境变量", "API 调用",
+    "数据库", "身份认证", "前端框架", "Vercel",
+  ],
+};
+
+export const CATEGORY_LABEL: Record<TagCategory, string> = {
+  subject: "学科",
+  tool: "工具与部署",
+};
+
+/** 根据标签名推断分类 */
+export function inferCategory(name: string): TagCategory {
+  if (PRESET_TAGS.tool.includes(name)) return "tool";
+  if (PRESET_TAGS.subject.includes(name)) return "subject";
+  // 默认归为学科
+  return "subject";
 }
 
 /** 获取热门标签（按使用次数降序） */
@@ -61,6 +89,7 @@ export async function ensureTags(names: string[]): Promise<void> {
   for (const name of names) {
     const trimmed = name.trim();
     if (!trimmed) continue;
+    const category = inferCategory(trimmed);
     try {
       const { data } = await db.collection("tags").where({ name: trimmed }).get();
       if (data && data.length > 0) {
@@ -75,6 +104,7 @@ export async function ensureTags(names: string[]): Promise<void> {
         await db.collection("tags").add({
           name: trimmed,
           count: 1,
+          category,
           createdAt: new Date().toISOString(),
         });
       }

@@ -1,17 +1,12 @@
 import { useState, useEffect, useRef } from "react";
-import { X, Loader2, Tag } from "lucide-react";
-import { fetchHotTags, searchTags, type TagInfo } from "@/lib/tags";
+import { X, Loader2, Tag, Wrench, GraduationCap } from "lucide-react";
+import { fetchHotTags, searchTags, PRESET_TAGS, CATEGORY_LABEL, type TagInfo } from "@/lib/tags";
 
 interface TagSelectorProps {
   value: string[];
   onChange: (tags: string[]) => void;
   maxTags?: number;
 }
-
-const DEFAULT_SUGGESTED = [
-  "数学", "物理", "编程", "文学", "哲学", "艺术", "历史", "经济",
-  "人工智能", "机器学习", "数据科学", "算法", "考研", "论文", "读书笔记",
-];
 
 export default function TagSelector({
   value,
@@ -27,7 +22,7 @@ export default function TagSelector({
 
   // 加载热门标签
   useEffect(() => {
-    fetchHotTags(15).then(setHotTags);
+    fetchHotTags(20).then(setHotTags);
   }, []);
 
   // 输入时搜索补全（防抖）
@@ -79,15 +74,29 @@ export default function TagSelector({
     }
   };
 
-  // 合并推荐：搜索结果 + 热门标签 + 默认标签，去重
-  const recommended = [
-    ...suggestions,
-    ...hotTags.filter((h) => !suggestions.some((s) => s.name === h.name)),
-  ]
-    .filter((t) => !value.includes(t.name))
-    .slice(0, 8);
+  // 构建推荐列表：搜索结果优先，否则用热门+预设
+  const hasSearch = suggestions.length > 0;
+  const hotToolTags = hotTags.filter((t) => t.category === "tool" && !value.includes(t.name));
+  const hotSubjectTags = hotTags.filter((t) => (t.category === "subject" || !t.category) && !value.includes(t.name));
 
-  const fallback = DEFAULT_SUGGESTED.filter((t) => !value.includes(t)).slice(0, 8);
+  // 预设标签中未被选中的
+  const presetTools = PRESET_TAGS.tool.filter((t) => !value.includes(t) && !hotToolTags.some((h) => h.name === t));
+  const presetSubjects = PRESET_TAGS.subject.filter((t) => !value.includes(t) && !hotSubjectTags.some((h) => h.name === t));
+
+  const renderTagButton = (name: string, count?: number) => (
+    <button
+      key={name}
+      type="button"
+      onClick={() => addTag(name)}
+      className="flex items-center gap-1 rounded-full border border-void-600/40 bg-void-800/40 px-2.5 py-1 text-xs text-mist-300 transition-colors hover:border-star-400/40 hover:text-star-200"
+    >
+      <Tag size={9} />
+      {name}
+      {count !== undefined && count > 0 && (
+        <span className="text-[9px] text-mist-600">{count}</span>
+      )}
+    </button>
+  );
 
   return (
     <div className="relative" ref={containerRef}>
@@ -126,34 +135,52 @@ export default function TagSelector({
 
       {/* 下拉推荐 */}
       {showDropdown && value.length < maxTags && (
-        <div className="mt-2 rounded-lg border border-void-600/40 bg-void-900/95 p-2 shadow-xl backdrop-blur-xl">
+        <div className="mt-2 rounded-lg border border-void-600/40 bg-void-900/95 p-2.5 shadow-xl backdrop-blur-xl">
           {loading && (
             <div className="flex items-center gap-1.5 px-2 py-1.5 text-xs text-mist-500">
               <Loader2 size={11} className="animate-spin" /> 搜索中…
             </div>
           )}
-          {!loading && (recommended.length > 0 || fallback.length > 0) && (
+
+          {/* 搜索结果 */}
+          {!loading && hasSearch && (
             <div className="flex flex-wrap gap-1.5">
-              {(recommended.length > 0 ? recommended.map((t) => t.name) : fallback).map((t) => {
-                const tagInfo = recommended.find((r) => r.name === t);
-                return (
-                  <button
-                    key={t}
-                    type="button"
-                    onClick={() => addTag(t)}
-                    className="flex items-center gap-1 rounded-full border border-void-600/40 bg-void-800/40 px-2.5 py-1 text-xs text-mist-300 transition-colors hover:border-star-400/40 hover:text-star-200"
-                  >
-                    <Tag size={9} />
-                    {t}
-                    {tagInfo && tagInfo.count > 0 && (
-                      <span className="text-[9px] text-mist-600">{tagInfo.count}</span>
-                    )}
-                  </button>
-                );
-              })}
+              {suggestions.filter((t) => !value.includes(t.name)).slice(0, 8).map((t) =>
+                renderTagButton(t.name, t.count)
+              )}
             </div>
           )}
-          {!loading && recommended.length === 0 && fallback.length === 0 && (
+
+          {/* 分组推荐 */}
+          {!loading && !hasSearch && (
+            <div className="space-y-2.5">
+              {/* 工具与部署 */}
+              <div>
+                <div className="mb-1.5 flex items-center gap-1.5 px-1 text-[10px] font-medium text-star-300">
+                  <Wrench size={10} />
+                  {CATEGORY_LABEL.tool}
+                </div>
+                <div className="flex flex-wrap gap-1.5">
+                  {hotToolTags.slice(0, 6).map((t) => renderTagButton(t.name, t.count))}
+                  {presetTools.slice(0, 6).map((t) => renderTagButton(t))}
+                </div>
+              </div>
+
+              {/* 学科 */}
+              <div>
+                <div className="mb-1.5 flex items-center gap-1.5 px-1 text-[10px] font-medium text-tian-300">
+                  <GraduationCap size={10} />
+                  {CATEGORY_LABEL.subject}
+                </div>
+                <div className="flex flex-wrap gap-1.5">
+                  {hotSubjectTags.slice(0, 6).map((t) => renderTagButton(t.name, t.count))}
+                  {presetSubjects.slice(0, 6).map((t) => renderTagButton(t))}
+                </div>
+              </div>
+            </div>
+          )}
+
+          {!loading && !hasSearch && hotToolTags.length === 0 && hotSubjectTags.length === 0 && presetTools.length === 0 && presetSubjects.length === 0 && (
             <div className="px-2 py-1.5 text-xs text-mist-500">
               输入自定义标签后回车添加
             </div>

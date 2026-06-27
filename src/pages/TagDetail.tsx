@@ -1,8 +1,8 @@
 import { useState, useEffect } from "react";
 import { useParams, Link } from "react-router-dom";
 import { motion } from "motion/react";
-import { ArrowLeft, Tag, MessageSquare, Lightbulb, BookOpen, Users, Loader2 } from "lucide-react";
-import { fetchContentByTag, fetchTagCount, type TagContentItem } from "@/lib/tags";
+import { ArrowLeft, Tag, MessageSquare, Lightbulb, BookOpen, Users, Loader2, Wrench, GraduationCap } from "lucide-react";
+import { fetchContentByTag, fetchTagCount, inferCategory, CATEGORY_LABEL, type TagContentItem } from "@/lib/tags";
 
 const TYPE_ICON = {
   post: MessageSquare,
@@ -68,7 +68,17 @@ export default function TagDetail() {
           <Tag size={28} />
         </div>
         <div>
-          <h1 className="heading-display text-3xl text-parchment-100">#{name}</h1>
+          <div className="flex items-center gap-3">
+            <h1 className="heading-display text-3xl text-parchment-100">#{name}</h1>
+            <span className={`flex items-center gap-1 rounded-full border px-2.5 py-0.5 text-[10px] font-medium ${
+              inferCategory(name) === "tool"
+                ? "border-star-400/40 bg-star-400/10 text-star-300"
+                : "border-tian-400/40 bg-tian-400/10 text-tian-300"
+            }`}>
+              {inferCategory(name) === "tool" ? <Wrench size={9} /> : <GraduationCap size={9} />}
+              {CATEGORY_LABEL[inferCategory(name)]}
+            </span>
+          </div>
           <p className="mt-1 text-sm text-mist-400">
             {loading ? "加载中…" : `${count} 次使用 · ${content.posts.length + content.ideas.length + content.books.length + content.workshops.length} 条内容`}
           </p>
