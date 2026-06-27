@@ -219,6 +219,44 @@ body {
   }
 }
 
+/* ========== 浅色主题按钮覆盖 ========== */
+:root.light .btn-gold {
+  border-color: #A86A00;
+  background-image: linear-gradient(to bottom, rgba(180, 120, 0, 0.14), rgba(168, 106, 0, 0.06));
+  color: #B77900;
+  font-weight: 600;
+}
+:root.light .btn-gold:hover {
+  border-color: #8A5800;
+  background-image: linear-gradient(to bottom, rgba(180, 120, 0, 0.22), rgba(168, 106, 0, 0.12));
+  box-shadow: 0 0 16px -4px rgba(168, 106, 0, 0.3);
+}
+
+:root.light .btn-ghost {
+  border-color: #2563EB;
+  background-color: rgba(37, 99, 235, 0.08);
+  color: #1D4ED8;
+  font-weight: 600;
+}
+:root.light .btn-ghost:hover {
+  border-color: #1D4ED8;
+  background-color: rgba(37, 99, 235, 0.14);
+}
+
+:root.light .pill-gold {
+  border-color: rgba(168, 106, 0, 0.4);
+  background-color: rgba(180, 120, 0, 0.08);
+  color: #A86A00;
+  font-weight: 500;
+}
+
+:root.light .pill-blue {
+  border-color: rgba(37, 99, 235, 0.35);
+  background-color: rgba(37, 99, 235, 0.06);
+  color: #1D4ED8;
+  font-weight: 500;
+}
+
 @layer utilities {
   .text-glow-gold {
     text-shadow: 0 0 24px rgba(243, 201, 105, 0.45);
