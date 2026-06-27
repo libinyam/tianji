@@ -10,6 +10,74 @@ export interface UserContent {
   workshops: Array<{ id: string; title: string; createdAt: string; type: string }>;
 }
 
+/** 公开用户信息 */
+export interface PublicUser {
+  uid: string;
+  nickname: string;
+  avatarUrl: string;
+  email: string | null;
+}
+
+/** 通过 uid 获取用户公开信息（从帖子中提取，因为 CloudBase Auth 无公开查询 API） */
+export async function fetchPublicUser(uid: string): Promise<PublicUser | null> {
+  try {
+    // 尝试从 posts 集合获取作者信息
+    const { data } = await db
+      .collection("posts")
+      .where({ authorUid: uid })
+      .limit(1)
+      .get();
+
+    if (data && data.length > 0) {
+      const post = data[0] as Record<string, unknown>;
+      return {
+        uid,
+        nickname: String(post.author ?? "匿名用户"),
+        avatarUrl: "",
+        email: null,
+      };
+    }
+
+    // 如果帖子中没有，尝试 ideas
+    const { data: ideaData } = await db
+      .collection("ideas")
+      .where({ authorUid: uid })
+      .limit(1)
+      .get();
+
+    if (ideaData && ideaData.length > 0) {
+      const idea = ideaData[0] as Record<string, unknown>;
+      return {
+        uid,
+        nickname: String(idea.author ?? "匿名用户"),
+        avatarUrl: "",
+        email: null,
+      };
+    }
+
+    // 尝试 workshops
+    const { data: wsData } = await db
+      .collection("workshops")
+      .where({ creatorUid: uid })
+      .limit(1)
+      .get();
+
+    if (wsData && wsData.length > 0) {
+      const ws = wsData[0] as Record<string, unknown>;
+      return {
+        uid,
+        nickname: String(ws.creator ?? "匿名用户"),
+        avatarUrl: "",
+        email: null,
+      };
+    }
+
+    return null;
+  } catch {
+    return null;
+  }
+}
+
 /** 获取用户在各个集合中的内容 */
 export async function fetchUserContent(uid: string): Promise<UserContent> {
   const empty: UserContent = { posts: [], ideas: [], books: [], workshops: [] };

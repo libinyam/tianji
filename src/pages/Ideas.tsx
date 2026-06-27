@@ -1,4 +1,5 @@
 import { useMemo, useState, useEffect } from "react";
+import { Link } from "react-router-dom";
 import { motion } from "motion/react";
 import { Lightbulb, ThumbsUp, MessageCircle, Sparkles, Plus, Loader2, Bookmark } from "lucide-react";
 import PageHero from "@/components/PageHero";
@@ -223,7 +224,13 @@ export default function Ideas() {
                   <div className="mt-5 flex items-center justify-between border-t border-void-600/30 pt-4">
                     <div className="flex items-center gap-2">
                       <Avatar name={idea.author} color={idea.avatarColor} size={24} />
-                      <span className="text-xs text-mist-300">{idea.author}</span>
+                      {idea.authorUid ? (
+                        <Link to={`/user/${idea.authorUid}`} className="text-xs text-mist-300 transition-colors hover:text-star-300" onClick={(e) => e.stopPropagation()}>
+                          {idea.author}
+                        </Link>
+                      ) : (
+                        <span className="text-xs text-mist-300">{idea.author}</span>
+                      )}
                     </div>
                     <div className="flex items-center gap-4 text-xs text-mist-400">
                       <button

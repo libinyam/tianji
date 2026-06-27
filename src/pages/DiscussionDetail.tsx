@@ -237,7 +237,13 @@ export default function DiscussionDetail() {
 
             <div className="mt-4 flex items-center gap-3 text-xs text-mist-500">
               <Avatar name={question.author} color={question.avatarColor} size={24} />
-              <span className="text-mist-300">{question.author}</span>
+              {question.authorUid ? (
+                <Link to={`/user/${question.authorUid}`} className="text-mist-300 transition-colors hover:text-star-300">
+                  {question.author}
+                </Link>
+              ) : (
+                <span className="text-mist-300">{question.author}</span>
+              )}
               <span>·</span>
               <span className="font-mono">{question.createdAt}</span>
               <span>·</span>

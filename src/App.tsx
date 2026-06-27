@@ -10,6 +10,7 @@ import Ideas from "@/pages/Ideas";
 import Workshop from "@/pages/Workshop";
 import WorkshopDetail from "@/pages/WorkshopDetail";
 import Profile from "@/pages/Profile";
+import UserProfile from "@/pages/UserProfile";
 
 export default function App() {
   return (
@@ -26,6 +27,7 @@ export default function App() {
           <Route path="/workshop" element={<Workshop />} />
           <Route path="/workshop/:id" element={<WorkshopDetail />} />
           <Route path="/profile" element={<Profile />} />
+          <Route path="/user/:uid" element={<UserProfile />} />
           <Route
             path="*"
             element={

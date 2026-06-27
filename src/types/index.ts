@@ -51,6 +51,7 @@ export interface Question {
   title: string;
   excerpt: string;
   author: string;
+  authorUid?: string;
   avatarColor: string;
   tags: string[];
   answers: number;
@@ -67,6 +68,7 @@ export interface Idea {
   title: string;
   summary: string;
   author: string;
+  authorUid?: string;
   avatarColor: string;
   topic: string;
   tags: string[];

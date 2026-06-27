@@ -32,6 +32,7 @@ function toQuestion(doc: PostDoc): Question {
     title: doc.title,
     excerpt: doc.excerpt,
     author: doc.author,
+    authorUid: doc.authorUid,
     avatarColor: doc.avatarColor,
     tags: doc.tags,
     answers: doc.answersCount ?? doc.answerList?.length ?? 0,

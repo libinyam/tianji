@@ -28,6 +28,7 @@ function toIdea(doc: IdeaDoc): Idea {
     title: doc.title,
     summary: doc.summary,
     author: doc.author,
+    authorUid: doc.authorUid,
     avatarColor: doc.avatarColor,
     topic: doc.topic,
     tags: doc.tags,
