@@ -1,7 +1,8 @@
 import { useState, useEffect } from "react";
 import { Link, NavLink } from "react-router-dom";
-import { Menu, X, Sparkles, LogOut, User as UserIcon, Search } from "lucide-react";
+import { Menu, X, Sparkles, LogOut, User as UserIcon, Search, Sun, Moon } from "lucide-react";
 import { useAuthStore } from "@/stores/auth";
+import { useThemeStore } from "@/stores/theme";
 import SearchModal from "./SearchModal";
 
 const NAV = [
@@ -20,6 +21,7 @@ export default function Navbar({ onLoginClick }: NavbarProps) {
   const [open, setOpen] = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
   const { user, signOut } = useAuthStore();
+  const { mode, toggle } = useThemeStore();
 
   // 全局快捷键 Cmd/Ctrl + K 打开搜索
   useEffect(() => {
@@ -92,6 +94,15 @@ export default function Navbar({ onLoginClick }: NavbarProps) {
             </kbd>
           </button>
 
+          {/* 主题切换 */}
+          <button
+            onClick={toggle}
+            className="flex h-9 w-9 items-center justify-center rounded-lg border border-void-600/50 bg-void-800/40 text-mist-400 transition-colors hover:border-star-400/40 hover:text-star-300"
+            title={mode === "dark" ? "切换到浅色模式" : "切换到深色模式"}
+          >
+            {mode === "dark" ? <Sun size={16} /> : <Moon size={16} />}
+          </button>
+
           {user ? (
             <div className="flex items-center gap-3">
               <Link
@@ -127,8 +138,15 @@ export default function Navbar({ onLoginClick }: NavbarProps) {
           )}
         </div>
 
-        {/* Mobile: search + menu toggle */}
+        {/* Mobile: theme + search + menu toggle */}
         <div className="flex items-center gap-2 lg:hidden">
+          <button
+            onClick={toggle}
+            className="flex h-10 w-10 items-center justify-center rounded-lg border border-void-600/60 text-mist-300"
+            aria-label="切换主题"
+          >
+            {mode === "dark" ? <Sun size={18} /> : <Moon size={18} />}
+          </button>
           <button
             onClick={() => setSearchOpen(true)}
             className="flex h-10 w-10 items-center justify-center rounded-lg border border-void-600/60 text-mist-300"

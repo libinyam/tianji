@@ -1,4 +1,5 @@
 import { useMemo } from "react";
+import { useThemeStore } from "@/stores/theme";
 
 interface Star {
   top: string;
@@ -17,6 +18,9 @@ interface StarFieldProps {
 
 /** 深空星点背景层，纯 CSS 闪烁，性能友好。 */
 export default function StarField({ count = 90, className = "" }: StarFieldProps) {
+  const themeMode = useThemeStore((s) => s.mode);
+  const isDark = themeMode === "dark";
+
   const stars = useMemo<Star[]>(() => {
     // 简单确定性伪随机，避免水合跳动
     let seed = 1337;
@@ -32,11 +36,11 @@ export default function StarField({ count = 90, className = "" }: StarFieldProps
         size: rand() * 2 + 1,
         delay: `${rand() * 5}s`,
         duration: `${rand() * 4 + 3}s`,
-        opacity: rand() * 0.6 + 0.2,
+        opacity: isDark ? rand() * 0.6 + 0.2 : rand() * 0.25 + 0.05,
         gold,
       };
     });
-  }, [count]);
+  }, [count, isDark]);
 
   return (
     <div
@@ -55,7 +59,7 @@ export default function StarField({ count = 90, className = "" }: StarFieldProps
             animationDelay: s.delay,
             animationDuration: s.duration,
             opacity: s.opacity,
-            background: s.gold ? "#f3c969" : "#cfe9ff",
+            background: s.gold ? "#f3c969" : "#7cc4ff",
             boxShadow: s.gold
               ? "0 0 6px 1px rgba(243,201,105,0.6)"
               : "0 0 6px 1px rgba(124,196,255,0.5)",

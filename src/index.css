@@ -4,21 +4,118 @@
 @tailwind components;
 @tailwind utilities;
 
+/* ========== 深色主题（默认） ========== */
 :root {
   --font-display: "Fraunces", "Noto Serif SC", serif;
   --font-sans: "Spline Sans", "Noto Sans SC", sans-serif;
   --font-mono: "Space Mono", monospace;
 
+  /* 底色 */
+  --c-void-950: #060914;
+  --c-void-900: #0a0f2c;
+  --c-void-800: #0d1538;
+  --c-void-700: #131d4a;
+  --c-void-600: #1b275e;
+
+  /* 星芒暖金 */
+  --c-star-50: #fdf6e3;
+  --c-star-100: #f9ecc2;
+  --c-star-200: #f3dd96;
+  --c-star-300: #eccd6b;
+  --c-star-400: #e9b865;
+  --c-star-500: #f3c969;
+  --c-star-600: #d29f3f;
+  --c-star-700: #a87a2e;
+
+  /* 天玑冷蓝 */
+  --c-tian-50: #eaf6ff;
+  --c-tian-100: #cfe9ff;
+  --c-tian-200: #a8d6ff;
+  --c-tian-300: #7cc4ff;
+  --c-tian-400: #5aa6f0;
+  --c-tian-500: #3d86d6;
+  --c-tian-600: #2b66ab;
+
+  /* 文字主色 */
+  --c-parchment-50: #fbf8f0;
+  --c-parchment-100: #f5efe1;
+  --c-parchment-200: #f1ede2;
+  --c-parchment-300: #e3dcc8;
+
+  /* 次要文字 */
+  --c-mist-300: #b8c0db;
+  --c-mist-400: #9aa3c4;
+  --c-mist-500: #76809f;
+
+  /* 背景渐变 */
+  --bg-void-radial: radial-gradient(ellipse at 50% -10%, rgba(27,39,94,0.55) 0%, rgba(10,15,44,0.9) 45%, #060914 100%);
+  --bg-body: #060914;
+  --color-body: #f1ede2;
+  --bg-scrollbar-track: #0a0f2c;
+  --bg-scrollbar-thumb: linear-gradient(#1b275e, #131d4a);
+  --bg-scrollbar-thumb-hover: #2b66ab;
+  --shadow-card: 0 18px 40px -20px rgba(0,0,0,0.7);
+  --selection-color: #fbf3df;
+
   font-family: var(--font-sans);
   line-height: 1.6;
   font-weight: 400;
-  color: #f1ede2;
-  background-color: #060914;
+  color: var(--color-body);
+  background-color: var(--bg-body);
 
   font-synthesis: none;
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+}
+
+/* ========== 浅色主题 ========== */
+:root.light {
+  /* 底色 - 暖白纸张 */
+  --c-void-950: #f5f3ef;
+  --c-void-900: #faf8f4;
+  --c-void-800: #ffffff;
+  --c-void-700: #f0ede5;
+  --c-void-600: #ddd8c8;
+
+  /* 星芒暖金 - 加深保证对比度 */
+  --c-star-50: #fffbeb;
+  --c-star-100: #fef3c7;
+  --c-star-200: #f5d77a;
+  --c-star-300: #e8b940;
+  --c-star-400: #d99e2a;
+  --c-star-500: #c4881e;
+  --c-star-600: #a36f15;
+  --c-star-700: #855a10;
+
+  /* 天玑冷蓝 - 加深 */
+  --c-tian-50: #eef7ff;
+  --c-tian-100: #d0e8ff;
+  --c-tian-200: #92c8ff;
+  --c-tian-300: #5aa6f0;
+  --c-tian-400: #3d86d6;
+  --c-tian-500: #2b66ab;
+  --c-tian-600: #1d4d80;
+
+  /* 文字主色 - 深墨 */
+  --c-parchment-50: #1a1a2e;
+  --c-parchment-100: #2d2d3f;
+  --c-parchment-200: #3d3d50;
+  --c-parchment-300: #5a5a6e;
+
+  /* 次要文字 */
+  --c-mist-300: #555b6e;
+  --c-mist-400: #6b7280;
+  --c-mist-500: #8b8fa3;
+
+  --bg-void-radial: radial-gradient(ellipse at 50% -10%, rgba(223,217,243,0.5) 0%, rgba(250,248,244,0.9) 45%, #f5f3ef 100%);
+  --bg-body: #f5f3ef;
+  --color-body: #3d3d50;
+  --bg-scrollbar-track: #ede9e0;
+  --bg-scrollbar-thumb: linear-gradient(#d0cbb8, #ddd8c8);
+  --bg-scrollbar-thumb-hover: #b0a888;
+  --shadow-card: 0 18px 40px -20px rgba(0,0,0,0.15);
+  --selection-color: #2d2d3f;
 }
 
 html {
@@ -28,8 +125,9 @@ html {
 body {
   margin: 0;
   min-height: 100vh;
-  background-color: #060914;
-  color: #f1ede2;
+  background-color: var(--bg-body);
+  color: var(--color-body);
+  transition: background-color 0.3s ease, color 0.3s ease;
 }
 
 /* 自定义滚动条 */
@@ -38,20 +136,20 @@ body {
   height: 10px;
 }
 ::-webkit-scrollbar-track {
-  background: #0a0f2c;
+  background: var(--bg-scrollbar-track);
 }
 ::-webkit-scrollbar-thumb {
-  background: linear-gradient(#1b275e, #131d4a);
+  background: var(--bg-scrollbar-thumb);
   border-radius: 6px;
-  border: 2px solid #0a0f2c;
+  border: 2px solid var(--bg-scrollbar-track);
 }
 ::-webkit-scrollbar-thumb:hover {
-  background: #2b66ab;
+  background: var(--bg-scrollbar-thumb-hover);
 }
 
 ::selection {
   background: rgba(243, 201, 105, 0.3);
-  color: #fbf3df;
+  color: var(--selection-color);
 }
 
 @layer components {
@@ -64,31 +162,60 @@ body {
   }
 
   .pill {
-    @apply inline-flex items-center gap-1.5 rounded-full border border-void-600/60 bg-void-800/50 px-3 py-1 text-xs text-mist-300 transition-colors;
+    @apply inline-flex items-center gap-1.5 rounded-full border px-3 py-1 text-xs transition-colors;
+    border-color: color-mix(in srgb, var(--c-void-600) 60%, transparent);
+    background-color: color-mix(in srgb, var(--c-void-800) 50%, transparent);
+    color: var(--c-mist-300);
   }
 
   .pill-gold {
-    @apply inline-flex items-center gap-1.5 rounded-full border border-star-400/50 bg-star-400/10 px-3 py-1 text-xs text-star-200 transition-colors;
+    @apply inline-flex items-center gap-1.5 rounded-full border px-3 py-1 text-xs transition-colors;
+    border-color: color-mix(in srgb, var(--c-star-400) 50%, transparent);
+    background-color: color-mix(in srgb, var(--c-star-400) 10%, transparent);
+    color: var(--c-star-200);
   }
 
   .pill-blue {
-    @apply inline-flex items-center gap-1.5 rounded-full border border-tian-400/40 bg-tian-400/10 px-3 py-1 text-xs text-tian-100 transition-colors;
+    @apply inline-flex items-center gap-1.5 rounded-full border px-3 py-1 text-xs transition-colors;
+    border-color: color-mix(in srgb, var(--c-tian-400) 40%, transparent);
+    background-color: color-mix(in srgb, var(--c-tian-400) 10%, transparent);
+    color: var(--c-tian-100);
   }
 
   .card-surface {
-    @apply rounded-xl border border-void-600/50 bg-void-800/40 backdrop-blur-sm;
+    @apply rounded-xl border backdrop-blur-sm;
+    border-color: color-mix(in srgb, var(--c-void-600) 50%, transparent);
+    background-color: color-mix(in srgb, var(--c-void-800) 40%, transparent);
   }
 
   .btn-gold {
-    @apply inline-flex items-center justify-center gap-2 rounded-lg border border-star-400/60 bg-gradient-to-b from-star-500/20 to-star-700/10 px-5 py-2.5 text-sm font-medium text-star-100 transition-all hover:border-star-400 hover:shadow-glow hover:from-star-500/30;
+    @apply inline-flex items-center justify-center gap-2 rounded-lg border px-5 py-2.5 text-sm font-medium transition-all;
+    border-color: color-mix(in srgb, var(--c-star-400) 60%, transparent);
+    background-image: linear-gradient(to bottom, color-mix(in srgb, var(--c-star-500) 20%, transparent), color-mix(in srgb, var(--c-star-700) 10%, transparent));
+    color: var(--c-star-100);
+  }
+  .btn-gold:hover {
+    border-color: var(--c-star-400);
+    box-shadow: 0 0 24px -4px rgba(243,201,105,0.35);
+    background-image: linear-gradient(to bottom, color-mix(in srgb, var(--c-star-500) 30%, transparent), color-mix(in srgb, var(--c-star-700) 10%, transparent));
   }
 
   .btn-ghost {
-    @apply inline-flex items-center justify-center gap-2 rounded-lg border border-tian-400/30 bg-void-800/40 px-5 py-2.5 text-sm font-medium text-tian-100 transition-all hover:border-tian-400/70 hover:bg-void-700/50;
+    @apply inline-flex items-center justify-center gap-2 rounded-lg border px-5 py-2.5 text-sm font-medium transition-all;
+    border-color: color-mix(in srgb, var(--c-tian-400) 30%, transparent);
+    background-color: color-mix(in srgb, var(--c-void-800) 40%, transparent);
+    color: var(--c-tian-100);
+  }
+  .btn-ghost:hover {
+    border-color: color-mix(in srgb, var(--c-tian-400) 70%, transparent);
+    background-color: color-mix(in srgb, var(--c-void-700) 50%, transparent);
   }
 
   .link-underline {
-    @apply relative transition-colors after:absolute after:bottom-0 after:left-0 after:h-px after:w-0 after:bg-star-400 after:transition-all hover:after:w-full;
+    @apply relative transition-colors after:absolute after:bottom-0 after:left-0 after:h-px after:w-0 after:transition-all hover:after:w-full;
+  }
+  .link-underline::after {
+    background-color: var(--c-star-400);
   }
 }
 

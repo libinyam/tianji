@@ -14,47 +14,47 @@ export default {
     },
     extend: {
       colors: {
-        // 深空墨蓝底色
+        // 底色（通过 CSS 变量实现深/浅切换）
         void: {
-          950: "#060914",
-          900: "#0a0f2c",
-          800: "#0d1538",
-          700: "#131d4a",
-          600: "#1b275e",
+          950: "var(--c-void-950)",
+          900: "var(--c-void-900)",
+          800: "var(--c-void-800)",
+          700: "var(--c-void-700)",
+          600: "var(--c-void-600)",
         },
         // 星芒暖金
         star: {
-          50: "#fdf6e3",
-          100: "#f9ecc2",
-          200: "#f3dd96",
-          300: "#eccd6b",
-          400: "#e9b865",
-          500: "#f3c969",
-          600: "#d29f3f",
-          700: "#a87a2e",
+          50: "var(--c-star-50)",
+          100: "var(--c-star-100)",
+          200: "var(--c-star-200)",
+          300: "var(--c-star-300)",
+          400: "var(--c-star-400)",
+          500: "var(--c-star-500)",
+          600: "var(--c-star-600)",
+          700: "var(--c-star-700)",
         },
         // 天玑冷蓝
         tian: {
-          50: "#eaf6ff",
-          100: "#cfe9ff",
-          200: "#a8d6ff",
-          300: "#7cc4ff",
-          400: "#5aa6f0",
-          500: "#3d86d6",
-          600: "#2b66ab",
+          50: "var(--c-tian-50)",
+          100: "var(--c-tian-100)",
+          200: "var(--c-tian-200)",
+          300: "var(--c-tian-300)",
+          400: "var(--c-tian-400)",
+          500: "var(--c-tian-500)",
+          600: "var(--c-tian-600)",
         },
-        // 暖白羊皮纸
+        // 文字主色
         parchment: {
-          50: "#fbf8f0",
-          100: "#f5efe1",
-          200: "#f1ede2",
-          300: "#e3dcc8",
+          50: "var(--c-parchment-50)",
+          100: "var(--c-parchment-100)",
+          200: "var(--c-parchment-200)",
+          300: "var(--c-parchment-300)",
         },
-        // 次要灰蓝文字
+        // 次要文字
         mist: {
-          300: "#b8c0db",
-          400: "#9aa3c4",
-          500: "#76809f",
+          300: "var(--c-mist-300)",
+          400: "var(--c-mist-400)",
+          500: "var(--c-mist-500)",
         },
       },
       fontFamily: {
@@ -63,8 +63,7 @@ export default {
         mono: ['"Space Mono"', 'monospace'],
       },
       backgroundImage: {
-        'void-radial':
-          'radial-gradient(ellipse at 50% -10%, rgba(27,39,94,0.55) 0%, rgba(10,15,44,0.9) 45%, #060914 100%)',
+        'void-radial': 'var(--bg-void-radial)',
         'gold-sheen':
           'linear-gradient(135deg, #f3c969 0%, #e9b865 50%, #d29f3f 100%)',
         'star-glow':
@@ -73,7 +72,7 @@ export default {
       boxShadow: {
         glow: '0 0 24px -4px rgba(243,201,105,0.35)',
         'glow-blue': '0 0 28px -6px rgba(124,196,255,0.4)',
-        card: '0 18px 40px -20px rgba(0,0,0,0.7)',
+        card: 'var(--shadow-card)',
       },
       keyframes: {
         twinkle: {
