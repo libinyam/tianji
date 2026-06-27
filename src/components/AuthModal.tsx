@@ -1,7 +1,8 @@
-import { useState } from "react";
+import { useState, useRef, useEffect } from "react";
 import { motion, AnimatePresence } from "motion/react";
 import { X, Mail, Lock, Sparkles, Loader2, Github, ShieldCheck } from "lucide-react";
 import { useAuthStore } from "@/stores/auth";
+import CanvasCaptcha, { type CanvasCaptchaHandle } from "@/components/CanvasCaptcha";
 
 interface AuthModalProps {
   open: boolean;
@@ -15,6 +16,9 @@ export default function AuthModal({ open, onClose }: AuthModalProps) {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [code, setCode] = useState("");
+  const [captchaValue, setCaptchaValue] = useState("");
+  const [resendCooldown, setResendCooldown] = useState(0);
+  const captchaRef = useRef<CanvasCaptchaHandle>(null);
   const {
     signUpWithEmail,
     verifySignUpCode,
@@ -28,6 +32,15 @@ export default function AuthModal({ open, onClose }: AuthModalProps) {
   } = useAuthStore();
 
   const waitingForCode = mode === "register" && Boolean(pendingSignUpEmail);
+
+  // 重发冷却倒计时
+  useEffect(() => {
+    if (resendCooldown <= 0) return;
+    const timer = setInterval(() => {
+      setResendCooldown((n) => Math.max(0, n - 1));
+    }, 1000);
+    return () => clearInterval(timer);
+  }, [resendCooldown]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -44,11 +57,30 @@ export default function AuthModal({ open, onClose }: AuthModalProps) {
       return;
     }
 
+    // 注册前校验图形验证码
+    if (!captchaRef.current?.validate()) {
+      useAuthStore.getState().clearError();
+      useAuthStore.setState({ error: "图形验证码不正确，请重新输入" });
+      return;
+    }
+
     const result = await signUpWithEmail(email, password);
     if (result === "signed-in") {
       handleClose();
     } else if (result === "otp-sent") {
       setCode("");
+      setResendCooldown(60);
+    }
+  };
+
+  const handleResendCode = async () => {
+    if (resendCooldown > 0 || loading) return;
+    // 重新触发注册（CloudBase 会再次发验证码）
+    captchaRef.current?.refresh();
+    setCaptchaValue("");
+    const result = await signUpWithEmail(email, password);
+    if (result === "otp-sent") {
+      setResendCooldown(60);
     }
   };
 
@@ -56,6 +88,8 @@ export default function AuthModal({ open, onClose }: AuthModalProps) {
     setEmail("");
     setPassword("");
     setCode("");
+    setCaptchaValue("");
+    setResendCooldown(0);
     clearPendingSignUp();
     clearError();
     onClose();
@@ -64,6 +98,8 @@ export default function AuthModal({ open, onClose }: AuthModalProps) {
   const switchMode = (m: Mode) => {
     setMode(m);
     setCode("");
+    setCaptchaValue("");
+    setResendCooldown(0);
     clearPendingSignUp();
     clearError();
   };
@@ -164,6 +200,14 @@ export default function AuthModal({ open, onClose }: AuthModalProps) {
               </div>
               )}
 
+              {/* 注册时显示图形验证码 */}
+              {mode === "register" && !waitingForCode && (
+                <div>
+                  <label className="mb-1.5 block text-xs text-mist-400">人机验证</label>
+                  <CanvasCaptcha ref={captchaRef} value={captchaValue} onChange={setCaptchaValue} />
+                </div>
+              )}
+
               {waitingForCode && (
                 <div>
                   <label className="mb-1.5 block text-xs text-mist-400">邮箱验证码</label>
@@ -182,6 +226,20 @@ export default function AuthModal({ open, onClose }: AuthModalProps) {
                       className="w-full rounded-lg border border-void-600/50 bg-void-950/50 py-2.5 pl-10 pr-3 text-sm text-parchment-100 placeholder:text-mist-500 focus:border-star-400/50 focus:outline-none focus:ring-1 focus:ring-star-400/30"
                     />
                   </div>
+                  {resendCooldown > 0 ? (
+                    <p className="mt-1.5 text-[11px] text-mist-500">
+                      {resendCooldown}s 后可重新发送验证码
+                    </p>
+                  ) : (
+                    <button
+                      type="button"
+                      onClick={handleResendCode}
+                      disabled={loading}
+                      className="mt-1.5 text-[11px] text-star-300 transition-colors hover:text-star-200"
+                    >
+                      重新发送验证码
+                    </button>
+                  )}
                 </div>
               )}
 
