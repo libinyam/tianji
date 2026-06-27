@@ -75,7 +75,7 @@ export default function MathText({ content, className = "" }: MathTextProps) {
           return (
             <div
               key={i}
-              className="my-4 overflow-x-auto py-2 text-star-200"
+              className="math-display my-4 overflow-x-auto py-2"
               dangerouslySetInnerHTML={{ __html: renderTex(seg.value, true) }}
             />
           );
@@ -84,7 +84,7 @@ export default function MathText({ content, className = "" }: MathTextProps) {
           return (
             <span
               key={i}
-              className="text-star-100"
+              className="math-inline"
               dangerouslySetInnerHTML={{ __html: renderTex(seg.value, false) }}
             />
           );

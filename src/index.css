@@ -220,6 +220,28 @@ body {
 }
 
 /* ========== 浅色主题按钮覆盖 ========== */
+
+/* 公式颜色 - 深色模式（默认金色） */
+.math-inline {
+  color: var(--c-star-200);
+}
+.math-display {
+  color: var(--c-star-200);
+}
+
+:root.light .math-inline,
+:root.light .math-display,
+:root.light .katex {
+  color: #1F2937 !important;
+}
+:root.light .math-display .katex {
+  color: #334155;
+}
+/* 高亮/重点符号 */
+:root.light .math-display .mathnormal,
+:root.light .math-inline .mathnormal {
+  color: #A16207;
+}
 :root.light .btn-gold {
   border-color: #A86A00;
   background-image: linear-gradient(to bottom, rgba(180, 120, 0, 0.14), rgba(168, 106, 0, 0.06));
