@@ -1,4 +1,5 @@
 import { app } from "@/lib/cloudbase";
+import { createNotification } from "@/lib/notifications";
 import type { Question, Answer, Comment } from "@/types";
 
 const db = app.database();
@@ -179,6 +180,14 @@ export async function submitAnswer(
   await docRef.update({
     answerList: newAnswerList,
     answersCount: newAnswerList.length,
+  });
+
+  // 通知帖子作者
+  await createNotification({
+    uid: post.authorUid,
+    type: "answer",
+    title: post.title,
+    link: `/discussion/${postId}`,
   });
 
   return answer;

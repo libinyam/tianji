@@ -4,6 +4,7 @@ import { Menu, X, Sparkles, LogOut, User as UserIcon, Search, Sun, Moon } from "
 import { useAuthStore } from "@/stores/auth";
 import { useThemeStore } from "@/stores/theme";
 import SearchModal from "./SearchModal";
+import NotificationBell from "./NotificationBell";
 
 const NAV = [
   { to: "/", label: "首页", end: true },
@@ -103,6 +104,9 @@ export default function Navbar({ onLoginClick }: NavbarProps) {
             {mode === "dark" ? <Sun size={16} /> : <Moon size={16} />}
           </button>
 
+          {/* 通知铃铛 */}
+          {user && <NotificationBell />}
+
           {user ? (
             <div className="flex items-center gap-3">
               <Link
@@ -154,6 +158,7 @@ export default function Navbar({ onLoginClick }: NavbarProps) {
           >
             <Search size={18} />
           </button>
+          {user && <NotificationBell />}
           <button
             className="flex h-10 w-10 items-center justify-center rounded-lg border border-void-600/60 text-mist-300"
             onClick={() => setOpen((v) => !v)}

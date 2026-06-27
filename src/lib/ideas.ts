@@ -1,4 +1,5 @@
 import { app } from "@/lib/cloudbase";
+import { createNotification } from "@/lib/notifications";
 import { useAuthStore } from "@/stores/auth";
 import type { Idea } from "@/types";
 
@@ -112,6 +113,15 @@ export async function resonanceIdea(id: string): Promise<boolean> {
 
     const current = (data[0] as IdeaDoc).resonance ?? 0;
     await docRef.update({ resonance: current + 1 });
+
+    // 通知灵感作者
+    await createNotification({
+      uid: (data[0] as IdeaDoc).authorUid,
+      type: "resonance",
+      title: (data[0] as IdeaDoc).title,
+      link: "/ideas",
+    });
+
     return true;
   } catch {
     return false;

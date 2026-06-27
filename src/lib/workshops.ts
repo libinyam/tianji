@@ -1,4 +1,5 @@
 import { app } from "@/lib/cloudbase";
+import { createNotification } from "@/lib/notifications";
 import { useAuthStore } from "@/stores/auth";
 
 const db = app.database();
@@ -172,6 +173,15 @@ export async function joinWorkshop(id: string): Promise<boolean> {
     await docRef.update({
       participants: [...(project.participants ?? []), uid],
     });
+
+    // 通知项目创建者
+    await createNotification({
+      uid: project.creatorUid,
+      type: "join",
+      title: project.title,
+      link: `/workshop/${id}`,
+    });
+
     return true;
   } catch {
     return false;
@@ -204,6 +214,14 @@ export async function submitContribution(
 
   await docRef.update({
     contributions: [...(project.contributions ?? []), contribution],
+  });
+
+  // 通知项目创建者
+  await createNotification({
+    uid: project.creatorUid,
+    type: "contribute",
+    title: project.title,
+    link: `/workshop/${workshopId}`,
   });
 
   return contribution;
