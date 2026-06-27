@@ -15,6 +15,7 @@ import {
 import { questions as mockQuestions } from "@/data/questions";
 import { fetchPostById, submitAnswer, submitComment, incrementViews } from "@/lib/posts";
 import { toggleFavorite, isFavorited } from "@/lib/favorites";
+import { rateLimiters } from "@/lib/security";
 import { useAuthStore } from "@/stores/auth";
 import MathText from "@/components/MathText";
 import Avatar from "@/components/Avatar";
@@ -41,6 +42,7 @@ export default function DiscussionDetail() {
   const [commentText, setCommentText] = useState("");
   const [replyTarget, setReplyTarget] = useState<{ answerId: string; commentId: string; author: string } | null>(null);
   const [commentSubmitting, setCommentSubmitting] = useState(false);
+  const [commentError, setCommentError] = useState<string | null>(null);
 
   // 收藏状态
   const [favState, setFavState] = useState(false);
@@ -104,6 +106,13 @@ export default function DiscussionDetail() {
     }
     if (!answerText.trim() || !question) return;
 
+    // 频率限制
+    const rl = rateLimiters.answer.tryAction();
+    if (!rl.ok) {
+      setAnswerError(`操作太快了，请等待 ${rl.remaining} 秒后再试`);
+      return;
+    }
+
     setSubmitting(true);
     setAnswerError(null);
     try {
@@ -150,6 +159,13 @@ export default function DiscussionDetail() {
   const handleSubmitComment = async (answerId: string) => {
     if (!question) return;
     if (!commentText.trim()) return;
+
+    // 频率限制
+    const rl = rateLimiters.comment.tryAction();
+    if (!rl.ok) {
+      setCommentError(`操作太快了，请等待 ${rl.remaining} 秒后再试`);
+      return;
+    }
 
     setCommentSubmitting(true);
     try {

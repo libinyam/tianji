@@ -3,6 +3,7 @@ import { motion, AnimatePresence } from "motion/react";
 import { X, Loader2 } from "lucide-react";
 import { createPost } from "@/lib/posts";
 import { ensureTags } from "@/lib/tags";
+import { rateLimiters } from "@/lib/security";
 import { useAuthStore } from "@/stores/auth";
 import TagSelector from "@/components/TagSelector";
 import type { Question } from "@/types";
@@ -34,6 +35,13 @@ export default function PostModal({ open, onClose, onCreated }: PostModalProps) 
     if (!title.trim() || !body.trim()) return;
     if (!user) {
       setError("请先登录后再发帖");
+      return;
+    }
+
+    // 频率限制
+    const rl = rateLimiters.post.tryAction();
+    if (!rl.ok) {
+      setError(`操作太快了，请等待 ${rl.remaining} 秒后再试`);
       return;
     }
 

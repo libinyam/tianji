@@ -1,5 +1,6 @@
 import { useMemo } from "react";
 import katex from "katex";
+import { escapeHtml } from "@/lib/security";
 
 interface Segment {
   type: "text" | "inline" | "block" | "code" | "codeblock";
@@ -49,13 +50,15 @@ function parseContent(content: string): Segment[] {
 
 function renderTex(tex: string, displayMode: boolean): string {
   try {
-    return katex.renderToString(tex, {
+    // 先转义 HTML，防止 XSS；KaTeX 会正确处理转义后的实体
+    const safe = escapeHtml(tex);
+    return katex.renderToString(safe, {
       displayMode,
       throwOnError: false,
       output: "html",
     });
   } catch {
-    return tex;
+    return escapeHtml(tex);
   }
 }
 

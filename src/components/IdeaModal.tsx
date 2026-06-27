@@ -3,6 +3,7 @@ import { motion, AnimatePresence } from "motion/react";
 import { X, Loader2, Lightbulb } from "lucide-react";
 import { createIdea } from "@/lib/ideas";
 import { ensureTags } from "@/lib/tags";
+import { rateLimiters } from "@/lib/security";
 import { useAuthStore } from "@/stores/auth";
 import TagSelector from "@/components/TagSelector";
 import type { Idea } from "@/types";
@@ -38,6 +39,13 @@ export default function IdeaModal({ open, onClose, onCreated }: IdeaModalProps) 
     if (!title.trim() || !summary.trim()) return;
     if (!user) {
       setError("请先登录后再发布");
+      return;
+    }
+
+    // 频率限制
+    const rl = rateLimiters.idea.tryAction();
+    if (!rl.ok) {
+      setError(`操作太快了，请等待 ${rl.remaining} 秒后再试`);
       return;
     }
 

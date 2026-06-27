@@ -3,6 +3,7 @@ import { motion, AnimatePresence } from "motion/react";
 import { X, Loader2, BookOpen, Link2 } from "lucide-react";
 import { createBook } from "@/lib/books";
 import { ensureTags } from "@/lib/tags";
+import { rateLimiters } from "@/lib/security";
 import { useAuthStore } from "@/stores/auth";
 import TagSelector from "@/components/TagSelector";
 import type { Book, BookCategory } from "@/types";
@@ -44,6 +45,13 @@ export default function BookUploadModal({ open, onClose, onCreated }: BookUpload
     if (!title.trim() || !author.trim() || !summary.trim()) return;
     if (!user) {
       setError("请先登录后再上传");
+      return;
+    }
+
+    // 频率限制
+    const rl = rateLimiters.book.tryAction();
+    if (!rl.ok) {
+      setError(`操作太快了，请等待 ${rl.remaining} 秒后再试`);
       return;
     }
 

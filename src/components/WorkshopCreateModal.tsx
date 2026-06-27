@@ -3,6 +3,7 @@ import { motion, AnimatePresence } from "motion/react";
 import { X, Loader2, Plus, Trash2, BookOpen, FileText } from "lucide-react";
 import { createWorkshop, type WorkshopType, type OutlineChapter } from "@/lib/workshops";
 import { ensureTags } from "@/lib/tags";
+import { rateLimiters } from "@/lib/security";
 import TagSelector from "@/components/TagSelector";
 import { useAuthStore } from "@/stores/auth";
 import type { WorkshopProject } from "@/lib/workshops";
@@ -57,6 +58,13 @@ export default function WorkshopCreateModal({ open, onClose, onCreated }: Worksh
     }
     if (!user) {
       setError("请先登录后再创建");
+      return;
+    }
+
+    // 频率限制
+    const rl = rateLimiters.workshop.tryAction();
+    if (!rl.ok) {
+      setError(`操作太快了，请等待 ${rl.remaining} 秒后再试`);
       return;
     }
 
