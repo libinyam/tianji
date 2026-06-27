@@ -1,8 +1,10 @@
 import { useState } from "react";
 import { motion, AnimatePresence } from "motion/react";
-import { X, Loader2, Tag as TagIcon, BookOpen, Link2 } from "lucide-react";
+import { X, Loader2, BookOpen, Link2 } from "lucide-react";
 import { createBook } from "@/lib/books";
+import { ensureTags } from "@/lib/tags";
 import { useAuthStore } from "@/stores/auth";
+import TagSelector from "@/components/TagSelector";
 import type { Book, BookCategory } from "@/types";
 
 interface BookUploadModalProps {
@@ -13,19 +15,6 @@ interface BookUploadModalProps {
 
 const CATEGORIES: BookCategory[] = ["基础理论", "AI工具实战", "项目实战", "编程基础"];
 
-const SUGGESTED_TAGS = [
-  "Claude Code",
-  "GitHub",
-  "Python",
-  "机器学习",
-  "部署",
-  "LLM",
-  "MCP",
-  "前端",
-  "数学",
-  "论文",
-];
-
 export default function BookUploadModal({ open, onClose, onCreated }: BookUploadModalProps) {
   const [title, setTitle] = useState("");
   const [author, setAuthor] = useState("");
@@ -34,7 +23,6 @@ export default function BookUploadModal({ open, onClose, onCreated }: BookUpload
   const [summary, setSummary] = useState("");
   const [link, setLink] = useState("");
   const [tags, setTags] = useState<string[]>([]);
-  const [tagInput, setTagInput] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const { user } = useAuthStore();
@@ -47,28 +35,8 @@ export default function BookUploadModal({ open, onClose, onCreated }: BookUpload
     setSummary("");
     setLink("");
     setTags([]);
-    setTagInput("");
     setError(null);
     onClose();
-  };
-
-  const addTag = (tag: string) => {
-    const trimmed = tag.trim();
-    if (trimmed && !tags.includes(trimmed) && tags.length < 5) {
-      setTags([...tags, trimmed]);
-    }
-    setTagInput("");
-  };
-
-  const removeTag = (tag: string) => {
-    setTags(tags.filter((t) => t !== tag));
-  };
-
-  const handleKeyDown = (e: React.KeyboardEvent) => {
-    if (e.key === "Enter" && tagInput.trim()) {
-      e.preventDefault();
-      addTag(tagInput);
-    }
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -92,6 +60,7 @@ export default function BookUploadModal({ open, onClose, onCreated }: BookUpload
         link: link.trim() || undefined,
       });
       if (book) {
+        ensureTags(tags.length > 0 ? tags : ["综合"]);
         onCreated(book);
         handleClose();
       }
@@ -253,45 +222,7 @@ export default function BookUploadModal({ open, onClose, onCreated }: BookUpload
               {/* 标签 */}
               <div>
                 <label className="mb-1.5 block text-xs text-mist-400">标签（最多 5 个）</label>
-                <div className="flex flex-wrap gap-2">
-                  {tags.map((t) => (
-                    <span
-                      key={t}
-                      className="flex items-center gap-1 rounded-full border border-tian-400/40 bg-tian-400/10 px-2.5 py-1 text-xs text-tian-100"
-                    >
-                      <TagIcon size={10} />
-                      {t}
-                      <button
-                        type="button"
-                        onClick={() => removeTag(t)}
-                        className="ml-0.5 text-mist-500 hover:text-red-300"
-                      >
-                        <X size={11} />
-                      </button>
-                    </span>
-                  ))}
-                  <input
-                    type="text"
-                    value={tagInput}
-                    onChange={(e) => setTagInput(e.target.value)}
-                    onKeyDown={handleKeyDown}
-                    placeholder={tags.length < 5 ? "输入标签后回车" : ""}
-                    disabled={tags.length >= 5}
-                    className="min-w-[120px] flex-1 rounded-full border border-void-600/50 bg-void-950/50 px-3 py-1 text-xs text-parchment-100 placeholder:text-mist-500 focus:border-star-400/50 focus:outline-none disabled:opacity-40"
-                  />
-                </div>
-                <div className="mt-2 flex flex-wrap gap-1.5">
-                  {SUGGESTED_TAGS.filter((t) => !tags.includes(t)).slice(0, 6).map((t) => (
-                    <button
-                      key={t}
-                      type="button"
-                      onClick={() => addTag(t)}
-                      className="rounded-full border border-void-600/40 px-2 py-0.5 text-[11px] text-mist-400 transition-colors hover:border-mist-400/50 hover:text-mist-200"
-                    >
-                      + {t}
-                    </button>
-                  ))}
-                </div>
+                <TagSelector value={tags} onChange={setTags} />
               </div>
 
               {error && (

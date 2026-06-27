@@ -77,9 +77,9 @@ export default function BookCard({ book, index = 0 }: { book: Book; index?: numb
 
           <div className="mt-4 flex flex-wrap gap-1.5">
             {book.tags.slice(0, 3).map((t) => (
-              <span key={t} className="pill">
+              <Link key={t} to={`/tags/${encodeURIComponent(t)}`} className="pill transition-colors hover:border-star-400/40 hover:text-star-200">
                 {t}
-              </span>
+              </Link>
             ))}
           </div>
 

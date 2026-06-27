@@ -190,9 +190,9 @@ export default function Discussion() {
                     </p>
                     <div className="mt-3 flex flex-wrap items-center gap-2">
                       {q.tags.map((t) => (
-                        <span key={t} className="pill">
+                        <Link key={t} to={`/tags/${encodeURIComponent(t)}`} className="pill transition-colors hover:border-star-400/40 hover:text-star-200">
                           {t}
-                        </span>
+                        </Link>
                       ))}
                     </div>
                     <div className="mt-3 flex items-center gap-3 text-xs text-mist-500">

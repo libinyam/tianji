@@ -2,6 +2,8 @@ import { useState } from "react";
 import { motion, AnimatePresence } from "motion/react";
 import { X, Loader2, Plus, Trash2, BookOpen, FileText } from "lucide-react";
 import { createWorkshop, type WorkshopType, type OutlineChapter } from "@/lib/workshops";
+import { ensureTags } from "@/lib/tags";
+import TagSelector from "@/components/TagSelector";
 import { useAuthStore } from "@/stores/auth";
 import type { WorkshopProject } from "@/lib/workshops";
 
@@ -19,7 +21,6 @@ export default function WorkshopCreateModal({ open, onClose, onCreated }: Worksh
     { id: "ch1", title: "", brief: "" },
   ]);
   const [tags, setTags] = useState<string[]>([]);
-  const [tagInput, setTagInput] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const { user } = useAuthStore();
@@ -30,7 +31,6 @@ export default function WorkshopCreateModal({ open, onClose, onCreated }: Worksh
     setDescription("");
     setOutline([{ id: "ch1", title: "", brief: "" }]);
     setTags([]);
-    setTagInput("");
     setError(null);
     onClose();
   };
@@ -45,14 +45,6 @@ export default function WorkshopCreateModal({ open, onClose, onCreated }: Worksh
 
   const updateChapter = (id: string, field: "title" | "brief", value: string) => {
     setOutline(outline.map((c) => (c.id === id ? { ...c, [field]: value } : c)));
-  };
-
-  const addTag = (tag: string) => {
-    const trimmed = tag.trim();
-    if (trimmed && !tags.includes(trimmed) && tags.length < 5) {
-      setTags([...tags, trimmed]);
-    }
-    setTagInput("");
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -79,6 +71,7 @@ export default function WorkshopCreateModal({ open, onClose, onCreated }: Worksh
         tags: tags.length > 0 ? tags : ["综合"],
       });
       if (project) {
+        ensureTags(tags.length > 0 ? tags : ["综合"]);
         onCreated(project);
         handleClose();
       }
@@ -235,37 +228,7 @@ export default function WorkshopCreateModal({ open, onClose, onCreated }: Worksh
               {/* 标签 */}
               <div>
                 <label className="mb-1.5 block text-xs text-mist-400">标签（最多 5 个）</label>
-                <div className="flex flex-wrap gap-2">
-                  {tags.map((t) => (
-                    <span
-                      key={t}
-                      className="flex items-center gap-1 rounded-full border border-tian-400/40 bg-tian-400/10 px-2.5 py-1 text-xs text-tian-100"
-                    >
-                      {t}
-                      <button
-                        type="button"
-                        onClick={() => setTags(tags.filter((x) => x !== t))}
-                        className="ml-0.5 text-mist-500 hover:text-red-300"
-                      >
-                        <X size={11} />
-                      </button>
-                    </span>
-                  ))}
-                  <input
-                    type="text"
-                    value={tagInput}
-                    onChange={(e) => setTagInput(e.target.value)}
-                    onKeyDown={(e) => {
-                      if (e.key === "Enter" && tagInput.trim()) {
-                        e.preventDefault();
-                        addTag(tagInput);
-                      }
-                    }}
-                    placeholder={tags.length < 5 ? "输入标签后回车" : ""}
-                    disabled={tags.length >= 5}
-                    className="min-w-[120px] flex-1 rounded-full border border-void-600/50 bg-void-950/50 px-3 py-1 text-xs text-parchment-100 placeholder:text-mist-500 focus:border-star-400/50 focus:outline-none disabled:opacity-40"
-                  />
-                </div>
+                <TagSelector value={tags} onChange={setTags} />
               </div>
 
               {error && (
