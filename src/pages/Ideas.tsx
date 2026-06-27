@@ -1,11 +1,12 @@
 import { useMemo, useState, useEffect } from "react";
 import { motion } from "motion/react";
-import { Lightbulb, ThumbsUp, MessageCircle, Sparkles, Plus, Loader2 } from "lucide-react";
+import { Lightbulb, ThumbsUp, MessageCircle, Sparkles, Plus, Loader2, Bookmark } from "lucide-react";
 import PageHero from "@/components/PageHero";
 import Avatar from "@/components/Avatar";
 import IdeaModal from "@/components/IdeaModal";
 import { ideas as mockIdeas } from "@/data/ideas";
 import { fetchIdeas, resonanceIdea } from "@/lib/ideas";
+import { toggleFavorite, getFavoritedIds } from "@/lib/favorites";
 import { useAuthStore } from "@/stores/auth";
 import type { Idea } from "@/types";
 
@@ -15,6 +16,7 @@ export default function Ideas() {
   const [realIdeas, setRealIdeas] = useState<Idea[]>([]);
   const [loading, setLoading] = useState(true);
   const [resonated, setResonated] = useState<Record<string, boolean>>({});
+  const [favedIdeas, setFavedIdeas] = useState<Set<string>>(new Set());
   const { user } = useAuthStore();
 
   // 加载真实灵感
@@ -32,6 +34,12 @@ export default function Ideas() {
       mounted = false;
     };
   }, []);
+
+  // 加载收藏状态
+  useEffect(() => {
+    if (!user || realIdeas.length === 0) return;
+    getFavoritedIds(realIdeas.map((i) => i.id)).then(setFavedIdeas);
+  }, [user, realIdeas]);
 
   // 真实灵感在前，Mock 在后
   const allIdeas = useMemo(() => {
@@ -79,6 +87,30 @@ export default function Ideas() {
 
     // 远程更新
     await resonanceIdea(idea.id);
+  };
+
+  const handleFav = async (idea: Idea) => {
+    if (!user) {
+      window.dispatchEvent(new CustomEvent("tianji:open-auth"));
+      return;
+    }
+    try {
+      const fav = await toggleFavorite({
+        targetId: idea.id,
+        type: "idea",
+        title: idea.title,
+        excerpt: idea.summary,
+        link: `/ideas`,
+      });
+      setFavedIdeas((prev) => {
+        const next = new Set(prev);
+        if (fav) next.add(idea.id);
+        else next.delete(idea.id);
+        return next;
+      });
+    } catch {
+      // 静默
+    }
   };
 
   return (
@@ -206,6 +238,18 @@ export default function Ideas() {
                           className={resonated[idea.id] ? "fill-star-400" : ""}
                         />{" "}
                         {idea.resonance}
+                      </button>
+                      <button
+                        onClick={() => handleFav(idea)}
+                        className={`flex items-center gap-1 transition-colors hover:text-star-300 ${
+                          favedIdeas.has(idea.id) ? "text-star-300" : ""
+                        }`}
+                        title="收藏"
+                      >
+                        <Bookmark
+                          size={12}
+                          className={favedIdeas.has(idea.id) ? "fill-star-400" : ""}
+                        />
                       </button>
                       <span className="flex items-center gap-1">
                         <MessageCircle size={12} /> {idea.replies}

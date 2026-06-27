@@ -10,9 +10,11 @@ import {
   MessageCircle,
   CornerDownRight,
   Loader2,
+  Bookmark,
 } from "lucide-react";
 import { questions as mockQuestions } from "@/data/questions";
 import { fetchPostById, submitAnswer, submitComment, incrementViews } from "@/lib/posts";
+import { toggleFavorite, isFavorited } from "@/lib/favorites";
 import { useAuthStore } from "@/stores/auth";
 import MathText from "@/components/MathText";
 import Avatar from "@/components/Avatar";
@@ -40,6 +42,9 @@ export default function DiscussionDetail() {
   const [replyTarget, setReplyTarget] = useState<{ answerId: string; commentId: string; author: string } | null>(null);
   const [commentSubmitting, setCommentSubmitting] = useState(false);
 
+  // 收藏状态
+  const [favState, setFavState] = useState(false);
+
   // 如果 Mock 中没有，从数据库加载
   useEffect(() => {
     if (mockQuestion) {
@@ -59,6 +64,8 @@ export default function DiscussionDetail() {
         if (post) {
           // 增加浏览量（异步，不阻塞渲染）
           incrementViews(id);
+          // 检查收藏状态
+          isFavorited(id).then(setFavState);
         }
       }
     })();
@@ -66,6 +73,26 @@ export default function DiscussionDetail() {
       mounted = false;
     };
   }, [id, mockQuestion]);
+
+  const handleToggleFav = async () => {
+    if (!user) {
+      window.dispatchEvent(new CustomEvent("tianji:open-auth"));
+      return;
+    }
+    if (!question) return;
+    try {
+      const fav = await toggleFavorite({
+        targetId: question.id,
+        type: "post",
+        title: question.title,
+        excerpt: question.excerpt,
+        link: `/discussion/${question.id}`,
+      });
+      setFavState(fav);
+    } catch {
+      // 静默
+    }
+  };
 
   const toggleVote = (aid: string) =>
     setVoted((v) => ({ ...v, [aid]: !v[aid] }));
@@ -217,6 +244,17 @@ export default function DiscussionDetail() {
               <span className="flex items-center gap-1">
                 <Eye size={12} /> {question.views} 浏览
               </span>
+              <button
+                onClick={handleToggleFav}
+                className={`ml-auto flex items-center gap-1 rounded-lg border px-3 py-1.5 text-xs transition-all ${
+                  favState
+                    ? "border-star-400/70 bg-star-400/15 text-star-200"
+                    : "border-void-600/50 bg-void-800/40 text-mist-300 hover:border-mist-400/40"
+                }`}
+              >
+                <Bookmark size={13} className={favState ? "fill-star-400" : ""} />
+                {favState ? "已收藏" : "收藏"}
+              </button>
             </div>
 
             <div className="mt-6 rounded-xl border border-void-600/40 bg-void-800/30 p-6">

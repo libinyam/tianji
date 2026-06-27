@@ -1,0 +1,127 @@
+import { app } from "@/lib/cloudbase";
+import { useAuthStore } from "@/stores/auth";
+
+const db = app.database();
+const COLLECTION = "favorites";
+
+export type FavType = "post" | "idea" | "book";
+
+export interface FavoriteDoc {
+  _id?: string;
+  uid: string;
+  targetId: string;
+  type: FavType;
+  title: string;
+  excerpt: string;
+  link: string;
+  createdAt: string;
+}
+
+export interface FavoriteItem {
+  id: string;
+  targetId: string;
+  type: FavType;
+  title: string;
+  excerpt: string;
+  link: string;
+  createdAt: string;
+}
+
+function toFav(doc: FavoriteDoc): FavoriteItem {
+  return {
+    id: doc._id ?? "",
+    targetId: doc.targetId,
+    type: doc.type,
+    title: doc.title,
+    excerpt: doc.excerpt,
+    link: doc.link,
+    createdAt: doc.createdAt,
+  };
+}
+
+function getCurrentUid(): string {
+  return useAuthStore.getState().user?.uid ?? "";
+}
+
+/** 收藏 / 取消收藏（toggle），返回新的收藏状态 */
+export async function toggleFavorite(params: {
+  targetId: string;
+  type: FavType;
+  title: string;
+  excerpt: string;
+  link: string;
+}): Promise<boolean> {
+  const uid = getCurrentUid();
+  if (!uid) throw new Error("请先登录");
+
+  const existing = await db
+    .collection(COLLECTION)
+    .where({ uid, targetId: params.targetId })
+    .get();
+
+  if (existing.data && existing.data.length > 0) {
+    // 已收藏 -> 取消
+    await db.collection(COLLECTION).doc(existing.data[0]._id).remove();
+    return false;
+  }
+
+  // 未收藏 -> 添加
+  const doc: Omit<FavoriteDoc, "_id"> = {
+    uid,
+    targetId: params.targetId,
+    type: params.type,
+    title: params.title,
+    excerpt: params.excerpt,
+    link: params.link,
+    createdAt: new Date().toISOString(),
+  };
+  await db.collection(COLLECTION).add(doc);
+  return true;
+}
+
+/** 查询某个内容是否已被当前用户收藏 */
+export async function isFavorited(targetId: string): Promise<boolean> {
+  const uid = getCurrentUid();
+  if (!uid) return false;
+  try {
+    const { data } = await db
+      .collection(COLLECTION)
+      .where({ uid, targetId })
+      .get();
+    return data.length > 0;
+  } catch {
+    return false;
+  }
+}
+
+/** 批量查询当前用户收藏了哪些 id */
+export async function getFavoritedIds(targetIds: string[]): Promise<Set<string>> {
+  const uid = getCurrentUid();
+  if (!uid || targetIds.length === 0) return new Set();
+  try {
+    const { data } = await db
+      .collection(COLLECTION)
+      .where({ uid, targetId: db.command.in(targetIds) })
+      .get();
+    return new Set((data as FavoriteDoc[]).map((d) => d.targetId));
+  } catch {
+    return new Set();
+  }
+}
+
+/** 获取当前用户的所有收藏 */
+export async function fetchMyFavorites(): Promise<FavoriteItem[]> {
+  const uid = getCurrentUid();
+  if (!uid) return [];
+  try {
+    const { data } = await db
+      .collection(COLLECTION)
+      .where({ uid })
+      .orderBy("createdAt", "desc")
+      .limit(100)
+      .get();
+    return (data as FavoriteDoc[]).map(toFav);
+  } catch {
+    return [];
+  }
+}

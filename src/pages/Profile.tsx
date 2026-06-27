@@ -13,9 +13,11 @@ import {
   ThumbsUp,
   Upload,
   Loader2,
+  Bookmark,
 } from "lucide-react";
 import { useAuthStore } from "@/stores/auth";
 import { fetchUserContent, type UserContent } from "@/lib/profile";
+import { fetchMyFavorites, type FavoriteItem } from "@/lib/favorites";
 import { app } from "@/lib/cloudbase";
 
 // 简易几何图标头像，干净清爽
@@ -38,6 +40,7 @@ export default function Profile() {
   const navigate = useNavigate();
   const { user, updateProfile } = useAuthStore();
   const [content, setContent] = useState<UserContent | null>(null);
+  const [favorites, setFavorites] = useState<FavoriteItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [editing, setEditing] = useState(false);
   const [nickname, setNickname] = useState("");
@@ -53,8 +56,9 @@ export default function Profile() {
     }
     setNickname(user.nickname ?? "");
     setAvatarUrl(user.avatarUrl ?? "");
-    fetchUserContent(user.uid).then((c) => {
+    Promise.all([fetchUserContent(user.uid), fetchMyFavorites()]).then(([c, favs]) => {
       setContent(c);
+      setFavorites(favs);
       setLoading(false);
     });
   }, [user, navigate]);
@@ -100,11 +104,20 @@ export default function Profile() {
   const displayName = user.nickname || user.username || user.email || "成员";
   const avatar = user.avatarUrl || `https://api.dicebear.com/7.x/shapes/svg?seed=${user.uid}&backgroundColor=7cc4ff,b6e3f4`;
 
+  const favItems = favorites.map((f) => ({
+    id: f.targetId,
+    title: f.title,
+    createdAt: f.createdAt,
+    link: f.link,
+    type: f.type,
+  }));
+
   const tabs = [
     { label: "帖子", icon: MessageSquare, items: content?.posts, linkBase: "/discussion", emptyText: "还没有发表过讨论" },
     { label: "灵感", icon: Lightbulb, items: content?.ideas, linkBase: "/ideas", emptyText: "还没有分享过灵感" },
     { label: "资源", icon: BookOpen, items: content?.books, linkBase: "/library", emptyText: "还没有上传过资源" },
     { label: "协作", icon: Users, items: content?.workshops, linkBase: "/workshop", emptyText: "还没有发起过协作" },
+    { label: "收藏", icon: Bookmark, items: favItems, linkBase: "", emptyText: "还没有收藏过内容", useDirectLink: true },
   ];
 
   return (
@@ -216,12 +229,13 @@ export default function Profile() {
 
           {/* 统计 */}
           {!loading && content && (
-            <div className="mt-8 grid grid-cols-2 gap-3 sm:grid-cols-4">
+            <div className="mt-8 grid grid-cols-2 gap-3 sm:grid-cols-5">
               {[
                 { label: "帖子", value: content.posts.length, icon: MessageSquare },
                 { label: "灵感", value: content.ideas.length, icon: Lightbulb },
                 { label: "资源", value: content.books.length, icon: BookOpen },
                 { label: "协作", value: content.workshops.length, icon: Users },
+                { label: "收藏", value: favorites.length, icon: Bookmark },
               ].map((s) => (
                 <div
                   key={s.label}
@@ -265,7 +279,7 @@ export default function Profile() {
                       {items.map((item) => (
                         <li key={item.id}>
                           <Link
-                            to={`${tab.linkBase}/${item.id}`}
+                            to={"useDirectLink" in tab && tab.useDirectLink ? (item as { link: string }).link : `${tab.linkBase}/${item.id}`}
                             className="group flex items-center justify-between rounded-lg border border-transparent px-3 py-2.5 transition-colors hover:border-void-600/40 hover:bg-void-800/40"
                           >
                             <div className="min-w-0 flex-1">

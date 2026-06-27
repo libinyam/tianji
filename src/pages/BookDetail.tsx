@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Link, useParams } from "react-router-dom";
 import { motion } from "motion/react";
 import {
@@ -15,12 +15,39 @@ import {
 import { books } from "@/data/books";
 import DifficultyDots from "@/components/DifficultyDots";
 import Avatar from "@/components/Avatar";
+import { toggleFavorite, isFavorited } from "@/lib/favorites";
+import { useAuthStore } from "@/stores/auth";
 
 export default function BookDetail() {
   const { id } = useParams();
   const book = books.find((b) => b.id === id);
   const [tocOpen, setTocOpen] = useState(true);
   const [favorited, setFavorited] = useState(false);
+  const { user } = useAuthStore();
+
+  useEffect(() => {
+    if (id) isFavorited(id).then(setFavorited);
+  }, [id]);
+
+  const handleFav = async () => {
+    if (!user) {
+      window.dispatchEvent(new CustomEvent("tianji:open-auth"));
+      return;
+    }
+    if (!book) return;
+    try {
+      const fav = await toggleFavorite({
+        targetId: book.id,
+        type: "book",
+        title: book.title,
+        excerpt: book.summary,
+        link: `/library/${book.id}`,
+      });
+      setFavorited(fav);
+    } catch {
+      // 静默
+    }
+  };
 
   if (!book) {
     return (
@@ -81,7 +108,7 @@ export default function BookDetail() {
               <Eye size={15} /> 预览
             </button>
             <button
-              onClick={() => setFavorited((v) => !v)}
+              onClick={handleFav}
               className={`inline-flex items-center justify-center gap-2 rounded-lg border px-5 py-2.5 text-sm font-medium transition-all ${
                 favorited
                   ? "border-star-400/70 bg-star-400/15 text-star-200"
