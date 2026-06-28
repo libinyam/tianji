@@ -13,6 +13,7 @@ import type { Idea } from "@/types";
 
 export default function Ideas() {
   const [topic, setTopic] = useState("全部");
+  const [sort, setSort] = useState<"最新" | "共鸣">("共鸣");
   const [ideaModalOpen, setIdeaModalOpen] = useState(false);
   const [realIdeas, setRealIdeas] = useState<Idea[]>([]);
   const [loading, setLoading] = useState(true);
@@ -60,8 +61,11 @@ export default function Ideas() {
     () =>
       allIdeas
         .filter((i) => topic === "全部" || i.topic === topic)
-        .sort((a, b) => b.resonance - a.resonance),
-    [allIdeas, topic]
+        .sort((a, b) => {
+          if (sort === "最新") return b.createdAt < a.createdAt ? 1 : -1;
+          return b.resonance - a.resonance;
+        }),
+    [allIdeas, topic, sort]
   );
 
   const handleNewIdea = (idea: Idea) => {
@@ -174,6 +178,24 @@ export default function Ideas() {
               }`}
             >
               {t}
+            </button>
+          ))}
+        </div>
+
+        {/* 排序 */}
+        <div className="mb-6 flex items-center justify-end gap-2">
+          <span className="text-xs text-mist-500">排序：</span>
+          {(["共鸣", "最新"] as const).map((s) => (
+            <button
+              key={s}
+              onClick={() => setSort(s)}
+              className={`rounded-lg border px-3 py-1.5 text-xs font-medium transition-all ${
+                sort === s
+                  ? "border-star-400/60 bg-star-400/15 text-star-200"
+                  : "border-void-600/50 bg-void-800/40 text-mist-300 hover:border-mist-400/40"
+              }`}
+            >
+              {s}
             </button>
           ))}
         </div>

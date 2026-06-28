@@ -60,8 +60,11 @@ export async function toggleFavorite(params: {
     .get();
 
   if (existing.data && existing.data.length > 0) {
-    // 已收藏 -> 取消
-    await db.collection(COLLECTION).doc(existing.data[0]._id).remove();
+    // 已收藏 -> 取消（用 where 条件删除，确保安全规则匹配）
+    await db
+      .collection(COLLECTION)
+      .where({ uid, targetId: params.targetId })
+      .remove();
     return false;
   }
 
