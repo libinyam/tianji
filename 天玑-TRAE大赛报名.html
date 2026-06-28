@@ -1,0 +1,522 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>天玑 · TRAE AI 创造力大赛报名</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,300;9..144,400;9..144,500;9..144,600&family=Noto+Serif+SC:wght@300;400;500;600&family=Spline+Sans:wght@300;400;500;600&family=Noto+Sans+SC:wght@300;400;500;700&family=Space+Mono:wght@400;700&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      :root {
+        --void-950: #060914;
+        --void-900: #0a0f2c;
+        --void-800: #0d1538;
+        --void-700: #131d4a;
+        --void-600: #1b275e;
+        --star-200: #f3dd96;
+        --star-300: #eccd6b;
+        --star-400: #e9b865;
+        --star-500: #f3c969;
+        --star-600: #d29f3f;
+        --tian-200: #a8d6ff;
+        --tian-300: #7cc4ff;
+        --tian-400: #5aa6f0;
+        --parchment-50: #fbf8f0;
+        --parchment-100: #f5efe1;
+        --parchment-200: #f1ede2;
+        --mist-300: #b8c0db;
+        --mist-400: #9aa3c4;
+        --mist-500: #76809f;
+        --font-display: "Fraunces", "Noto Serif SC", serif;
+        --font-sans: "Spline Sans", "Noto Sans SC", sans-serif;
+        --font-mono: "Space Mono", monospace;
+      }
+
+      * { box-sizing: border-box; margin: 0; padding: 0; }
+
+      html { scroll-behavior: smooth; }
+
+      body {
+        font-family: var(--font-sans);
+        line-height: 1.7;
+        color: var(--parchment-200);
+        background-color: var(--void-950);
+        background-image:
+          radial-gradient(ellipse at 50% -10%, rgba(27,39,94,0.55) 0%, rgba(10,15,44,0.9) 45%, #060914 100%);
+        min-height: 100vh;
+        -webkit-font-smoothing: antialiased;
+        -moz-osx-font-smoothing: grayscale;
+      }
+
+      ::selection { background: rgba(243,201,105,0.3); color: #fbf3df; }
+
+      ::-webkit-scrollbar { width: 10px; }
+      ::-webkit-scrollbar-track { background: var(--void-900); }
+      ::-webkit-scrollbar-thumb {
+        background: linear-gradient(var(--void-600), var(--void-700));
+        border-radius: 6px; border: 2px solid var(--void-900);
+      }
+
+      /* 星点背景 */
+      .stars { position: fixed; inset: 0; z-index: 0; pointer-events: none; overflow: hidden; }
+      .stars span {
+        position: absolute; border-radius: 50%;
+        animation: tw 5s ease-in-out infinite;
+      }
+      @keyframes tw {
+        0%, 100% { opacity: 0.2; }
+        50% { opacity: 1; }
+      }
+
+      .wrap { position: relative; z-index: 1; max-width: 920px; margin: 0 auto; padding: 0 24px; }
+
+      /* 顶部赛道条 */
+      .track-bar {
+        position: relative; z-index: 2;
+        border-bottom: 1px solid rgba(27,39,94,0.5);
+        background: rgba(6,9,20,0.7);
+        backdrop-filter: blur(12px);
+      }
+      .track-inner {
+        max-width: 920px; margin: 0 auto; padding: 14px 24px;
+        display: flex; align-items: center; justify-content: space-between; gap: 16px;
+        font-family: var(--font-mono); font-size: 11px;
+        letter-spacing: 0.2em; text-transform: uppercase; color: var(--mist-400);
+      }
+      .track-inner .brand { display: flex; align-items: center; gap: 8px; color: var(--parchment-100); }
+      .track-inner .dot { width: 7px; height: 7px; border-radius: 50%; background: var(--star-400); box-shadow: 0 0 10px var(--star-400); }
+
+      /* Hero */
+      .hero { padding: 88px 0 56px; text-align: center; }
+      .hero .eyebrow {
+        display: inline-flex; align-items: center; gap: 10px;
+        font-family: var(--font-mono); font-size: 12px;
+        letter-spacing: 0.3em; text-transform: uppercase; color: var(--star-300);
+        margin-bottom: 28px;
+      }
+      .hero .eyebrow::before, .hero .eyebrow::after {
+        content: ""; width: 36px; height: 1px;
+        background: linear-gradient(90deg, transparent, var(--star-400));
+      }
+      .hero .eyebrow::after { background: linear-gradient(90deg, var(--star-400), transparent); }
+
+      .hero h1 {
+        font-family: var(--font-display); font-weight: 300;
+        font-size: clamp(40px, 7vw, 68px); line-height: 1.08;
+        color: var(--parchment-50); letter-spacing: -0.01em;
+      }
+      .hero h1 .gold {
+        color: var(--star-400);
+        text-shadow: 0 0 28px rgba(243,201,105,0.5);
+      }
+      .hero .sub {
+        margin-top: 24px; max-width: 620px; margin-left: auto; margin-right: auto;
+        color: var(--mist-300); font-size: 16px;
+      }
+
+      .tags { margin-top: 32px; display: flex; flex-wrap: wrap; gap: 10px; justify-content: center; }
+      .tag {
+        display: inline-flex; align-items: center; gap: 6px;
+        padding: 6px 14px; border-radius: 999px; font-size: 12px;
+        border: 1px solid rgba(243,201,105,0.4); background: rgba(243,201,105,0.08);
+        color: var(--star-200);
+      }
+      .tag.blue { border-color: rgba(124,196,255,0.35); background: rgba(124,196,255,0.08); color: var(--tian-200); }
+      .tag::before { content: "◆"; font-size: 8px; }
+
+      /* 星座装饰 */
+      .constellation { margin: 8px auto 0; max-width: 420px; }
+      .constellation svg { width: 100%; height: auto; }
+
+      /* 章节通用 */
+      section.block { padding: 56px 0; border-top: 1px solid rgba(27,39,94,0.4); }
+      .sec-head { margin-bottom: 32px; }
+      .sec-num {
+        font-family: var(--font-mono); font-size: 12px;
+        color: var(--star-300); letter-spacing: 0.25em;
+        display: flex; align-items: center; gap: 10px; margin-bottom: 12px;
+      }
+      .sec-num::before { content: ""; width: 28px; height: 1px; background: var(--star-400); }
+      .sec-head h2 {
+        font-family: var(--font-display); font-weight: 400;
+        font-size: clamp(26px, 4vw, 36px); color: var(--parchment-50);
+      }
+      .sec-head h2 .accent { color: var(--star-400); }
+
+      p.body { color: var(--mist-300); font-size: 15.5px; margin-bottom: 16px; }
+      p.body strong { color: var(--parchment-100); font-weight: 500; }
+      p.body .hl { color: var(--star-200); }
+
+      /* 创意介绍卡 */
+      .intro-card {
+        border: 1px solid rgba(27,39,94,0.6); background: rgba(13,21,56,0.4);
+        border-radius: 14px; padding: 32px; backdrop-filter: blur(6px);
+        position: relative; overflow: hidden;
+      }
+      .intro-card::before {
+        content: ""; position: absolute; top: -40px; right: -40px;
+        width: 180px; height: 180px; border-radius: 50%;
+        background: radial-gradient(circle, rgba(243,201,105,0.18), transparent 70%);
+      }
+      .intro-card .name-row { display: flex; align-items: baseline; gap: 16px; margin-bottom: 20px; flex-wrap: wrap; }
+      .intro-card .name {
+        font-family: var(--font-display); font-size: 30px; color: var(--star-400);
+        text-shadow: 0 0 20px rgba(243,201,105,0.35);
+      }
+      .intro-card .name-en { font-family: var(--font-mono); font-size: 13px; color: var(--mist-500); letter-spacing: 0.2em; }
+
+      /* 痛点列表 */
+      .pain-grid { display: grid; gap: 16px; }
+      .pain-item {
+        border: 1px solid rgba(27,39,94,0.5); background: rgba(13,21,56,0.35);
+        border-radius: 12px; padding: 24px; display: flex; gap: 18px;
+        transition: border-color 0.3s, transform 0.3s;
+      }
+      .pain-item:hover { border-color: rgba(243,201,105,0.35); transform: translateY(-2px); }
+      .pain-item .idx {
+        font-family: var(--font-display); font-size: 26px; color: var(--star-400);
+        line-height: 1; flex-shrink: 0; min-width: 36px;
+      }
+      .pain-item h4 { font-family: var(--font-display); font-weight: 500; color: var(--parchment-50); margin-bottom: 6px; font-size: 17px; }
+      .pain-item p { color: var(--mist-400); font-size: 14.5px; }
+
+      /* 目标用户 */
+      .user-grid { display: grid; gap: 14px; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); }
+      .user-card {
+        border: 1px solid rgba(27,39,94,0.5); background: rgba(13,21,56,0.35);
+        border-radius: 12px; padding: 20px;
+      }
+      .user-card .ic {
+        width: 36px; height: 36px; border-radius: 10px;
+        border: 1px solid rgba(124,196,255,0.3); background: rgba(124,196,255,0.1);
+        display: flex; align-items: center; justify-content: center;
+        color: var(--tian-300); font-family: var(--font-display); margin-bottom: 14px;
+      }
+      .user-card p { color: var(--mist-300); font-size: 14px; }
+
+      /* 价值三栏 */
+      .value-grid { display: grid; gap: 18px; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); }
+      .value-card {
+        border: 1px solid rgba(27,39,94,0.55); background: rgba(13,21,56,0.4);
+        border-radius: 14px; padding: 28px; position: relative; overflow: hidden;
+      }
+      .value-card .v-tag {
+        font-family: var(--font-mono); font-size: 11px; letter-spacing: 0.2em;
+        color: var(--star-300); margin-bottom: 14px; text-transform: uppercase;
+      }
+      .value-card h4 { font-family: var(--font-display); font-weight: 500; color: var(--parchment-50); margin-bottom: 10px; font-size: 18px; }
+      .value-card p { color: var(--mist-400); font-size: 14.5px; }
+
+      /* 场景 chips */
+      .scenes { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 8px; }
+      .scene {
+        padding: 8px 14px; border-radius: 8px; font-size: 13px;
+        border: 1px solid rgba(27,39,94,0.6); background: rgba(13,21,56,0.4);
+        color: var(--mist-300);
+      }
+
+      /* 产物说明 */
+      .product-box {
+        border: 1px solid rgba(27,39,94,0.55); background: rgba(13,21,56,0.35);
+        border-radius: 14px; padding: 32px;
+      }
+      .product-box .ph {
+        font-family: var(--font-display); font-size: 18px; color: var(--parchment-50); margin-bottom: 8px;
+      }
+      .modules { display: grid; gap: 12px; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); margin: 20px 0; }
+      .module {
+        border: 1px solid rgba(27,39,94,0.5); border-radius: 10px; padding: 16px;
+        background: rgba(6,9,20,0.4);
+      }
+      .module .mn { font-family: var(--font-display); color: var(--star-400); font-size: 15px; margin-bottom: 4px; }
+      .module .md { color: var(--mist-400); font-size: 13px; }
+
+      .roadmap {
+        margin-top: 24px; padding: 20px; border-radius: 10px;
+        border: 1px dashed rgba(124,196,255,0.3); background: rgba(124,196,255,0.05);
+      }
+      .roadmap .rt { font-family: var(--font-mono); font-size: 11px; letter-spacing: 0.2em; color: var(--tian-300); margin-bottom: 10px; text-transform: uppercase; }
+      .roadmap p { color: var(--mist-300); font-size: 14px; }
+
+      /* CTA */
+      .cta { text-align: center; padding: 80px 0 60px; }
+      .cta h3 { font-family: var(--font-display); font-weight: 300; font-size: clamp(28px, 4.5vw, 40px); color: var(--parchment-50); margin-bottom: 16px; }
+      .cta h3 .gold { color: var(--star-400); }
+      .cta p { color: var(--mist-400); max-width: 540px; margin: 0 auto; }
+      .cta .star-line {
+        width: 120px; height: 1px; margin: 28px auto;
+        background: linear-gradient(90deg, transparent, var(--star-400), transparent);
+      }
+
+      footer { border-top: 1px solid rgba(27,39,94,0.4); padding: 28px 0; text-align: center; }
+      footer p { font-family: var(--font-mono); font-size: 11px; color: var(--mist-500); letter-spacing: 0.15em; }
+
+      @media (max-width: 640px) {
+        .hero { padding: 56px 0 40px; }
+        .intro-card, .product-box { padding: 22px; }
+        .pain-item { padding: 18px; gap: 14px; }
+      }
+    </style>
+  </head>
+  <body>
+    <!-- 星点背景 -->
+    <div class="stars" id="stars"></div>
+
+    <!-- 赛道条 -->
+    <div class="track-bar">
+      <div class="track-inner">
+        <span class="brand"><span class="dot"></span> TRAE AI 创造力大赛 · 报名展示</span>
+        <span>学习工作赛道</span>
+      </div>
+    </div>
+
+    <!-- Hero -->
+    <header class="hero wrap">
+      <div class="eyebrow">Tianji · 跨专业 AI 学习与项目共创社区</div>
+      <h1>
+        从只会学理论<br />
+        走向 <span class="gold">能做项目、能产出</span>
+      </h1>
+      <p class="sub">
+        天玑是一个面向大学生与跨专业学习者的 AI 学习与项目共创社区，帮助数学、物理、计算机、金融等专业的学生，借力 AI 工具完成从知识到作品的跨越。
+      </p>
+      <div class="tags">
+        <span class="tag">学习工作</span>
+      </div>
+
+      <!-- 北斗星座装饰 -->
+      <div class="constellation">
+        <svg viewBox="0 0 420 180" fill="none" aria-hidden="true">
+          <defs>
+            <radialGradient id="ng" cx="50%" cy="50%" r="50%">
+              <stop offset="0%" stop-color="#fdf6e3" />
+              <stop offset="60%" stop-color="#f3c969" />
+              <stop offset="100%" stop-color="#d29f3f" />
+            </radialGradient>
+            <radialGradient id="nb" cx="50%" cy="50%" r="50%">
+              <stop offset="0%" stop-color="#eaf6ff" />
+              <stop offset="60%" stop-color="#7cc4ff" />
+              <stop offset="100%" stop-color="#3d86d6" />
+            </radialGradient>
+          </defs>
+          <g stroke="url(#ng)" stroke-width="1" stroke-opacity="0.5">
+            <line x1="50" y1="50" x2="150" y2="60" />
+            <line x1="50" y1="50" x2="52" y2="128" />
+            <line x1="52" y1="128" x2="138" y2="136" />
+            <line x1="138" y1="136" x2="150" y2="60" />
+            <line x1="150" y1="60" x2="232" y2="66" />
+            <line x1="232" y1="66" x2="308" y2="88" />
+            <line x1="308" y1="88" x2="372" y2="56" />
+          </g>
+          <g fill="url(#nb)">
+            <circle cx="50" cy="50" r="3.4" />
+            <circle cx="52" cy="128" r="3" />
+            <circle cx="150" cy="60" r="3.2" />
+            <circle cx="232" cy="66" r="3.6" />
+            <circle cx="308" cy="88" r="3.4" />
+            <circle cx="372" cy="56" r="3.8" />
+          </g>
+          <circle cx="138" cy="136" r="5" fill="url(#ng)" />
+          <circle cx="138" cy="136" r="9" fill="url(#ng)" opacity="0.25" />
+          <text x="138" y="158" text-anchor="middle" fill="#f3c969" font-family="Fraunces, serif" font-size="11">天玑</text>
+        </svg>
+      </div>
+    </header>
+
+    <main class="wrap">
+      <!-- 一、创意名称 + 介绍 -->
+      <section class="block">
+        <div class="sec-head">
+          <div class="sec-num">01 / 创意名称与介绍</div>
+          <h2>一颗引路星，<span class="accent">照亮从理论到作品的路径</span></h2>
+        </div>
+        <div class="intro-card">
+          <div class="name-row">
+            <span class="name">天玑</span>
+            <span class="name-en">TIANJI</span>
+          </div>
+          <p class="body">
+            天玑是一个面向大学生与跨专业学习者的 <strong>AI 学习与项目共创社区</strong>，重点帮助数学、物理、计算机、金融等专业中想转向 AI、金融科技或应用开发的学生，从<span class="hl">"只会学理论"</span>逐步走向<span class="hl">"能做项目、会协作、能产出"</span>。
+          </p>
+          <p class="body">
+            我想解决的问题是：很多学生想进入 AI 方向，但缺少系统指导。无论是数学、物理等理科专业，还是金融、工科等应用专业，学校课程普遍偏理论，真正涉及 GitHub、PowerShell、Codex、Claude Code、项目部署、论文落地和产品开发的内容很少。许多同学知道 AI 很重要，却不知道第一步该学什么、工具怎么配、项目怎么做。
+          </p>
+          <p class="body">
+            我想到做这个，是因为我自己也经历过这种阶段。一开始我连 GUI、PowerShell、GitHub 都不熟悉，Codex 和 Claude Code 也是靠看大量视频、反复做小项目才慢慢学会。我发现，对很多学生来说，<strong>最缺的不是学习能力，而是清晰路线、真实案例和有人带着做项目的环境</strong>。
+          </p>
+          <p class="body">
+            天玑的产品形态是一个<strong>论坛型 Web 社区</strong>，包含资源库、讨论区、灵感广场、协作工坊等模块，用来整合 AI 学习资料、工具配置教程、项目案例和协作任务，让学生可以从简单项目开始，逐步建立自己的技术能力和作品集。
+          </p>
+        </div>
+      </section>
+
+      <!-- 二、目标用户及痛点 -->
+      <section class="block">
+        <div class="sec-head">
+          <div class="sec-num">02 / 目标用户及痛点</div>
+          <h2>谁需要天玑，<span class="accent">他们卡在哪里</span></h2>
+        </div>
+
+        <h4 style="font-family: var(--font-display); color: var(--parchment-100); margin-bottom: 16px; font-weight: 500;">目标用户</h4>
+        <div class="user-grid">
+          <div class="user-card">
+            <div class="ic">∑</div>
+            <p>数学、物理、金融、工科等想转向 AI 或技术应用方向的学生</p>
+          </div>
+          <div class="user-card">
+            <div class="ic">{ }</div>
+            <p>计算机专业中学过课程但不会做项目、不会写论文或不会落地应用的学生</p>
+          </div>
+          <div class="user-card">
+            <div class="ic">AI</div>
+            <p>想自学 AI 工具、LLM 编程、项目部署和科研辅助工具的新手</p>
+          </div>
+          <div class="user-card">
+            <div class="ic">★</div>
+            <p>希望通过真实项目积累作品集、提升实践能力的大学生</p>
+          </div>
+        </div>
+
+        <h4 style="font-family: var(--font-display); color: var(--parchment-100); margin: 32px 0 14px; font-weight: 500;">典型使用场景</h4>
+        <div class="scenes">
+          <span class="scene">想学机器学习但不知道资料顺序</span>
+          <span class="scene">想用 GitHub 但不会上传项目</span>
+          <span class="scene">想用 Codex / Claude Code / Trae 但不会配置</span>
+          <span class="scene">想把专业知识做成项目但不会拆解任务</span>
+          <span class="scene">想部署网页却看不懂报错</span>
+          <span class="scene">想找搭档协作开发</span>
+        </div>
+
+        <h4 style="font-family: var(--font-display); color: var(--parchment-100); margin: 36px 0 16px; font-weight: 500;">当前三大痛点</h4>
+        <div class="pain-grid">
+          <div class="pain-item">
+            <div class="idx">01</div>
+            <div>
+              <h4>资料太分散</h4>
+              <p>网上教程、视频、文档很多，但质量参差不齐，新手很难判断哪些该先学、哪些工具真正重要。</p>
+            </div>
+          </div>
+          <div class="pain-item">
+            <div class="idx">02</div>
+            <div>
+              <h4>学校教学和真实项目之间有断层</h4>
+              <p>很多学生学过数学、编程或算法，但不会把知识做成可展示的作品，也不知道如何从一个想法走到项目 Demo。</p>
+            </div>
+          </div>
+          <div class="pain-item">
+            <div class="idx">03</div>
+            <div>
+              <h4>缺少同伴和指导</h4>
+              <p>AI 工具发展很快，但很多学生甚至不知道 GitHub、Codex、Claude Code、MCP、部署平台等工具的存在，更不知道如何把它们组合起来完成学习和创作。</p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- 三、价值与意义 -->
+      <section class="block">
+        <div class="sec-head">
+          <div class="sec-num">03 / 价值与意义</div>
+          <h2>让每一份专业积累，<span class="accent">都变成真实可用的作品</span></h2>
+        </div>
+        <div class="value-grid">
+          <div class="value-card">
+            <div class="v-tag">效率提升</div>
+            <h4>降低新手入门成本</h4>
+            <p>把分散的 AI 学习路径、工具教程、项目案例和讨论经验集中到一个社区，用户不需在大量视频和文章中反复试错，而是根据自己阶段找到对应资源和可执行任务。</p>
+          </div>
+          <div class="value-card">
+            <div class="v-tag">社会价值</div>
+            <h4>赋能非计算机专业学生</h4>
+            <p>帮助非计算机专业学生获得 AI 时代所需的实践能力。无论是数学、物理等理科，还是金融、工科等应用学科，传统成长路径都高度依赖天赋、导师和资源，而 AI 正在改变学习与科研方式——学生需要一条新路径：把本专业的理论积累，借助 AI 工具转化为可完成的项目、可写的文档、可协作的开发，最终变成真实作品。</p>
+          </div>
+          <div class="value-card">
+            <div class="v-tag">长期价值</div>
+            <h4>"从入门到产出"的学习共同体</h4>
+            <p>学生可以在这里学习工具、提出问题、分享项目、寻找合作者，也可以通过一个个小项目慢慢建立自己的技术路线和信心，让理论能力转化成真实作品。</p>
+          </div>
+        </div>
+      </section>
+
+      <!-- 四、创意产物 -->
+      <section class="block">
+        <div class="sec-head">
+          <div class="sec-num">04 / 创意产物</div>
+          <h2>天玑网站原型，<span class="accent">已用 TRAE 生成</span></h2>
+        </div>
+        <div class="product-box">
+          <p class="ph">已使用 TRAE 生成了"天玑"网站原型前端项目，用于展示该创意的核心产品形态。</p>
+          <p class="body" style="margin-top: 8px;">当前原型包含以下核心模块：</p>
+          <div class="modules">
+            <div class="module">
+              <div class="mn">首页</div>
+              <div class="md">展示平台定位与四大核心模块入口</div>
+            </div>
+            <div class="module">
+              <div class="mn">资源库</div>
+              <div class="md">整合理论、AI 工具、项目实战与编程基础教程</div>
+            </div>
+            <div class="module">
+              <div class="mn">讨论区</div>
+              <div class="md">跨专业答疑与工具配置求助</div>
+            </div>
+            <div class="module">
+              <div class="mn">灵感广场</div>
+              <div class="md">展示项目创意与研究思路</div>
+            </div>
+            <div class="module">
+              <div class="mn">协作工坊</div>
+              <div class="md">多人共创教材、论文与项目文档</div>
+            </div>
+          </div>
+          <div class="roadmap">
+            <div class="rt">后续演进路线</div>
+            <p>计划继续接入注册登录、真实发帖、资料上传、收藏评论、项目协作和管理员审核等功能，让天玑从展示型原型逐步变成真正可用的学习与项目共创社区。</p>
+          </div>
+        </div>
+      </section>
+
+      <!-- CTA -->
+      <section class="cta">
+        <h3>每一颗单点闪光，<br />终将汇聚成 <span class="gold">完整星图</span></h3>
+        <div class="star-line"></div>
+        <p>天玑得名于北斗七星之一。我们相信，清晰的路线、真实的案例与同伴的陪伴，能让每一个想进入 AI 的学生，都走出属于自己的成长轨迹。</p>
+      </section>
+    </main>
+
+    <footer>
+      <p>© 2025 天玑 TIANJI · TRAE AI 创造力大赛报名作品</p>
+    </footer>
+
+    <script>
+      // 生成星点
+      (function () {
+        var box = document.getElementById('stars');
+        var count = 80;
+        var seed = 1337;
+        function rand() { seed = (seed * 9301 + 49297) % 233280; return seed / 233280; }
+        for (var i = 0; i < count; i++) {
+          var s = document.createElement('span');
+          var gold = rand() > 0.8;
+          var size = rand() * 2 + 1;
+          s.style.top = rand() * 100 + '%';
+          s.style.left = rand() * 100 + '%';
+          s.style.width = size + 'px';
+          s.style.height = size + 'px';
+          s.style.opacity = rand() * 0.6 + 0.2;
+          s.style.animationDelay = rand() * 5 + 's';
+          s.style.animationDuration = (rand() * 4 + 3) + 's';
+          s.style.background = gold ? '#f3c969' : '#cfe9ff';
+          s.style.boxShadow = gold
+            ? '0 0 6px 1px rgba(243,201,105,0.6)'
+            : '0 0 6px 1px rgba(124,196,255,0.5)';
+          box.appendChild(s);
+        }
+      })();
+    </script>
+  </body>
+</html>

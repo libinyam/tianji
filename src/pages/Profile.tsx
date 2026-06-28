@@ -20,14 +20,14 @@ import { fetchUserContent, type UserContent } from "@/lib/profile";
 import { fetchMyFavorites, type FavoriteItem } from "@/lib/favorites";
 import { app } from "@/lib/cloudbase";
 
-// 简易几何图标头像，干净清爽
+// 星辰风格头像，契合天玑主题
 const DEFAULT_AVATARS = [
-  "https://api.dicebear.com/7.x/shapes/svg?seed=Tianji1&backgroundColor=7cc4ff,b6e3f4",
-  "https://api.dicebear.com/7.x/shapes/svg?seed=Tianji2&backgroundColor=ffd5dc,c0aede",
-  "https://api.dicebear.com/7.x/shapes/svg?seed=Tianji3&backgroundColor=ffdfbf,d1f4ff",
-  "https://api.dicebear.com/7.x/shapes/svg?seed=Tianji4&backgroundColor=c0aede,ffd5dc",
-  "https://api.dicebear.com/7.x/shapes/svg?seed=Tianji5&backgroundColor=d1f4ff,ffdfbf",
-  "https://api.dicebear.com/7.x/shapes/svg?seed=Tianji6&backgroundColor=b6e3f4,c0aede",
+  "https://api.dicebear.com/7.x/identicon/svg?seed=StarNova&backgroundColor=1a1a2e,16213e,0f3460",
+  "https://api.dicebear.com/7.x/identicon/svg?seed=Orion&backgroundColor=0f3460,533483,1a1a2e",
+  "https://api.dicebear.com/7.x/identicon/svg?seed=Lyra&backgroundColor=533483,1a1a2e,0f3460",
+  "https://api.dicebear.com/7.x/identicon/svg?seed=Vega&backgroundColor=16213e,0f3460,e94560",
+  "https://api.dicebear.com/7.x/identicon/svg?seed=Sirius&backgroundColor=0f3460,1a1a2e,e94560",
+  "https://api.dicebear.com/7.x/identicon/svg?seed=Polaris&backgroundColor=1a1a2e,533483,e94560",
 ];
 
 function formatDate(s: string) {
@@ -102,7 +102,7 @@ export default function Profile() {
   if (!user) return null;
 
   const displayName = user.nickname || user.username || user.email || "成员";
-  const avatar = user.avatarUrl || `https://api.dicebear.com/7.x/shapes/svg?seed=${user.uid}&backgroundColor=7cc4ff,b6e3f4`;
+  const avatar = user.avatarUrl || `https://api.dicebear.com/7.x/identicon/svg?seed=${user.uid}&backgroundColor=1a1a2e,16213e,0f3460`;
 
   const favItems = favorites.map((f) => ({
     id: f.targetId,

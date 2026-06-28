@@ -75,7 +75,7 @@ export default function UserProfile() {
   }
 
   const displayName = profile.nickname || "匿名用户";
-  const avatar = profile.avatarUrl || `https://api.dicebear.com/7.x/shapes/svg?seed=${uid}&backgroundColor=7cc4ff,b6e3f4`;
+  const avatar = profile.avatarUrl || `https://api.dicebear.com/7.x/identicon/svg?seed=${uid}&backgroundColor=1a1a2e,16213e,0f3460`;
 
   const tabs = [
     { label: "帖子", icon: MessageSquare, items: content?.posts, linkBase: "/discussion", emptyText: "还没有发表过讨论" },

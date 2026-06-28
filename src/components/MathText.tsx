@@ -48,14 +48,24 @@ function parseContent(content: string): Segment[] {
   return segments;
 }
 
+function decodeMathEntities(tex: string): string {
+  return tex
+    .replace(/&#x27;|&#39;/g, "'")
+    .replace(/&quot;/g, '"')
+    .replace(/&lt;/g, "<")
+    .replace(/&gt;/g, ">")
+    .replace(/&amp;/g, "&");
+}
+
 function renderTex(tex: string, displayMode: boolean): string {
   try {
-    // 先转义 HTML，防止 XSS；KaTeX 会正确处理转义后的实体
-    const safe = escapeHtml(tex);
-    return katex.renderToString(safe, {
+    const normalizedTex = decodeMathEntities(tex);
+    return katex.renderToString(normalizedTex, {
       displayMode,
       throwOnError: false,
       output: "html",
+      trust: false,
+      strict: "warn",
     });
   } catch {
     return escapeHtml(tex);
