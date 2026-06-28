@@ -238,6 +238,7 @@ export default function DiscussionDetail() {
             tags: question.tags,
           },
         }).then((res: unknown) => {
+          console.log("AI bot response:", res);
           const result = (res as { result?: { ok?: boolean; answer?: Answer } }).result;
           if (result?.ok && result.answer) {
             setQuestion((prev) => prev ? {
@@ -246,8 +247,8 @@ export default function DiscussionDetail() {
               answers: prev.answers + 1,
             } : prev);
           }
-        }).catch(() => {
-          // 静默失败，AI 回复不影响用户体验
+        }).catch((err) => {
+          console.error("AI bot error:", err);
         }).finally(() => {
           setAiThinking(false);
         });

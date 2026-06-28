@@ -4,6 +4,7 @@ import { X, Loader2 } from "lucide-react";
 import { createPost } from "@/lib/posts";
 import { ensureTags } from "@/lib/tags";
 import { rateLimiters } from "@/lib/security";
+import { app } from "@/lib/cloudbase";
 import { useAuthStore } from "@/stores/auth";
 import TagSelector from "@/components/TagSelector";
 import type { Question } from "@/types";
@@ -58,6 +59,23 @@ export default function PostModal({ open, onClose, onCreated }: PostModalProps) 
         ensureTags(tags.length > 0 ? tags : ["综合讨论"]);
         onCreated(post);
         handleClose();
+
+        // 异步触发 AI 机器人回复（不阻塞用户）
+        app.callFunction({
+          name: "ai-bot",
+          data: {
+            postId: post.id,
+            postTitle: post.title,
+            postBody: post.body,
+            contentType: "post",
+            content: post.body,
+            tags: tags.length > 0 ? tags : ["综合讨论"],
+          },
+        }).then((res: unknown) => {
+          console.log("AI bot response:", res);
+        }).catch((err) => {
+          console.error("AI bot error:", err);
+        });
       }
     } catch (err) {
       setError((err as Error).message);
