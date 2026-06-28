@@ -1,20 +1,20 @@
 /**
- * AI 机器人自动回复云函数
- * 调用 DeepSeek API 生成智能回复，以机器人身份写入帖子回答
+ * 天玑bot 自动回复云函数
+ * 仅在发帖时触发，调用 DeepSeek API 生成智能回复
  */
 const cloud = require("@cloudbase/node-sdk");
 
 const app = cloud.init({ env: cloud.SYMBOL_CURRENT_ENV });
 const db = app.database();
 
-const BOT_NAME = "天玑AI";
+const BOT_NAME = "天玑bot";
 const BOT_AVATAR_COLOR = "#a78bfa";
 const BOT_UID = "ai-bot-001";
 
 exports.main = async (event) => {
-  const { postId, postTitle, postBody, contentType, content, tags } = event;
+  const { postId, postTitle, postBody, tags } = event;
 
-  if (!postTitle || !content) {
+  if (!postTitle || !postBody) {
     return { ok: false, error: "缺少必要参数" };
   }
 
@@ -25,10 +25,9 @@ exports.main = async (event) => {
 
   // 构造 system prompt
   const tagStr = tags && tags.length > 0 ? tags.join("、") : "综合";
-  const systemPrompt = `你是"天玑AI"，天玑知识社区的AI助手。你擅长${tagStr}领域。请用简洁、友好、专业的语气回答问题或评论。回复控制在150字以内，可以使用 LaTeX 公式（用 $...$ 包裹行内公式，$$...$$ 包裹块级公式）。不要说"作为AI"，直接给出有价值的回应。`;
+  const systemPrompt = `你是"天玑bot"，天玑知识社区的AI助手。你擅长${tagStr}领域。用户发了新帖子，请用简洁、友好、专业的语气回应。回复控制在150字以内，可以使用 LaTeX 公式（用 $...$ 包裹行内公式，$$...$$ 包裹块级公式）。不要说"作为AI"，直接给出有价值的回应。`;
 
-  // 构造 user message
-  const userMessage = `帖子标题：${postTitle}\n帖子内容：${postBody || ""}\n${contentType === "comment" ? "用户评论" : "用户回答"}：${content}\n\n请生成一条简短、有价值的回复。`;
+  const userMessage = `帖子标题：${postTitle}\n帖子内容：${postBody}\n\n请生成一条简短、有价值的回复。`;
 
   try {
     // 调用 DeepSeek API
