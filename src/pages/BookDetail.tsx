@@ -13,6 +13,7 @@ import {
   FileText,
 } from "lucide-react";
 import { books } from "@/data/books";
+import { fetchBookById } from "@/lib/books";
 import DifficultyDots from "@/components/DifficultyDots";
 import Avatar from "@/components/Avatar";
 import { toggleFavorite, isFavorited } from "@/lib/favorites";
@@ -20,10 +21,22 @@ import { useAuthStore } from "@/stores/auth";
 
 export default function BookDetail() {
   const { id } = useParams();
-  const book = books.find((b) => b.id === id);
+  const mockBook = books.find((b) => b.id === id);
+  const [book, setBook] = useState(mockBook || null);
   const [tocOpen, setTocOpen] = useState(true);
   const [favorited, setFavorited] = useState(false);
   const { user } = useAuthStore();
+
+  useEffect(() => {
+    if (mockBook) return; // Mock 数据直接用
+    if (!id) return;
+    let mounted = true;
+    (async () => {
+      const dbBook = await fetchBookById(id);
+      if (mounted && dbBook) setBook(dbBook);
+    })();
+    return () => { mounted = false; };
+  }, [id, mockBook]);
 
   useEffect(() => {
     if (id) isFavorited(id).then(setFavorited);
@@ -101,9 +114,28 @@ export default function BookDetail() {
           </div>
 
           <div className="mt-4 grid grid-cols-2 gap-2.5">
-            <button className="btn-gold col-span-2">
-              <Download size={15} /> 下载资源
-            </button>
+            {book.fileUrl ? (
+              <a
+                href={book.fileUrl}
+                download={book.fileName || book.title}
+                className="btn-gold col-span-2"
+              >
+                <Download size={15} /> 下载资源
+              </a>
+            ) : book.link ? (
+              <a
+                href={book.link}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="btn-gold col-span-2"
+              >
+                <Download size={15} /> 访问资源
+              </a>
+            ) : (
+              <button className="btn-gold col-span-2 opacity-50" disabled>
+                <Download size={15} /> 暂无下载
+              </button>
+            )}
             <button className="btn-ghost">
               <Eye size={15} /> 预览
             </button>

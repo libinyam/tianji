@@ -1,9 +1,10 @@
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { motion, AnimatePresence } from "motion/react";
-import { X, Loader2, BookOpen, Link2 } from "lucide-react";
+import { X, Loader2, BookOpen, Link2, UploadCloud, FileText } from "lucide-react";
 import { createBook } from "@/lib/books";
 import { ensureTags } from "@/lib/tags";
 import { rateLimiters } from "@/lib/security";
+import { app } from "@/lib/cloudbase";
 import { useAuthStore } from "@/stores/auth";
 import TagSelector from "@/components/TagSelector";
 import type { Book, BookCategory } from "@/types";
@@ -26,6 +27,10 @@ export default function BookUploadModal({ open, onClose, onCreated }: BookUpload
   const [tags, setTags] = useState<string[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [uploadingFile, setUploadingFile] = useState(false);
+  const [uploadedFileId, setUploadedFileId] = useState<string | null>(null);
+  const [uploadedFileName, setUploadedFileName] = useState<string | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
   const { user } = useAuthStore();
 
   const handleClose = () => {
@@ -36,8 +41,42 @@ export default function BookUploadModal({ open, onClose, onCreated }: BookUpload
     setSummary("");
     setLink("");
     setTags([]);
+    setUploadedFileId(null);
+    setUploadedFileName(null);
     setError(null);
+    if (fileInputRef.current) fileInputRef.current.value = "";
     onClose();
+  };
+
+  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file || !user) return;
+
+    // 限制 50MB
+    if (file.size > 50 * 1024 * 1024) {
+      setError("文件大小不能超过 50MB");
+      return;
+    }
+
+    setUploadingFile(true);
+    setError(null);
+    try {
+      const ext = file.name.split(".").pop() || "pdf";
+      const cloudPath = `books/${user.uid}-${Date.now()}.${ext}`;
+      const res = await app.uploadFile({ cloudPath, filePath: file as unknown as string });
+      setUploadedFileId(res.fileID);
+      setUploadedFileName(file.name);
+    } catch {
+      setError("文件上传失败，请重试");
+    } finally {
+      setUploadingFile(false);
+    }
+  };
+
+  const handleRemoveFile = () => {
+    setUploadedFileId(null);
+    setUploadedFileName(null);
+    if (fileInputRef.current) fileInputRef.current.value = "";
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -58,6 +97,19 @@ export default function BookUploadModal({ open, onClose, onCreated }: BookUpload
     setLoading(true);
     setError(null);
     try {
+      // 如果有上传文件，获取临时下载 URL
+      let fileUrl: string | undefined;
+      if (uploadedFileId) {
+        try {
+          const urlRes = await app.getTempFileURL({
+            fileList: [{ fileID: uploadedFileId, maxAge: 365 * 24 * 60 * 60 * 1000 }],
+          });
+          fileUrl = urlRes.fileList?.[0]?.tempFileURL;
+        } catch {
+          // 获取 URL 失败不阻塞，仍然存储 fileID
+        }
+      }
+
       const book = await createBook({
         title: title.trim(),
         author: author.trim(),
@@ -66,6 +118,8 @@ export default function BookUploadModal({ open, onClose, onCreated }: BookUpload
         tags: tags.length > 0 ? tags : ["综合"],
         summary: summary.trim(),
         link: link.trim() || undefined,
+        fileUrl,
+        fileName: uploadedFileName || undefined,
       });
       if (book) {
         ensureTags(tags.length > 0 ? tags : ["综合"]);
@@ -225,6 +279,45 @@ export default function BookUploadModal({ open, onClose, onCreated }: BookUpload
                     className="w-full rounded-lg border border-void-600/50 bg-void-950/50 py-2.5 pl-10 pr-3 text-sm text-parchment-100 placeholder:text-mist-500 focus:border-star-400/50 focus:outline-none focus:ring-1 focus:ring-star-400/30"
                   />
                 </div>
+              </div>
+
+              {/* 本地文件上传 */}
+              <div>
+                <label className="mb-1.5 block text-xs text-mist-400">上传本地文件（可选，最大 50MB）</label>
+                <input
+                  ref={fileInputRef}
+                  type="file"
+                  onChange={handleFileUpload}
+                  accept=".pdf,.epub,.mobi,.txt,.docx,.doc,.pptx,.zip,.rar,.7z"
+                  className="hidden"
+                />
+                {uploadedFileName ? (
+                  <div className="flex items-center gap-3 rounded-lg border border-star-400/40 bg-star-400/10 px-4 py-3">
+                    <FileText size={18} className="shrink-0 text-star-300" />
+                    <span className="flex-1 truncate text-sm text-parchment-100">{uploadedFileName}</span>
+                    <button
+                      type="button"
+                      onClick={handleRemoveFile}
+                      className="text-xs text-mist-400 transition-colors hover:text-red-300"
+                    >
+                      移除
+                    </button>
+                  </div>
+                ) : uploadingFile ? (
+                  <div className="flex items-center gap-3 rounded-lg border border-void-600/50 bg-void-800/40 px-4 py-3">
+                    <Loader2 size={18} className="animate-spin text-star-300" />
+                    <span className="text-sm text-mist-300">上传中…</span>
+                  </div>
+                ) : (
+                  <button
+                    type="button"
+                    onClick={() => fileInputRef.current?.click()}
+                    className="flex w-full items-center justify-center gap-2 rounded-lg border border-dashed border-void-600/50 bg-void-800/30 px-4 py-6 text-sm text-mist-400 transition-all hover:border-star-400/40 hover:text-star-300"
+                  >
+                    <UploadCloud size={18} />
+                    点击上传 PDF / EPUB / DOCX / ZIP 等文件
+                  </button>
+                )}
               </div>
 
               {/* 标签 */}

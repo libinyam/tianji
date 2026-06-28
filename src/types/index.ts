@@ -24,6 +24,9 @@ export interface Book {
   pages: number;
   toc: string[];
   reviews: Review[];
+  link?: string; // 外部链接
+  fileUrl?: string; // 上传文件的临时下载 URL
+  fileName?: string; // 上传文件的原始文件名
 }
 
 export interface Comment {

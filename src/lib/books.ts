@@ -22,6 +22,8 @@ export interface BookDoc {
   reviews: { author: string; rating: number; content: string; date: string }[];
   authorUid: string;
   link?: string; // 外部链接（如 GitHub、电子书地址）
+  fileUrl?: string; // 上传文件的临时下载 URL
+  fileName?: string; // 上传文件的原始文件名
   createdAt: string;
 }
 
@@ -43,6 +45,9 @@ function toBook(doc: BookDoc): Book {
     pages: doc.pages,
     toc: doc.toc,
     reviews: doc.reviews,
+    link: doc.link,
+    fileUrl: doc.fileUrl,
+    fileName: doc.fileName,
   };
 }
 
@@ -64,6 +69,20 @@ export async function fetchBooks(): Promise<Book[]> {
   }
 }
 
+/** 获取单本书籍详情 */
+export async function fetchBookById(id: string): Promise<Book | null> {
+  try {
+    const { data } = await db
+      .collection(BOOKS_COLLECTION)
+      .doc(id)
+      .get();
+    if (!data || data.length === 0) return null;
+    return toBook(data[0] as BookDoc);
+  } catch {
+    return null;
+  }
+}
+
 /** 创建新书籍资源 */
 export async function createBook(params: {
   title: string;
@@ -73,6 +92,8 @@ export async function createBook(params: {
   tags: string[];
   summary: string;
   link?: string;
+  fileUrl?: string;
+  fileName?: string;
 }): Promise<Book | null> {
   const uid = getCurrentUid();
   if (!uid) throw new Error("请先登录");
@@ -93,6 +114,8 @@ export async function createBook(params: {
     reviews: [],
     authorUid: uid,
     link: params.link,
+    fileUrl: params.fileUrl,
+    fileName: params.fileName,
     createdAt: new Date().toISOString(),
   };
 
@@ -115,5 +138,8 @@ export async function createBook(params: {
     pages: 0,
     toc: [],
     reviews: [],
+    link: doc.link,
+    fileUrl: doc.fileUrl,
+    fileName: doc.fileName,
   };
 }
