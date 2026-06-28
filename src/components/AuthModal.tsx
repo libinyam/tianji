@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect } from "react";
 import { motion, AnimatePresence } from "motion/react";
-import { X, Mail, Lock, Sparkles, Loader2, Github, ShieldCheck } from "lucide-react";
+import { X, Mail, Lock, Sparkles, Loader2, Github, ShieldCheck, Phone } from "lucide-react";
 import { useAuthStore } from "@/stores/auth";
 import CanvasCaptcha, { type CanvasCaptchaHandle } from "@/components/CanvasCaptcha";
 
@@ -10,20 +10,32 @@ interface AuthModalProps {
 }
 
 type Mode = "login" | "register";
+type LoginMethod = "email" | "phone";
 
 export default function AuthModal({ open, onClose }: AuthModalProps) {
   const [mode, setMode] = useState<Mode>("login");
+  const [loginMethod, setLoginMethod] = useState<LoginMethod>("email");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [code, setCode] = useState("");
   const [captchaValue, setCaptchaValue] = useState("");
   const [resendCooldown, setResendCooldown] = useState(0);
   const captchaRef = useRef<CanvasCaptchaHandle>(null);
+  const [phone, setPhone] = useState("");
+  const [phonePassword, setPhonePassword] = useState("");
+  const [phoneCode, setPhoneCode] = useState("");
+  const [phoneCaptchaValue, setPhoneCaptchaValue] = useState("");
+  const [phoneCodeSent, setPhoneCodeSent] = useState(false);
+  const [phoneCooldown, setPhoneCooldown] = useState(0);
+  const phoneCaptchaRef = useRef<CanvasCaptchaHandle>(null);
   const {
     signUpWithEmail,
     verifySignUpCode,
     signInWithEmail,
     signInWithGitHub,
+    sendPhoneCode,
+    signUpWithPhone,
+    signInWithPhoneCode,
     loading,
     error,
     pendingSignUpEmail,
@@ -33,7 +45,7 @@ export default function AuthModal({ open, onClose }: AuthModalProps) {
 
   const waitingForCode = mode === "register" && Boolean(pendingSignUpEmail);
 
-  // 重发冷却倒计时
+  // 邮箱重发冷却倒计时
   useEffect(() => {
     if (resendCooldown <= 0) return;
     const timer = setInterval(() => {
@@ -42,9 +54,31 @@ export default function AuthModal({ open, onClose }: AuthModalProps) {
     return () => clearInterval(timer);
   }, [resendCooldown]);
 
+  // 手机号重发冷却倒计时
+  useEffect(() => {
+    if (phoneCooldown <= 0) return;
+    const timer = setInterval(() => {
+      setPhoneCooldown((n) => Math.max(0, n - 1));
+    }, 1000);
+    return () => clearInterval(timer);
+  }, [phoneCooldown]);
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
+    // 手机号流程
+    if (loginMethod === "phone") {
+      if (mode === "register") {
+        const ok = await signUpWithPhone(phone, phoneCode, phonePassword);
+        if (ok) handleClose();
+      } else {
+        const ok = await signInWithPhoneCode(phone, phoneCode);
+        if (ok) handleClose();
+      }
+      return;
+    }
+
+    // 邮箱流程
     if (mode === "login") {
       const ok = await signInWithEmail(email, password);
       if (ok) handleClose();
@@ -84,24 +118,61 @@ export default function AuthModal({ open, onClose }: AuthModalProps) {
     }
   };
 
+  const handleSendPhoneCode = async () => {
+    if (phoneCooldown > 0 || loading) return;
+    // 发送短信验证码前校验图形验证码
+    if (!phoneCaptchaRef.current?.validate()) {
+      useAuthStore.getState().clearError();
+      useAuthStore.setState({ error: "图形验证码不正确，请重新输入" });
+      return;
+    }
+    const ok = await sendPhoneCode(phone);
+    if (ok) {
+      setPhoneCodeSent(true);
+      setPhoneCode("");
+      setPhoneCooldown(60);
+      phoneCaptchaRef.current?.refresh();
+      setPhoneCaptchaValue("");
+    }
+  };
+
   const handleClose = () => {
     setEmail("");
     setPassword("");
     setCode("");
     setCaptchaValue("");
     setResendCooldown(0);
+    setPhone("");
+    setPhonePassword("");
+    setPhoneCode("");
+    setPhoneCaptchaValue("");
+    setPhoneCodeSent(false);
+    setPhoneCooldown(0);
     clearPendingSignUp();
     clearError();
     onClose();
   };
 
-  const switchMode = (m: Mode) => {
-    setMode(m);
+  const resetFlowState = () => {
     setCode("");
     setCaptchaValue("");
     setResendCooldown(0);
+    setPhoneCode("");
+    setPhoneCaptchaValue("");
+    setPhoneCodeSent(false);
+    setPhoneCooldown(0);
     clearPendingSignUp();
     clearError();
+  };
+
+  const switchMode = (m: Mode) => {
+    setMode(m);
+    resetFlowState();
+  };
+
+  const switchLoginMethod = (m: LoginMethod) => {
+    setLoginMethod(m);
+    resetFlowState();
   };
 
   return (
@@ -147,100 +218,226 @@ export default function AuthModal({ open, onClose }: AuthModalProps) {
                 </span>
               </div>
               <h3 className="heading-display text-2xl text-parchment-50">
-                {mode === "login" ? "登录天玑" : waitingForCode ? "验证邮箱" : "注册账号"}
+                {mode === "login"
+                  ? "登录天玑"
+                  : loginMethod === "email" && waitingForCode
+                    ? "验证邮箱"
+                    : "注册账号"}
               </h3>
               <p className="mt-2 text-sm text-mist-400">
                 {mode === "login"
-                  ? "用邮箱登录，继续你的学习与创作之旅。"
-                  : waitingForCode
+                  ? loginMethod === "email"
+                    ? "用邮箱登录，继续你的学习与创作之旅。"
+                    : "用手机号登录，继续你的学习与创作之旅。"
+                  : loginMethod === "email" && waitingForCode
                     ? `验证码已发送到 ${pendingSignUpEmail}，验证后即可进入天玑。`
-                    : "用邮箱注册，从理论走向真实作品。"}
+                    : loginMethod === "email"
+                      ? "用邮箱注册，从理论走向真实作品。"
+                      : "用手机号注册，从理论走向真实作品。"}
               </p>
             </div>
 
             {/* 表单 */}
             <form onSubmit={handleSubmit} className="relative mt-6 space-y-4">
-              <div>
-                <label className="mb-1.5 block text-xs text-mist-400">邮箱</label>
-                <div className="relative">
-                  <Mail
-                    size={15}
-                    className="absolute left-3 top-1/2 -translate-y-1/2 text-mist-500"
-                  />
-                  <input
-                    type="email"
-                    required
-                    disabled={waitingForCode}
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    placeholder="you@example.com"
-                    className="w-full rounded-lg border border-void-600/50 bg-void-950/50 py-2.5 pl-10 pr-3 text-sm text-parchment-100 placeholder:text-mist-500 focus:border-star-400/50 focus:outline-none focus:ring-1 focus:ring-star-400/30 disabled:opacity-60"
-                  />
-                </div>
+              {/* 登录方式切换 */}
+              <div className="flex gap-1 rounded-lg border border-void-600/40 bg-void-900/40 p-1">
+                <button
+                  type="button"
+                  onClick={() => switchLoginMethod("email")}
+                  className={`flex flex-1 items-center justify-center gap-1.5 rounded-md py-1.5 text-xs transition-colors ${
+                    loginMethod === "email"
+                      ? "bg-void-700/60 text-parchment-100"
+                      : "text-mist-400 hover:text-parchment-200"
+                  }`}
+                >
+                  <Mail size={13} /> 邮箱
+                </button>
+                <button
+                  type="button"
+                  onClick={() => switchLoginMethod("phone")}
+                  className={`flex flex-1 items-center justify-center gap-1.5 rounded-md py-1.5 text-xs transition-colors ${
+                    loginMethod === "phone"
+                      ? "bg-void-700/60 text-parchment-100"
+                      : "text-mist-400 hover:text-parchment-200"
+                  }`}
+                >
+                  <Phone size={13} /> 手机号
+                </button>
               </div>
 
-              {!waitingForCode && (
-                <div>
-                <label className="mb-1.5 block text-xs text-mist-400">密码</label>
-                <div className="relative">
-                  <Lock
-                    size={15}
-                    className="absolute left-3 top-1/2 -translate-y-1/2 text-mist-500"
-                  />
-                  <input
-                    type="password"
-                    required
-                    minLength={6}
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                    placeholder="至少 6 位"
-                    className="w-full rounded-lg border border-void-600/50 bg-void-950/50 py-2.5 pl-10 pr-3 text-sm text-parchment-100 placeholder:text-mist-500 focus:border-star-400/50 focus:outline-none focus:ring-1 focus:ring-star-400/30"
-                  />
-                </div>
-              </div>
-              )}
-
-              {/* 注册时显示图形验证码 */}
-              {mode === "register" && !waitingForCode && (
-                <div>
-                  <label className="mb-1.5 block text-xs text-mist-400">人机验证</label>
-                  <CanvasCaptcha ref={captchaRef} value={captchaValue} onChange={setCaptchaValue} />
-                </div>
-              )}
-
-              {waitingForCode && (
-                <div>
-                  <label className="mb-1.5 block text-xs text-mist-400">邮箱验证码</label>
-                  <div className="relative">
-                    <ShieldCheck
-                      size={15}
-                      className="absolute left-3 top-1/2 -translate-y-1/2 text-mist-500"
-                    />
-                    <input
-                      type="text"
-                      required
-                      inputMode="numeric"
-                      value={code}
-                      onChange={(e) => setCode(e.target.value)}
-                      placeholder="输入邮件中的验证码"
-                      className="w-full rounded-lg border border-void-600/50 bg-void-950/50 py-2.5 pl-10 pr-3 text-sm text-parchment-100 placeholder:text-mist-500 focus:border-star-400/50 focus:outline-none focus:ring-1 focus:ring-star-400/30"
-                    />
+              {loginMethod === "email" ? (
+                <>
+                  <div>
+                    <label className="mb-1.5 block text-xs text-mist-400">邮箱</label>
+                    <div className="relative">
+                      <Mail
+                        size={15}
+                        className="absolute left-3 top-1/2 -translate-y-1/2 text-mist-500"
+                      />
+                      <input
+                        type="email"
+                        required
+                        disabled={waitingForCode}
+                        value={email}
+                        onChange={(e) => setEmail(e.target.value)}
+                        placeholder="you@example.com"
+                        className="w-full rounded-lg border border-void-600/50 bg-void-950/50 py-2.5 pl-10 pr-3 text-sm text-parchment-100 placeholder:text-mist-500 focus:border-star-400/50 focus:outline-none focus:ring-1 focus:ring-star-400/30 disabled:opacity-60"
+                      />
+                    </div>
                   </div>
-                  {resendCooldown > 0 ? (
-                    <p className="mt-1.5 text-[11px] text-mist-500">
-                      {resendCooldown}s 后可重新发送验证码
-                    </p>
-                  ) : (
-                    <button
-                      type="button"
-                      onClick={handleResendCode}
-                      disabled={loading}
-                      className="mt-1.5 text-[11px] text-star-300 transition-colors hover:text-star-200"
-                    >
-                      重新发送验证码
-                    </button>
+
+                  {!waitingForCode && (
+                    <div>
+                    <label className="mb-1.5 block text-xs text-mist-400">密码</label>
+                    <div className="relative">
+                      <Lock
+                        size={15}
+                        className="absolute left-3 top-1/2 -translate-y-1/2 text-mist-500"
+                      />
+                      <input
+                        type="password"
+                        required
+                        minLength={6}
+                        value={password}
+                        onChange={(e) => setPassword(e.target.value)}
+                        placeholder="至少 6 位"
+                        className="w-full rounded-lg border border-void-600/50 bg-void-950/50 py-2.5 pl-10 pr-3 text-sm text-parchment-100 placeholder:text-mist-500 focus:border-star-400/50 focus:outline-none focus:ring-1 focus:ring-star-400/30"
+                      />
+                    </div>
+                  </div>
                   )}
-                </div>
+
+                  {/* 注册时显示图形验证码 */}
+                  {mode === "register" && !waitingForCode && (
+                    <div>
+                      <label className="mb-1.5 block text-xs text-mist-400">人机验证</label>
+                      <CanvasCaptcha ref={captchaRef} value={captchaValue} onChange={setCaptchaValue} />
+                    </div>
+                  )}
+
+                  {waitingForCode && (
+                    <div>
+                      <label className="mb-1.5 block text-xs text-mist-400">邮箱验证码</label>
+                      <div className="relative">
+                        <ShieldCheck
+                          size={15}
+                          className="absolute left-3 top-1/2 -translate-y-1/2 text-mist-500"
+                        />
+                        <input
+                          type="text"
+                          required
+                          inputMode="numeric"
+                          value={code}
+                          onChange={(e) => setCode(e.target.value)}
+                          placeholder="输入邮件中的验证码"
+                          className="w-full rounded-lg border border-void-600/50 bg-void-950/50 py-2.5 pl-10 pr-3 text-sm text-parchment-100 placeholder:text-mist-500 focus:border-star-400/50 focus:outline-none focus:ring-1 focus:ring-star-400/30"
+                        />
+                      </div>
+                      {resendCooldown > 0 ? (
+                        <p className="mt-1.5 text-[11px] text-mist-500">
+                          {resendCooldown}s 后可重新发送验证码
+                        </p>
+                      ) : (
+                        <button
+                          type="button"
+                          onClick={handleResendCode}
+                          disabled={loading}
+                          className="mt-1.5 text-[11px] text-star-300 transition-colors hover:text-star-200"
+                        >
+                          重新发送验证码
+                        </button>
+                      )}
+                    </div>
+                  )}
+                </>
+              ) : (
+                <>
+                  {/* 手机号 */}
+                  <div>
+                    <label className="mb-1.5 block text-xs text-mist-400">手机号</label>
+                    <div className="flex gap-2">
+                      <div className="relative flex-1">
+                        <Phone
+                          size={15}
+                          className="absolute left-3 top-1/2 -translate-y-1/2 text-mist-500"
+                        />
+                        <span className="pointer-events-none absolute left-9 top-1/2 -translate-y-1/2 text-sm text-mist-400">
+                          +86
+                        </span>
+                        <input
+                          type="tel"
+                          required
+                          inputMode="numeric"
+                          maxLength={11}
+                          disabled={phoneCodeSent}
+                          value={phone}
+                          onChange={(e) => setPhone(e.target.value.replace(/\D/g, ""))}
+                          placeholder="13800138000"
+                          className="w-full rounded-lg border border-void-600/50 bg-void-950/50 py-2.5 pl-16 pr-3 text-sm text-parchment-100 placeholder:text-mist-500 focus:border-star-400/50 focus:outline-none focus:ring-1 focus:ring-star-400/30 disabled:opacity-60"
+                        />
+                      </div>
+                      <button
+                        type="button"
+                        onClick={handleSendPhoneCode}
+                        disabled={phoneCooldown > 0 || loading || phone.length === 0}
+                        className="shrink-0 rounded-lg border border-void-600/60 bg-void-800/50 px-3 text-xs text-parchment-100 transition-all hover:border-mist-400/50 hover:bg-void-700/50 disabled:cursor-not-allowed disabled:opacity-60"
+                      >
+                        {phoneCooldown > 0 ? `${phoneCooldown}s` : "发送验证码"}
+                      </button>
+                    </div>
+                  </div>
+
+                  {/* 密码（注册时需要） */}
+                  {mode === "register" && (
+                    <div>
+                      <label className="mb-1.5 block text-xs text-mist-400">密码</label>
+                      <div className="relative">
+                        <Lock
+                          size={15}
+                          className="absolute left-3 top-1/2 -translate-y-1/2 text-mist-500"
+                        />
+                        <input
+                          type="password"
+                          required
+                          minLength={6}
+                          value={phonePassword}
+                          onChange={(e) => setPhonePassword(e.target.value)}
+                          placeholder="至少 6 位"
+                          className="w-full rounded-lg border border-void-600/50 bg-void-950/50 py-2.5 pl-10 pr-3 text-sm text-parchment-100 placeholder:text-mist-500 focus:border-star-400/50 focus:outline-none focus:ring-1 focus:ring-star-400/30"
+                        />
+                      </div>
+                    </div>
+                  )}
+
+                  {/* 图形验证码 */}
+                  <div>
+                    <label className="mb-1.5 block text-xs text-mist-400">人机验证</label>
+                    <CanvasCaptcha ref={phoneCaptchaRef} value={phoneCaptchaValue} onChange={setPhoneCaptchaValue} />
+                  </div>
+
+                  {/* 短信验证码 */}
+                  {phoneCodeSent && (
+                    <div>
+                      <label className="mb-1.5 block text-xs text-mist-400">短信验证码</label>
+                      <div className="relative">
+                        <ShieldCheck
+                          size={15}
+                          className="absolute left-3 top-1/2 -translate-y-1/2 text-mist-500"
+                        />
+                        <input
+                          type="text"
+                          required
+                          inputMode="numeric"
+                          maxLength={6}
+                          value={phoneCode}
+                          onChange={(e) => setPhoneCode(e.target.value.replace(/\D/g, ""))}
+                          placeholder="输入短信验证码"
+                          className="w-full rounded-lg border border-void-600/50 bg-void-950/50 py-2.5 pl-10 pr-3 text-sm text-parchment-100 placeholder:text-mist-500 focus:border-star-400/50 focus:outline-none focus:ring-1 focus:ring-star-400/30"
+                        />
+                      </div>
+                    </div>
+                  )}
+                </>
               )}
 
               {error && (
@@ -251,13 +448,15 @@ export default function AuthModal({ open, onClose }: AuthModalProps) {
 
               <button
                 type="submit"
-                disabled={loading}
+                disabled={loading || (loginMethod === "phone" && !phoneCodeSent)}
                 className="btn-gold w-full disabled:cursor-not-allowed disabled:opacity-60"
               >
                 {loading ? (
                   <>
                     <Loader2 size={15} className="animate-spin" /> 处理中…
                   </>
+                ) : loginMethod === "phone" ? (
+                  mode === "login" ? "登录" : "注册"
                 ) : mode === "login" ? (
                   "登录"
                 ) : waitingForCode ? (
