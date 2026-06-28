@@ -38,7 +38,7 @@ exports.main = async (event) => {
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        model: "deepseek-chat",
+        model: "deepseek-v4-flash",
         messages: [
           { role: "system", content: systemPrompt },
           { role: "user", content: userMessage },
