@@ -1,10 +1,11 @@
 import { useState } from "react";
 import { motion, AnimatePresence } from "motion/react";
-import { X, Loader2, Lightbulb } from "lucide-react";
+import { X, Loader2, Lightbulb, RotateCcw } from "lucide-react";
 import { createIdea } from "@/lib/ideas";
 import { ensureTags } from "@/lib/tags";
 import { rateLimiters } from "@/lib/security";
 import { useAuthStore } from "@/stores/auth";
+import { useDraft } from "@/hooks/useDraft";
 import TagSelector from "@/components/TagSelector";
 import type { Idea } from "@/types";
 
@@ -17,19 +18,27 @@ interface IdeaModalProps {
 const TOPIC_OPTIONS = ["入门项目", "AI 应用", "跨专业应用", "协作共创", "工具链", "科研辅助"];
 
 export default function IdeaModal({ open, onClose, onCreated }: IdeaModalProps) {
-  const [title, setTitle] = useState("");
-  const [summary, setSummary] = useState("");
-  const [topic, setTopic] = useState(TOPIC_OPTIONS[0]);
-  const [tags, setTags] = useState<string[]>([]);
+  const { value: draft, setValue: setDraft, clearDraft, restored, dismissRestored } = useDraft("tianji-draft-idea", {
+    title: "",
+    summary: "",
+    topic: TOPIC_OPTIONS[0],
+    tags: [] as string[],
+  });
+  const title = draft.title;
+  const summary = draft.summary;
+  const topic = draft.topic;
+  const tags = draft.tags;
+  const setTitle = (v: string) => setDraft({ ...draft, title: v });
+  const setSummary = (v: string) => setDraft({ ...draft, summary: v });
+  const setTopic = (v: string) => setDraft({ ...draft, topic: v });
+  const setTags = (v: string[]) => setDraft({ ...draft, tags: v });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const { user } = useAuthStore();
 
   const handleClose = () => {
-    setTitle("");
-    setSummary("");
-    setTopic(TOPIC_OPTIONS[0]);
-    setTags([]);
+    setDraft({ title: "", summary: "", topic: TOPIC_OPTIONS[0], tags: [] });
+    clearDraft();
     setError(null);
     onClose();
   };
@@ -60,6 +69,7 @@ export default function IdeaModal({ open, onClose, onCreated }: IdeaModalProps) 
       });
       if (idea) {
         ensureTags(tags.length > 0 ? tags : ["综合"]);
+        clearDraft();
         onCreated(idea);
         handleClose();
       }
@@ -113,6 +123,28 @@ export default function IdeaModal({ open, onClose, onCreated }: IdeaModalProps) 
             </div>
 
             <form onSubmit={handleSubmit} className="relative mt-6 space-y-5">
+              {/* 草稿恢复提示 */}
+              {restored && (
+                <div className="flex items-center justify-between rounded-lg border border-star-400/30 bg-star-400/10 px-3 py-2 text-xs text-star-200">
+                  <span>已恢复上次未发布的草稿</span>
+                  <div className="flex items-center gap-3">
+                    <button
+                      type="button"
+                      onClick={() => { setDraft({ title: "", summary: "", topic: TOPIC_OPTIONS[0], tags: [] }); clearDraft(); }}
+                      className="flex items-center gap-1 text-mist-300 transition-colors hover:text-parchment-100"
+                    >
+                      <RotateCcw size={12} /> 清空
+                    </button>
+                    <button
+                      type="button"
+                      onClick={dismissRestored}
+                      className="text-mist-400 transition-colors hover:text-parchment-100"
+                    >
+                      忽略
+                    </button>
+                  </div>
+                </div>
+              )}
               {/* 标题 */}
               <div>
                 <label className="mb-1.5 block text-xs text-mist-400">标题</label>
