@@ -416,9 +416,8 @@ export default function AuthModal({ open, onClose }: AuthModalProps) {
                   </div>
 
                   {/* 短信验证码 */}
-                  {phoneCodeSent && (
-                    <div>
-                      <label className="mb-1.5 block text-xs text-mist-400">短信验证码</label>
+                  <div>
+                    <label className="mb-1.5 block text-xs text-mist-400">短信验证码</label>
                       <div className="relative">
                         <ShieldCheck
                           size={15}
@@ -436,7 +435,6 @@ export default function AuthModal({ open, onClose }: AuthModalProps) {
                         />
                       </div>
                     </div>
-                  )}
                 </>
               )}
 
@@ -448,7 +446,7 @@ export default function AuthModal({ open, onClose }: AuthModalProps) {
 
               <button
                 type="submit"
-                disabled={loading || (loginMethod === "phone" && !phoneCodeSent)}
+                disabled={loading}
                 className="btn-gold w-full disabled:cursor-not-allowed disabled:opacity-60"
               >
                 {loading ? (
