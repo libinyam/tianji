@@ -28,6 +28,7 @@ import {
 } from "@/lib/posts";
 import { toggleFavorite, isFavorited } from "@/lib/favorites";
 import { rateLimiters } from "@/lib/security";
+import { app } from "@/lib/cloudbase";
 import { useAuthStore } from "@/stores/auth";
 import MathText from "@/components/MathText";
 import Avatar from "@/components/Avatar";
@@ -284,6 +285,40 @@ export default function DiscussionDetail() {
         setCommentText("");
         setReplyTarget(null);
         setCommentingAnswerId(null);
+
+        // 如果评论的是天玑bot的回答，触发 AI 评论回复
+        const targetAnswer = question.answerList.find((a) => a.id === answerId);
+        if (targetAnswer?.authorUid === "ai-bot-001") {
+          app.callFunction({
+            name: "ai-bot",
+            data: {
+              postId: question.id,
+              postTitle: question.title,
+              tags: question.tags,
+              replyType: "comment",
+              answerId,
+              answerContent: targetAnswer.content,
+              userComment: comment.content,
+            },
+          }).then((res: unknown) => {
+            console.log("AI bot comment response:", res);
+            const result = (res as { result?: { ok?: boolean; comment?: Comment; answerId?: string } }).result;
+            if (result?.ok && result.comment && result.answerId) {
+              setQuestion((prev) => {
+                if (!prev) return prev;
+                const updated = prev.answerList.map((a) => {
+                  if (a.id === result.answerId) {
+                    return { ...a, comments: [...(a.comments ?? []), result.comment!] };
+                  }
+                  return a;
+                });
+                return { ...prev, answerList: updated };
+              });
+            }
+          }).catch((err) => {
+            console.error("AI bot comment error:", err);
+          });
+        }
       }
     } catch {
       // 静默处理

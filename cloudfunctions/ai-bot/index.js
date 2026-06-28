@@ -1,6 +1,7 @@
 /**
  * 天玑bot 自动回复云函数
- * 仅在发帖时触发，调用 DeepSeek API 生成智能回复
+ * 1. 发帖时触发 → 回复一条"回答"
+ * 2. 评论 bot 回答时触发 → 回复一条"评论"
  */
 const cloud = require("@cloudbase/node-sdk");
 
@@ -12,22 +13,32 @@ const BOT_AVATAR_COLOR = "#a78bfa";
 const BOT_UID = "ai-bot-001";
 
 exports.main = async (event) => {
-  const { postId, postTitle, postBody, tags } = event;
-
-  if (!postTitle || !postBody) {
-    return { ok: false, error: "缺少必要参数" };
-  }
+  const { postId, postTitle, postBody, tags, replyType, answerId, answerContent, userComment } = event;
 
   const apiKey = process.env.DEEPSEEK_API_KEY;
   if (!apiKey) {
     return { ok: false, error: "未配置 DEEPSEEK_API_KEY" };
   }
 
-  // 构造 system prompt
   const tagStr = tags && tags.length > 0 ? tags.join("、") : "综合";
-  const systemPrompt = `你是"天玑bot"，天玑知识社区的AI助手。你擅长${tagStr}领域。用户发了新帖子，请用简洁、友好、专业的语气回应。回复控制在150字以内，可以使用 LaTeX 公式（用 $...$ 包裹行内公式，$$...$$ 包裹块级公式）。不要说"作为AI"，直接给出有价值的回应。`;
 
-  const userMessage = `帖子标题：${postTitle}\n帖子内容：${postBody}\n\n请生成一条简短、有价值的回复。`;
+  let systemPrompt, userMessage;
+
+  if (replyType === "comment") {
+    // 评论回复场景
+    if (!postTitle || !userComment) {
+      return { ok: false, error: "缺少必要参数" };
+    }
+    systemPrompt = `你是"天玑bot"，天玑知识社区的AI助手。你擅长${tagStr}领域。用户在你的回答下发了评论，请用简洁、友好、专业的语气回应。回复控制在100字以内，可以使用 LaTeX 公式。不要说"作为AI"，直接给出有价值的回应。`;
+    userMessage = `帖子标题：${postTitle}\n你之前的回答：${answerContent || ""}\n用户评论：${userComment}\n\n请生成一条简短的回复。`;
+  } else {
+    // 发帖回复场景
+    if (!postTitle || !postBody) {
+      return { ok: false, error: "缺少必要参数" };
+    }
+    systemPrompt = `你是"天玑bot"，天玑知识社区的AI助手。你擅长${tagStr}领域。用户发了新帖子，请用简洁、友好、专业的语气回应。回复控制在150字以内，可以使用 LaTeX 公式（用 $...$ 包裹行内公式，$$...$$ 包裹块级公式）。不要说"作为AI"，直接给出有价值的回应。`;
+    userMessage = `帖子标题：${postTitle}\n帖子内容：${postBody}\n\n请生成一条简短、有价值的回复。`;
+  }
 
   try {
     // 调用 DeepSeek API
@@ -61,31 +72,59 @@ exports.main = async (event) => {
       return { ok: false, error: "AI 未返回内容" };
     }
 
-    // 写入数据库 — 作为回答追加到帖子
+    // 写入数据库
     if (postId) {
       const docRef = db.collection("posts").doc(postId);
       const { data: postData } = await docRef.get();
 
       if (postData && postData.length > 0) {
         const post = postData[0];
-        const botAnswer = {
-          id: `bot_${Date.now()}`,
-          author: BOT_NAME,
-          authorUid: BOT_UID,
-          avatarColor: BOT_AVATAR_COLOR,
-          votes: 0,
-          accepted: false,
-          content: reply,
-          date: new Date().toISOString().slice(0, 10),
-        };
 
-        const newAnswerList = [...(post.answerList || []), botAnswer];
-        await docRef.update({
-          answerList: newAnswerList,
-          answersCount: newAnswerList.length,
-        });
+        if (replyType === "comment" && answerId) {
+          // 评论回复 → 追加评论到对应回答
+          const answerList = post.answerList || [];
+          const targetIdx = answerList.findIndex((a) => a.id === answerId);
+          if (targetIdx === -1) {
+            return { ok: false, error: "未找到目标回答" };
+          }
 
-        return { ok: true, reply, answer: botAnswer };
+          const botComment = {
+            id: `botc_${Date.now()}`,
+            author: BOT_NAME,
+            authorUid: BOT_UID,
+            avatarColor: BOT_AVATAR_COLOR,
+            content: reply,
+            date: new Date().toISOString().slice(0, 10),
+          };
+
+          const targetAnswer = answerList[targetIdx];
+          const newComments = [...(targetAnswer.comments || []), botComment];
+          answerList[targetIdx] = { ...targetAnswer, comments: newComments };
+
+          await docRef.update({ answerList });
+
+          return { ok: true, reply, comment: botComment, answerId };
+        } else {
+          // 发帖回复 → 追加回答
+          const botAnswer = {
+            id: `bot_${Date.now()}`,
+            author: BOT_NAME,
+            authorUid: BOT_UID,
+            avatarColor: BOT_AVATAR_COLOR,
+            votes: 0,
+            accepted: false,
+            content: reply,
+            date: new Date().toISOString().slice(0, 10),
+          };
+
+          const newAnswerList = [...(post.answerList || []), botAnswer];
+          await docRef.update({
+            answerList: newAnswerList,
+            answersCount: newAnswerList.length,
+          });
+
+          return { ok: true, reply, answer: botAnswer };
+        }
       }
     }
 
