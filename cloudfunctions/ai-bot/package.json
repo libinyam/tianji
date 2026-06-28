@@ -1,0 +1,9 @@
+{
+  "name": "ai-bot",
+  "version": "1.0.0",
+  "description": "AI 机器人自动回复",
+  "main": "index.js",
+  "dependencies": {
+    "@cloudbase/node-sdk": "latest"
+  }
+}

@@ -28,10 +28,11 @@ import {
 } from "@/lib/posts";
 import { toggleFavorite, isFavorited } from "@/lib/favorites";
 import { rateLimiters } from "@/lib/security";
+import { app } from "@/lib/cloudbase";
 import { useAuthStore } from "@/stores/auth";
 import MathText from "@/components/MathText";
 import Avatar from "@/components/Avatar";
-import type { Question, Comment } from "@/types";
+import type { Question, Comment, Answer } from "@/types";
 
 export default function DiscussionDetail() {
   const { id } = useParams();
@@ -47,6 +48,7 @@ export default function DiscussionDetail() {
 
   // 回答框
   const [answerText, setAnswerText] = useState("");
+  const [aiThinking, setAiThinking] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [answerError, setAnswerError] = useState<string | null>(null);
 
@@ -222,6 +224,33 @@ export default function DiscussionDetail() {
           answers: question.answers + 1,
         });
         setAnswerText("");
+
+        // 异步触发 AI 机器人回复（不阻塞用户）
+        setAiThinking(true);
+        app.callFunction({
+          name: "ai-bot",
+          data: {
+            postId: question.id,
+            postTitle: question.title,
+            postBody: question.body,
+            contentType: "answer",
+            content: answer.content,
+            tags: question.tags,
+          },
+        }).then((res: unknown) => {
+          const result = (res as { result?: { ok?: boolean; answer?: Answer } }).result;
+          if (result?.ok && result.answer) {
+            setQuestion((prev) => prev ? {
+              ...prev,
+              answerList: [...prev.answerList, result.answer],
+              answers: prev.answers + 1,
+            } : prev);
+          }
+        }).catch(() => {
+          // 静默失败，AI 回复不影响用户体验
+        }).finally(() => {
+          setAiThinking(false);
+        });
       }
     } catch (err) {
       setAnswerError((err as Error).message);
@@ -627,6 +656,19 @@ export default function DiscussionDetail() {
                 </motion.div>
               ))}
             </div>
+
+            {/* AI 正在思考 */}
+            {aiThinking && (
+              <div className="mt-4 flex items-center gap-3 rounded-xl border border-tian-400/30 bg-tian-400/5 p-4">
+                <div className="flex h-9 w-9 items-center justify-center rounded-lg border border-tian-400/30 bg-tian-400/10 text-tian-300">
+                  <Loader2 size={18} className="animate-spin" />
+                </div>
+                <div>
+                  <p className="text-sm text-tian-200">天玑AI 正在思考…</p>
+                  <p className="text-xs text-mist-500">AI 机器人正在生成回复</p>
+                </div>
+              </div>
+            )}
 
             {/* 回答框 */}
             <div className="mt-8 rounded-xl border border-void-600/40 bg-void-800/30 p-5">
