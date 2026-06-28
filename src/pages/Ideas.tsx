@@ -1,12 +1,12 @@
 import { useMemo, useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { motion } from "motion/react";
-import { Lightbulb, ThumbsUp, MessageCircle, Sparkles, Plus, Loader2, Bookmark } from "lucide-react";
+import { Lightbulb, ThumbsUp, MessageCircle, Sparkles, Plus, Loader2, Bookmark, Pencil, Trash2 } from "lucide-react";
 import PageHero from "@/components/PageHero";
 import Avatar from "@/components/Avatar";
 import IdeaModal from "@/components/IdeaModal";
 import { ideas as mockIdeas } from "@/data/ideas";
-import { fetchIdeas, resonanceIdea } from "@/lib/ideas";
+import { fetchIdeas, resonanceIdea, updateIdea, deleteIdea } from "@/lib/ideas";
 import { toggleFavorite, getFavoritedIds } from "@/lib/favorites";
 import { useAuthStore } from "@/stores/auth";
 import type { Idea } from "@/types";
@@ -18,6 +18,9 @@ export default function Ideas() {
   const [loading, setLoading] = useState(true);
   const [resonated, setResonated] = useState<Record<string, boolean>>({});
   const [favedIdeas, setFavedIdeas] = useState<Set<string>>(new Set());
+  const [editingIdea, setEditingIdea] = useState<Idea | null>(null);
+  const [editTitle, setEditTitle] = useState("");
+  const [editSummary, setEditSummary] = useState("");
   const { user } = useAuthStore();
 
   // 加载真实灵感
@@ -114,6 +117,33 @@ export default function Ideas() {
     }
   };
 
+  const startEditIdea = (idea: Idea) => {
+    setEditingIdea(idea);
+    setEditTitle(idea.title);
+    setEditSummary(idea.summary);
+  };
+
+  const handleSaveIdea = async () => {
+    if (!editingIdea || !editTitle.trim() || !editSummary.trim()) return;
+    try {
+      await updateIdea(editingIdea.id, { title: editTitle.trim(), summary: editSummary.trim(), tags: editingIdea.tags });
+      setRealIdeas((prev) => prev.map((i) => i.id === editingIdea.id ? { ...i, title: editTitle.trim(), summary: editSummary.trim() } : i));
+      setEditingIdea(null);
+    } catch (e) {
+      alert((e as Error).message);
+    }
+  };
+
+  const handleDeleteIdea = async (idea: Idea) => {
+    if (!confirm("确定删除这条灵感？删除后不可恢复。")) return;
+    try {
+      await deleteIdea(idea.id);
+      setRealIdeas((prev) => prev.filter((i) => i.id !== idea.id));
+    } catch (e) {
+      alert((e as Error).message);
+    }
+  };
+
   return (
     <>
       <PageHero
@@ -206,6 +236,24 @@ export default function Ideas() {
                     className="absolute right-5 top-5 text-star-400/30 transition-colors group-hover:text-star-400/70"
                     strokeWidth={1.5}
                   />
+                  {user?.uid === idea.authorUid && (
+                    <div className="absolute right-5 top-12 flex gap-1 opacity-0 transition-opacity group-hover:opacity-100">
+                      <button
+                        onClick={() => startEditIdea(idea)}
+                        className="rounded-md p-1 text-mist-400 hover:bg-void-700/60 hover:text-tian-300"
+                        title="编辑灵感"
+                      >
+                        <Pencil size={13} />
+                      </button>
+                      <button
+                        onClick={() => handleDeleteIdea(idea)}
+                        className="rounded-md p-1 text-mist-400 hover:bg-void-700/60 hover:text-red-300"
+                        title="删除灵感"
+                      >
+                        <Trash2 size={13} />
+                      </button>
+                    </div>
+                  )}
 
                   <div className="flex items-center gap-2.5">
                     <span className="flex h-9 w-9 items-center justify-center rounded-lg border border-star-400/30 bg-star-400/10 text-star-300">
@@ -275,6 +323,32 @@ export default function Ideas() {
         onClose={() => setIdeaModalOpen(false)}
         onCreated={handleNewIdea}
       />
+
+      {/* 编辑灵感弹窗 */}
+      {editingIdea && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-void-950/70 backdrop-blur-sm" onClick={() => setEditingIdea(null)}>
+          <div className="w-full max-w-lg rounded-2xl border border-void-600/50 bg-void-900/90 p-6" onClick={(e) => e.stopPropagation()}>
+            <h3 className="mb-4 heading-display text-lg text-parchment-50">编辑灵感</h3>
+            <input
+              value={editTitle}
+              onChange={(e) => setEditTitle(e.target.value)}
+              className="mb-3 w-full rounded-lg border border-void-600/50 bg-void-950/50 px-3 py-2.5 text-sm text-parchment-100 focus:border-star-400/50 focus:outline-none"
+              placeholder="标题"
+            />
+            <textarea
+              rows={5}
+              value={editSummary}
+              onChange={(e) => setEditSummary(e.target.value)}
+              className="w-full resize-none rounded-lg border border-void-600/50 bg-void-950/50 p-3 text-sm text-parchment-100 focus:border-star-400/50 focus:outline-none"
+              placeholder="灵感内容"
+            />
+            <div className="mt-4 flex justify-end gap-2">
+              <button onClick={() => setEditingIdea(null)} className="btn-ghost text-sm">取消</button>
+              <button onClick={handleSaveIdea} className="btn-gold text-sm">保存</button>
+            </div>
+          </div>
+        </div>
+      )}
     </>
   );
 }

@@ -128,3 +128,42 @@ export async function resonanceIdea(id: string): Promise<boolean> {
     return false;
   }
 }
+
+/** 编辑灵感（仅作者） */
+export async function updateIdea(
+  ideaId: string,
+  params: { title: string; summary: string; tags: string[] }
+): Promise<boolean> {
+  const uid = getCurrentUid();
+  if (!uid) throw new Error("请先登录");
+
+  const docRef = db.collection(IDEAS_COLLECTION).doc(ideaId);
+  const { data } = await docRef.get();
+  if (!data || data.length === 0) return false;
+
+  const idea = data[0] as IdeaDoc;
+  if (idea.authorUid !== uid) throw new Error("无权编辑他人灵感");
+
+  await docRef.update({
+    title: params.title,
+    summary: params.summary,
+    tags: params.tags,
+  });
+  return true;
+}
+
+/** 删除灵感（仅作者） */
+export async function deleteIdea(ideaId: string): Promise<boolean> {
+  const uid = getCurrentUid();
+  if (!uid) throw new Error("请先登录");
+
+  const docRef = db.collection(IDEAS_COLLECTION).doc(ideaId);
+  const { data } = await docRef.get();
+  if (!data || data.length === 0) return false;
+
+  const idea = data[0] as IdeaDoc;
+  if (idea.authorUid !== uid) throw new Error("无权删除他人灵感");
+
+  await docRef.remove();
+  return true;
+}

@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Link, useParams } from "react-router-dom";
+import { Link, useParams, useNavigate } from "react-router-dom";
 import { motion } from "motion/react";
 import {
   ArrowLeft,
@@ -11,9 +11,21 @@ import {
   CornerDownRight,
   Loader2,
   Bookmark,
+  Pencil,
+  Trash2,
 } from "lucide-react";
 import { questions as mockQuestions } from "@/data/questions";
-import { fetchPostById, submitAnswer, submitComment, incrementViews } from "@/lib/posts";
+import {
+  fetchPostById,
+  submitAnswer,
+  submitComment,
+  incrementViews,
+  updatePost,
+  deletePost,
+  updateAnswer,
+  deleteAnswer,
+  deleteComment,
+} from "@/lib/posts";
 import { toggleFavorite, isFavorited } from "@/lib/favorites";
 import { rateLimiters } from "@/lib/security";
 import { useAuthStore } from "@/stores/auth";
@@ -23,6 +35,7 @@ import type { Question, Comment } from "@/types";
 
 export default function DiscussionDetail() {
   const { id } = useParams();
+  const navigate = useNavigate();
   const { user } = useAuthStore();
 
   // 先从 Mock 中查找（同步，快速渲染）
@@ -93,6 +106,90 @@ export default function DiscussionDetail() {
       setFavState(fav);
     } catch {
       // 静默
+    }
+  };
+
+  // === 内容管理 ===
+  const [editingPost, setEditingPost] = useState(false);
+  const [editTitle, setEditTitle] = useState("");
+  const [editBody, setEditBody] = useState("");
+  const [editingAnswerId, setEditingAnswerId] = useState<string | null>(null);
+  const [editAnswerText, setEditAnswerText] = useState("");
+
+  const startEditPost = () => {
+    if (!question) return;
+    setEditTitle(question.title);
+    setEditBody(question.body);
+    setEditingPost(true);
+  };
+
+  const handleSavePost = async () => {
+    if (!question || !editTitle.trim() || !editBody.trim()) return;
+    try {
+      await updatePost(question.id, { title: editTitle.trim(), body: editBody.trim(), tags: question.tags });
+      setQuestion({ ...question, title: editTitle.trim(), body: editBody.trim(), excerpt: editBody.trim().slice(0, 120) + "…" });
+      setEditingPost(false);
+    } catch (e) {
+      alert((e as Error).message);
+    }
+  };
+
+  const handleDeletePost = async () => {
+    if (!question) return;
+    if (!confirm("确定删除这篇帖子？删除后不可恢复。")) return;
+    try {
+      await deletePost(question.id);
+      navigate("/discussion");
+    } catch (e) {
+      alert((e as Error).message);
+    }
+  };
+
+  const startEditAnswer = (aId: string, content: string) => {
+    setEditingAnswerId(aId);
+    setEditAnswerText(content);
+  };
+
+  const handleSaveAnswer = async (aId: string) => {
+    if (!question || !editAnswerText.trim()) return;
+    try {
+      await updateAnswer(question.id, aId, editAnswerText.trim());
+      const newAnswerList = question.answerList.map((a) =>
+        a.id === aId ? { ...a, content: editAnswerText.trim() } : a
+      );
+      setQuestion({ ...question, answerList: newAnswerList });
+      setEditingAnswerId(null);
+    } catch (e) {
+      alert((e as Error).message);
+    }
+  };
+
+  const handleDeleteAnswer = async (aId: string) => {
+    if (!question) return;
+    if (!confirm("确定删除这条回答？")) return;
+    try {
+      await deleteAnswer(question.id, aId);
+      const newAnswerList = question.answerList.filter((a) => a.id !== aId);
+      setQuestion({ ...question, answerList: newAnswerList, answers: newAnswerList.length });
+    } catch (e) {
+      alert((e as Error).message);
+    }
+  };
+
+  const handleDeleteComment = async (answerId: string, commentId: string) => {
+    if (!question) return;
+    if (!confirm("确定删除这条评论？")) return;
+    try {
+      await deleteComment(question.id, answerId, commentId);
+      const newAnswerList = question.answerList.map((a) => {
+        if (a.id === answerId) {
+          return { ...a, comments: (a.comments ?? []).filter((c) => c.id !== commentId) };
+        }
+        return a;
+      });
+      setQuestion({ ...question, answerList: newAnswerList });
+    } catch (e) {
+      alert((e as Error).message);
     }
   };
 
@@ -277,14 +374,53 @@ export default function DiscussionDetail() {
                 <Bookmark size={13} className={favState ? "fill-star-400" : ""} />
                 {favState ? "已收藏" : "收藏"}
               </button>
+              {user?.uid === question.authorUid && (
+                <div className="flex items-center gap-1">
+                  <button
+                    onClick={startEditPost}
+                    className="flex items-center gap-1 rounded-lg border border-void-600/50 bg-void-800/40 px-2.5 py-1.5 text-xs text-mist-300 transition-all hover:border-tian-400/40 hover:text-tian-300"
+                    title="编辑帖子"
+                  >
+                    <Pencil size={13} />
+                  </button>
+                  <button
+                    onClick={handleDeletePost}
+                    className="flex items-center gap-1 rounded-lg border border-void-600/50 bg-void-800/40 px-2.5 py-1.5 text-xs text-mist-300 transition-all hover:border-red-400/40 hover:text-red-300"
+                    title="删除帖子"
+                  >
+                    <Trash2 size={13} />
+                  </button>
+                </div>
+              )}
             </div>
 
-            <div className="mt-6 rounded-xl border border-void-600/40 bg-void-800/30 p-6">
-              <MathText
-                content={question.body}
-                className="text-[15px] leading-relaxed text-parchment-100"
-              />
-            </div>
+            {editingPost ? (
+              <div className="mt-6 rounded-xl border border-tian-400/30 bg-void-800/30 p-6">
+                <input
+                  value={editTitle}
+                  onChange={(e) => setEditTitle(e.target.value)}
+                  className="mb-3 w-full rounded-lg border border-void-600/50 bg-void-950/50 px-3 py-2 text-lg text-parchment-100 focus:border-star-400/50 focus:outline-none"
+                  placeholder="标题"
+                />
+                <textarea
+                  rows={8}
+                  value={editBody}
+                  onChange={(e) => setEditBody(e.target.value)}
+                  className="w-full resize-none rounded-lg border border-void-600/50 bg-void-950/50 p-3 text-sm text-parchment-100 focus:border-star-400/50 focus:outline-none"
+                />
+                <div className="mt-3 flex justify-end gap-2">
+                  <button onClick={() => setEditingPost(false)} className="btn-ghost text-xs">取消</button>
+                  <button onClick={handleSavePost} className="btn-gold text-xs">保存</button>
+                </div>
+              </div>
+            ) : (
+              <div className="mt-6 rounded-xl border border-void-600/40 bg-void-800/30 p-6">
+                <MathText
+                  content={question.body}
+                  className="text-[15px] leading-relaxed text-parchment-100"
+                />
+              </div>
+            )}
           </motion.div>
 
           {/* 回答 */}
@@ -341,10 +477,25 @@ export default function DiscussionDetail() {
                           <Check size={11} /> 已采纳
                         </span>
                       )}
-                      <MathText
-                        content={a.content}
-                        className="text-sm leading-relaxed text-mist-200"
-                      />
+                      {editingAnswerId === a.id ? (
+                        <div>
+                          <textarea
+                            rows={5}
+                            value={editAnswerText}
+                            onChange={(e) => setEditAnswerText(e.target.value)}
+                            className="w-full resize-none rounded-lg border border-tian-400/30 bg-void-950/50 p-3 text-sm text-parchment-100 focus:border-star-400/50 focus:outline-none"
+                          />
+                          <div className="mt-2 flex justify-end gap-2">
+                            <button onClick={() => setEditingAnswerId(null)} className="btn-ghost text-xs">取消</button>
+                            <button onClick={() => handleSaveAnswer(a.id)} className="btn-gold text-xs">保存</button>
+                          </div>
+                        </div>
+                      ) : (
+                        <MathText
+                          content={a.content}
+                          className="text-sm leading-relaxed text-mist-200"
+                        />
+                      )}
 
                       {/* 评论列表 */}
                       {a.comments && a.comments.length > 0 && (
@@ -357,7 +508,7 @@ export default function DiscussionDetail() {
                               <div
                                 key={c.id}
                                 onClick={() => openReply(a.id, c)}
-                                className="cursor-pointer rounded-lg bg-void-900/40 p-3 transition-colors hover:bg-void-900/60"
+                                className="group cursor-pointer rounded-lg bg-void-900/40 p-3 transition-colors hover:bg-void-900/60"
                               >
                                 <div className="mb-1 flex items-center gap-2 text-xs text-mist-500">
                                   <Avatar name={c.author} color={c.avatarColor} size={18} />
@@ -369,6 +520,18 @@ export default function DiscussionDetail() {
                                   )}
                                   <span>·</span>
                                   <span className="font-mono">{c.date}</span>
+                                  {user?.uid === c.authorUid && (
+                                    <button
+                                      onClick={(e) => {
+                                        e.stopPropagation();
+                                        handleDeleteComment(a.id, c.id);
+                                      }}
+                                      className="ml-auto text-mist-500 opacity-0 transition-opacity hover:text-red-300 group-hover:opacity-100"
+                                      title="删除评论"
+                                    >
+                                      <Trash2 size={11} />
+                                    </button>
+                                  )}
                                 </div>
                                 <p className="text-sm text-mist-200">{c.content}</p>
                               </div>
@@ -439,6 +602,24 @@ export default function DiscussionDetail() {
                           <span className="text-mist-300">{a.author}</span>
                           <span>·</span>
                           <span className="font-mono">{a.date}</span>
+                          {user?.uid === a.authorUid && (
+                            <div className="ml-2 flex items-center gap-1">
+                              <button
+                                onClick={() => startEditAnswer(a.id, a.content)}
+                                className="text-mist-500 transition-colors hover:text-tian-300"
+                                title="编辑回答"
+                              >
+                                <Pencil size={12} />
+                              </button>
+                              <button
+                                onClick={() => handleDeleteAnswer(a.id)}
+                                className="text-mist-500 transition-colors hover:text-red-300"
+                                title="删除回答"
+                              >
+                                <Trash2 size={12} />
+                              </button>
+                            </div>
+                          )}
                         </div>
                       </div>
                     </div>

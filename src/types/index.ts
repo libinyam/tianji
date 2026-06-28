@@ -29,6 +29,7 @@ export interface Book {
 export interface Comment {
   id: string;
   author: string;
+  authorUid?: string;
   avatarColor: string;
   content: string;
   date: string;
@@ -38,6 +39,7 @@ export interface Comment {
 export interface Answer {
   id: string;
   author: string;
+  authorUid?: string;
   avatarColor: string;
   votes: number;
   accepted: boolean;

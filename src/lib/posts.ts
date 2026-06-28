@@ -170,6 +170,7 @@ export async function submitAnswer(
   const answer: Answer = {
     id: `a_${Date.now()}`,
     author: getCurrentUserName(),
+    authorUid: uid,
     avatarColor: AVATAR_COLORS[Math.floor(Math.random() * AVATAR_COLORS.length)],
     votes: 0,
     accepted: false,
@@ -216,6 +217,7 @@ export async function submitComment(
   const comment: Comment = {
     id: `c_${Date.now()}`,
     author: getCurrentUserName(),
+    authorUid: uid,
     avatarColor: AVATAR_COLORS[Math.floor(Math.random() * AVATAR_COLORS.length)],
     content,
     date: new Date().toISOString().slice(0, 10),
@@ -234,4 +236,124 @@ export async function submitComment(
   await docRef.update({ answerList: newAnswerList });
 
   return comment;
+}
+
+/** 编辑帖子（仅作者） */
+export async function updatePost(
+  postId: string,
+  params: { title: string; body: string; tags: string[] }
+): Promise<boolean> {
+  const uid = getCurrentUid();
+  if (!uid) throw new Error("请先登录");
+
+  const docRef = db.collection(POSTS_COLLECTION).doc(postId);
+  const { data } = await docRef.get();
+  if (!data || data.length === 0) return false;
+
+  const post = data[0] as PostDoc;
+  if (post.authorUid !== uid) throw new Error("无权编辑他人帖子");
+
+  const excerpt = params.body.length > 120 ? params.body.slice(0, 120) + "…" : params.body;
+  await docRef.update({
+    title: params.title,
+    body: params.body,
+    excerpt,
+    tags: params.tags,
+  });
+  return true;
+}
+
+/** 删除帖子（仅作者） */
+export async function deletePost(postId: string): Promise<boolean> {
+  const uid = getCurrentUid();
+  if (!uid) throw new Error("请先登录");
+
+  const docRef = db.collection(POSTS_COLLECTION).doc(postId);
+  const { data } = await docRef.get();
+  if (!data || data.length === 0) return false;
+
+  const post = data[0] as PostDoc;
+  if (post.authorUid !== uid) throw new Error("无权删除他人帖子");
+
+  await docRef.remove();
+  return true;
+}
+
+/** 编辑回答（仅作者） */
+export async function updateAnswer(
+  postId: string,
+  answerId: string,
+  content: string
+): Promise<boolean> {
+  const uid = getCurrentUid();
+  if (!uid) throw new Error("请先登录");
+
+  const docRef = db.collection(POSTS_COLLECTION).doc(postId);
+  const { data } = await docRef.get();
+  if (!data || data.length === 0) return false;
+
+  const post = data[0] as PostDoc;
+  const answerList = post.answerList ?? [];
+  const idx = answerList.findIndex((a) => a.id === answerId);
+  if (idx === -1) return false;
+
+  if (answerList[idx].authorUid !== uid) throw new Error("无权编辑他人回答");
+
+  answerList[idx] = { ...answerList[idx], content };
+  await docRef.update({ answerList });
+  return true;
+}
+
+/** 删除回答（仅作者） */
+export async function deleteAnswer(
+  postId: string,
+  answerId: string
+): Promise<boolean> {
+  const uid = getCurrentUid();
+  if (!uid) throw new Error("请先登录");
+
+  const docRef = db.collection(POSTS_COLLECTION).doc(postId);
+  const { data } = await docRef.get();
+  if (!data || data.length === 0) return false;
+
+  const post = data[0] as PostDoc;
+  const answerList = post.answerList ?? [];
+  const idx = answerList.findIndex((a) => a.id === answerId);
+  if (idx === -1) return false;
+
+  if (answerList[idx].authorUid !== uid) throw new Error("无权删除他人回答");
+
+  answerList.splice(idx, 1);
+  await docRef.update({ answerList, answersCount: answerList.length });
+  return true;
+}
+
+/** 删除评论（仅作者） */
+export async function deleteComment(
+  postId: string,
+  answerId: string,
+  commentId: string
+): Promise<boolean> {
+  const uid = getCurrentUid();
+  if (!uid) throw new Error("请先登录");
+
+  const docRef = db.collection(POSTS_COLLECTION).doc(postId);
+  const { data } = await docRef.get();
+  if (!data || data.length === 0) return false;
+
+  const post = data[0] as PostDoc;
+  const answerList = post.answerList ?? [];
+  const aIdx = answerList.findIndex((a) => a.id === answerId);
+  if (aIdx === -1) return false;
+
+  const comments = answerList[aIdx].comments ?? [];
+  const cIdx = comments.findIndex((c) => c.id === commentId);
+  if (cIdx === -1) return false;
+
+  if (comments[cIdx].authorUid !== uid) throw new Error("无权删除他人评论");
+
+  comments.splice(cIdx, 1);
+  answerList[aIdx] = { ...answerList[aIdx], comments };
+  await docRef.update({ answerList });
+  return true;
 }
