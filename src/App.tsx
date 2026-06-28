@@ -12,6 +12,7 @@ import WorkshopDetail from "@/pages/WorkshopDetail";
 import Profile from "@/pages/Profile";
 import UserProfile from "@/pages/UserProfile";
 import TagDetail from "@/pages/TagDetail";
+import Admin from "@/pages/Admin";
 
 export default function App() {
   return (
@@ -30,6 +31,7 @@ export default function App() {
           <Route path="/profile" element={<Profile />} />
           <Route path="/user/:uid" element={<UserProfile />} />
           <Route path="/tags/:name" element={<TagDetail />} />
+          <Route path="/admin" element={<Admin />} />
           <Route
             path="*"
             element={

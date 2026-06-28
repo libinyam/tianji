@@ -1,8 +1,9 @@
 import { useState, useEffect } from "react";
 import { Link, NavLink } from "react-router-dom";
-import { Menu, X, Sparkles, LogOut, User as UserIcon, Search, Sun, Moon } from "lucide-react";
+import { Menu, X, Sparkles, LogOut, User as UserIcon, Search, Sun, Moon, Shield } from "lucide-react";
 import { useAuthStore } from "@/stores/auth";
 import { useThemeStore } from "@/stores/theme";
+import { useIsAdmin } from "@/lib/admin";
 import SearchModal from "./SearchModal";
 import NotificationBell from "./NotificationBell";
 
@@ -23,6 +24,7 @@ export default function Navbar({ onLoginClick }: NavbarProps) {
   const [searchOpen, setSearchOpen] = useState(false);
   const { user, signOut } = useAuthStore();
   const { mode, toggle } = useThemeStore();
+  const isAdmin = useIsAdmin();
 
   // 全局快捷键 Cmd/Ctrl + K 打开搜索
   useEffect(() => {
@@ -106,6 +108,15 @@ export default function Navbar({ onLoginClick }: NavbarProps) {
 
           {/* 通知铃铛 */}
           {user && <NotificationBell />}
+          {isAdmin && (
+            <Link
+              to="/admin"
+              className="flex h-9 w-9 items-center justify-center rounded-lg border border-tian-400/30 bg-tian-400/10 text-tian-300 transition-colors hover:bg-tian-400/20"
+              title="管理后台"
+            >
+              <Shield size={16} />
+            </Link>
+          )}
 
           {user ? (
             <div className="flex items-center gap-3">
@@ -208,6 +219,21 @@ export default function Navbar({ onLoginClick }: NavbarProps) {
                     <UserIcon size={14} /> 个人主页
                   </span>
                 </NavLink>
+                {isAdmin && (
+                  <NavLink
+                    to="/admin"
+                    onClick={() => setOpen(false)}
+                    className={({ isActive }) =>
+                      `flex items-center gap-2 rounded-lg px-3 py-2.5 text-sm transition-colors ${
+                        isActive
+                          ? "bg-tian-400/15 text-tian-200"
+                          : "text-mist-300 hover:bg-void-800/50 hover:text-parchment-100"
+                      }`
+                    }
+                  >
+                    <Shield size={14} /> 管理后台
+                  </NavLink>
+                )}
                 <div className="mt-3 flex items-center gap-2 rounded-lg border border-void-600/50 bg-void-800/40 px-3 py-2.5">
                   <UserIcon size={14} className="text-star-400" />
                   <span className="truncate text-sm text-parchment-100">{displayName}</span>
