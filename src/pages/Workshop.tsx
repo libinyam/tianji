@@ -7,8 +7,20 @@ import EditorPreview from "@/components/EditorPreview";
 import WorkshopCreateModal from "@/components/WorkshopCreateModal";
 import { fetchWorkshops, canViewContent, type WorkshopProject } from "@/lib/workshops";
 import { useAuthStore } from "@/stores/auth";
-import { docs as mockDocs } from "@/data/docs";
 import { contributors } from "@/data/community";
+
+function formatUpdatedAt(iso: string): string {
+  if (!iso) return "";
+  const d = new Date(iso);
+  if (isNaN(d.getTime())) return iso;
+  const now = new Date();
+  const diff = now.getTime() - d.getTime();
+  if (diff < 60000) return "刚刚";
+  if (diff < 3600000) return `${Math.floor(diff / 60000)} 分钟前`;
+  if (diff < 86400000) return `${Math.floor(diff / 3600000)} 小时前`;
+  if (diff < 604800000) return `${Math.floor(diff / 86400000)} 天前`;
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+}
 
 export default function Workshop() {
   const [createOpen, setCreateOpen] = useState(false);
@@ -60,7 +72,7 @@ export default function Workshop() {
       >
         <div className="flex flex-wrap items-center gap-4 text-sm text-mist-400">
           <span className="flex items-center gap-1.5">
-            <PenLine size={14} className="text-star-400" /> {realProjects.length + mockDocs.length} 部共创中
+            <PenLine size={14} className="text-star-400" /> {realProjects.length} 部共创中
           </span>
           <span className="text-void-600">|</span>
           <span className="flex items-center gap-1.5">
@@ -163,7 +175,7 @@ export default function Workshop() {
 
                     {canView && (
                       <div className="mt-3 text-xs text-mist-500">
-                        {p.outline.length} 章大纲 · {p.contributions.length} 份贡献
+                        {p.content ? `${p.content.length} 字` : "空文档"} · {p.annotations.filter((a) => !a.resolved).length} 条批注
                       </div>
                     )}
 
@@ -177,9 +189,14 @@ export default function Workshop() {
                         </span>
                         <span className="text-mist-300">{p.creator}</span>
                       </div>
-                      <span className="flex items-center gap-1">
-                        <Users size={11} /> {p.participants.length}
-                      </span>
+                      <div className="flex items-center gap-3">
+                        <span className="flex items-center gap-1">
+                          <Users size={11} /> {p.participants.length}
+                        </span>
+                        {p.updatedAt && (
+                          <span className="text-[10px] text-mist-500">{formatUpdatedAt(p.updatedAt)}</span>
+                        )}
+                      </div>
                     </div>
                   </Link>
                 </motion.div>
@@ -188,44 +205,14 @@ export default function Workshop() {
           </div>
         )}
 
-        {/* Mock 项目 */}
-        <div className="grid gap-5 md:grid-cols-2 xl:grid-cols-3">
-          {mockDocs.map((d) => (
-            <div key={d.id} className="opacity-70">
-              <div className="flex h-full flex-col rounded-xl border border-void-600/30 bg-void-800/20 p-6">
-                <div className="mb-3 flex items-center justify-between">
-                  <span className="rounded-full border border-void-600/40 px-2.5 py-1 text-xs text-mist-400">
-                    {d.type}
-                  </span>
-                  <span className="text-[11px] text-mist-500">精选</span>
-                </div>
-                <h3 className="heading-display text-lg leading-snug text-parchment-50">
-                  {d.title}
-                </h3>
-                <p className="mt-2 line-clamp-2 flex-1 text-sm leading-relaxed text-mist-300">
-                  {d.description}
-                </p>
-                <div className="mt-3 text-xs text-mist-500">
-                  {d.chapters} 章 · {d.contributors.length} 位贡献者
-                </div>
-                <div className="mt-4 flex items-center gap-2 border-t border-void-600/30 pt-3">
-                  {d.contributorColors.slice(0, 4).map((c, ci) => (
-                    <span
-                      key={ci}
-                      className="flex h-6 w-6 items-center justify-center rounded-full text-[10px] font-medium text-void-900"
-                      style={{ background: c }}
-                    >
-                      {d.contributors[ci]?.charAt(0) ?? "?"}
-                    </span>
-                  ))}
-                  {d.contributors.length > 4 && (
-                    <span className="text-xs text-mist-500">+{d.contributors.length - 4}</span>
-                  )}
-                </div>
-              </div>
-            </div>
-          ))}
-        </div>
+        {/* 空状态 */}
+        {!loading && realProjects.length === 0 && (
+          <div className="rounded-xl border border-dashed border-void-600/40 bg-void-800/20 py-16 text-center">
+            <PenLine size={28} className="mx-auto mb-3 text-mist-500" />
+            <p className="text-sm text-mist-400">还没有协作项目</p>
+            <p className="mt-1 text-xs text-mist-500">点击「新建项目」发起第一个共创文档</p>
+          </div>
+        )}
       </section>
 
       {/* 贡献者面板 */}

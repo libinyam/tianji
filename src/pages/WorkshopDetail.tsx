@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Link, useParams } from "react-router-dom";
 import { motion } from "motion/react";
 import {
@@ -10,18 +10,39 @@ import {
   Loader2,
   FileText,
   BookOpen,
+  Edit3,
+  MessageSquare,
+  CheckCircle2,
+  Send,
+  X,
+  Eye,
 } from "lucide-react";
 import {
   fetchWorkshopById,
   joinWorkshop,
   canViewContent,
+  updateWorkshop,
+  addAnnotation,
+  resolveAnnotation,
   type WorkshopProject,
-  type Contribution,
+  type Annotation,
 } from "@/lib/workshops";
 import { useAuthStore } from "@/stores/auth";
 import Avatar from "@/components/Avatar";
 import MathText from "@/components/MathText";
-import ContributeModal from "@/components/ContributeModal";
+
+function formatTime(iso: string): string {
+  if (!iso) return "";
+  const d = new Date(iso);
+  if (isNaN(d.getTime())) return iso;
+  const now = new Date();
+  const diff = now.getTime() - d.getTime();
+  if (diff < 60000) return "刚刚";
+  if (diff < 3600000) return `${Math.floor(diff / 60000)} 分钟前`;
+  if (diff < 86400000) return `${Math.floor(diff / 3600000)} 小时前`;
+  if (diff < 604800000) return `${Math.floor(diff / 86400000)} 天前`;
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+}
 
 export default function WorkshopDetail() {
   const { id } = useParams();
@@ -30,10 +51,21 @@ export default function WorkshopDetail() {
   const [project, setProject] = useState<WorkshopProject | null>(null);
   const [loading, setLoading] = useState(true);
   const [joining, setJoining] = useState(false);
-  const [contributeChapter, setContributeChapter] = useState<{
-    id: string;
-    title: string;
-  } | null>(null);
+
+  // 内联编辑器状态
+  const [content, setContent] = useState("");
+  const [editing, setEditing] = useState(false);
+  const [saveStatus, setSaveStatus] = useState<"idle" | "saving" | "saved" | "error">("idle");
+  const saveTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const contentRef = useRef<HTMLDivElement>(null);
+
+  // 批注状态
+  const [selectedText, setSelectedText] = useState("");
+  const [annotInput, setAnnotInput] = useState("");
+  const [showAnnotForm, setShowAnnotForm] = useState(false);
+  const [annotSubmitting, setAnnotSubmitting] = useState(false);
+  const [showResolved, setShowResolved] = useState(false);
+  const [annotError, setAnnotError] = useState<string | null>(null);
 
   useEffect(() => {
     if (!id) return;
@@ -43,6 +75,7 @@ export default function WorkshopDetail() {
       const p = await fetchWorkshopById(id);
       if (mounted) {
         setProject(p);
+        setContent(p?.content ?? "");
         setLoading(false);
       }
     })();
@@ -50,6 +83,13 @@ export default function WorkshopDetail() {
       mounted = false;
     };
   }, [id]);
+
+  // 清理自动保存定时器
+  useEffect(() => {
+    return () => {
+      if (saveTimerRef.current) clearTimeout(saveTimerRef.current);
+    };
+  }, []);
 
   if (loading) {
     return (
@@ -88,35 +128,120 @@ export default function WorkshopDetail() {
     setJoining(false);
   };
 
-  const handleContribute = (chapterId: string, chapterTitle: string) => {
+  // 自动保存（编辑后 2 秒）
+  const handleContentChange = (value: string) => {
+    setContent(value);
+    setSaveStatus("idle");
+    if (saveTimerRef.current) clearTimeout(saveTimerRef.current);
+    saveTimerRef.current = setTimeout(async () => {
+      if (!id) return;
+      setSaveStatus("saving");
+      try {
+        const ok = await updateWorkshop(id, { content: value });
+        if (ok) {
+          setSaveStatus("saved");
+          setProject((prev) =>
+            prev
+              ? { ...prev, content: value, updatedAt: new Date().toISOString() }
+              : prev
+          );
+        } else {
+          setSaveStatus("error");
+        }
+      } catch {
+        setSaveStatus("error");
+      }
+    }, 2000);
+  };
+
+  const handleToggleEdit = () => {
+    if (editing) {
+      // 退出编辑前立即保存未保存的内容
+      if (saveTimerRef.current) {
+        clearTimeout(saveTimerRef.current);
+        saveTimerRef.current = null;
+        if (id && content !== project.content) {
+          updateWorkshop(id, { content }).then((ok) => {
+            if (ok) {
+              setProject((prev) =>
+                prev
+                  ? {
+                      ...prev,
+                      content,
+                      updatedAt: new Date().toISOString(),
+                    }
+                  : prev
+              );
+            }
+          });
+        }
+      }
+      setSaveStatus("idle");
+    } else {
+      setContent(project.content);
+    }
+    setEditing(!editing);
+  };
+
+  // 文本选中 → 显示批注表单
+  const handleMouseUp = () => {
+    if (editing) return;
+    const sel = window.getSelection();
+    if (sel && sel.toString().trim() && contentRef.current?.contains(sel.anchorNode)) {
+      setSelectedText(sel.toString().trim());
+      setShowAnnotForm(true);
+    }
+  };
+
+  const handleAddAnnotation = async () => {
+    if (!id || !annotInput.trim()) return;
     if (!user) {
       window.dispatchEvent(new CustomEvent("tianji:open-auth"));
       return;
     }
-    if (!isParticipant) {
-      handleJoin().then(() => {
-        setContributeChapter({ id: chapterId, title: chapterTitle });
-      });
+    setAnnotSubmitting(true);
+    setAnnotError(null);
+    try {
+      const annot = await addAnnotation(id, annotInput);
+      if (annot && project) {
+        setProject({
+          ...project,
+          annotations: [...project.annotations, annot],
+        });
+        setAnnotInput("");
+        setShowAnnotForm(false);
+        setSelectedText("");
+      }
+    } catch (err) {
+      setAnnotError((err as Error).message);
+    } finally {
+      setAnnotSubmitting(false);
+    }
+  };
+
+  const handleResolve = async (annotId: string) => {
+    if (!id || !project) return;
+    if (!user) {
+      window.dispatchEvent(new CustomEvent("tianji:open-auth"));
       return;
     }
-    setContributeChapter({ id: chapterId, title: chapterTitle });
+    try {
+      const ok = await resolveAnnotation(id, annotId);
+      if (ok) {
+        setProject({
+          ...project,
+          annotations: project.annotations.map((a) =>
+            a.id === annotId ? { ...a, resolved: true } : a
+          ),
+        });
+      }
+    } catch {
+      // 权限不足等错误静默处理
+    }
   };
 
-  const handleContributed = (contribution: Contribution) => {
-    setProject({
-      ...project,
-      contributions: [...project.contributions, contribution],
-    });
-  };
-
-  // 按章节分组贡献
-  const contributionsByChapter = project.contributions.reduce<
-    Record<string, Contribution[]>
-  >((acc, c) => {
-    if (!acc[c.chapterId]) acc[c.chapterId] = [];
-    acc[c.chapterId].push(c);
-    return acc;
-  }, {});
+  const activeAnnotations = project.annotations.filter((a) => !a.resolved);
+  const resolvedAnnotations = project.annotations.filter((a) => a.resolved);
 
   return (
     <div className="container-tj py-10">
@@ -153,9 +278,30 @@ export default function WorkshopDetail() {
           ))}
         </div>
 
-        <h1 className="mt-4 heading-display text-2xl leading-snug text-parchment-50 sm:text-3xl">
-          {project.title}
-        </h1>
+        <div className="mt-4 flex items-start justify-between gap-4">
+          <h1 className="heading-display text-2xl leading-snug text-parchment-50 sm:text-3xl">
+            {project.title}
+          </h1>
+          {isCreator && (
+            <button
+              onClick={handleToggleEdit}
+              className={`btn-ghost shrink-0 text-xs ${
+                editing ? "border-star-400/40 text-star-300" : ""
+              }`}
+            >
+              {editing ? (
+                <>
+                  <Eye size={13} /> 完成编辑
+                </>
+              ) : (
+                <>
+                  <Edit3 size={13} /> 编辑文档
+                </>
+              )}
+            </button>
+          )}
+        </div>
+
         <p className="mt-3 max-w-2xl text-sm leading-relaxed text-mist-300">
           {project.description}
         </p>
@@ -170,8 +316,43 @@ export default function WorkshopDetail() {
           <span className="flex items-center gap-1">
             <Users size={12} /> {project.participants.length} 位参与者
           </span>
-          <span>·</span>
-          <span className="font-mono">{project.outline.length} 章</span>
+          {project.updatedAt && (
+            <>
+              <span>·</span>
+              <span>更新于 {formatTime(project.updatedAt)}</span>
+            </>
+          )}
+        </div>
+
+        {/* 参与成员列表 */}
+        <div className="mt-4 flex items-center gap-2">
+          <span className="text-xs text-mist-500">参与成员：</span>
+          <div className="flex -space-x-1.5">
+            {project.participants.slice(0, 10).map((pUid, i) => {
+              const isCreatorMember = pUid === project.creatorUid;
+              return (
+                <span
+                  key={pUid + i}
+                  title={isCreatorMember ? `${project.creator}（创建者）` : `用户 ${pUid.slice(-6)}`}
+                  className="flex h-7 w-7 items-center justify-center rounded-full border-2 border-void-900 font-display text-[10px] text-void-900"
+                  style={{
+                    background: isCreatorMember
+                      ? project.avatarColor
+                      : `hsl(${(pUid.charCodeAt(0) * 37) % 360}, 60%, 65%)`,
+                  }}
+                >
+                  {isCreatorMember
+                    ? project.creator.charAt(0)
+                    : pUid.slice(-2)}
+                </span>
+              );
+            })}
+            {project.participants.length > 10 && (
+              <span className="flex h-7 w-7 items-center justify-center rounded-full border-2 border-void-900 bg-void-700 text-[10px] text-mist-300">
+                +{project.participants.length - 10}
+              </span>
+            )}
+          </div>
         </div>
 
         {/* 加入按钮 */}
@@ -205,7 +386,7 @@ export default function WorkshopDetail() {
           <Lock className="mx-auto mb-3 h-8 w-8 text-tian-300" />
           <p className="heading-display text-lg text-parchment-50">论文内容仅参与者可见</p>
           <p className="mt-2 text-sm text-mist-400">
-            加入项目后，即可查看大纲详情和已有贡献，并提交你的章节内容。
+            加入项目后，即可查看和编辑文档内容，并参与批注讨论。
           </p>
           <button onClick={handleJoin} disabled={joining} className="btn-gold mt-5 disabled:opacity-60">
             {joining ? "加入中…" : "加入项目"}
@@ -213,92 +394,266 @@ export default function WorkshopDetail() {
         </div>
       )}
 
-      {/* 大纲 + 贡献 */}
+      {/* 文档内容 + 批注 */}
       {canView && (
-        <div className="mt-10 space-y-5">
-          <div className="mb-4 flex items-center gap-2">
-            <PenLine size={18} className="text-star-400" />
-            <h2 className="heading-display text-xl text-parchment-50">章节大纲与贡献</h2>
+        <div className="mt-10 grid gap-6 lg:grid-cols-[1fr_320px]">
+          {/* 正文区域 */}
+          <div className="card-surface grain relative overflow-hidden">
+            {/* 编辑器顶栏 */}
+            <div className="flex items-center justify-between border-b border-void-600/40 bg-void-900/50 px-5 py-3">
+              <div className="flex items-center gap-2">
+                <PenLine size={15} className="text-star-400" />
+                <span className="text-sm text-parchment-100">文档正文</span>
+              </div>
+              <div className="flex items-center gap-2 text-xs">
+                {editing && (
+                  <>
+                    {saveStatus === "saving" && (
+                      <span className="flex items-center gap-1 text-mist-400">
+                        <Loader2 size={11} className="animate-spin" /> 保存中…
+                      </span>
+                    )}
+                    {saveStatus === "saved" && (
+                      <span className="flex items-center gap-1 text-emerald-400">
+                        <Check size={11} /> 已自动保存
+                      </span>
+                    )}
+                    {saveStatus === "error" && (
+                      <span className="text-red-400">保存失败</span>
+                    )}
+                    {saveStatus === "idle" && (
+                      <span className="text-mist-500">自动保存已开启</span>
+                    )}
+                  </>
+                )}
+                {!editing && content && (
+                  <span className="text-mist-500">{content.length} 字</span>
+                )}
+              </div>
+            </div>
+
+            {/* 正文内容 */}
+            <div className="p-6 sm:p-8" ref={contentRef} onMouseUp={handleMouseUp}>
+              {editing ? (
+                <textarea
+                  value={content}
+                  onChange={(e) => handleContentChange(e.target.value)}
+                  rows={20}
+                  autoFocus
+                  placeholder="撰写文档内容…支持 LaTeX：行内 $...$，行间 $$...$$"
+                  className="w-full resize-y rounded-lg border border-void-600/50 bg-void-950/50 p-4 text-sm leading-relaxed text-parchment-100 placeholder:text-mist-500 focus:border-star-400/50 focus:outline-none focus:ring-1 focus:ring-star-400/30"
+                />
+              ) : content ? (
+                <div className="prose-tj">
+                  <MathText
+                    content={content}
+                    className="text-[15px] leading-relaxed text-mist-200"
+                  />
+                </div>
+              ) : (
+                <div className="py-12 text-center">
+                  <PenLine size={28} className="mx-auto mb-3 text-mist-500" />
+                  <p className="text-sm text-mist-400">
+                    {isCreator ? "点击「编辑文档」开始撰写内容" : "创建者尚未撰写文档内容"}
+                  </p>
+                </div>
+              )}
+            </div>
+
+            {/* 选中提示 */}
+            {!editing && (
+              <div className="border-t border-void-600/30 px-5 py-2.5 text-xs text-mist-500">
+                <MessageSquare size={11} className="mr-1 inline" />
+                选中文本即可添加批注
+              </div>
+            )}
           </div>
 
-          {project.outline.map((chapter, i) => {
-            const chapterContributions = contributionsByChapter[chapter.id] ?? [];
-            return (
-              <motion.div
-                key={chapter.id}
-                initial={{ opacity: 0, y: 16 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true, margin: "-40px" }}
-                transition={{ duration: 0.4, delay: i * 0.06 }}
-                className="rounded-xl border border-void-600/40 bg-void-800/30 p-6"
-              >
-                <div className="flex items-start justify-between gap-4">
-                  <div className="min-w-0 flex-1">
-                    <div className="flex items-center gap-2">
-                      <span className="font-mono text-xs text-mist-500">
-                        第{i + 1}章
-                      </span>
-                      <span className="text-xs text-mist-500">
-                        {chapterContributions.length} 份贡献
-                      </span>
-                    </div>
-                    <h3 className="mt-1 heading-display text-lg text-parchment-50">
-                      {chapter.title}
-                    </h3>
-                    {chapter.brief && (
-                      <p className="mt-1 text-sm text-mist-400">{chapter.brief}</p>
-                    )}
-                  </div>
-                  <button
-                    onClick={() => handleContribute(chapter.id, chapter.title)}
-                    className="btn-ghost shrink-0 text-xs"
-                  >
-                    <PenLine size={13} /> 贡献内容
-                  </button>
-                </div>
+          {/* 批注侧栏 */}
+          <aside className="space-y-4">
+            <div className="card-surface grain p-5">
+              <div className="mb-4 flex items-center gap-2">
+                <MessageSquare size={14} className="text-star-400" />
+                <h4 className="font-mono text-xs uppercase tracking-[0.2em] text-star-300">
+                  批注 · {activeAnnotations.length}
+                </h4>
+              </div>
 
-                {/* 贡献列表 */}
-                {chapterContributions.length > 0 && (
-                  <div className="mt-4 space-y-3 border-t border-void-600/30 pt-4">
-                    {chapterContributions.map((c, ci) => (
-                      <div
-                        key={c.id}
-                        className="rounded-lg border border-void-600/30 bg-void-900/30 p-4"
-                      >
-                        <div className="mb-2 flex items-center justify-between">
-                          <div className="flex items-center gap-2 text-xs text-mist-500">
-                            <Avatar name={c.author} color={c.avatarColor} size={18} />
-                            <span className="text-mist-300">{c.author}</span>
-                            <span>·</span>
-                            <span className="font-mono">{c.createdAt}</span>
-                            <span className="text-mist-500">#{ci + 1}</span>
-                          </div>
-                        </div>
-                        <MathText
-                          content={c.content}
-                          className="text-sm leading-relaxed text-mist-200"
-                        />
-                      </div>
-                    ))}
+              {/* 批注输入表单 */}
+              {showAnnotForm && (
+                <motion.div
+                  initial={{ opacity: 0, height: 0 }}
+                  animate={{ opacity: 1, height: "auto" }}
+                  className="mb-4 overflow-hidden rounded-lg border border-tian-400/30 bg-tian-400/5 p-3"
+                >
+                  <div className="mb-2 flex items-start justify-between gap-2">
+                    <span className="text-xs text-tian-200">添加批注</span>
+                    <button
+                      onClick={() => {
+                        setShowAnnotForm(false);
+                        setSelectedText("");
+                        setAnnotInput("");
+                      }}
+                      className="text-mist-500 transition-colors hover:text-mist-300"
+                    >
+                      <X size={13} />
+                    </button>
                   </div>
-                )}
-              </motion.div>
-            );
-          })}
+                  {selectedText && (
+                    <div className="mb-2 rounded border-l-2 border-tian-400/40 bg-void-900/40 px-2 py-1 text-[11px] text-mist-400">
+                      「{selectedText.length > 60
+                        ? selectedText.slice(0, 60) + "…"
+                        : selectedText}」
+                    </div>
+                  )}
+                  <textarea
+                    value={annotInput}
+                    onChange={(e) => setAnnotInput(e.target.value)}
+                    rows={3}
+                    placeholder="写下你的批注…"
+                    className="w-full resize-y rounded-md border border-void-600/50 bg-void-950/50 p-2 text-xs leading-relaxed text-parchment-100 placeholder:text-mist-500 focus:border-star-400/50 focus:outline-none"
+                  />
+                  {annotError && (
+                    <p className="mt-1 text-[11px] text-red-400">{annotError}</p>
+                  )}
+                  <button
+                    onClick={handleAddAnnotation}
+                    disabled={annotSubmitting || !annotInput.trim()}
+                    className="btn-gold mt-2 w-full justify-center py-1.5 text-xs disabled:opacity-60"
+                  >
+                    {annotSubmitting ? (
+                      <>
+                        <Loader2 size={12} className="animate-spin" /> 提交中…
+                      </>
+                    ) : (
+                      <>
+                        <Send size={12} /> 提交批注
+                      </>
+                    )}
+                  </button>
+                </motion.div>
+              )}
+
+              {/* 活跃批注列表 */}
+              {activeAnnotations.length > 0 ? (
+                <div className="space-y-3">
+                  {activeAnnotations.map((a, i) => (
+                    <AnnotationCard
+                      key={a.id}
+                      annotation={a}
+                      index={i}
+                      canResolve={
+                        !!user && (isCreator || a.authorUid === uid)
+                      }
+                      onResolve={() => handleResolve(a.id)}
+                    />
+                  ))}
+                </div>
+              ) : (
+                !showAnnotForm && (
+                  <p className="py-6 text-center text-xs text-mist-500">
+                    暂无批注。选中文本即可添加。
+                  </p>
+                )
+              )}
+
+              {/* 已解决批注 */}
+              {resolvedAnnotations.length > 0 && (
+                <div className="mt-4 border-t border-void-600/30 pt-3">
+                  <button
+                    onClick={() => setShowResolved(!showResolved)}
+                    className="flex w-full items-center justify-between text-xs text-mist-500 transition-colors hover:text-mist-300"
+                  >
+                    <span>
+                      已解决 · {resolvedAnnotations.length}
+                    </span>
+                    <span>{showResolved ? "收起" : "展开"}</span>
+                  </button>
+                  {showResolved && (
+                    <div className="mt-3 space-y-3">
+                      {resolvedAnnotations.map((a, i) => (
+                        <AnnotationCard
+                          key={a.id}
+                          annotation={a}
+                          index={i}
+                          resolved
+                          canResolve={false}
+                          onResolve={() => {}}
+                        />
+                      ))}
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
+          </aside>
         </div>
       )}
-
-      {/* 贡献弹窗 */}
-      {contributeChapter && (
-        <ContributeModal
-          open={!!contributeChapter}
-          onClose={() => setContributeChapter(null)}
-          workshopId={project.id}
-          chapterId={contributeChapter.id}
-          chapterTitle={contributeChapter.title}
-          onContributed={handleContributed}
-        />
-      )}
     </div>
+  );
+}
+
+/** 批注卡片组件 */
+function AnnotationCard({
+  annotation,
+  index,
+  resolved = false,
+  canResolve,
+  onResolve,
+}: {
+  annotation: Annotation;
+  index: number;
+  resolved?: boolean;
+  canResolve: boolean;
+  onResolve: () => void;
+}) {
+  const avatarColor = `hsl(${(annotation.authorUid.charCodeAt(0) * 37) % 360}, 60%, 65%)`;
+  return (
+    <motion.div
+      initial={{ opacity: 0, x: 12 }}
+      whileInView={{ opacity: 1, x: 0 }}
+      viewport={{ once: true }}
+      transition={{ duration: 0.3, delay: index * 0.05 }}
+      className={`rounded-lg border p-3 ${
+        resolved
+          ? "border-void-600/20 bg-void-800/20 opacity-60"
+          : "border-void-600/40 bg-void-800/40"
+      }`}
+    >
+      <div className="mb-2 flex items-center justify-between">
+        <div className="flex items-center gap-2">
+          <span
+            className="flex h-5 w-5 items-center justify-center rounded-full font-display text-[10px] text-void-900"
+            style={{ background: avatarColor }}
+          >
+            {annotation.author.charAt(0)}
+          </span>
+          <span className="text-xs text-mist-300">{annotation.author}</span>
+        </div>
+        <span className="font-mono text-[9px] text-mist-500">
+          {formatTime(annotation.createdAt)}
+        </span>
+      </div>
+      <MathText
+        content={annotation.content}
+        className="text-xs leading-relaxed text-mist-200"
+      />
+      <div className="mt-2 flex items-center justify-end">
+        {resolved ? (
+          <span className="flex items-center gap-1 text-[10px] text-emerald-400">
+            <CheckCircle2 size={11} /> 已解决
+          </span>
+        ) : (
+          canResolve && (
+            <button
+              onClick={onResolve}
+              className="flex items-center gap-1 text-[10px] text-mist-400 transition-colors hover:text-emerald-400"
+            >
+              <CheckCircle2 size={11} /> 标记解决
+            </button>
+          )
+        )}
+      </div>
+    </motion.div>
   );
 }

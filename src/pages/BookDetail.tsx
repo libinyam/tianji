@@ -11,11 +11,13 @@ import {
   ChevronDown,
   Calendar,
   FileText,
+  Flag,
 } from "lucide-react";
 import { books } from "@/data/books";
 import { fetchBookById } from "@/lib/books";
 import DifficultyDots from "@/components/DifficultyDots";
 import Avatar from "@/components/Avatar";
+import ReportModal from "@/components/ReportModal";
 import { toggleFavorite, isFavorited } from "@/lib/favorites";
 import { useAuthStore } from "@/stores/auth";
 
@@ -25,6 +27,7 @@ export default function BookDetail() {
   const [book, setBook] = useState(mockBook || null);
   const [tocOpen, setTocOpen] = useState(true);
   const [favorited, setFavorited] = useState(false);
+  const [reportOpen, setReportOpen] = useState(false);
   const { user } = useAuthStore();
 
   useEffect(() => {
@@ -60,6 +63,14 @@ export default function BookDetail() {
     } catch {
       // 静默
     }
+  };
+
+  const openReport = () => {
+    if (!user) {
+      window.dispatchEvent(new CustomEvent("tianji:open-auth"));
+      return;
+    }
+    setReportOpen(true);
   };
 
   if (!book) {
@@ -136,6 +147,12 @@ export default function BookDetail() {
                 <Download size={15} /> 暂无下载
               </button>
             )}
+            <button
+              onClick={openReport}
+              className="col-span-2 inline-flex items-center justify-center gap-2 rounded-lg border border-red-500/40 bg-red-500/10 px-5 py-2.5 text-sm font-medium text-red-300 transition-all hover:bg-red-500/20"
+            >
+              <Flag size={15} /> 举报资源
+            </button>
             <button className="btn-ghost">
               <Eye size={15} /> 预览
             </button>
@@ -302,6 +319,14 @@ export default function BookDetail() {
           </div>
         </section>
       )}
+
+      <ReportModal
+        open={reportOpen}
+        onClose={() => setReportOpen(false)}
+        targetType="book"
+        targetId={book.id}
+        targetTitle={book.title}
+      />
     </div>
   );
 }

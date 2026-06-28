@@ -1,10 +1,11 @@
 import { useMemo, useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { motion } from "motion/react";
-import { Lightbulb, ThumbsUp, MessageCircle, Sparkles, Plus, Loader2, Bookmark, Pencil, Trash2 } from "lucide-react";
+import { Lightbulb, ThumbsUp, MessageCircle, Sparkles, Plus, Loader2, Bookmark, Pencil, Trash2, Flag } from "lucide-react";
 import PageHero from "@/components/PageHero";
 import Avatar from "@/components/Avatar";
 import IdeaModal from "@/components/IdeaModal";
+import ReportModal from "@/components/ReportModal";
 import { ideas as mockIdeas } from "@/data/ideas";
 import { fetchIdeas, resonanceIdea, updateIdea, deleteIdea } from "@/lib/ideas";
 import { toggleFavorite, getFavoritedIds } from "@/lib/favorites";
@@ -22,7 +23,16 @@ export default function Ideas() {
   const [editingIdea, setEditingIdea] = useState<Idea | null>(null);
   const [editTitle, setEditTitle] = useState("");
   const [editSummary, setEditSummary] = useState("");
+  const [reportTarget, setReportTarget] = useState<{ id: string; title: string } | null>(null);
   const { user } = useAuthStore();
+
+  const openReport = (idea: Idea) => {
+    if (!user) {
+      window.dispatchEvent(new CustomEvent("tianji:open-auth"));
+      return;
+    }
+    setReportTarget({ id: idea.id, title: idea.title });
+  };
 
   // 加载真实灵感
   useEffect(() => {
@@ -328,6 +338,15 @@ export default function Ideas() {
                           className={favedIdeas.has(idea.id) ? "fill-star-400" : ""}
                         />
                       </button>
+                      {user?.uid !== idea.authorUid && (
+                        <button
+                          onClick={() => openReport(idea)}
+                          className="flex items-center gap-1 text-mist-400 transition-colors hover:text-red-300"
+                          title="举报"
+                        >
+                          <Flag size={12} />
+                        </button>
+                      )}
                       <span className="flex items-center gap-1">
                         <MessageCircle size={12} /> {idea.replies}
                       </span>
@@ -371,6 +390,14 @@ export default function Ideas() {
           </div>
         </div>
       )}
+
+      <ReportModal
+        open={!!reportTarget}
+        onClose={() => setReportTarget(null)}
+        targetType="idea"
+        targetId={reportTarget?.id ?? ""}
+        targetTitle={reportTarget?.title ?? ""}
+      />
     </>
   );
 }

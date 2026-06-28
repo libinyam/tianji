@@ -3,6 +3,7 @@ import { Navigate } from "react-router-dom";
 import { app } from "@/lib/cloudbase";
 import { useIsAdmin } from "@/lib/admin";
 import { useAuthStore } from "@/stores/auth";
+import { fetchReports, resolveReport, type Report } from "@/lib/reports";
 
 const db = app.database();
 import {
@@ -15,6 +16,9 @@ import {
   Shield,
   Activity,
   HardHat,
+  Flag,
+  CheckCircle2,
+  XCircle,
 } from "lucide-react";
 
 interface Stats {
@@ -66,12 +70,13 @@ interface WorkshopItem {
 export default function Admin() {
   const isAdmin = useIsAdmin();
   const { user, loading } = useAuthStore();
-  const [tab, setTab] = useState<"overview" | "posts" | "ideas" | "books" | "workshops">("overview");
+  const [tab, setTab] = useState<"overview" | "posts" | "ideas" | "books" | "workshops" | "reports">("overview");
   const [stats, setStats] = useState<Stats | null>(null);
   const [posts, setPosts] = useState<PostItem[]>([]);
   const [ideas, setIdeas] = useState<IdeaItem[]>([]);
   const [books, setBooks] = useState<BookItem[]>([]);
   const [workshops, setWorkshops] = useState<WorkshopItem[]>([]);
+  const [reports, setReports] = useState<Report[]>([]);
   const [loadingData, setLoadingData] = useState(false);
 
   useEffect(() => {
@@ -86,6 +91,7 @@ export default function Admin() {
     else if (tab === "ideas") fetchIdeas();
     else if (tab === "books") fetchBooks();
     else if (tab === "workshops") fetchWorkshops();
+    else if (tab === "reports") fetchReportsData();
   }, [tab, isAdmin]);
 
   const fetchStats = async () => {
@@ -174,6 +180,52 @@ export default function Admin() {
     }
   };
 
+  const fetchReportsData = async () => {
+    setLoadingData(true);
+    try {
+      const list = await fetchReports();
+      setReports(list);
+    } catch (err) {
+      console.error("fetchReports error:", err);
+    } finally {
+      setLoadingData(false);
+    }
+  };
+
+  const handleResolveReport = async (
+    report: Report,
+    action: "resolved" | "dismissed"
+  ) => {
+    const confirmMsg =
+      action === "resolved"
+        ? "确定删除被举报的内容并标记为已处理？"
+        : "确定忽略此举报？";
+    if (!confirm(confirmMsg)) return;
+    try {
+      if (action === "resolved") {
+        // 删除被举报内容
+        const colMap: Record<string, string> = {
+          post: "posts",
+          idea: "ideas",
+          book: "books",
+          workshop: "workshops",
+        };
+        const col = colMap[report.targetType];
+        if (col) {
+          try {
+            await db.collection(col).doc(report.targetId).remove();
+          } catch (e) {
+            console.warn("删除被举报内容失败：", e);
+          }
+        }
+      }
+      await resolveReport(report.id, action);
+      fetchReportsData();
+    } catch (err) {
+      alert("操作失败：" + (err as Error).message);
+    }
+  };
+
   const handleDelete = async (collection: string, id: string) => {
     if (!confirm("确定删除这条内容？此操作不可撤销。")) return;
     try {
@@ -222,6 +274,7 @@ export default function Admin() {
     { key: "ideas" as const, label: "灵感管理", icon: Lightbulb },
     { key: "books" as const, label: "资源管理", icon: Book },
     { key: "workshops" as const, label: "协作管理", icon: HardHat },
+    { key: "reports" as const, label: "举报管理", icon: Flag },
   ];
 
   return (
@@ -291,6 +344,9 @@ export default function Admin() {
               </button>
               <button onClick={() => setTab("workshops")} className="btn-ghost text-sm">
                 管理协作
+              </button>
+              <button onClick={() => setTab("reports")} className="btn-ghost text-sm">
+                管理举报
               </button>
             </div>
           </div>
@@ -413,6 +469,85 @@ export default function Admin() {
               </button>
             </div>
           ))}
+        </div>
+      )}
+
+      {/* Reports */}
+      {tab === "reports" && !loadingData && (
+        <div className="space-y-2">
+          {reports.length === 0 && <p className="py-8 text-center text-mist-400">暂无举报</p>}
+          {reports.map((r) => {
+            const typeLabel: Record<string, string> = {
+              post: "帖子",
+              idea: "灵感",
+              book: "资源",
+              answer: "回答",
+              workshop: "协作",
+              comment: "评论",
+            };
+            const statusLabel: Record<string, string> = {
+              pending: "待处理",
+              resolved: "已处理",
+              dismissed: "已忽略",
+            };
+            const statusColor: Record<string, string> = {
+              pending: "border-yellow-400/40 bg-yellow-400/10 text-yellow-300",
+              resolved: "border-green-400/40 bg-green-400/10 text-green-300",
+              dismissed: "border-void-600/50 bg-void-700/40 text-mist-400",
+            };
+            return (
+              <div
+                key={r.id}
+                className="rounded-xl border border-void-600/40 bg-void-800/30 p-4"
+              >
+                <div className="flex items-start justify-between gap-3">
+                  <div className="min-w-0 flex-1">
+                    <p className="truncate font-medium text-star-100">
+                      {r.targetTitle || "（无标题）"}
+                    </p>
+                    <div className="mt-1 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-mist-500">
+                      <span className="rounded bg-void-700/50 px-1.5 py-0.5 text-mist-300">
+                        {typeLabel[r.targetType] ?? r.targetType}
+                      </span>
+                      <span>举报人：{r.reporterName || r.reporterUid || "匿名"}</span>
+                      <span>原因：{r.reason}</span>
+                      <span className="font-mono">{r.createdAt}</span>
+                    </div>
+                  </div>
+                  <div className="flex flex-shrink-0 items-center gap-2">
+                    <span
+                      className={`rounded-md border px-2 py-1 text-xs ${
+                        statusColor[r.status] ?? statusColor.pending
+                      }`}
+                    >
+                      {statusLabel[r.status] ?? r.status}
+                    </span>
+                    {r.status === "pending" && (
+                      <>
+                        <button
+                          onClick={() => handleResolveReport(r, "resolved")}
+                          className="flex items-center gap-1 rounded-lg border border-red-500/30 bg-red-500/10 px-2.5 py-1.5 text-xs text-red-400 transition-all hover:bg-red-500/20"
+                          title="删除内容并标记为已处理"
+                        >
+                          <Trash2 size={14} /> 处理
+                        </button>
+                        <button
+                          onClick={() => handleResolveReport(r, "dismissed")}
+                          className="flex items-center gap-1 rounded-lg border border-void-600/50 bg-void-800/40 px-2.5 py-1.5 text-xs text-mist-300 transition-all hover:border-mist-400/40"
+                          title="忽略举报"
+                        >
+                          <XCircle size={14} /> 忽略
+                        </button>
+                      </>
+                    )}
+                    {r.status !== "pending" && (
+                      <CheckCircle2 size={16} className="text-mist-600" />
+                    )}
+                  </div>
+                </div>
+              </div>
+            );
+          })}
         </div>
       )}
     </div>

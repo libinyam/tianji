@@ -1,57 +1,66 @@
-# React + TypeScript + Vite
+# 天玑 (Tianji) — 知识共创社区
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+面向学生、研究者和开发者的知识分享平台，集讨论区、灵感广场、资源库、协作工坊于一体。
 
-Currently, two official plugins are available:
+## 技术栈
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+- React 18 + TypeScript
+- Vite 构建工具
+- Tailwind CSS 样式
+- Zustand 状态管理
+- CloudBase（腾讯云开发）后端服务
+- React Router 路由
+- KaTeX 数学公式渲染
 
-## Expanding the ESLint configuration
+## 功能模块
 
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
+- **用户认证**：邮箱注册登录、GitHub OAuth
+- **讨论区**：发帖、回答、评论、AI 机器人
+- **灵感广场**：分享与讨论灵感
+- **资源库**：文件上传与下载
+- **协作工坊**：多人协作
+- **全局搜索 + 热度榜**
+- **标签系统**：学科、工具两级分类
+- **消息通知**
+- **收藏功能**
+- **个人主页**
+- **管理后台**
+- **深色 / 浅色主题切换**
 
-```js
-export default tseslint.config({
-  extends: [
-    // Remove ...tseslint.configs.recommended and replace with this
-    ...tseslint.configs.recommendedTypeChecked,
-    // Alternatively, use this for stricter rules
-    ...tseslint.configs.strictTypeChecked,
-    // Optionally, add this for stylistic rules
-    ...tseslint.configs.stylisticTypeChecked,
-  ],
-  languageOptions: {
-    // other options...
-    parserOptions: {
-      project: ['./tsconfig.node.json', './tsconfig.app.json'],
-      tsconfigRootDir: import.meta.dirname,
-    },
-  },
-})
+## 本地启动
+
+```bash
+npm install
+npm run dev
 ```
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
+需要配置 `.env.local` 环境变量：
 
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
-
-export default tseslint.config({
-  extends: [
-    // other configs...
-    // Enable lint rules for React
-    reactX.configs['recommended-typescript'],
-    // Enable lint rules for React DOM
-    reactDom.configs.recommended,
-  ],
-  languageOptions: {
-    // other options...
-    parserOptions: {
-      project: ['./tsconfig.node.json', './tsconfig.app.json'],
-      tsconfigRootDir: import.meta.dirname,
-    },
-  },
-})
+```env
+VITE_CB_ENV_ID=你的云环境ID
+VITE_CB_REGION=你的地域
+VITE_CB_ACCESS_KEY=你的访问密钥
 ```
+
+## 部署
+
+通过 GitHub Actions 自动部署到 CloudBase 静态托管。推送代码到 `main`/`master` 分支即触发部署流程（构建产物上传至静态托管根目录）。
+
+## 目录结构
+
+```
+.
+├── src/
+│   ├── components/   # 通用组件与各页面区块组件
+│   ├── pages/        # 路由页面
+│   ├── lib/          # CloudBase 封装与业务逻辑
+│   ├── stores/       # Zustand 状态管理
+│   ├── types/        # TypeScript 类型定义
+│   └── data/         # 静态数据与种子内容
+├── cloudfunctions/   # 云函数（如 AI 机器人）
+└── public/           # 静态资源
+```
+
+## License
+
+MIT

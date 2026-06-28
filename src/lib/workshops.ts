@@ -6,7 +6,7 @@ const db = app.database();
 const COLLECTION = "workshops";
 
 export type WorkshopType = "教材" | "论文";
-export type WorkshopStatus = "招募中" | "进行中" | "已完成";
+export type WorkshopStatus = "招募中" | "进行中" | "已完成" | "open" | "closed";
 
 export interface OutlineChapter {
   id: string;
@@ -24,20 +24,32 @@ export interface Contribution {
   createdAt: string;
 }
 
+export interface Annotation {
+  id: string;
+  author: string;
+  authorUid: string;
+  content: string;
+  resolved: boolean;
+  createdAt: string;
+}
+
 export interface WorkshopProject {
   id: string;
   title: string;
   type: WorkshopType;
   description: string;
+  content: string;
   outline: OutlineChapter[];
   creator: string;
   creatorUid: string;
   avatarColor: string;
   participants: string[];
   contributions: Contribution[];
+  annotations: Annotation[];
   tags: string[];
   status: WorkshopStatus;
   createdAt: string;
+  updatedAt: string;
 }
 
 export interface WorkshopDoc {
@@ -45,15 +57,18 @@ export interface WorkshopDoc {
   title: string;
   type: WorkshopType;
   description: string;
+  content: string;
   outline: OutlineChapter[];
   creator: string;
   creatorUid: string;
   avatarColor: string;
   participants: string[];
   contributions: Contribution[];
+  annotations: Annotation[];
   tags: string[];
   status: WorkshopStatus;
   createdAt: string;
+  updatedAt: string;
 }
 
 const AVATAR_COLORS = ["#7cc4ff", "#f3c969", "#5aa6f0", "#a78bfa", "#34d399", "#fb923c"];
@@ -73,15 +88,18 @@ function toProject(doc: WorkshopDoc): WorkshopProject {
     title: doc.title,
     type: doc.type,
     description: doc.description,
+    content: doc.content ?? "",
     outline: doc.outline ?? [],
     creator: doc.creator,
     creatorUid: doc.creatorUid,
     avatarColor: doc.avatarColor,
     participants: doc.participants ?? [],
     contributions: doc.contributions ?? [],
+    annotations: doc.annotations ?? [],
     tags: doc.tags ?? [],
-    status: doc.status ?? "招募中",
+    status: doc.status ?? "open",
     createdAt: doc.createdAt,
+    updatedAt: doc.updatedAt ?? doc.createdAt,
   };
 }
 
@@ -115,25 +133,30 @@ export async function createWorkshop(params: {
   title: string;
   type: WorkshopType;
   description: string;
+  content?: string;
   outline: OutlineChapter[];
   tags: string[];
 }): Promise<WorkshopProject | null> {
   const uid = getCurrentUid();
   if (!uid) throw new Error("请先登录");
 
+  const now = new Date().toISOString();
   const doc: Omit<WorkshopDoc, "_id"> = {
     title: params.title,
     type: params.type,
     description: params.description,
+    content: params.content ?? "",
     outline: params.outline,
     creator: getCurrentUserName(),
     creatorUid: uid,
     avatarColor: AVATAR_COLORS[Math.floor(Math.random() * AVATAR_COLORS.length)],
     participants: [uid],
     contributions: [],
+    annotations: [],
     tags: params.tags,
-    status: "招募中",
-    createdAt: new Date().toISOString(),
+    status: "open",
+    createdAt: now,
+    updatedAt: now,
   };
 
   const res = await db.collection(COLLECTION).add(doc);
@@ -145,15 +168,18 @@ export async function createWorkshop(params: {
     title: doc.title,
     type: doc.type,
     description: doc.description,
+    content: doc.content,
     outline: doc.outline,
     creator: doc.creator,
     creatorUid: doc.creatorUid,
     avatarColor: doc.avatarColor,
     participants: doc.participants,
     contributions: [],
+    annotations: [],
     tags: doc.tags,
     status: doc.status,
     createdAt: doc.createdAt,
+    updatedAt: doc.updatedAt,
   };
 }
 
@@ -172,6 +198,7 @@ export async function joinWorkshop(id: string): Promise<boolean> {
 
     await docRef.update({
       participants: [...(project.participants ?? []), uid],
+      updatedAt: new Date().toISOString(),
     });
 
     // 通知项目创建者
@@ -214,6 +241,7 @@ export async function submitContribution(
 
   await docRef.update({
     contributions: [...(project.contributions ?? []), contribution],
+    updatedAt: new Date().toISOString(),
   });
 
   // 通知项目创建者
@@ -232,4 +260,123 @@ export function canViewContent(project: WorkshopProject): boolean {
   const uid = getCurrentUid();
   if (project.type === "教材") return true;
   return uid === project.creatorUid || project.participants.includes(uid);
+}
+
+/**
+ * 更新文档内容（仅创建者可编辑）
+ * @param id 文档 id
+ * @param params 可更新 title 和 content
+ */
+export async function updateWorkshop(
+  id: string,
+  params: { title?: string; content?: string }
+): Promise<boolean> {
+  const uid = getCurrentUid();
+  if (!uid) throw new Error("请先登录");
+
+  try {
+    const docRef = db.collection(COLLECTION).doc(id);
+    const { data } = await docRef.get();
+    if (!data || data.length === 0) return false;
+
+    const project = data[0] as WorkshopDoc;
+    if (project.creatorUid !== uid) {
+      throw new Error("仅创建者可编辑文档内容");
+    }
+
+    const updateFields: Record<string, unknown> = {
+      updatedAt: new Date().toISOString(),
+    };
+    if (params.title !== undefined) updateFields.title = params.title;
+    if (params.content !== undefined) updateFields.content = params.content;
+
+    await docRef.update(updateFields);
+    return true;
+  } catch (err) {
+    // 权限错误向上抛出，其他错误返回 false
+    if (err instanceof Error && err.message.includes("仅创建者")) throw err;
+    return false;
+  }
+}
+
+/**
+ * 添加批注（登录用户均可添加）
+ * @param id 文档 id
+ * @param content 批注内容
+ */
+export async function addAnnotation(
+  id: string,
+  content: string
+): Promise<Annotation | null> {
+  const uid = getCurrentUid();
+  if (!uid) throw new Error("请先登录");
+  if (!content.trim()) throw new Error("批注内容不能为空");
+
+  try {
+    const docRef = db.collection(COLLECTION).doc(id);
+    const { data } = await docRef.get();
+    if (!data || data.length === 0) return null;
+
+    const project = data[0] as WorkshopDoc;
+    const annotation: Annotation = {
+      id: `a_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`,
+      author: getCurrentUserName(),
+      authorUid: uid,
+      content: content.trim(),
+      resolved: false,
+      createdAt: new Date().toISOString(),
+    };
+
+    await docRef.update({
+      annotations: [...(project.annotations ?? []), annotation],
+      updatedAt: new Date().toISOString(),
+    });
+
+    return annotation;
+  } catch {
+    return null;
+  }
+}
+
+/**
+ * 解决批注（创建者或批注作者可解决）
+ * @param id 文档 id
+ * @param annotationId 批注 id
+ */
+export async function resolveAnnotation(
+  id: string,
+  annotationId: string
+): Promise<boolean> {
+  const uid = getCurrentUid();
+  if (!uid) throw new Error("请先登录");
+
+  try {
+    const docRef = db.collection(COLLECTION).doc(id);
+    const { data } = await docRef.get();
+    if (!data || data.length === 0) return false;
+
+    const project = data[0] as WorkshopDoc;
+    const annotations = project.annotations ?? [];
+    const target = annotations.find((a) => a.id === annotationId);
+    if (!target) return false;
+
+    // 权限检查：仅创建者或批注作者可解决
+    if (project.creatorUid !== uid && target.authorUid !== uid) {
+      throw new Error("仅创建者或批注作者可解决批注");
+    }
+
+    const updated = annotations.map((a) =>
+      a.id === annotationId ? { ...a, resolved: true } : a
+    );
+
+    await docRef.update({
+      annotations: updated,
+      updatedAt: new Date().toISOString(),
+    });
+
+    return true;
+  } catch (err) {
+    if (err instanceof Error && err.message.includes("仅创建者或批注作者")) throw err;
+    return false;
+  }
 }

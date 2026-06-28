@@ -13,6 +13,7 @@ import {
   Bookmark,
   Pencil,
   Trash2,
+  Flag,
 } from "lucide-react";
 import { questions as mockQuestions } from "@/data/questions";
 import {
@@ -32,6 +33,7 @@ import { app } from "@/lib/cloudbase";
 import { useAuthStore } from "@/stores/auth";
 import MathText from "@/components/MathText";
 import Avatar from "@/components/Avatar";
+import ReportModal from "@/components/ReportModal";
 import type { Question, Comment } from "@/types";
 
 export default function DiscussionDetail() {
@@ -60,6 +62,25 @@ export default function DiscussionDetail() {
 
   // 收藏状态
   const [favState, setFavState] = useState(false);
+
+  // 举报状态
+  const [reportTarget, setReportTarget] = useState<{
+    targetType: "post" | "answer";
+    targetId: string;
+    targetTitle: string;
+  } | null>(null);
+
+  const openReport = (
+    targetType: "post" | "answer",
+    targetId: string,
+    targetTitle: string
+  ) => {
+    if (!user) {
+      window.dispatchEvent(new CustomEvent("tianji:open-auth"));
+      return;
+    }
+    setReportTarget({ targetType, targetId, targetTitle });
+  };
 
   // 如果 Mock 中没有，从数据库加载
   useEffect(() => {
@@ -409,6 +430,15 @@ export default function DiscussionDetail() {
                 <Bookmark size={13} className={favState ? "fill-star-400" : ""} />
                 {favState ? "已收藏" : "收藏"}
               </button>
+              {user?.uid !== question.authorUid && (
+                <button
+                  onClick={() => openReport("post", question.id, question.title)}
+                  className="flex items-center gap-1 rounded-lg border border-void-600/50 bg-void-800/40 px-3 py-1.5 text-xs text-mist-300 transition-all hover:border-red-400/50 hover:text-red-300"
+                  title="举报帖子"
+                >
+                  <Flag size={13} /> 举报
+                </button>
+              )}
               {user?.uid === question.authorUid && (
                 <div className="flex items-center gap-1">
                   <button
@@ -637,6 +667,15 @@ export default function DiscussionDetail() {
                           <span className="text-mist-300">{a.author}</span>
                           <span>·</span>
                           <span className="font-mono">{a.date}</span>
+                          {user?.uid !== a.authorUid && (
+                            <button
+                              onClick={() => openReport("answer", a.id, `回答：${a.content.slice(0, 30)}`)}
+                              className="ml-1 text-mist-500 transition-colors hover:text-red-300"
+                              title="举报回答"
+                            >
+                              <Flag size={12} />
+                            </button>
+                          )}
                           {user?.uid === a.authorUid && (
                             <div className="ml-2 flex items-center gap-1">
                               <button
@@ -744,6 +783,14 @@ export default function DiscussionDetail() {
           </div>
         </aside>
       </div>
+
+      <ReportModal
+        open={!!reportTarget}
+        onClose={() => setReportTarget(null)}
+        targetType={reportTarget?.targetType ?? "post"}
+        targetId={reportTarget?.targetId ?? ""}
+        targetTitle={reportTarget?.targetTitle ?? ""}
+      />
     </div>
   );
 }

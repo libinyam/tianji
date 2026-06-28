@@ -18,6 +18,7 @@ export default function WorkshopCreateModal({ open, onClose, onCreated }: Worksh
   const [title, setTitle] = useState("");
   const [type, setType] = useState<WorkshopType>("教材");
   const [description, setDescription] = useState("");
+  const [content, setContent] = useState("");
   const [outline, setOutline] = useState<OutlineChapter[]>([
     { id: "ch1", title: "", brief: "" },
   ]);
@@ -30,6 +31,7 @@ export default function WorkshopCreateModal({ open, onClose, onCreated }: Worksh
     setTitle("");
     setType("教材");
     setDescription("");
+    setContent("");
     setOutline([{ id: "ch1", title: "", brief: "" }]);
     setTags([]);
     setError(null);
@@ -75,6 +77,7 @@ export default function WorkshopCreateModal({ open, onClose, onCreated }: Worksh
         title: title.trim(),
         type,
         description: description.trim(),
+        content: content.trim(),
         outline: validOutline,
         tags: tags.length > 0 ? tags : ["综合"],
       });
@@ -178,6 +181,20 @@ export default function WorkshopCreateModal({ open, onClose, onCreated }: Worksh
                   value={description}
                   onChange={(e) => setDescription(e.target.value)}
                   placeholder="描述项目的目标、适合的人群和预期成果…"
+                  className="w-full resize-y rounded-lg border border-void-600/50 bg-void-950/50 p-3 text-sm leading-relaxed text-parchment-100 placeholder:text-mist-500 focus:border-star-400/50 focus:outline-none focus:ring-1 focus:ring-star-400/30"
+                />
+              </div>
+
+              {/* 文档正文 */}
+              <div>
+                <label className="mb-1.5 block text-xs text-mist-400">
+                  文档正文（可选，创建后也可编辑）
+                </label>
+                <textarea
+                  rows={5}
+                  value={content}
+                  onChange={(e) => setContent(e.target.value)}
+                  placeholder="写下文档初始内容…支持 LaTeX：行内 $...$，行间 $$...$$"
                   className="w-full resize-y rounded-lg border border-void-600/50 bg-void-950/50 p-3 text-sm leading-relaxed text-parchment-100 placeholder:text-mist-500 focus:border-star-400/50 focus:outline-none focus:ring-1 focus:ring-star-400/30"
                 />
               </div>
