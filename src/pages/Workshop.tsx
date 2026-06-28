@@ -1,9 +1,8 @@
 import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { motion } from "motion/react";
-import { Plus, PenLine, Users, Sparkles, BookOpen, FileText, Lock, Loader2 } from "lucide-react";
+import { Plus, PenLine, Users, BookOpen, FileText, Lock, Loader2 } from "lucide-react";
 import PageHero from "@/components/PageHero";
-import EditorPreview from "@/components/EditorPreview";
 import WorkshopCreateModal from "@/components/WorkshopCreateModal";
 import { fetchWorkshops, canViewContent, type WorkshopProject } from "@/lib/workshops";
 import { useAuthStore } from "@/stores/auth";
@@ -83,30 +82,6 @@ export default function Workshop() {
           </button>
         </div>
       </PageHero>
-
-      {/* 实时协作预览 */}
-      <section className="container-tj py-14">
-        <div className="mb-6 flex items-end justify-between gap-4">
-          <div>
-            <div className="mb-3 flex items-center gap-2">
-              <span className="relative flex h-2 w-2">
-                <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-400 opacity-60" />
-                <span className="relative inline-flex h-2 w-2 rounded-full bg-emerald-400" />
-              </span>
-              <span className="font-mono text-xs uppercase tracking-[0.25em] text-emerald-400">
-                Live · 实时协作中
-              </span>
-            </div>
-            <h2 className="heading-display text-2xl text-parchment-50 sm:text-3xl">
-              此刻正在共笔
-            </h2>
-          </div>
-          <p className="hidden max-w-xs text-sm text-mist-400 sm:block">
-            协作者的光标实时显现，每一处批注都在推动作品趋近完美。
-          </p>
-        </div>
-        <EditorPreview />
-      </section>
 
       {/* 真实项目列表 */}
       <section className="container-tj py-14">
@@ -213,56 +188,6 @@ export default function Workshop() {
             <p className="mt-1 text-xs text-mist-500">点击「新建项目」发起第一个共创文档</p>
           </div>
         )}
-      </section>
-
-      {/* 贡献者面板 */}
-      <section className="container-tj py-14">
-        <div className="card-surface grain relative overflow-hidden p-8 sm:p-10">
-          <div className="pointer-events-none absolute -right-16 -top-16 h-56 w-56 rounded-full bg-star-400/10 blur-3xl" />
-          <div className="relative grid gap-8 lg:grid-cols-[1fr_1.4fr] lg:items-center">
-            <div>
-              <div className="mb-3 flex items-center gap-2">
-                <Sparkles size={15} className="text-star-400" />
-                <span className="font-mono text-xs uppercase tracking-[0.25em] text-star-300">
-                  贡献者星谱
-                </span>
-              </div>
-              <h2 className="heading-display text-2xl text-parchment-50 sm:text-3xl">
-                每一位作者，都是一颗不可或缺的星辰
-              </h2>
-              <p className="mt-4 text-sm leading-relaxed text-mist-300">
-                协作工坊记录每一位贡献者的编辑、批注与修订。在这里，著作权属于所有让作品生长的人。
-              </p>
-            </div>
-
-            <div className="space-y-3">
-              {contributors.slice(0, 5).map((c, i) => (
-                <div
-                  key={c.name}
-                  className="flex items-center gap-4 rounded-lg border border-void-600/40 bg-void-800/40 p-3"
-                >
-                  <span className="font-mono text-xs text-mist-500">#{i + 1}</span>
-                  <span
-                    className="flex h-9 w-9 items-center justify-center rounded-full font-display text-sm text-void-900"
-                    style={{
-                      background: `linear-gradient(135deg, ${c.avatarColor}, ${c.avatarColor}aa)`,
-                    }}
-                  >
-                    {c.name.charAt(0)}
-                  </span>
-                  <div className="min-w-0 flex-1">
-                    <div className="text-sm text-parchment-100">{c.name}</div>
-                    <div className="text-xs text-mist-400">{c.role}</div>
-                  </div>
-                  <div className="text-right">
-                    <div className="font-mono text-sm text-star-300">{c.contributions}</div>
-                    <div className="text-[10px] text-mist-500">贡献</div>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-        </div>
       </section>
 
       <WorkshopCreateModal
