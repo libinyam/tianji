@@ -91,23 +91,33 @@ export default function AuthModal({ open, onClose }: AuthModalProps) {
       return;
     }
 
+    // 邮箱注册：提交即验证码
     if (waitingForCode) {
       const ok = await verifySignUpCode(code);
       if (ok) handleClose();
       return;
     }
 
-    // 注册前校验图形验证码
+    // 还没发送验证码，提示用户
+    useAuthStore.getState().clearError();
+    useAuthStore.setState({ error: "请先点击邮箱旁的「发送验证码」按钮" });
+  };
+
+  const handleSendEmailCode = async () => {
+    if (resendCooldown > 0 || loading) return;
+    if (!email.trim() || !password.trim()) {
+      useAuthStore.getState().clearError();
+      useAuthStore.setState({ error: "请先填写邮箱和密码" });
+      return;
+    }
+    // 校验图形验证码
     if (!captchaRef.current?.validate()) {
       useAuthStore.getState().clearError();
       useAuthStore.setState({ error: "图形验证码不正确，请重新输入" });
       return;
     }
-
     const result = await signUpWithEmail(email, password);
-    if (result === "signed-in") {
-      handleClose();
-    } else if (result === "otp-sent") {
+    if (result === "otp-sent") {
       setCode("");
       setResendCooldown(60);
     }
@@ -115,7 +125,6 @@ export default function AuthModal({ open, onClose }: AuthModalProps) {
 
   const handleResendCode = async () => {
     if (resendCooldown > 0 || loading) return;
-    // 重新触发注册（CloudBase 会再次发验证码）
     captchaRef.current?.refresh();
     setCaptchaValue("");
     const result = await signUpWithEmail(email, password);
@@ -278,20 +287,32 @@ export default function AuthModal({ open, onClose }: AuthModalProps) {
                 <>
                   <div>
                     <label className="mb-1.5 block text-xs text-mist-400">邮箱</label>
-                    <div className="relative">
-                      <Mail
-                        size={15}
-                        className="absolute left-3 top-1/2 -translate-y-1/2 text-mist-500"
-                      />
-                      <input
-                        type="email"
-                        required
-                        disabled={waitingForCode}
-                        value={email}
-                        onChange={(e) => setEmail(e.target.value)}
-                        placeholder="you@example.com"
-                        className="w-full rounded-lg border border-void-600/50 bg-void-950/50 py-2.5 pl-10 pr-3 text-sm text-parchment-100 placeholder:text-mist-500 focus:border-star-400/50 focus:outline-none focus:ring-1 focus:ring-star-400/30 disabled:opacity-60"
-                      />
+                    <div className="flex gap-2">
+                      <div className="relative flex-1">
+                        <Mail
+                          size={15}
+                          className="absolute left-3 top-1/2 -translate-y-1/2 text-mist-500"
+                        />
+                        <input
+                          type="email"
+                          required
+                          disabled={waitingForCode}
+                          value={email}
+                          onChange={(e) => setEmail(e.target.value)}
+                          placeholder="you@example.com"
+                          className="w-full rounded-lg border border-void-600/50 bg-void-950/50 py-2.5 pl-10 pr-3 text-sm text-parchment-100 placeholder:text-mist-500 focus:border-star-400/50 focus:outline-none focus:ring-1 focus:ring-star-400/30 disabled:opacity-60"
+                        />
+                      </div>
+                      {mode === "register" && (
+                        <button
+                          type="button"
+                          onClick={handleSendEmailCode}
+                          disabled={resendCooldown > 0 || loading}
+                          className="shrink-0 rounded-lg border border-void-600/60 bg-void-800/50 px-3 text-xs text-parchment-100 transition-all hover:border-mist-400/50 hover:bg-void-700/50 disabled:cursor-not-allowed disabled:opacity-60"
+                        >
+                          {resendCooldown > 0 ? `${resendCooldown}s` : "发送验证码"}
+                        </button>
+                      )}
                     </div>
                   </div>
 
@@ -535,10 +556,8 @@ export default function AuthModal({ open, onClose }: AuthModalProps) {
                   mode === "login" ? (phoneLoginType === "password" ? "登录" : "登录") : "注册"
                 ) : mode === "login" ? (
                   "登录"
-                ) : waitingForCode ? (
-                  "验证并登录"
                 ) : (
-                  "发送验证码"
+                  "注册"
                 )}
               </button>
 
