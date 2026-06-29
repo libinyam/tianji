@@ -30,6 +30,7 @@ import {
   deleteComment,
   voteAnswer,
   getVotedAnswerIds,
+  acceptAnswer,
 } from "@/lib/posts";
 import { toggleFavorite, isFavorited } from "@/lib/favorites";
 import { rateLimiters } from "@/lib/security";
@@ -229,6 +230,21 @@ export default function DiscussionDetail() {
       });
       setQuestion({ ...question, answerList: newAnswerList });
       toast.success("评论已删除");
+    } catch (e) {
+      toast.error((e as Error).message);
+    }
+  };
+
+  const handleAccept = async (aId: string, accept: boolean) => {
+    if (!question) return;
+    try {
+      await acceptAnswer(question.id, aId, accept);
+      const newAnswerList = question.answerList.map((a) => ({
+        ...a,
+        accepted: a.id === aId ? accept : false,
+      }));
+      setQuestion({ ...question, answerList: newAnswerList });
+      toast.success(accept ? "已采纳该回答" : "已取消采纳");
     } catch (e) {
       toast.error((e as Error).message);
     }
@@ -725,15 +741,30 @@ export default function DiscussionDetail() {
                       )}
 
                       <div className="mt-4 flex items-center justify-between">
-                        <button
-                          onClick={() => openComment(a.id)}
-                          className="inline-flex items-center gap-1 text-xs text-mist-500 transition-colors hover:text-tian-200"
-                        >
-                          <CornerDownRight size={12} />
-                          {a.comments && a.comments.length > 0
-                            ? `${a.comments.length} 条评论 · 添加评论`
-                            : "添加评论"}
-                        </button>
+                        <div className="flex items-center gap-3">
+                          <button
+                            onClick={() => openComment(a.id)}
+                            className="inline-flex items-center gap-1 text-xs text-mist-500 transition-colors hover:text-tian-200"
+                          >
+                            <CornerDownRight size={12} />
+                            {a.comments && a.comments.length > 0
+                              ? `${a.comments.length} 条评论 · 添加评论`
+                              : "添加评论"}
+                          </button>
+                          {user?.uid === question.authorUid && a.authorUid !== "ai-bot-001" && (
+                            <button
+                              onClick={() => handleAccept(a.id, !a.accepted)}
+                              className={`inline-flex items-center gap-1 rounded-md border px-2.5 py-1 text-[11px] transition-all ${
+                                a.accepted
+                                  ? "border-star-400/60 bg-star-400/10 text-star-300 hover:border-red-400/40 hover:text-red-300"
+                                  : "border-emerald-400/40 bg-emerald-400/5 text-emerald-300 hover:border-emerald-400/70 hover:bg-emerald-400/10"
+                              }`}
+                            >
+                              <Check size={11} />
+                              {a.accepted ? "取消采纳" : "采纳"}
+                            </button>
+                          )}
+                        </div>
                         <div className="flex items-center gap-2 text-xs text-mist-500">
                           <Avatar name={a.author} color={a.avatarColor} size={22} />
                           <span className="text-mist-300">{a.author}</span>
@@ -819,6 +850,12 @@ export default function DiscussionDetail() {
                 问题状态
               </h4>
               <dl className="mt-4 space-y-2.5 text-sm">
+                <div className="flex justify-between">
+                  <dt className="text-mist-500">状态</dt>
+                  <dd className={question.answerList.some((a) => a.accepted) ? "text-emerald-300" : "text-amber-300"}>
+                    {question.answerList.some((a) => a.accepted) ? "已解决" : "待解答"}
+                  </dd>
+                </div>
                 <div className="flex justify-between">
                   <dt className="text-mist-500">浏览</dt>
                   <dd className="text-parchment-100">{question.views}</dd>

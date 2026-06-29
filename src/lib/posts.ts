@@ -376,6 +376,46 @@ export async function deleteComment(
   return true;
 }
 
+/** 采纳回答（仅帖子作者可操作，每篇帖子只能有一个采纳回答） */
+export async function acceptAnswer(
+  postId: string,
+  answerId: string,
+  accept: boolean
+): Promise<boolean> {
+  const uid = getCurrentUid();
+  if (!uid) throw new Error("请先登录");
+
+  const docRef = db.collection(POSTS_COLLECTION).doc(postId);
+  const { data } = await docRef.get();
+  if (!data || data.length === 0) return false;
+
+  const post = data[0] as PostDoc;
+
+  // 只有帖子作者可以采纳回答
+  if (post.authorUid !== uid) throw new Error("只有提问者可以采纳回答");
+
+  const answerList = post.answerList ?? [];
+  const idx = answerList.findIndex((a) => a.id === answerId);
+  if (idx === -1) return false;
+
+  // 将所有回答的 accepted 设为 false，再将目标回答设为指定状态
+  const newAnswerList = answerList.map((a) => ({ ...a, accepted: false }));
+  if (accept) {
+    newAnswerList[idx] = { ...newAnswerList[idx], accepted: true };
+
+    // 通知回答作者（createNotification 内部会跳过自己）
+    await createNotification({
+      uid: answerList[idx].authorUid ?? "",
+      type: "accept",
+      title: post.title,
+      link: `/discussion/${postId}`,
+    });
+  }
+
+  await docRef.update({ answerList: newAnswerList });
+  return true;
+}
+
 /** 检查用户是否已投票 */
 export async function hasVoted(answerId: string): Promise<boolean> {
   const uid = getCurrentUid();
