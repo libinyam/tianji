@@ -108,7 +108,7 @@ export default function DiscussionDetail() {
           // 检查收藏状态
           isFavorited(id).then(setFavState);
           // 加载用户投票记录
-          const answerIds = post.answerList.map((a) => a.id);
+          const answerIds = (post.answerList ?? []).map((a) => a.id);
           if (answerIds.length > 0) {
             getVotedAnswerIds(answerIds).then((votedSet) => {
               if (mounted) {
@@ -642,7 +642,7 @@ export default function DiscussionDetail() {
                       {/* 评论列表 */}
                       {a.comments && a.comments.length > 0 && (
                         <div className="mt-4 space-y-2 border-l-2 border-void-600/40 pl-4">
-                          {a.comments.map((c) => {
+                          {a.comments?.map((c) => {
                             const repliedComment = c.replyTo
                               ? a.comments?.find((rc) => rc.id === c.replyTo)
                               : null;

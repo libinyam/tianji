@@ -72,7 +72,7 @@ export async function fetchPosts(category?: PostCategory): Promise<Question[]> {
       ? await col.where({ category }).orderBy("createdAt", "desc").limit(100).get()
       : await col.orderBy("createdAt", "desc").limit(100).get();
 
-    const realPosts = (data as PostDoc[]).map(toQuestion);
+    const realPosts = ((data as PostDoc[]) ?? []).map(toQuestion);
     return realPosts;
   } catch {
     return [];
@@ -436,7 +436,7 @@ export async function getVotedAnswerIds(answerIds: string[]): Promise<Set<string
     .collection("votes")
     .where({ uid, answerId: _.in(answerIds) })
     .get();
-  return new Set(data.map((d: { answerId: string }) => d.answerId));
+  return new Set((data ?? []).map((d: { answerId: string }) => d.answerId));
 }
 
 /** 给回答投票/取消投票（持久化到数据库 + 防重复） */
