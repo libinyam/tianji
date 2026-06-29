@@ -470,9 +470,9 @@ export default function DiscussionDetail() {
                 </span>
               )}
               {question.tags.map((t) => (
-                <span key={t} className="pill">
+                <Link key={t} to={`/tags/${encodeURIComponent(t)}`} className="pill transition-colors hover:border-tian-400/50 hover:text-tian-100">
                   {t}
-                </span>
+                </Link>
               ))}
             </div>
 
@@ -883,7 +883,7 @@ export default function DiscussionDetail() {
               </h4>
               <div className="mt-4 flex flex-wrap gap-2">
                 {question.tags.map((t) => (
-                  <Link key={t} to="/discussion" className="pill hover:border-tian-400/50 hover:text-tian-100">
+                  <Link key={t} to={`/tags/${encodeURIComponent(t)}`} className="pill hover:border-tian-400/50 hover:text-tian-100">
                     {t}
                   </Link>
                 ))}

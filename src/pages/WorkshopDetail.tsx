@@ -283,9 +283,9 @@ export default function WorkshopDetail() {
           </span>
           <span className="pill">{project.status}</span>
           {project.tags.map((t) => (
-            <span key={t} className="pill">
+            <Link key={t} to={`/tags/${encodeURIComponent(t)}`} className="pill transition-colors hover:border-tian-400/50 hover:text-tian-100">
               {t}
-            </span>
+            </Link>
           ))}
         </div>
 

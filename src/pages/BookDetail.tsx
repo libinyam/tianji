@@ -271,9 +271,9 @@ export default function BookDetail() {
 
           <div className="mt-5 flex flex-wrap gap-2">
             {book.tags.map((t) => (
-              <span key={t} className="pill-blue">
+              <Link key={t} to={`/tags/${encodeURIComponent(t)}`} className="pill-blue transition-colors hover:border-tian-400/50 hover:text-tian-100">
                 {t}
-              </span>
+              </Link>
             ))}
           </div>
 
