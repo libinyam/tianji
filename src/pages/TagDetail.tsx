@@ -3,6 +3,7 @@ import { useParams, Link } from "react-router-dom";
 import { motion } from "motion/react";
 import { ArrowLeft, Tag, MessageSquare, Lightbulb, BookOpen, Users, Loader2, Wrench, GraduationCap } from "lucide-react";
 import { fetchContentByTag, fetchTagCount, inferCategory, CATEGORY_LABEL, type TagContentItem } from "@/lib/tags";
+import { PostCardSkeleton, BookCardSkeleton, IdeaCardSkeleton, WorkshopCardSkeleton } from "@/components/Skeleton";
 
 const TYPE_ICON = {
   post: MessageSquare,
@@ -114,8 +115,15 @@ export default function TagDetail() {
 
       {/* 内容列表 */}
       {loading ? (
-        <div className="flex justify-center py-20">
-          <Loader2 className="animate-spin text-star-400" size={28} />
+        <div className="space-y-3">
+          {activeTab === "post" && Array.from({ length: 4 }).map((_, i) => <PostCardSkeleton key={i} />)}
+          {activeTab === "idea" && Array.from({ length: 4 }).map((_, i) => <IdeaCardSkeleton key={i} />)}
+          {activeTab === "book" && (
+            <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+              {Array.from({ length: 6 }).map((_, i) => <BookCardSkeleton key={i} />)}
+            </div>
+          )}
+          {activeTab === "workshop" && Array.from({ length: 3 }).map((_, i) => <WorkshopCardSkeleton key={i} />)}
         </div>
       ) : currentItems.length === 0 ? (
         <div className="py-20 text-center text-sm text-mist-500">

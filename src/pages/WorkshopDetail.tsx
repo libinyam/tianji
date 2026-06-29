@@ -17,6 +17,7 @@ import {
   X,
   Eye,
 } from "lucide-react";
+import { PostDetailSkeleton } from "@/components/Skeleton";
 import {
   fetchWorkshopById,
   joinWorkshop,
@@ -92,11 +93,7 @@ export default function WorkshopDetail() {
   }, []);
 
   if (loading) {
-    return (
-      <div className="container-tj flex items-center justify-center py-40 text-mist-400">
-        <Loader2 size={20} className="mr-2 animate-spin" /> 加载项目中…
-      </div>
-    );
+    return <PostDetailSkeleton />;
   }
 
   if (!project) {

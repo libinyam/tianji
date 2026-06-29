@@ -20,8 +20,17 @@ const Admin = lazy(() => import("@/pages/Admin"));
 // 页面加载骨架
 function PageFallback() {
   return (
-    <div className="container-tj flex min-h-[60vh] items-center justify-center">
-      <div className="h-8 w-8 animate-spin rounded-full border-2 border-mist-700 border-t-star-400" />
+    <div className="container-tj py-8">
+      <div className="space-y-4">
+        <div className="animate-pulse rounded bg-void-700/50 h-8 w-64" />
+        <div className="animate-pulse rounded bg-void-700/50 h-4 w-full" />
+        <div className="animate-pulse rounded bg-void-700/50 h-4 w-5/6" />
+        <div className="mt-6 space-y-3">
+          <div className="animate-pulse rounded-xl bg-void-700/50 h-28 w-full" />
+          <div className="animate-pulse rounded-xl bg-void-700/50 h-28 w-full" />
+          <div className="animate-pulse rounded-xl bg-void-700/50 h-28 w-full" />
+        </div>
+      </div>
     </div>
   );
 }

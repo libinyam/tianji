@@ -4,6 +4,7 @@ import { motion } from "motion/react";
 import { Plus, PenLine, Users, BookOpen, FileText, Lock, Loader2 } from "lucide-react";
 import PageHero from "@/components/PageHero";
 import WorkshopCreateModal from "@/components/WorkshopCreateModal";
+import { WorkshopCardSkeleton, ListSkeleton } from "@/components/Skeleton";
 import { fetchWorkshops, canViewContent, type WorkshopProject } from "@/lib/workshops";
 import { useAuthStore } from "@/stores/auth";
 import { contributors } from "@/data/community";
@@ -100,9 +101,9 @@ export default function Workshop() {
         </div>
 
         {loading && (
-          <div className="flex items-center justify-center py-20 text-mist-400">
-            <Loader2 size={20} className="mr-2 animate-spin" /> 加载项目中…
-          </div>
+          <ListSkeleton count={3}>
+            <WorkshopCardSkeleton />
+          </ListSkeleton>
         )}
 
         {!loading && realProjects.length > 0 && (

@@ -10,6 +10,7 @@ import {
   ThumbsUp,
   Loader2,
 } from "lucide-react";
+import { PostDetailSkeleton } from "@/components/Skeleton";
 import { fetchPublicUser, fetchUserContent, type UserContent, type PublicUser } from "@/lib/profile";
 import { useAuthStore } from "@/stores/auth";
 
@@ -55,11 +56,7 @@ export default function UserProfile() {
   }
 
   if (loading) {
-    return (
-      <div className="flex items-center justify-center py-40 text-mist-400">
-        <Loader2 size={20} className="mr-2 animate-spin" /> 加载中…
-      </div>
-    );
+    return <PostDetailSkeleton />;
   }
 
   if (!profile) {

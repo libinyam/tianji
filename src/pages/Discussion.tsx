@@ -5,6 +5,7 @@ import { MessageCircle, Eye, ThumbsUp, Star, Plus, Loader2 } from "lucide-react"
 import PageHero from "@/components/PageHero";
 import Avatar from "@/components/Avatar";
 import PostModal from "@/components/PostModal";
+import { PostCardSkeleton, ListSkeleton } from "@/components/Skeleton";
 import { questions as mockQuestions } from "@/data/questions";
 import { fetchPosts } from "@/lib/posts";
 import { PRESET_TAGS } from "@/lib/tags";
@@ -161,11 +162,11 @@ export default function Discussion() {
           </div>
         </div>
 
-        {/* 加载状态 */}
+        {/* 加载骨架 */}
         {loading && (
-          <div className="flex items-center justify-center py-20 text-mist-400">
-            <Loader2 size={20} className="mr-2 animate-spin" /> 加载讨论中…
-          </div>
+          <ListSkeleton count={5}>
+            <PostCardSkeleton />
+          </ListSkeleton>
         )}
 
         {/* 问题列表 */}

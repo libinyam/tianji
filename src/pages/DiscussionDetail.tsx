@@ -15,6 +15,7 @@ import {
   Trash2,
   Flag,
 } from "lucide-react";
+import { PostDetailSkeleton } from "@/components/Skeleton";
 import { questions as mockQuestions } from "@/data/questions";
 import {
   fetchPostById,
@@ -348,13 +349,9 @@ export default function DiscussionDetail() {
     }
   };
 
-  // 加载中
+  // 加载骨架
   if (loading) {
-    return (
-      <div className="container-tj flex items-center justify-center py-40 text-mist-400">
-        <Loader2 size={20} className="mr-2 animate-spin" /> 加载讨论中…
-      </div>
-    );
+    return <PostDetailSkeleton />;
   }
 
   // 未找到

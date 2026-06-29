@@ -144,11 +144,6 @@ export default function Library() {
         <div className="mb-6 flex items-center justify-between">
           <p className="text-sm text-mist-400">
             共 <span className="text-star-300">{filtered.length}</span> 部书目
-            {loading && (
-              <span className="ml-2 inline-flex items-center gap-1 text-xs">
-                <Loader2 size={12} className="animate-spin" /> 加载中…
-              </span>
-            )}
           </p>
           <div className="flex items-center gap-2">
             <SlidersHorizontal size={14} className="text-mist-500" />
