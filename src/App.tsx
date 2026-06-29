@@ -2,6 +2,7 @@ import { lazy, Suspense } from "react";
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import Layout from "@/components/Layout";
 import ScrollToTop from "@/components/ScrollToTop";
+import ToastContainer from "@/components/ToastContainer";
 import Home from "@/pages/Home";
 
 // 路由级懒加载 — 首屏只加载 Home，其余按需加载
@@ -73,6 +74,7 @@ export default function App() {
           />
         </Route>
       </Routes>
+      <ToastContainer />
     </Router>
   );
 }

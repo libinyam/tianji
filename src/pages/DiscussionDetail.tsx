@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { Link, useParams, useNavigate } from "react-router-dom";
 import { motion } from "motion/react";
+import { toast } from "@/stores/toast";
 import {
   ArrowLeft,
   ThumbsUp,
@@ -127,8 +128,9 @@ export default function DiscussionDetail() {
         link: `/discussion/${question.id}`,
       });
       setFavState(fav);
+      toast.success(fav ? "已收藏" : "已取消收藏");
     } catch {
-      // 静默
+      toast.error("操作失败，请重试");
     }
   };
 
@@ -153,7 +155,7 @@ export default function DiscussionDetail() {
       setQuestion({ ...question, title: editTitle.trim(), body: editBody.trim(), excerpt: editBody.trim().slice(0, 120) + "…" });
       setEditingPost(false);
     } catch (e) {
-      alert((e as Error).message);
+      toast.error((e as Error).message);
     }
   };
 
@@ -162,9 +164,10 @@ export default function DiscussionDetail() {
     if (!confirm("确定删除这篇帖子？删除后不可恢复。")) return;
     try {
       await deletePost(question.id);
+      toast.success("帖子已删除");
       navigate("/discussion");
     } catch (e) {
-      alert((e as Error).message);
+      toast.error((e as Error).message);
     }
   };
 
@@ -182,8 +185,9 @@ export default function DiscussionDetail() {
       );
       setQuestion({ ...question, answerList: newAnswerList });
       setEditingAnswerId(null);
+      toast.success("回答已更新");
     } catch (e) {
-      alert((e as Error).message);
+      toast.error((e as Error).message);
     }
   };
 
@@ -194,8 +198,9 @@ export default function DiscussionDetail() {
       await deleteAnswer(question.id, aId);
       const newAnswerList = question.answerList.filter((a) => a.id !== aId);
       setQuestion({ ...question, answerList: newAnswerList, answers: newAnswerList.length });
+      toast.success("回答已删除");
     } catch (e) {
-      alert((e as Error).message);
+      toast.error((e as Error).message);
     }
   };
 
@@ -211,8 +216,9 @@ export default function DiscussionDetail() {
         return a;
       });
       setQuestion({ ...question, answerList: newAnswerList });
+      toast.success("评论已删除");
     } catch (e) {
-      alert((e as Error).message);
+      toast.error((e as Error).message);
     }
   };
 
@@ -245,6 +251,7 @@ export default function DiscussionDetail() {
           answers: question.answers + 1,
         });
         setAnswerText("");
+        toast.success("回答已提交");
       }
     } catch (err) {
       setAnswerError((err as Error).message);

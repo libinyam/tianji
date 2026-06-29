@@ -16,6 +16,7 @@ import {
   Bookmark,
 } from "lucide-react";
 import { useAuthStore } from "@/stores/auth";
+import { toast } from "@/stores/toast";
 import { fetchUserContent, type UserContent } from "@/lib/profile";
 import { fetchMyFavorites, type FavoriteItem } from "@/lib/favorites";
 import { app } from "@/lib/cloudbase";
@@ -76,7 +77,7 @@ export default function Profile() {
 
     // 校验文件大小（最大 2MB）
     if (file.size > 2 * 1024 * 1024) {
-      alert("图片大小不能超过 2MB");
+      toast.error("图片大小不能超过 2MB");
       return;
     }
 

@@ -3,6 +3,7 @@ import { Navigate } from "react-router-dom";
 import { app } from "@/lib/cloudbase";
 import { useIsAdmin } from "@/lib/admin";
 import { useAuthStore } from "@/stores/auth";
+import { toast } from "@/stores/toast";
 import { fetchReports, resolveReport, type Report } from "@/lib/reports";
 
 const db = app.database();
@@ -231,12 +232,13 @@ export default function Admin() {
     try {
       await db.collection(collection).doc(id).remove();
       // 刷新当前列表
+      toast.success("内容已删除");
       if (tab === "posts") fetchPosts();
       else if (tab === "ideas") fetchIdeas();
       else if (tab === "books") fetchBooks();
       else if (tab === "workshops") fetchWorkshops();
     } catch (err) {
-      alert("删除失败：" + (err as Error).message);
+      toast.error("删除失败：" + (err as Error).message);
     }
   };
 

@@ -1,6 +1,7 @@
 import { useMemo, useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { motion } from "motion/react";
+import { toast } from "@/stores/toast";
 import { Lightbulb, ThumbsUp, MessageCircle, Sparkles, Plus, Loader2, Bookmark, Pencil, Trash2, Flag } from "lucide-react";
 import PageHero from "@/components/PageHero";
 import Avatar from "@/components/Avatar";
@@ -127,8 +128,9 @@ export default function Ideas() {
         else next.delete(idea.id);
         return next;
       });
+      toast.success(fav ? "已收藏" : "已取消收藏");
     } catch {
-      // 静默
+      toast.error("操作失败，请重试");
     }
   };
 
@@ -144,8 +146,9 @@ export default function Ideas() {
       await updateIdea(editingIdea.id, { title: editTitle.trim(), summary: editSummary.trim(), tags: editingIdea.tags });
       setRealIdeas((prev) => prev.map((i) => i.id === editingIdea.id ? { ...i, title: editTitle.trim(), summary: editSummary.trim() } : i));
       setEditingIdea(null);
+      toast.success("灵感已更新");
     } catch (e) {
-      alert((e as Error).message);
+      toast.error((e as Error).message);
     }
   };
 
@@ -154,8 +157,9 @@ export default function Ideas() {
     try {
       await deleteIdea(idea.id);
       setRealIdeas((prev) => prev.filter((i) => i.id !== idea.id));
+      toast.success("灵感已删除");
     } catch (e) {
-      alert((e as Error).message);
+      toast.error((e as Error).message);
     }
   };
 
