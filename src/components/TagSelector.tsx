@@ -118,6 +118,7 @@ export default function TagSelector({
         ))}
         <div className="relative min-w-[120px] flex-1">
           <input
+            name="tag-input"
             type="text"
             value={input}
             onChange={(e) => {

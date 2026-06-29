@@ -149,6 +149,7 @@ export default function IdeaModal({ open, onClose, onCreated }: IdeaModalProps) 
               <div>
                 <label className="mb-1.5 block text-xs text-mist-400">标题</label>
                 <input
+                  name="title"
                   type="text"
                   required
                   maxLength={100}
@@ -163,6 +164,7 @@ export default function IdeaModal({ open, onClose, onCreated }: IdeaModalProps) 
               <div>
                 <label className="mb-1.5 block text-xs text-mist-400">描述</label>
                 <textarea
+                  name="body"
                   required
                   rows={5}
                   maxLength={500}

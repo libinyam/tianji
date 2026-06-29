@@ -127,6 +127,7 @@ export default function SearchModal({ open, onClose }: SearchModalProps) {
                   <Search size={18} className="text-mist-500" />
                 )}
                 <input
+                  name="search"
                   ref={inputRef}
                   value={keyword}
                   onChange={(e) => handleInputChange(e.target.value)}

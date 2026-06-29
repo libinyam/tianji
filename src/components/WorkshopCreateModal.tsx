@@ -162,6 +162,7 @@ export default function WorkshopCreateModal({ open, onClose, onCreated }: Worksh
               <div>
                 <label className="mb-1.5 block text-xs text-mist-400">标题 *</label>
                 <input
+                  name="title"
                   type="text"
                   required
                   maxLength={100}
@@ -176,6 +177,7 @@ export default function WorkshopCreateModal({ open, onClose, onCreated }: Worksh
               <div>
                 <label className="mb-1.5 block text-xs text-mist-400">项目简介 *</label>
                 <textarea
+                  name="description"
                   required
                   rows={3}
                   value={description}
@@ -191,6 +193,7 @@ export default function WorkshopCreateModal({ open, onClose, onCreated }: Worksh
                   文档正文（可选，创建后也可编辑）
                 </label>
                 <textarea
+                  name="content"
                   rows={5}
                   value={content}
                   onChange={(e) => setContent(e.target.value)}
@@ -215,6 +218,7 @@ export default function WorkshopCreateModal({ open, onClose, onCreated }: Worksh
                       </span>
                       <div className="flex-1 space-y-2">
                         <input
+                          name="chapter-title"
                           type="text"
                           value={ch.title}
                           onChange={(e) => updateChapter(ch.id, "title", e.target.value)}
@@ -222,6 +226,7 @@ export default function WorkshopCreateModal({ open, onClose, onCreated }: Worksh
                           className="w-full rounded-md border border-void-600/50 bg-void-950/50 px-2.5 py-1.5 text-sm text-parchment-100 placeholder:text-mist-500 focus:border-star-400/50 focus:outline-none"
                         />
                         <input
+                          name="chapter-brief"
                           type="text"
                           value={ch.brief}
                           onChange={(e) => updateChapter(ch.id, "brief", e.target.value)}

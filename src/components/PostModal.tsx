@@ -195,6 +195,7 @@ export default function PostModal({ open, onClose, onCreated, defaultCategory = 
               <div>
                 <label className="mb-1.5 block text-xs text-mist-400">标题</label>
                 <input
+                  name="title"
                   type="text"
                   required
                   maxLength={100}
@@ -214,6 +215,7 @@ export default function PostModal({ open, onClose, onCreated, defaultCategory = 
                   </span>
                 </label>
                 <textarea
+                  name="body"
                   required
                   rows={8}
                   maxLength={10000}

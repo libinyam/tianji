@@ -518,6 +518,7 @@ export default function WorkshopDetail() {
                     </div>
                   )}
                   <textarea
+                    name="annotation"
                     value={annotInput}
                     onChange={(e) => setAnnotInput(e.target.value)}
                     rows={3}

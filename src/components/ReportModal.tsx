@@ -137,6 +137,7 @@ export default function ReportModal({
                       补充说明（可选）
                     </label>
                     <textarea
+                      name="report-detail"
                       rows={3}
                       value={detail}
                       onChange={(e) => setDetail(e.target.value)}

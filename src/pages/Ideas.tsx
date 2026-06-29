@@ -380,12 +380,14 @@ export default function Ideas() {
           <div className="w-full max-w-lg rounded-2xl border border-void-600/50 bg-void-900/90 p-6" onClick={(e) => e.stopPropagation()}>
             <h3 className="mb-4 heading-display text-lg text-parchment-50">编辑灵感</h3>
             <input
+              name="title"
               value={editTitle}
               onChange={(e) => setEditTitle(e.target.value)}
               className="mb-3 w-full rounded-lg border border-void-600/50 bg-void-950/50 px-3 py-2.5 text-sm text-parchment-100 focus:border-star-400/50 focus:outline-none"
               placeholder="标题"
             />
             <textarea
+              name="body"
               rows={5}
               value={editSummary}
               onChange={(e) => setEditSummary(e.target.value)}

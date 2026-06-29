@@ -539,12 +539,14 @@ export default function DiscussionDetail() {
             {editingPost ? (
               <div className="mt-6 rounded-xl border border-tian-400/30 bg-void-800/30 p-6">
                 <input
+                  name="title"
                   value={editTitle}
                   onChange={(e) => setEditTitle(e.target.value)}
                   className="mb-3 w-full rounded-lg border border-void-600/50 bg-void-950/50 px-3 py-2 text-lg text-parchment-100 focus:border-star-400/50 focus:outline-none"
                   placeholder="标题"
                 />
                 <textarea
+                  name="body"
                   rows={8}
                   value={editBody}
                   onChange={(e) => setEditBody(e.target.value)}
@@ -622,6 +624,7 @@ export default function DiscussionDetail() {
                       {editingAnswerId === a.id ? (
                         <div>
                           <textarea
+                            name="answer"
                             rows={5}
                             value={editAnswerText}
                             onChange={(e) => setEditAnswerText(e.target.value)}
@@ -713,6 +716,7 @@ export default function DiscussionDetail() {
                             </div>
                           )}
                           <textarea
+                            name="comment"
                             rows={2}
                             value={commentText}
                             onChange={(e) => setCommentText(e.target.value)}
@@ -814,6 +818,7 @@ export default function DiscussionDetail() {
                 <code className="text-star-300">$$...$$</code>
               </p>
               <textarea
+                name="answer"
                 rows={5}
                 value={answerText}
                 onChange={(e) => setAnswerText(e.target.value)}

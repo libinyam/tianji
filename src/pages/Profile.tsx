@@ -147,6 +147,7 @@ export default function Profile() {
                   <div>
                     <label className="mb-1.5 block text-xs text-mist-400">昵称</label>
                     <input
+                      name="nickname"
                       value={nickname}
                       onChange={(e) => setNickname(e.target.value)}
                       maxLength={20}
@@ -178,6 +179,7 @@ export default function Profile() {
                         {uploading ? <Loader2 size={18} className="animate-spin" /> : <Upload size={18} />}
                       </button>
                       <input
+                        name="avatar"
                         ref={fileInputRef}
                         type="file"
                         accept="image/png,image/jpeg,image/jpg,image/webp"

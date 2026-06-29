@@ -184,6 +184,7 @@ export default function BookUploadModal({ open, onClose, onCreated }: BookUpload
               <div>
                 <label className="mb-1.5 block text-xs text-mist-400">资源名称 *</label>
                 <input
+                  name="title"
                   type="text"
                   required
                   maxLength={100}
@@ -198,6 +199,7 @@ export default function BookUploadModal({ open, onClose, onCreated }: BookUpload
               <div>
                 <label className="mb-1.5 block text-xs text-mist-400">作者 / 来源 *</label>
                 <input
+                  name="author"
                   type="text"
                   required
                   maxLength={50}
@@ -258,6 +260,7 @@ export default function BookUploadModal({ open, onClose, onCreated }: BookUpload
               <div>
                 <label className="mb-1.5 block text-xs text-mist-400">简介 *</label>
                 <textarea
+                  name="summary"
                   required
                   rows={4}
                   value={summary}
@@ -276,6 +279,7 @@ export default function BookUploadModal({ open, onClose, onCreated }: BookUpload
                     className="absolute left-3 top-1/2 -translate-y-1/2 text-mist-500"
                   />
                   <input
+                    name="link"
                     type="url"
                     value={link}
                     onChange={(e) => setLink(e.target.value)}
@@ -289,6 +293,7 @@ export default function BookUploadModal({ open, onClose, onCreated }: BookUpload
               <div>
                 <label className="mb-1.5 block text-xs text-mist-400">上传本地文件（可选，最大 50MB）</label>
                 <input
+                  name="file"
                   ref={fileInputRef}
                   type="file"
                   onChange={handleFileUpload}

@@ -108,6 +108,7 @@ const CanvasCaptcha = forwardRef<CanvasCaptchaHandle, CanvasCaptchaProps>(
     return (
       <div className="flex items-center gap-2">
         <input
+          name="captcha"
           type="text"
           required
           maxLength={LENGTH}

@@ -298,6 +298,7 @@ export default function AuthModal({ open, onClose }: AuthModalProps) {
                           className="absolute left-3 top-1/2 -translate-y-1/2 text-mist-500"
                         />
                         <input
+                          name="email"
                           type="email"
                           required
                           disabled={waitingForCode}
@@ -329,6 +330,7 @@ export default function AuthModal({ open, onClose }: AuthModalProps) {
                         className="absolute left-3 top-1/2 -translate-y-1/2 text-mist-500"
                       />
                       <input
+                        name="password"
                         type="password"
                         required
                         minLength={6}
@@ -359,6 +361,7 @@ export default function AuthModal({ open, onClose }: AuthModalProps) {
                           className="absolute left-3 top-1/2 -translate-y-1/2 text-mist-500"
                         />
                         <input
+                          name="code"
                           type="text"
                           required={waitingForCode}
                           inputMode="numeric"
@@ -404,6 +407,7 @@ export default function AuthModal({ open, onClose }: AuthModalProps) {
                           +86
                         </span>
                         <input
+                          name="phone"
                           type="tel"
                           required
                           inputMode="numeric"
@@ -466,6 +470,7 @@ export default function AuthModal({ open, onClose }: AuthModalProps) {
                           className="absolute left-3 top-1/2 -translate-y-1/2 text-mist-500"
                         />
                         <input
+                          name="password"
                           type="password"
                           required
                           minLength={6}
@@ -498,6 +503,7 @@ export default function AuthModal({ open, onClose }: AuthModalProps) {
                               className="absolute left-3 top-1/2 -translate-y-1/2 text-mist-500"
                             />
                             <input
+                              name="code"
                               type="text"
                               required
                               inputMode="numeric"
@@ -525,6 +531,7 @@ export default function AuthModal({ open, onClose }: AuthModalProps) {
                             className="absolute left-3 top-1/2 -translate-y-1/2 text-mist-500"
                           />
                           <input
+                            name="code"
                             type="text"
                             required
                             inputMode="numeric"
