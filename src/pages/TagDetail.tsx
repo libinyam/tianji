@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { useParams, Link } from "react-router-dom";
 import { motion } from "motion/react";
-import { ArrowLeft, Tag, MessageSquare, Lightbulb, BookOpen, Users, Loader2, Wrench, GraduationCap } from "lucide-react";
+import { ArrowLeft, Tag, MessageSquare, Lightbulb, BookOpen, Users, Wrench, GraduationCap } from "lucide-react";
 import { fetchContentByTag, fetchTagCount, inferCategory, CATEGORY_LABEL, type TagContentItem } from "@/lib/tags";
 import { PostCardSkeleton, BookCardSkeleton, IdeaCardSkeleton, WorkshopCardSkeleton } from "@/components/Skeleton";
 

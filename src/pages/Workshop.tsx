@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { motion } from "motion/react";
-import { Plus, PenLine, Users, BookOpen, FileText, Lock, Loader2 } from "lucide-react";
+import { Plus, PenLine, Users, BookOpen, FileText, Lock } from "lucide-react";
 import PageHero from "@/components/PageHero";
 import WorkshopCreateModal from "@/components/WorkshopCreateModal";
 import { WorkshopCardSkeleton, ListSkeleton } from "@/components/Skeleton";

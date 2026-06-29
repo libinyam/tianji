@@ -221,7 +221,7 @@ export const useAuthStore = create<AuthState>((set) => ({
     try {
       await auth.signInWithPhoneCodeOrPassword({
         phoneNumber: normalizePhone(phone),
-        phoneCode: password,
+        password,
       });
       const { data, error } = await auth.getSession();
       if (error || !data?.session) {

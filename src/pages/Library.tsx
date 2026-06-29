@@ -1,5 +1,5 @@
 import { useMemo, useState, useEffect } from "react";
-import { Search, SlidersHorizontal, BookOpen, Plus, Loader2 } from "lucide-react";
+import { Search, SlidersHorizontal, BookOpen, Plus } from "lucide-react";
 import PageHero from "@/components/PageHero";
 import BookCard from "@/components/BookCard";
 import BookUploadModal from "@/components/BookUploadModal";

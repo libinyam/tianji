@@ -7,6 +7,20 @@ import { traeBadgePlugin } from 'vite-plugin-trae-solo-badge';
 export default defineConfig({
   build: {
     sourcemap: 'hidden',
+    rollupOptions: {
+      output: {
+        manualChunks: {
+          // React 核心
+          'react-vendor': ['react', 'react-dom', 'react-router-dom'],
+          // 动画
+          'motion': ['motion/react'],
+          // CloudBase SDK
+          'cloudbase': ['@cloudbase/js-sdk'],
+          // KaTeX 数学公式（已按需加载，但进一步拆分字体相关）
+          'katex': ['katex'],
+        },
+      },
+    },
   },
   optimizeDeps: {
     include: ['@cloudbase/js-sdk'],

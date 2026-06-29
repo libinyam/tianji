@@ -60,7 +60,6 @@ export default function DiscussionDetail() {
   const [commentText, setCommentText] = useState("");
   const [replyTarget, setReplyTarget] = useState<{ answerId: string; commentId: string; author: string } | null>(null);
   const [commentSubmitting, setCommentSubmitting] = useState(false);
-  const [commentError, setCommentError] = useState<string | null>(null);
 
   // 收藏状态
   const [favState, setFavState] = useState(false);
@@ -290,7 +289,6 @@ export default function DiscussionDetail() {
     // 频率限制
     const rl = rateLimiters.comment.tryAction();
     if (!rl.ok) {
-      setCommentError(`操作太快了，请等待 ${rl.remaining} 秒后再试`);
       return;
     }
 

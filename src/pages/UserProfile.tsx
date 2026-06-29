@@ -8,7 +8,6 @@ import {
   Users,
   Eye,
   ThumbsUp,
-  Loader2,
 } from "lucide-react";
 import { PostDetailSkeleton } from "@/components/Skeleton";
 import { fetchPublicUser, fetchUserContent, type UserContent, type PublicUser } from "@/lib/profile";

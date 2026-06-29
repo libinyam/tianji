@@ -1,7 +1,7 @@
 import { useMemo, useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { motion } from "motion/react";
-import { MessageCircle, Eye, ThumbsUp, Star, Plus, Loader2, GraduationCap, Coffee } from "lucide-react";
+import { MessageCircle, Eye, ThumbsUp, Star, Plus, GraduationCap, Coffee } from "lucide-react";
 import PageHero from "@/components/PageHero";
 import Avatar from "@/components/Avatar";
 import PostModal from "@/components/PostModal";

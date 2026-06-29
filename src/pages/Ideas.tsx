@@ -7,7 +7,6 @@ import PageHero from "@/components/PageHero";
 import Avatar from "@/components/Avatar";
 import IdeaModal from "@/components/IdeaModal";
 import ReportModal from "@/components/ReportModal";
-import { IdeaCardSkeleton, ListSkeleton } from "@/components/Skeleton";
 import { ideas as mockIdeas } from "@/data/ideas";
 import { fetchIdeas, resonanceIdea, updateIdea, deleteIdea } from "@/lib/ideas";
 import { toggleFavorite, getFavoritedIds } from "@/lib/favorites";
