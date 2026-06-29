@@ -28,6 +28,7 @@ import {
   updateAnswer,
   deleteAnswer,
   deleteComment,
+  voteAnswer,
 } from "@/lib/posts";
 import { toggleFavorite, isFavorited } from "@/lib/favorites";
 import { rateLimiters } from "@/lib/security";
@@ -221,8 +222,42 @@ export default function DiscussionDetail() {
     }
   };
 
-  const toggleVote = (aid: string) =>
-    setVoted((v) => ({ ...v, [aid]: !v[aid] }));
+  const toggleVote = async (aid: string) => {
+    if (!user) {
+      window.dispatchEvent(new CustomEvent("tianji:open-auth"));
+      return;
+    }
+    if (!question) return;
+    const newVoted = !voted[aid];
+    setVoted((v) => ({ ...v, [aid]: newVoted }));
+    // 本地乐观更新
+    setQuestion((q) => {
+      if (!q) return q;
+      return {
+        ...q,
+        answerList: q.answerList.map((a) =>
+          a.id === aid ? { ...a, votes: Math.max(0, (a.votes ?? 0) + (newVoted ? 1 : -1)) } : a
+        ),
+      };
+    });
+    // 持久化到数据库
+    try {
+      await voteAnswer(question.id, aid, newVoted);
+    } catch {
+      // 回滚
+      setVoted((v) => ({ ...v, [aid]: !newVoted }));
+      setQuestion((q) => {
+        if (!q) return q;
+        return {
+          ...q,
+          answerList: q.answerList.map((a) =>
+            a.id === aid ? { ...a, votes: Math.max(0, (a.votes ?? 0) + (newVoted ? -1 : 1)) } : a
+          ),
+        };
+      });
+      toast.error("投票失败，请重试");
+    }
+  };
 
   const handleSubmitAnswer = async () => {
     if (!user) {
@@ -538,7 +573,7 @@ export default function DiscussionDetail() {
                         <ThumbsUp size={14} className={voted[a.id] ? "fill-star-400" : ""} />
                       </button>
                       <span className="text-sm font-medium text-parchment-100">
-                        {a.votes + (voted[a.id] ? 1 : 0)}
+                        {a.votes}
                       </span>
                       {a.accepted && (
                         <span className="flex h-8 w-8 items-center justify-center rounded-md border border-star-400/60 bg-star-400/15 text-star-300" title="已采纳">

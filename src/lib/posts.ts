@@ -375,3 +375,30 @@ export async function deleteComment(
   await docRef.update({ answerList });
   return true;
 }
+
+/** 给回答投票/取消投票（持久化到数据库） */
+export async function voteAnswer(
+  postId: string,
+  answerId: string,
+  isUpvote: boolean
+): Promise<boolean> {
+  const uid = getCurrentUid();
+  if (!uid) throw new Error("请先登录");
+
+  const docRef = db.collection(POSTS_COLLECTION).doc(postId);
+  const { data } = await docRef.get();
+  if (!data || data.length === 0) return false;
+
+  const post = data[0] as PostDoc;
+  const answerList = post.answerList ?? [];
+  const idx = answerList.findIndex((a) => a.id === answerId);
+  if (idx === -1) return false;
+
+  const currentVotes = answerList[idx].votes ?? 0;
+  answerList[idx] = {
+    ...answerList[idx],
+    votes: isUpvote ? currentVotes + 1 : Math.max(0, currentVotes - 1),
+  };
+  await docRef.update({ answerList });
+  return true;
+}

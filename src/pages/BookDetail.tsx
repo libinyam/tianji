@@ -182,7 +182,14 @@ export default function BookDetail() {
             >
               <Flag size={15} /> 举报资源
             </button>
-            <button className="btn-ghost">
+            <button
+              onClick={() => {
+                const url = resolvedFileUrl ?? book.fileUrl ?? book.link;
+                if (url) window.open(url, "_blank");
+              }}
+              disabled={!book.fileUrl && !book.link}
+              className="btn-ghost disabled:cursor-not-allowed disabled:opacity-40"
+            >
               <Eye size={15} /> 预览
             </button>
             <button

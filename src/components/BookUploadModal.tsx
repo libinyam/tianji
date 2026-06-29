@@ -82,6 +82,10 @@ export default function BookUploadModal({ open, onClose, onCreated }: BookUpload
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!title.trim() || !author.trim() || !summary.trim()) return;
+    if (!uploadedFileId && !link.trim()) {
+      setError("请上传文件或填写资源链接");
+      return;
+    }
     if (!user) {
       setError("请先登录后再上传");
       return;
@@ -338,7 +342,7 @@ export default function BookUploadModal({ open, onClose, onCreated }: BookUpload
                 </button>
                 <button
                   type="submit"
-                  disabled={loading || !title.trim() || !author.trim() || !summary.trim()}
+                  disabled={loading || !title.trim() || !author.trim() || !summary.trim() || (!uploadedFileId && !link.trim())}
                   className="btn-gold disabled:cursor-not-allowed disabled:opacity-60"
                 >
                   {loading ? (
