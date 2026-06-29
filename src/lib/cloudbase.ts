@@ -6,14 +6,19 @@ const REGION = (import.meta.env.VITE_CLOUDBASE_REGION as string) || "ap-shanghai
 const ACCESS_KEY = import.meta.env.VITE_CLOUDBASE_ACCESS_KEY as string;
 
 if (!ENV_ID || !ACCESS_KEY) {
-  console.error("CloudBase 环境变量未配置，请在 .env 文件中设置 VITE_CLOUDBASE_ENV_ID 和 VITE_CLOUDBASE_ACCESS_KEY");
+  console.error(
+    "CloudBase 环境变量未配置！请在 Vercel/GitHub Secrets 中设置:\n" +
+    "VITE_CLOUDBASE_ENV_ID\n" +
+    "VITE_CLOUDBASE_ACCESS_KEY\n" +
+    "VITE_CLOUDBASE_REGION=ap-shanghai"
+  );
 }
 
 /** CloudBase 应用单例 */
 const app = cloudbase.init({
-  env: ENV_ID,
+  env: ENV_ID || "tianji-d3gozv3qr802e49cb",
   region: REGION,
-  accessKey: ACCESS_KEY,
+  accessKey: ACCESS_KEY || "",
   auth: { detectSessionInUrl: true },
 });
 
