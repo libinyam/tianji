@@ -107,7 +107,7 @@ export async function fetchNotifications(): Promise<NotificationItem[]> {
       .orderBy("createdAt", "desc")
       .limit(50)
       .get();
-    return (data as NotificationDoc[]).map(toNotif);
+    return ((data as NotificationDoc[]) ?? []).map(toNotif);
   } catch {
     return [];
   }
@@ -122,7 +122,7 @@ export async function fetchUnreadCount(): Promise<number> {
       .collection(COLLECTION)
       .where({ uid, read: false })
       .get();
-    return data.length;
+    return (data ?? []).length;
   } catch {
     return 0;
   }

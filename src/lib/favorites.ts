@@ -96,7 +96,7 @@ export async function isFavorited(targetId: string): Promise<boolean> {
       .collection(COLLECTION)
       .where({ uid, targetId })
       .get();
-    return data.length > 0;
+    return (data ?? []).length > 0;
   } catch {
     return false;
   }
@@ -111,7 +111,7 @@ export async function getFavoritedIds(targetIds: string[]): Promise<Set<string>>
       .collection(COLLECTION)
       .where({ uid, targetId: db.command.in(targetIds) })
       .get();
-    return new Set((data as FavoriteDoc[]).map((d) => d.targetId));
+    return new Set(((data as FavoriteDoc[]) ?? []).map((d) => d.targetId));
   } catch {
     return new Set();
   }

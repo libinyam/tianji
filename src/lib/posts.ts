@@ -37,7 +37,7 @@ function toQuestion(doc: PostDoc): Question {
     author: doc.author,
     authorUid: doc.authorUid,
     avatarColor: doc.avatarColor,
-    tags: doc.tags,
+    tags: doc.tags ?? [],
     answers: doc.answersCount ?? doc.answerList?.length ?? 0,
     views: doc.views,
     votes: doc.votes,
@@ -424,7 +424,7 @@ export async function hasVoted(answerId: string): Promise<boolean> {
     .collection("votes")
     .where({ answerId, uid })
     .get();
-  return data.length > 0;
+  return (data ?? []).length > 0;
 }
 
 /** 获取用户已投票的回答ID列表 */

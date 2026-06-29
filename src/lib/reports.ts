@@ -61,7 +61,7 @@ export async function fetchReports(status?: string): Promise<Report[]> {
   const { data } = status
     ? await base.where({ status }).orderBy("createdAt", "desc").limit(50).get()
     : await base.orderBy("createdAt", "desc").limit(50).get();
-  return (data as unknown as Report[]).map((r) => ({
+  return ((data as unknown as Report[]) ?? []).map((r) => ({
     ...r,
     id: (r as unknown as { _id: string })._id,
   }));
