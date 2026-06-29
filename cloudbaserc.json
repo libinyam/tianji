@@ -1,4 +1,5 @@
 {
+  "envId": "tianji-d3gozv3qr802e49cb",
   "hosting": {
     "rewrites": [
       { "source": "**", "destination": "/index.html" }
