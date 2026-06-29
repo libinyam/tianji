@@ -140,14 +140,8 @@ export default function Navbar({ onLoginClick }: NavbarProps) {
             </div>
           ) : (
             <>
-              <button
-                onClick={onLoginClick}
-                className="text-sm text-mist-300 transition-colors hover:text-parchment-100"
-              >
-                登录
-              </button>
               <button onClick={onLoginClick} className="btn-gold">
-                加入星辰
+                登录 / 注册
               </button>
             </>
           )}
