@@ -36,6 +36,8 @@ interface AuthState {
   signUpWithPhone: (phone: string, code: string, password: string) => Promise<boolean>;
   /** 手机号验证码登录 */
   signInWithPhoneCode: (phone: string, code: string) => Promise<boolean>;
+  /** 手机号密码登录 */
+  signInWithPhonePassword: (phone: string, password: string) => Promise<boolean>;
   /** GitHub OAuth 登录（跳转授权页） */
   signInWithGitHub: () => Promise<void>;
   /** 退出登录 */
@@ -200,6 +202,26 @@ export const useAuthStore = create<AuthState>((set) => ({
       await auth.signInWithPhoneCodeOrPassword({
         phoneNumber: normalizePhone(phone),
         phoneCode: code,
+      });
+      const { data, error } = await auth.getSession();
+      if (error || !data?.session) {
+        set({ error: error?.message ?? "登录成功但获取会话失败", loading: false });
+        return false;
+      }
+      set({ user: extractUser(data.session), loading: false });
+      return true;
+    } catch (e) {
+      set({ error: (e as Error).message, loading: false });
+      return false;
+    }
+  },
+
+  signInWithPhonePassword: async (phone, password) => {
+    set({ loading: true, error: null });
+    try {
+      await auth.signInWithPhoneCodeOrPassword({
+        phoneNumber: normalizePhone(phone),
+        phoneCode: password,
       });
       const { data, error } = await auth.getSession();
       if (error || !data?.session) {
