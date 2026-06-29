@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { motion, AnimatePresence } from "motion/react";
-import { X, Loader2, RotateCcw } from "lucide-react";
-import { createPost } from "@/lib/posts";
+import { X, Loader2, RotateCcw, GraduationCap, Coffee } from "lucide-react";
+import { createPost, type PostCategory } from "@/lib/posts";
 import { ensureTags } from "@/lib/tags";
 import { rateLimiters } from "@/lib/security";
 import { app } from "@/lib/cloudbase";
@@ -14,26 +14,30 @@ interface PostModalProps {
   open: boolean;
   onClose: () => void;
   onCreated: (post: Question) => void;
+  defaultCategory?: PostCategory;
 }
 
-export default function PostModal({ open, onClose, onCreated }: PostModalProps) {
+export default function PostModal({ open, onClose, onCreated, defaultCategory = "academic" }: PostModalProps) {
   const { value: draft, setValue: setDraft, clearDraft, restored, dismissRestored } = useDraft("tianji-draft-post", {
     title: "",
     body: "",
     tags: [] as string[],
+    category: defaultCategory as PostCategory,
   });
   const title = draft.title;
   const body = draft.body;
   const tags = draft.tags;
+  const category = (draft.category as PostCategory) ?? defaultCategory;
   const setTitle = (v: string) => setDraft({ ...draft, title: v });
   const setBody = (v: string) => setDraft({ ...draft, body: v });
   const setTags = (v: string[]) => setDraft({ ...draft, tags: v });
+  const setCategory = (v: PostCategory) => setDraft({ ...draft, category: v });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const { user } = useAuthStore();
 
   const handleClose = () => {
-    setDraft({ title: "", body: "", tags: [] });
+    setDraft({ title: "", body: "", tags: [], category: defaultCategory });
     clearDraft();
     setError(null);
     onClose();
@@ -61,6 +65,7 @@ export default function PostModal({ open, onClose, onCreated }: PostModalProps) 
         title: title.trim(),
         body: body.trim(),
         tags: tags.length > 0 ? tags : ["综合讨论"],
+        category,
       });
       if (post) {
         // 更新标签计数
@@ -142,7 +147,7 @@ export default function PostModal({ open, onClose, onCreated }: PostModalProps) 
                   <div className="flex items-center gap-3">
                     <button
                       type="button"
-                      onClick={() => { setDraft({ title: "", body: "", tags: [] }); clearDraft(); }}
+                      onClick={() => { setDraft({ title: "", body: "", tags: [], category: defaultCategory }); clearDraft(); }}
                       className="flex items-center gap-1 text-mist-300 transition-colors hover:text-parchment-100"
                     >
                       <RotateCcw size={12} /> 清空
@@ -157,6 +162,33 @@ export default function PostModal({ open, onClose, onCreated }: PostModalProps) 
                   </div>
                 </div>
               )}
+              {/* 分区选择 */}
+              <div>
+                <label className="mb-1.5 block text-xs text-mist-400">发布到</label>
+                <div className="flex gap-2">
+                  {([
+                    { key: "academic" as PostCategory, label: "学术区", icon: GraduationCap },
+                    { key: "casual" as PostCategory, label: "闲聊区", icon: Coffee },
+                  ]).map((s) => {
+                    const Icon = s.icon;
+                    const isActive = category === s.key;
+                    return (
+                      <button
+                        key={s.key}
+                        type="button"
+                        onClick={() => setCategory(s.key)}
+                        className={`flex items-center gap-1.5 rounded-lg border px-3 py-2 text-sm transition-all ${
+                          isActive
+                            ? "border-star-400/40 bg-star-400/10 text-parchment-100"
+                            : "border-void-600/40 bg-void-900/30 text-mist-400 hover:border-mist-400/30"
+                        }`}
+                      >
+                        <Icon size={14} /> {s.label}
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
               {/* 标题 */}
               <div>
                 <label className="mb-1.5 block text-xs text-mist-400">标题</label>

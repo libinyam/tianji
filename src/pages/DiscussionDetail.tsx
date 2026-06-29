@@ -385,6 +385,15 @@ export default function DiscussionDetail() {
             transition={{ duration: 0.5 }}
           >
             <div className="flex flex-wrap items-center gap-2">
+              {question.category === "casual" ? (
+                <span className="rounded-full border border-orange-400/30 bg-orange-400/10 px-2.5 py-0.5 text-[11px] text-orange-300">
+                  闲聊区
+                </span>
+              ) : (
+                <span className="rounded-full border border-star-400/30 bg-star-400/10 px-2.5 py-0.5 text-[11px] text-star-300">
+                  学术区
+                </span>
+              )}
               {question.bounty && (
                 <span className="pill-gold">
                   <Star size={11} className="fill-star-400" /> 悬赏 {question.bounty} 星辰

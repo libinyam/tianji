@@ -6,6 +6,8 @@ const db = app.database();
 const POSTS_COLLECTION = "posts";
 
 /** 数据库中存储的帖子文档结构 */
+export type PostCategory = "academic" | "casual";
+
 export interface PostDoc {
   _id?: string;
   title: string;
@@ -16,6 +18,7 @@ export interface PostDoc {
   authorUid: string;
   avatarColor: string;
   bounty?: number;
+  category?: PostCategory; // "academic"(学术区) | "casual"(闲聊区)
   // 统计字段
   views: number;
   votes: number;
@@ -42,6 +45,7 @@ function toQuestion(doc: PostDoc): Question {
     createdAt: doc.createdAt,
     body: doc.body,
     answerList: doc.answerList ?? [],
+    category: doc.category ?? "academic",
   };
 }
 
@@ -60,14 +64,13 @@ import { useAuthStore } from "@/stores/auth";
 
 const AVATAR_COLORS = ["#7cc4ff", "#f3c969", "#5aa6f0", "#a78bfa", "#34d399", "#fb923c"];
 
-/** 获取所有帖子（Mock + 真实），按时间倒序 */
-export async function fetchPosts(): Promise<Question[]> {
+/** 获取所有帖子，可按分区筛选，按时间倒序 */
+export async function fetchPosts(category?: PostCategory): Promise<Question[]> {
   try {
-    const { data } = await db
-      .collection(POSTS_COLLECTION)
-      .orderBy("createdAt", "desc")
-      .limit(100)
-      .get();
+    const col = db.collection(POSTS_COLLECTION);
+    const { data } = category
+      ? await col.where({ category }).orderBy("createdAt", "desc").limit(100).get()
+      : await col.orderBy("createdAt", "desc").limit(100).get();
 
     const realPosts = (data as PostDoc[]).map(toQuestion);
     return realPosts;
@@ -97,6 +100,7 @@ export async function createPost(params: {
   body: string;
   tags: string[];
   bounty?: number;
+  category?: PostCategory;
 }): Promise<Question | null> {
   const uid = getCurrentUid();
   if (!uid) throw new Error("请先登录");
@@ -113,6 +117,7 @@ export async function createPost(params: {
     authorUid: uid,
     avatarColor: AVATAR_COLORS[Math.floor(Math.random() * AVATAR_COLORS.length)],
     bounty: params.bounty,
+    category: params.category ?? "academic",
     views: 0,
     votes: 0,
     answersCount: 0,

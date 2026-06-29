@@ -1,13 +1,13 @@
 import { useMemo, useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { motion } from "motion/react";
-import { MessageCircle, Eye, ThumbsUp, Star, Plus, Loader2 } from "lucide-react";
+import { MessageCircle, Eye, ThumbsUp, Star, Plus, Loader2, GraduationCap, Coffee } from "lucide-react";
 import PageHero from "@/components/PageHero";
 import Avatar from "@/components/Avatar";
 import PostModal from "@/components/PostModal";
 import { PostCardSkeleton, ListSkeleton } from "@/components/Skeleton";
 import { questions as mockQuestions } from "@/data/questions";
-import { fetchPosts } from "@/lib/posts";
+import { fetchPosts, type PostCategory } from "@/lib/posts";
 import { PRESET_TAGS } from "@/lib/tags";
 import { useAuthStore } from "@/stores/auth";
 import type { Question } from "@/types";
@@ -15,7 +15,13 @@ import type { Question } from "@/types";
 type SortKey = "最新" | "热度" | "悬赏";
 type CategoryFilter = "全部" | "学科" | "工具与部署";
 
+const SECTIONS: { key: PostCategory; label: string; icon: typeof GraduationCap; desc: string }[] = [
+  { key: "academic", label: "学术区", icon: GraduationCap, desc: "课程答疑 · 论文探讨 · 学术辩论" },
+  { key: "casual", label: "闲聊区", icon: Coffee, desc: "日常交流 · 行业八卦 · 随心分享" },
+];
+
 export default function Discussion() {
+  const [section, setSection] = useState<PostCategory>("academic");
   const [activeTag, setActiveTag] = useState<string>("全部");
   const [categoryFilter, setCategoryFilter] = useState<CategoryFilter>("全部");
   const [sort, setSort] = useState<SortKey>("热度");
@@ -24,12 +30,12 @@ export default function Discussion() {
   const [loading, setLoading] = useState(true);
   const { user } = useAuthStore();
 
-  // 加载真实帖子
+  // 加载真实帖子（按分区筛选）
   useEffect(() => {
     let mounted = true;
     (async () => {
       setLoading(true);
-      const posts = await fetchPosts();
+      const posts = await fetchPosts(section);
       if (mounted) {
         setRealPosts(posts);
         setLoading(false);
@@ -38,13 +44,18 @@ export default function Discussion() {
     return () => {
       mounted = false;
     };
-  }, []);
+  }, [section]);
 
-  // 真实帖子在前，Mock 帖子在后
+  // 真实帖子在前，Mock 帖子在后（Mock 帖子无 category 字段，归入学术区）
   const allQuestions = useMemo(() => {
     const mockIds = new Set(realPosts.map((p) => p.id));
-    return [...realPosts, ...mockQuestions.filter((q) => !mockIds.has(q.id))];
-  }, [realPosts]);
+    const mocks = mockQuestions.filter((q) => !mockIds.has(q.id));
+    // Mock 帖子只在学术区显示
+    if (section === "academic") {
+      return [...realPosts, ...mocks];
+    }
+    return realPosts;
+  }, [realPosts, section]);
 
   const ALL_TAGS = useMemo(
     () => Array.from(new Set(allQuestions.flatMap((q) => q.tags))),
@@ -98,6 +109,39 @@ export default function Discussion() {
       </PageHero>
 
       <section className="container-tj py-12">
+        {/* 分区切换 */}
+        <div className="mb-6 flex gap-3">
+          {SECTIONS.map((s) => {
+            const Icon = s.icon;
+            const isActive = section === s.key;
+            return (
+              <button
+                key={s.key}
+                onClick={() => setSection(s.key)}
+                className={`flex flex-1 items-center gap-3 rounded-xl border p-4 transition-all ${
+                  isActive
+                    ? "border-star-400/40 bg-star-400/10"
+                    : "border-void-600/40 bg-void-900/30 hover:border-mist-400/30"
+                }`}
+              >
+                <span
+                  className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-lg ${
+                    isActive ? "bg-star-400/20 text-star-300" : "bg-void-800/50 text-mist-400"
+                  }`}
+                >
+                  <Icon size={20} />
+                </span>
+                <div className="text-left">
+                  <div className={`text-sm font-medium ${isActive ? "text-parchment-100" : "text-mist-300"}`}>
+                    {s.label}
+                  </div>
+                  <div className="text-xs text-mist-500">{s.desc}</div>
+                </div>
+              </button>
+            );
+          })}
+        </div>
+
         {/* 一级分类筛选 */}
         <div className="mb-4 flex items-center gap-2">
           {(["全部", "学科", "工具与部署"] as CategoryFilter[]).map((c) => (
@@ -257,6 +301,7 @@ export default function Discussion() {
         open={postModalOpen}
         onClose={() => setPostModalOpen(false)}
         onCreated={handleNewPost}
+        defaultCategory={section}
       />
     </>
   );
