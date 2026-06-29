@@ -119,11 +119,19 @@ export default function WorkshopDetail() {
       return;
     }
     setJoining(true);
-    const ok = await joinWorkshop(project.id);
-    if (ok) {
-      setProject({ ...project, participants: [...project.participants, uid] });
+    try {
+      const ok = await joinWorkshop(project.id);
+      if (ok) {
+        setProject({ ...project, participants: [...project.participants, uid] });
+        toast.success("已加入协作");
+      } else {
+        toast.error("加入失败，请重试");
+      }
+    } catch {
+      toast.error("加入失败，请重试");
+    } finally {
+      setJoining(false);
     }
-    setJoining(false);
   };
 
   // 自动保存（编辑后 2 秒）

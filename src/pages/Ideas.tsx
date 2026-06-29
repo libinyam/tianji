@@ -101,7 +101,16 @@ export default function Ideas() {
     );
 
     // 远程更新
-    await resonanceIdea(idea.id);
+    try {
+      await resonanceIdea(idea.id);
+    } catch {
+      // 回滚
+      setResonated((v) => ({ ...v, [idea.id]: false }));
+      setRealIdeas((prev) =>
+        prev.map((i) => (i.id === idea.id ? { ...i, resonance: i.resonance - 1 } : i))
+      );
+      toast.error("操作失败，请重试");
+    }
   };
 
   const handleFav = async (idea: Idea) => {

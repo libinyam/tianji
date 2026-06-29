@@ -326,6 +326,7 @@ export default function DiscussionDetail() {
     // 频率限制
     const rl = rateLimiters.comment.tryAction();
     if (!rl.ok) {
+      toast.error(`操作太频繁，请 ${rl.remaining}s 后再试`);
       return;
     }
 

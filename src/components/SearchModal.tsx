@@ -32,6 +32,7 @@ export default function SearchModal({ open, onClose }: SearchModalProps) {
   const [searched, setSearched] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const searchAbortRef = useRef<AbortController | null>(null);
 
   // 打开时聚焦输入框 + 加载热门榜
   useEffect(() => {
@@ -45,19 +46,20 @@ export default function SearchModal({ open, onClose }: SearchModalProps) {
       setKeyword("");
       setResults([]);
       setSearched(false);
+      if (debounceRef.current) clearTimeout(debounceRef.current);
+      if (searchAbortRef.current) searchAbortRef.current.abort();
     }
   }, [open]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // 防抖搜索
-  const searchAbortRef = useRef<AbortController | null>(null);
   const doSearch = useCallback((kw: string) => {
+    // 取消上一次请求（包括空输入时也要取消）
+    if (searchAbortRef.current) searchAbortRef.current.abort();
     if (!kw.trim()) {
       setResults([]);
       setSearched(false);
       return;
     }
-    // 取消上一次请求
-    if (searchAbortRef.current) searchAbortRef.current.abort();
     const ac = new AbortController();
     searchAbortRef.current = ac;
     setLoading(true);

@@ -204,7 +204,6 @@ export default function Admin() {
     if (!confirm(confirmMsg)) return;
     try {
       if (action === "resolved") {
-        // 删除被举报内容
         const colMap: Record<string, string> = {
           post: "posts",
           idea: "ideas",
@@ -217,13 +216,17 @@ export default function Admin() {
             await db.collection(col).doc(report.targetId).remove();
           } catch (e) {
             console.warn("删除被举报内容失败：", e);
+            toast.error("内容删除失败，可能需要手动处理");
           }
+        } else if (report.targetType === "answer" || report.targetType === "comment") {
+          toast.info("该举报涉及回答/评论，需在帖子详情页手动处理");
         }
       }
       await resolveReport(report.id, action);
+      toast.success(action === "resolved" ? "举报已处理" : "举报已忽略");
       fetchReportsData();
     } catch (err) {
-      alert("操作失败：" + (err as Error).message);
+      toast.error("操作失败：" + (err as Error).message);
     }
   };
 
