@@ -7,7 +7,7 @@ import PageHero from "@/components/PageHero";
 import Avatar from "@/components/Avatar";
 import IdeaModal from "@/components/IdeaModal";
 import ReportModal from "@/components/ReportModal";
-import { ideas as mockIdeas } from "@/data/ideas";
+
 import { fetchIdeas, resonanceIdea, updateIdea, deleteIdea } from "@/lib/ideas";
 import { toggleFavorite, getFavoritedIds } from "@/lib/favorites";
 import { useAuthStore } from "@/stores/auth";
@@ -57,11 +57,7 @@ export default function Ideas() {
     getFavoritedIds(realIdeas.map((i) => i.id)).then(setFavedIdeas);
   }, [user, realIdeas]);
 
-  // 真实灵感在前，Mock 在后
-  const allIdeas = useMemo(() => {
-    const mockIds = new Set(realIdeas.map((i) => i.id));
-    return [...realIdeas, ...mockIdeas.filter((i) => !mockIds.has(i.id))];
-  }, [realIdeas]);
+  const allIdeas = realIdeas;
 
   const TOPICS = useMemo(
     () => ["全部", ...Array.from(new Set(allIdeas.map((i) => i.topic)))],

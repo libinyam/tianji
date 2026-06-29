@@ -49,17 +49,29 @@ export default function SearchModal({ open, onClose }: SearchModalProps) {
   }, [open]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // 防抖搜索
+  const searchAbortRef = useRef<AbortController | null>(null);
   const doSearch = useCallback((kw: string) => {
     if (!kw.trim()) {
       setResults([]);
       setSearched(false);
       return;
     }
+    // 取消上一次请求
+    if (searchAbortRef.current) searchAbortRef.current.abort();
+    const ac = new AbortController();
+    searchAbortRef.current = ac;
     setLoading(true);
     setSearched(true);
     searchAll(kw)
-      .then(setResults)
-      .finally(() => setLoading(false));
+      .then((res) => {
+        if (!ac.signal.aborted) setResults(res);
+      })
+      .catch(() => {
+        if (!ac.signal.aborted) setResults([]);
+      })
+      .finally(() => {
+        if (!ac.signal.aborted) setLoading(false);
+      });
   }, []);
 
   const handleInputChange = (val: string) => {

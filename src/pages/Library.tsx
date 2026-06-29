@@ -3,7 +3,7 @@ import { Search, SlidersHorizontal, BookOpen, Plus } from "lucide-react";
 import PageHero from "@/components/PageHero";
 import BookCard from "@/components/BookCard";
 import BookUploadModal from "@/components/BookUploadModal";
-import { books as mockBooks } from "@/data/books";
+
 import { fetchBooks } from "@/lib/books";
 import { useAuthStore } from "@/stores/auth";
 import type { Book, BookCategory } from "@/types";
@@ -45,11 +45,7 @@ export default function Library() {
     };
   }, []);
 
-  // 真实书籍在前，Mock 在后
-  const allBooks = useMemo(() => {
-    const mockIds = new Set(realBooks.map((b) => b.id));
-    return [...realBooks, ...mockBooks.filter((b) => !mockIds.has(b.id))];
-  }, [realBooks]);
+  const allBooks = realBooks;
 
   const filtered = useMemo(() => {
     let list = allBooks.filter((b) => {

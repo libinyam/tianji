@@ -6,7 +6,7 @@ import PageHero from "@/components/PageHero";
 import Avatar from "@/components/Avatar";
 import PostModal from "@/components/PostModal";
 import { PostCardSkeleton, ListSkeleton } from "@/components/Skeleton";
-import { questions as mockQuestions } from "@/data/questions";
+
 import { fetchPosts, type PostCategory } from "@/lib/posts";
 import { PRESET_TAGS } from "@/lib/tags";
 import { useAuthStore } from "@/stores/auth";
@@ -47,16 +47,7 @@ export default function Discussion() {
     };
   }, [section]);
 
-  // 真实帖子在前，Mock 帖子在后（Mock 帖子无 category 字段，归入学术区）
-  const allQuestions = useMemo(() => {
-    const mockIds = new Set(realPosts.map((p) => p.id));
-    const mocks = mockQuestions.filter((q) => !mockIds.has(q.id));
-    // Mock 帖子只在学术区显示
-    if (section === "academic") {
-      return [...realPosts, ...mocks];
-    }
-    return realPosts;
-  }, [realPosts, section]);
+  const allQuestions = realPosts;
 
   const ALL_TAGS = useMemo(
     () => Array.from(new Set(allQuestions.flatMap((q) => q.tags))),
