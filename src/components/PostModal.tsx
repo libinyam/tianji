@@ -6,6 +6,7 @@ import { ensureTags } from "@/lib/tags";
 import { rateLimiters } from "@/lib/security";
 import { app } from "@/lib/cloudbase";
 import { useAuthStore } from "@/stores/auth";
+import { toast } from "@/stores/toast";
 import { useDraft } from "@/hooks/useDraft";
 import TagSelector from "@/components/TagSelector";
 import type { Question } from "@/types";
@@ -85,10 +86,11 @@ export default function PostModal({ open, onClose, onCreated, defaultCategory = 
             content: post.body,
             tags: tags.length > 0 ? tags : ["综合讨论"],
           },
-        }).then((res: unknown) => {
-          console.log("AI bot response:", res);
+        }).then(() => {
+          // AI 回复已异步写入数据库
         }).catch((err) => {
           console.error("AI bot error:", err);
+          toast.info("AI回复暂时不可用");
         });
       }
     } catch (err) {
@@ -214,6 +216,7 @@ export default function PostModal({ open, onClose, onCreated, defaultCategory = 
                 <textarea
                   required
                   rows={8}
+                  maxLength={10000}
                   value={body}
                   onChange={(e) => setBody(e.target.value)}
                   placeholder="详细描述你的问题背景、已尝试的方案、具体的卡点…"

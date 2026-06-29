@@ -151,7 +151,7 @@ export default function IdeaModal({ open, onClose, onCreated }: IdeaModalProps) 
                 <input
                   type="text"
                   required
-                  maxLength={80}
+                  maxLength={100}
                   value={title}
                   onChange={(e) => setTitle(e.target.value)}
                   placeholder="一句话描述你的项目创意"
@@ -165,6 +165,7 @@ export default function IdeaModal({ open, onClose, onCreated }: IdeaModalProps) 
                 <textarea
                   required
                   rows={5}
+                  maxLength={500}
                   value={summary}
                   onChange={(e) => setSummary(e.target.value)}
                   placeholder="描述这个创意的背景、解决的问题、技术方案，以及为什么值得做…"

@@ -86,7 +86,7 @@ export async function fetchUserContent(uid: string): Promise<UserContent> {
       db.collection("posts").where({ authorUid: uid }).orderBy("createdAt", "desc").limit(50).get(),
       db.collection("ideas").where({ authorUid: uid }).orderBy("createdAt", "desc").limit(50).get(),
       db.collection("books").where({ authorUid: uid }).orderBy("createdAt", "desc").limit(50).get(),
-      db.collection("workshops").where({ authorUid: uid }).orderBy("createdAt", "desc").limit(50).get(),
+      db.collection("workshops").where({ creatorUid: uid }).orderBy("createdAt", "desc").limit(50).get(),
     ]);
 
     return {

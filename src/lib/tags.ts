@@ -91,7 +91,8 @@ export async function ensureTags(names: string[]): Promise<void> {
     if (!trimmed) continue;
     const category = inferCategory(trimmed);
     try {
-      const { data } = await db.collection("tags").where({ name: trimmed }).get();
+      // 大小写不敏感比较（保留原始展示名）
+      const { data } = await db.collection("tags").where({ name: db.RegExp({ regexp: `^${escapeRegex(trimmed)}$`, options: "i" }) }).get();
       if (data && data.length > 0) {
         // 已存在，count + 1
         const doc = data[0];
@@ -121,14 +122,11 @@ export async function fetchContentByTag(tagName: string): Promise<{
   books: TagContentItem[];
   workshops: TagContentItem[];
 }> {
-  const escaped = escapeRegex(tagName);
-  const regex = db.RegExp({ regexp: escaped, options: "i" });
-
   const [postsRes, ideasRes, booksRes, workshopsRes] = await Promise.allSettled([
-    db.collection("posts").where({ tags: regex }).orderBy("createdAt", "desc").limit(50).get(),
-    db.collection("ideas").where({ tags: regex }).orderBy("createdAt", "desc").limit(50).get(),
-    db.collection("books").where({ tags: regex }).orderBy("createdAt", "desc").limit(50).get(),
-    db.collection("workshops").where({ tags: regex }).orderBy("createdAt", "desc").limit(50).get(),
+    db.collection("posts").where({ tags: tagName }).orderBy("createdAt", "desc").limit(50).get(),
+    db.collection("ideas").where({ tags: tagName }).orderBy("createdAt", "desc").limit(50).get(),
+    db.collection("books").where({ tags: tagName }).orderBy("createdAt", "desc").limit(50).get(),
+    db.collection("workshops").where({ tags: tagName }).orderBy("createdAt", "desc").limit(50).get(),
   ]);
 
   const extract = (

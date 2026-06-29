@@ -240,6 +240,14 @@ export async function submitComment(
 
   await docRef.update({ answerList: newAnswerList });
 
+  // 通知回答作者（createNotification 内部会跳过自己）
+  await createNotification({
+    uid: targetAnswer.authorUid,
+    type: "comment",
+    title: post.title,
+    link: `/discussion/${postId}`,
+  });
+
   return comment;
 }
 
@@ -281,6 +289,11 @@ export async function deletePost(postId: string): Promise<boolean> {
   if (post.authorUid !== uid) throw new Error("无权删除他人帖子");
 
   await docRef.remove();
+
+  // 级联清理收藏和举报
+  await db.collection("favorites").where({ targetId: postId }).remove();
+  await db.collection("reports").where({ targetId: postId }).remove();
+
   return true;
 }
 

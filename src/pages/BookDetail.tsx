@@ -14,7 +14,8 @@ import {
   Flag,
 } from "lucide-react";
 import { books } from "@/data/books";
-import { fetchBookById } from "@/lib/books";
+import { fetchBookById, incrementBookDownloads } from "@/lib/books";
+import { app } from "@/lib/cloudbase";
 import DifficultyDots from "@/components/DifficultyDots";
 import Avatar from "@/components/Avatar";
 import ReportModal from "@/components/ReportModal";
@@ -28,6 +29,7 @@ export default function BookDetail() {
   const [tocOpen, setTocOpen] = useState(true);
   const [favorited, setFavorited] = useState(false);
   const [reportOpen, setReportOpen] = useState(false);
+  const [resolvedFileUrl, setResolvedFileUrl] = useState<string | undefined>(undefined);
   const { user } = useAuthStore();
 
   useEffect(() => {
@@ -44,6 +46,32 @@ export default function BookDetail() {
   useEffect(() => {
     if (id) isFavorited(id).then(setFavorited);
   }, [id]);
+
+  // 如果 fileUrl 是 cloud:// fileID，先换取临时下载链接
+  useEffect(() => {
+    const fileUrl = book?.fileUrl;
+    if (!fileUrl) {
+      setResolvedFileUrl(undefined);
+      return;
+    }
+    if (!fileUrl.startsWith("cloud://")) {
+      setResolvedFileUrl(fileUrl);
+      return;
+    }
+    let mounted = true;
+    (async () => {
+      try {
+        const result = await app.getTempFileURL({ fileList: [fileUrl] });
+        if (mounted) {
+          const tempUrl = result?.fileList?.[0]?.tempFileURL;
+          setResolvedFileUrl(tempUrl || fileUrl);
+        }
+      } catch {
+        if (mounted) setResolvedFileUrl(fileUrl);
+      }
+    })();
+    return () => { mounted = false; };
+  }, [book?.fileUrl]);
 
   const handleFav = async () => {
     if (!user) {
@@ -127,8 +155,9 @@ export default function BookDetail() {
           <div className="mt-4 grid grid-cols-2 gap-2.5">
             {book.fileUrl ? (
               <a
-                href={book.fileUrl}
+                href={resolvedFileUrl ?? book.fileUrl}
                 download={book.fileName || book.title}
+                onClick={() => incrementBookDownloads(book.id)}
                 className="btn-gold col-span-2"
               >
                 <Download size={15} /> 下载资源

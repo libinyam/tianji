@@ -65,7 +65,7 @@ export default function SearchModal({ open, onClose }: SearchModalProps) {
   const handleInputChange = (val: string) => {
     setKeyword(val);
     if (debounceRef.current) clearTimeout(debounceRef.current);
-    debounceRef.current = setTimeout(() => doSearch(val), 350);
+    debounceRef.current = setTimeout(() => doSearch(val), 300);
   };
 
   const handleSelect = (link: string) => {

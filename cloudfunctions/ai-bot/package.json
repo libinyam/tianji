@@ -4,6 +4,6 @@
   "description": "AI 机器人自动回复",
   "main": "index.js",
   "dependencies": {
-    "@cloudbase/node-sdk": "latest"
+    "@cloudbase/node-sdk": "^4.0.0"
   }
 }

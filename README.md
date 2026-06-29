@@ -50,6 +50,27 @@ VITE_CLOUDBASE_ACCESS_KEY=你的访问密钥
 
 通过 GitHub Actions 自动部署到 CloudBase 静态托管。推送代码到 `main`/`master` 分支即触发部署流程（构建产物上传至静态托管根目录）。
 
+### 云函数部署
+
+`cloudfunctions/ai-bot` 目录下的 AI 机器人云函数需要通过 CloudBase CLI 单独部署：
+
+```bash
+# 安装 CloudBase CLI
+npm install -g @cloudbase/cli
+
+# 登录并选择环境
+tcb login
+
+# 部署 ai-bot 云函数
+tcb fn deploy ai-bot --envId <你的云环境ID>
+```
+
+部署后需在云函数环境变量中配置 `DEEPSEEK_API_KEY`（DeepSeek API 密钥），否则 AI 自动回复功能将不可用：
+
+```bash
+tcb fn config set DEEPSEEK_API_KEY <你的密钥> --name ai-bot --envId <你的云环境ID>
+```
+
 ## 目录结构
 
 ```

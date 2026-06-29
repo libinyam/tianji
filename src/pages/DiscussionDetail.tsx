@@ -66,13 +66,13 @@ export default function DiscussionDetail() {
 
   // 举报状态
   const [reportTarget, setReportTarget] = useState<{
-    targetType: "post" | "answer";
+    targetType: "post" | "answer" | "comment";
     targetId: string;
     targetTitle: string;
   } | null>(null);
 
   const openReport = (
-    targetType: "post" | "answer",
+    targetType: "post" | "answer" | "comment",
     targetId: string,
     targetTitle: string
   ) => {
@@ -251,6 +251,8 @@ export default function DiscussionDetail() {
         });
         setAnswerText("");
         toast.success("回答已提交");
+      } else {
+        toast.error("该帖子暂不支持回答");
       }
     } catch (err) {
       setAnswerError((err as Error).message);
@@ -328,7 +330,6 @@ export default function DiscussionDetail() {
               userComment: comment.content,
             },
           }).then((res: unknown) => {
-            console.log("AI bot comment response:", res);
             const result = (res as { result?: { ok?: boolean; comment?: Comment; answerId?: string } }).result;
             if (result?.ok && result.comment && result.answerId) {
               setQuestion((prev) => {
@@ -606,6 +607,18 @@ export default function DiscussionDetail() {
                                       title="删除评论"
                                     >
                                       <Trash2 size={11} />
+                                    </button>
+                                  )}
+                                  {user && user.uid !== c.authorUid && (
+                                    <button
+                                      onClick={(e) => {
+                                        e.stopPropagation();
+                                        openReport("comment", c.id, `评论：${c.content.slice(0, 30)}`);
+                                      }}
+                                      className="ml-auto text-mist-500 opacity-0 transition-opacity hover:text-red-300 group-hover:opacity-100"
+                                      title="举报评论"
+                                    >
+                                      <Flag size={11} />
                                     </button>
                                   )}
                                 </div>

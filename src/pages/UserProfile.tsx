@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Link, useParams } from "react-router-dom";
+import { Link, Navigate, useParams } from "react-router-dom";
 import {
   ArrowLeft,
   MessageSquare,
@@ -46,12 +46,7 @@ export default function UserProfile() {
 
   // 如果是自己，跳转到个人主页
   if (currentUser?.uid === uid) {
-    return (
-      <div className="container-tj py-40 text-center">
-        <p className="text-mist-400">正在跳转到你的个人主页…</p>
-        <Link to="/profile" className="btn-gold mt-6 inline-flex">前往个人主页</Link>
-      </div>
-    );
+    return <Navigate to="/profile" replace />;
   }
 
   if (loading) {

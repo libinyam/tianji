@@ -1,5 +1,6 @@
 import { app } from "@/lib/cloudbase";
 import { useAuthStore } from "@/stores/auth";
+import { ensureTags } from "@/lib/tags";
 import type { Book, BookCategory } from "@/types";
 
 const db = app.database();
@@ -15,6 +16,7 @@ export interface BookDoc {
   accent: string;
   summary: string;
   favorites: number;
+  downloads: number;
   rating: number;
   year: number;
   pages: number;
@@ -49,6 +51,18 @@ function toBook(doc: BookDoc): Book {
     fileUrl: doc.fileUrl,
     fileName: doc.fileName,
   };
+}
+
+/** 资源被下载时，下载数 +1 */
+export async function incrementBookDownloads(id: string): Promise<void> {
+  try {
+    await db
+      .collection(BOOKS_COLLECTION)
+      .doc(id)
+      .update({ downloads: db.command.inc(1) });
+  } catch {
+    // 静默
+  }
 }
 
 function getCurrentUid(): string {
@@ -107,6 +121,7 @@ export async function createBook(params: {
     accent: ACCENT_COLORS[Math.floor(Math.random() * ACCENT_COLORS.length)],
     summary: params.summary,
     favorites: 0,
+    downloads: 0,
     rating: 0,
     year: new Date().getFullYear(),
     pages: 0,
@@ -122,6 +137,9 @@ export async function createBook(params: {
   const res = await db.collection(BOOKS_COLLECTION).add(doc);
   const resObj = res as unknown as Record<string, unknown>;
   const newId = (resObj.id as string) ?? (resObj._id as string) ?? "";
+
+  // 登记标签计数（需等待完成）
+  await ensureTags(params.tags);
 
   return {
     id: newId,

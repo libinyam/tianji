@@ -6,7 +6,7 @@ import { createReport } from "@/lib/reports";
 interface ReportModalProps {
   open: boolean;
   onClose: () => void;
-  targetType: "post" | "idea" | "book" | "answer";
+  targetType: "post" | "idea" | "book" | "answer" | "comment";
   targetId: string;
   targetTitle: string;
 }

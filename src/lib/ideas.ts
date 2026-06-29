@@ -165,5 +165,10 @@ export async function deleteIdea(ideaId: string): Promise<boolean> {
   if (idea.authorUid !== uid) throw new Error("无权删除他人灵感");
 
   await docRef.remove();
+
+  // 级联清理收藏和举报
+  await db.collection("favorites").where({ targetId: ideaId }).remove();
+  await db.collection("reports").where({ targetId: ideaId }).remove();
+
   return true;
 }

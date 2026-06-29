@@ -1,6 +1,7 @@
 import { app } from "@/lib/cloudbase";
 
 const db = app.database();
+const _ = db.command;
 
 /** 搜索结果统一结构 */
 export interface SearchResult {
@@ -24,9 +25,14 @@ export interface HotItem {
   hot: number;
 }
 
+/** 转义正则特殊字符，避免用户输入导致正则异常 */
+function escapeRegex(str: string): string {
+  return str.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+}
+
 /** 用正则做模糊匹配（CloudBase NoSQL 支持 db.RegExp） */
 function buildRegex(keyword: string) {
-  return db.RegExp({ regexp: keyword, options: "i" });
+  return db.RegExp({ regexp: escapeRegex(keyword), options: "i" });
 }
 
 /** 跨四个集合搜索，返回统一结构并按热度排序 */
@@ -39,9 +45,7 @@ export async function searchAll(keyword: string): Promise<SearchResult[]> {
     // 帖子
     db
       .collection("posts")
-      .where({
-        title: regex,
-      })
+      .where(_.or([{ title: regex }, { excerpt: regex }, { body: regex }]))
       .limit(20)
       .get()
       .then(({ data }) => {
@@ -67,9 +71,7 @@ export async function searchAll(keyword: string): Promise<SearchResult[]> {
     // 灵感
     db
       .collection("ideas")
-      .where({
-        title: regex,
-      })
+      .where(_.or([{ title: regex }, { summary: regex }]))
       .limit(20)
       .get()
       .then(({ data }) => {
@@ -94,9 +96,7 @@ export async function searchAll(keyword: string): Promise<SearchResult[]> {
     // 书籍
     db
       .collection("books")
-      .where({
-        title: regex,
-      })
+      .where(_.or([{ title: regex }, { summary: regex }]))
       .limit(20)
       .get()
       .then(({ data }) => {
@@ -121,9 +121,7 @@ export async function searchAll(keyword: string): Promise<SearchResult[]> {
     // 协作工坊
     db
       .collection("workshops")
-      .where({
-        title: regex,
-      })
+      .where(_.or([{ title: regex }, { description: regex }]))
       .limit(20)
       .get()
       .then(({ data }) => {
