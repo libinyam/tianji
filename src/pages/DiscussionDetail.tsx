@@ -142,7 +142,8 @@ export default function DiscussionDetail() {
       });
       setFavState(fav);
       toast.success(fav ? "已收藏" : "已取消收藏");
-    } catch {
+    } catch (e) {
+      console.error("收藏操作失败:", e);
       toast.error("操作失败，请重试");
     }
   };

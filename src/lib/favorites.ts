@@ -60,11 +60,16 @@ export async function toggleFavorite(params: {
     .get();
 
   if (existing.data && existing.data.length > 0) {
-    // 已收藏 -> 取消（用 where 条件删除，确保安全规则匹配）
-    await db
-      .collection(COLLECTION)
-      .where({ uid, targetId: params.targetId })
-      .remove();
+    // 已收藏 -> 取消（先取文档 ID，再按 ID 删除，确保安全规则匹配）
+    const docId = (existing.data[0] as FavoriteDoc)._id;
+    if (docId) {
+      await db.collection(COLLECTION).doc(docId).remove();
+    } else {
+      await db
+        .collection(COLLECTION)
+        .where({ uid, targetId: params.targetId })
+        .remove();
+    }
     return false;
   }
 
