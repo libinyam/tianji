@@ -213,7 +213,14 @@ export default function Admin() {
         const col = colMap[report.targetType];
         if (col) {
           try {
-            await db.collection(col).doc(report.targetId).remove();
+            const res = await app.callFunction({
+              name: "admin-delete",
+              data: { collection: col, docId: report.targetId, action: "delete" },
+            });
+            const result = res.result as { ok?: boolean; error?: string };
+            if (!result?.ok) {
+              toast.error(result?.error || "内容删除失败");
+            }
           } catch (e) {
             console.warn("删除被举报内容失败：", e);
             toast.error("内容删除失败，可能需要手动处理");
@@ -233,8 +240,15 @@ export default function Admin() {
   const handleDelete = async (collection: string, id: string) => {
     if (!confirm("确定删除这条内容？此操作不可撤销。")) return;
     try {
-      await db.collection(collection).doc(id).remove();
-      // 刷新当前列表
+      const res = await app.callFunction({
+        name: "admin-delete",
+        data: { collection, docId: id, action: "delete" },
+      });
+      const result = res.result as { ok?: boolean; error?: string };
+      if (!result?.ok) {
+        toast.error(result?.error || "删除失败");
+        return;
+      }
       toast.success("内容已删除");
       if (tab === "posts") fetchPosts();
       else if (tab === "ideas") fetchIdeas();

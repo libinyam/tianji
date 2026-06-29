@@ -29,6 +29,7 @@ import {
   deleteAnswer,
   deleteComment,
   voteAnswer,
+  getVotedAnswerIds,
 } from "@/lib/posts";
 import { toggleFavorite, isFavorited } from "@/lib/favorites";
 import { rateLimiters } from "@/lib/security";
@@ -105,6 +106,17 @@ export default function DiscussionDetail() {
           incrementViews(id);
           // 检查收藏状态
           isFavorited(id).then(setFavState);
+          // 加载用户投票记录
+          const answerIds = post.answerList.map((a) => a.id);
+          if (answerIds.length > 0) {
+            getVotedAnswerIds(answerIds).then((votedSet) => {
+              if (mounted) {
+                const votedMap: Record<string, boolean> = {};
+                votedSet.forEach((aid) => { votedMap[aid] = true; });
+                setVoted(votedMap);
+              }
+            });
+          }
         }
       }
     })();

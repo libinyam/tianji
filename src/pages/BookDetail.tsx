@@ -12,6 +12,7 @@ import {
   Calendar,
   FileText,
   Flag,
+  Loader2,
 } from "lucide-react";
 import { books } from "@/data/books";
 import { fetchBookById, incrementBookDownloads } from "@/lib/books";
@@ -30,6 +31,7 @@ export default function BookDetail() {
   const [favorited, setFavorited] = useState(false);
   const [reportOpen, setReportOpen] = useState(false);
   const [resolvedFileUrl, setResolvedFileUrl] = useState<string | undefined>(undefined);
+  const [resolvingUrl, setResolvingUrl] = useState(false);
   const { user } = useAuthStore();
 
   useEffect(() => {
@@ -52,12 +54,15 @@ export default function BookDetail() {
     const fileUrl = book?.fileUrl;
     if (!fileUrl) {
       setResolvedFileUrl(undefined);
+      setResolvingUrl(false);
       return;
     }
     if (!fileUrl.startsWith("cloud://")) {
       setResolvedFileUrl(fileUrl);
+      setResolvingUrl(false);
       return;
     }
+    setResolvingUrl(true);
     let mounted = true;
     (async () => {
       try {
@@ -68,6 +73,8 @@ export default function BookDetail() {
         }
       } catch {
         if (mounted) setResolvedFileUrl(fileUrl);
+      } finally {
+        if (mounted) setResolvingUrl(false);
       }
     })();
     return () => { mounted = false; };
@@ -154,14 +161,20 @@ export default function BookDetail() {
 
           <div className="mt-4 grid grid-cols-2 gap-2.5">
             {book.fileUrl ? (
-              <a
-                href={resolvedFileUrl ?? book.fileUrl}
-                download={book.fileName || book.title}
-                onClick={() => incrementBookDownloads(book.id)}
-                className="btn-gold col-span-2"
-              >
-                <Download size={15} /> 下载资源
-              </a>
+              resolvingUrl ? (
+                <button className="btn-gold col-span-2 opacity-70" disabled>
+                  <Loader2 size={15} className="animate-spin" /> 准备下载链接…
+                </button>
+              ) : (
+                <a
+                  href={resolvedFileUrl ?? book.fileUrl}
+                  download={book.fileName || book.title}
+                  onClick={() => incrementBookDownloads(book.id)}
+                  className="btn-gold col-span-2"
+                >
+                  <Download size={15} /> 下载资源
+                </a>
+              )
             ) : book.link ? (
               <a
                 href={book.link}
@@ -187,10 +200,10 @@ export default function BookDetail() {
                 const url = resolvedFileUrl ?? book.fileUrl ?? book.link;
                 if (url) window.open(url, "_blank");
               }}
-              disabled={!book.fileUrl && !book.link}
+              disabled={!book.fileUrl && !book.link || resolvingUrl}
               className="btn-ghost disabled:cursor-not-allowed disabled:opacity-40"
             >
-              <Eye size={15} /> 预览
+              {resolvingUrl ? <Loader2 size={15} className="animate-spin" /> : <Eye size={15} />} 预览
             </button>
             <button
               onClick={handleFav}

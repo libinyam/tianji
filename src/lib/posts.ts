@@ -376,7 +376,30 @@ export async function deleteComment(
   return true;
 }
 
-/** 给回答投票/取消投票（持久化到数据库） */
+/** 检查用户是否已投票 */
+export async function hasVoted(answerId: string): Promise<boolean> {
+  const uid = getCurrentUid();
+  if (!uid) return false;
+  const { data } = await db
+    .collection("votes")
+    .where({ answerId, uid })
+    .get();
+  return data.length > 0;
+}
+
+/** 获取用户已投票的回答ID列表 */
+export async function getVotedAnswerIds(answerIds: string[]): Promise<Set<string>> {
+  const uid = getCurrentUid();
+  if (!uid || answerIds.length === 0) return new Set();
+  const _ = db.command;
+  const { data } = await db
+    .collection("votes")
+    .where({ uid, answerId: _.in(answerIds) })
+    .get();
+  return new Set(data.map((d: { answerId: string }) => d.answerId));
+}
+
+/** 给回答投票/取消投票（持久化到数据库 + 防重复） */
 export async function voteAnswer(
   postId: string,
   answerId: string,
@@ -385,6 +408,27 @@ export async function voteAnswer(
   const uid = getCurrentUid();
   if (!uid) throw new Error("请先登录");
 
+  const votesCol = db.collection("votes");
+
+  if (isUpvote) {
+    // 检查是否已投票
+    const { data: existing } = await votesCol
+      .where({ answerId, uid })
+      .get();
+    if (existing.length > 0) return false; // 已投过票
+
+    // 记录投票
+    await votesCol.add({ answerId, uid, postId, createdAt: Date.now() });
+  } else {
+    // 取消投票
+    const { data: existing } = await votesCol
+      .where({ answerId, uid })
+      .get();
+    if (existing.length === 0) return false; // 没投过票
+    await votesCol.where({ answerId, uid }).remove();
+  }
+
+  // 更新回答票数（使用原子操作 inc）
   const docRef = db.collection(POSTS_COLLECTION).doc(postId);
   const { data } = await docRef.get();
   if (!data || data.length === 0) return false;
@@ -397,7 +441,7 @@ export async function voteAnswer(
   const currentVotes = answerList[idx].votes ?? 0;
   answerList[idx] = {
     ...answerList[idx],
-    votes: isUpvote ? currentVotes + 1 : Math.max(0, currentVotes - 1),
+    votes: Math.max(0, currentVotes + (isUpvote ? 1 : -1)),
   };
   await docRef.update({ answerList });
   return true;
