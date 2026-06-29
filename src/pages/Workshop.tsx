@@ -56,7 +56,7 @@ export default function Workshop() {
   };
 
   const totalContributors = new Set(
-    [...realProjects.flatMap((p) => p.participants.map((uid) => uid))].join(",")
+    realProjects.flatMap((p) => p.participants)
   ).size;
 
   return (

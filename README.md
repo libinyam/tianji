@@ -34,12 +34,16 @@ npm install
 npm run dev
 ```
 
-需要配置 `.env.local` 环境变量：
+需要配置环境变量。复制 `.env.example` 为 `.env` 并填入实际值（`.env` 已被 `.gitignore` 忽略，不会提交到仓库）：
+
+```bash
+cp .env.example .env
+```
 
 ```env
-VITE_CB_ENV_ID=你的云环境ID
-VITE_CB_REGION=你的地域
-VITE_CB_ACCESS_KEY=你的访问密钥
+VITE_CLOUDBASE_ENV_ID=你的云环境ID
+VITE_CLOUDBASE_REGION=你的地域
+VITE_CLOUDBASE_ACCESS_KEY=你的访问密钥
 ```
 
 ## 部署

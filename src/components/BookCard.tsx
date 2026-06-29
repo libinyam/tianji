@@ -1,10 +1,11 @@
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { motion } from "motion/react";
 import { BookOpen, Star, Bookmark } from "lucide-react";
 import type { Book } from "@/types";
 import DifficultyDots from "./DifficultyDots";
 
 export default function BookCard({ book, index = 0 }: { book: Book; index?: number }) {
+  const navigate = useNavigate();
   return (
     <motion.div
       initial={{ opacity: 0, y: 22 }}
@@ -12,9 +13,9 @@ export default function BookCard({ book, index = 0 }: { book: Book; index?: numb
       viewport={{ once: true, margin: "-50px" }}
       transition={{ duration: 0.45, delay: (index % 4) * 0.08 }}
     >
-      <Link
-        to={`/library/${book.id}`}
-        className="group flex h-full flex-col overflow-hidden rounded-xl border border-void-600/50 bg-void-800/40 transition-all duration-300 hover:-translate-y-1 hover:border-star-400/40 hover:shadow-card"
+      <div
+        onClick={() => navigate(`/library/${book.id}`)}
+        className="group flex h-full cursor-pointer flex-col overflow-hidden rounded-xl border border-void-600/50 bg-void-800/40 transition-all duration-300 hover:-translate-y-1 hover:border-star-400/40 hover:shadow-card"
       >
         {/* 封面 */}
         <div
@@ -77,7 +78,7 @@ export default function BookCard({ book, index = 0 }: { book: Book; index?: numb
 
           <div className="mt-4 flex flex-wrap gap-1.5">
             {book.tags.slice(0, 3).map((t) => (
-              <Link key={t} to={`/tags/${encodeURIComponent(t)}`} className="pill transition-colors hover:border-star-400/40 hover:text-star-200">
+              <Link key={t} to={`/tags/${encodeURIComponent(t)}`} className="pill transition-colors hover:border-star-400/40 hover:text-star-200" onClick={(e) => e.stopPropagation()}>
                 {t}
               </Link>
             ))}
@@ -93,7 +94,7 @@ export default function BookCard({ book, index = 0 }: { book: Book; index?: numb
             </span>
           </div>
         </div>
-      </Link>
+      </div>
     </motion.div>
   );
 }

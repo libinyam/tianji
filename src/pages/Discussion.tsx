@@ -1,5 +1,5 @@
 import { useMemo, useState, useEffect } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { motion } from "motion/react";
 import { MessageCircle, Eye, ThumbsUp, Star, Plus, GraduationCap, Coffee } from "lucide-react";
 import PageHero from "@/components/PageHero";
@@ -29,6 +29,7 @@ export default function Discussion() {
   const [realPosts, setRealPosts] = useState<Question[]>([]);
   const [loading, setLoading] = useState(true);
   const { user } = useAuthStore();
+  const navigate = useNavigate();
 
   // 加载真实帖子（按分区筛选）
   useEffect(() => {
@@ -80,6 +81,7 @@ export default function Discussion() {
   }, [allQuestions, activeTag, categoryFilter, sort]);
 
   const handleNewPost = (post: Question) => {
+    if (post.category !== section) return;
     setRealPosts((prev) => [post, ...prev]);
   };
 
@@ -224,9 +226,9 @@ export default function Discussion() {
                 viewport={{ once: true, margin: "-40px" }}
                 transition={{ duration: 0.4, delay: (i % 6) * 0.06 }}
               >
-                <Link
-                  to={`/discussion/${q.id}`}
-                  className="group flex items-start gap-5 rounded-xl border border-void-600/40 bg-void-800/30 p-5 transition-all hover:border-star-400/30 hover:bg-void-700/30"
+                <div
+                  onClick={() => navigate(`/discussion/${q.id}`)}
+                  className="group flex cursor-pointer items-start gap-5 rounded-xl border border-void-600/40 bg-void-800/30 p-5 transition-all hover:border-star-400/30 hover:bg-void-700/30"
                 >
                   {/* 投票/回答统计列 */}
                   <div className="hidden flex-col items-center gap-3 border-r border-void-600/40 pr-5 text-center sm:flex">
@@ -263,7 +265,7 @@ export default function Discussion() {
                     </p>
                     <div className="mt-3 flex flex-wrap items-center gap-2">
                       {q.tags.map((t) => (
-                        <Link key={t} to={`/tags/${encodeURIComponent(t)}`} className="pill transition-colors hover:border-star-400/40 hover:text-star-200">
+                        <Link key={t} to={`/tags/${encodeURIComponent(t)}`} className="pill transition-colors hover:border-star-400/40 hover:text-star-200" onClick={(e) => e.stopPropagation()}>
                           {t}
                         </Link>
                       ))}
@@ -275,7 +277,7 @@ export default function Discussion() {
                       <span className="font-mono">{q.createdAt}</span>
                     </div>
                   </div>
-                </Link>
+                </div>
               </motion.div>
             ))}
           </div>

@@ -5,7 +5,7 @@ const db = app.database();
 /** 用户的创作内容概览 */
 export interface UserContent {
   posts: Array<{ id: string; title: string; createdAt: string; views: number; answersCount: number }>;
-  ideas: Array<{ id: string; title: string; createdAt: string; resonance: number }>;
+  ideas: Array<{ id: string; title: string; createdAt: string; resonance: number; link: string }>;
   books: Array<{ id: string; title: string; createdAt: string; category: string }>;
   workshops: Array<{ id: string; title: string; createdAt: string; type: string }>;
 }
@@ -102,6 +102,7 @@ export async function fetchUserContent(uid: string): Promise<UserContent> {
         title: String(d.title ?? ""),
         createdAt: String(d.createdAt ?? ""),
         resonance: Number(d.resonance ?? 0),
+        link: "/ideas",
       })),
       books: (booksRes.data || []).map((d: Record<string, unknown>) => ({
         id: String(d._id ?? ""),

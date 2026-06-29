@@ -1,0 +1,7 @@
+{
+  "hosting": {
+    "rewrites": [
+      { "source": "**", "destination": "/index.html" }
+    ]
+  }
+}

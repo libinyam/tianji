@@ -75,7 +75,7 @@ export default function UserProfile() {
 
   const tabs = [
     { label: "帖子", icon: MessageSquare, items: content?.posts, linkBase: "/discussion", emptyText: "还没有发表过讨论" },
-    { label: "灵感", icon: Lightbulb, items: content?.ideas, linkBase: "/ideas", emptyText: "还没有分享过灵感" },
+    { label: "灵感", icon: Lightbulb, items: content?.ideas, linkBase: "/ideas", emptyText: "还没有分享过灵感", useDirectLink: true, linkField: "link" },
     { label: "资源", icon: BookOpen, items: content?.books, linkBase: "/library", emptyText: "还没有上传过资源" },
     { label: "协作", icon: Users, items: content?.workshops, linkBase: "/workshop", emptyText: "还没有发起过协作" },
   ];

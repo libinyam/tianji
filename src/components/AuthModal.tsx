@@ -74,6 +74,10 @@ export default function AuthModal({ open, onClose }: AuthModalProps) {
       if (mode === "register") {
         const ok = await signUpWithPhone(phone, phoneCode, phonePassword);
         if (ok) handleClose();
+        else {
+          phoneCaptchaRef.current?.refresh();
+          setPhoneCaptchaValue("");
+        }
       } else if (phoneLoginType === "password") {
         const ok = await signInWithPhonePassword(phone, phonePassword);
         if (ok) handleClose();

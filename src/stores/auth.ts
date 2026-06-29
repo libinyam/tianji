@@ -48,10 +48,13 @@ interface AuthState {
   clearError: () => void;
 }
 
-/** 规范化手机号为 +86 前缀格式 */
+/** 规范化手机号为 +86 前缀格式，并校验格式 */
 function normalizePhone(phone: string): string {
   const trimmed = phone.trim();
-  return trimmed.startsWith("+") ? trimmed : `+86${trimmed}`;
+  if (!/^1\d{10}$/.test(trimmed)) {
+    throw new Error("手机号格式不正确，需为以 1 开头的 11 位数字");
+  }
+  return `+86${trimmed}`;
 }
 
 /** 从 SDK session/user 提取精简用户信息 */

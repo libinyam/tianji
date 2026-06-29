@@ -29,6 +29,7 @@ import {
   type Annotation,
 } from "@/lib/workshops";
 import { useAuthStore } from "@/stores/auth";
+import { toast } from "@/stores/toast";
 import Avatar from "@/components/Avatar";
 import MathText from "@/components/MathText";
 
@@ -151,14 +152,15 @@ export default function WorkshopDetail() {
     }, 2000);
   };
 
-  const handleToggleEdit = () => {
+  const handleToggleEdit = async () => {
     if (editing) {
       // 退出编辑前立即保存未保存的内容
       if (saveTimerRef.current) {
         clearTimeout(saveTimerRef.current);
         saveTimerRef.current = null;
         if (id && content !== project.content) {
-          updateWorkshop(id, { content }).then((ok) => {
+          try {
+            const ok = await updateWorkshop(id, { content });
             if (ok) {
               setProject((prev) =>
                 prev
@@ -169,8 +171,12 @@ export default function WorkshopDetail() {
                     }
                   : prev
               );
+            } else {
+              toast.error("保存失败，请稍后重试");
             }
-          });
+          } catch {
+            toast.error("保存失败，请稍后重试");
+          }
         }
       }
       setSaveStatus("idle");
