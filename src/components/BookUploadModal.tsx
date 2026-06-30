@@ -1,10 +1,11 @@
 import { useState, useRef } from "react";
 import { motion, AnimatePresence } from "motion/react";
-import { X, Loader2, BookOpen, Link2, UploadCloud, FileText } from "lucide-react";
+import { X, Loader2, BookOpen, Link2, UploadCloud, FileText, ListTree } from "lucide-react";
 import { createBook } from "@/lib/books";
 import { ensureTags } from "@/lib/tags";
 import { rateLimiters } from "@/lib/security";
 import { app } from "@/lib/cloudbase";
+import { extractPdfToc } from "@/lib/pdf-toc";
 import { useAuthStore } from "@/stores/auth";
 import TagSelector from "@/components/TagSelector";
 import type { Book, BookCategory } from "@/types";
@@ -30,6 +31,9 @@ export default function BookUploadModal({ open, onClose, onCreated }: BookUpload
   const [uploadingFile, setUploadingFile] = useState(false);
   const [uploadedFileId, setUploadedFileId] = useState<string | null>(null);
   const [uploadedFileName, setUploadedFileName] = useState<string | null>(null);
+  const [toc, setToc] = useState<string>("");
+  const [parsingToc, setParsingToc] = useState(false);
+  const [tocDetected, setTocDetected] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const { user } = useAuthStore();
 
@@ -43,6 +47,8 @@ export default function BookUploadModal({ open, onClose, onCreated }: BookUpload
     setTags([]);
     setUploadedFileId(null);
     setUploadedFileName(null);
+    setToc("");
+    setTocDetected(false);
     setError(null);
     if (fileInputRef.current) fileInputRef.current.value = "";
     onClose();
@@ -66,6 +72,24 @@ export default function BookUploadModal({ open, onClose, onCreated }: BookUpload
       const res = await app.uploadFile({ cloudPath, filePath: file as unknown as string });
       setUploadedFileId(res.fileID);
       setUploadedFileName(file.name);
+
+      // 如果是 PDF，自动解析目录
+      if (ext.toLowerCase() === "pdf") {
+        setParsingToc(true);
+        try {
+          const tocItems = await extractPdfToc(file);
+          if (tocItems.length > 0) {
+            setToc(tocItems.join("\n"));
+            setTocDetected(true);
+          } else {
+            setTocDetected(false);
+          }
+        } catch {
+          setTocDetected(false);
+        } finally {
+          setParsingToc(false);
+        }
+      }
     } catch {
       setError("文件上传失败，请重试");
     } finally {
@@ -76,6 +100,8 @@ export default function BookUploadModal({ open, onClose, onCreated }: BookUpload
   const handleRemoveFile = () => {
     setUploadedFileId(null);
     setUploadedFileName(null);
+    setToc("");
+    setTocDetected(false);
     if (fileInputRef.current) fileInputRef.current.value = "";
   };
 
@@ -124,6 +150,9 @@ export default function BookUploadModal({ open, onClose, onCreated }: BookUpload
         link: link.trim() || undefined,
         fileUrl,
         fileName: uploadedFileName || undefined,
+        toc: toc.trim()
+          ? toc.split("\n").map((l) => l.trim()).filter(Boolean)
+          : [],
       });
       if (book) {
         ensureTags(tags.length > 0 ? tags : ["综合"]);
@@ -328,6 +357,49 @@ export default function BookUploadModal({ open, onClose, onCreated }: BookUpload
                   </button>
                 )}
               </div>
+
+              {/* 目录（自动识别 + 手动编辑） */}
+              {uploadedFileName && uploadedFileName.toLowerCase().endsWith(".pdf") && (
+                <div>
+                  <label className="mb-1.5 flex items-center gap-1.5 text-xs text-mist-400">
+                    <ListTree size={13} />
+                    目录（自动识别，可编辑）
+                  </label>
+                  {parsingToc ? (
+                    <div className="flex items-center gap-2 rounded-lg border border-void-600/50 bg-void-800/40 px-4 py-3">
+                      <Loader2 size={15} className="animate-spin text-star-300" />
+                      <span className="text-sm text-mist-300">正在识别 PDF 目录…</span>
+                    </div>
+                  ) : (
+                    <>
+                      {tocDetected ? (
+                        <textarea
+                          name="toc"
+                          rows={6}
+                          value={toc}
+                          onChange={(e) => setToc(e.target.value)}
+                          placeholder="每行一个章节标题，缩进表示层级"
+                          className="w-full resize-y rounded-lg border border-void-600/50 bg-void-950/50 p-3 font-mono text-xs leading-relaxed text-parchment-100 placeholder:text-mist-500 focus:border-star-400/50 focus:outline-none focus:ring-1 focus:ring-star-400/30"
+                        />
+                      ) : (
+                        <div className="rounded-lg border border-void-600/40 bg-void-800/20 px-4 py-3">
+                          <p className="text-xs text-mist-500">
+                            未检测到 PDF 书签目录，可手动在下方输入
+                          </p>
+                          <textarea
+                            name="toc"
+                            rows={4}
+                            value={toc}
+                            onChange={(e) => setToc(e.target.value)}
+                            placeholder="每行一个章节标题"
+                            className="mt-2 w-full resize-y rounded-lg border border-void-600/50 bg-void-950/50 p-3 font-mono text-xs leading-relaxed text-parchment-100 placeholder:text-mist-500 focus:border-star-400/50 focus:outline-none focus:ring-1 focus:ring-star-400/30"
+                          />
+                        </div>
+                      )}
+                    </>
+                  )}
+                </div>
+              )}
 
               {/* 标签 */}
               <div>

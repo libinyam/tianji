@@ -108,6 +108,7 @@ export async function createBook(params: {
   link?: string;
   fileUrl?: string;
   fileName?: string;
+  toc?: string[];
 }): Promise<Book | null> {
   const uid = getCurrentUid();
   if (!uid) throw new Error("请先登录");
@@ -125,7 +126,7 @@ export async function createBook(params: {
     rating: 0,
     year: new Date().getFullYear(),
     pages: 0,
-    toc: [],
+    toc: params.toc ?? [],
     reviews: [],
     authorUid: uid,
     link: params.link,
@@ -154,7 +155,7 @@ export async function createBook(params: {
     rating: 0,
     year: doc.year,
     pages: 0,
-    toc: [],
+    toc: doc.toc,
     reviews: [],
     link: doc.link,
     fileUrl: doc.fileUrl,
