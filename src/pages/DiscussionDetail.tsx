@@ -6,6 +6,7 @@ import {
   ArrowLeft,
   ThumbsUp,
   Check,
+  X,
   Star,
   Eye,
   MessageCircle,
