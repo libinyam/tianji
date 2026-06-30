@@ -5,7 +5,6 @@ import { createBook } from "@/lib/books";
 import { ensureTags } from "@/lib/tags";
 import { rateLimiters } from "@/lib/security";
 import { app } from "@/lib/cloudbase";
-import { extractPdfToc } from "@/lib/pdf-toc";
 import { useAuthStore } from "@/stores/auth";
 import TagSelector from "@/components/TagSelector";
 import type { Book, BookCategory } from "@/types";
@@ -73,10 +72,11 @@ export default function BookUploadModal({ open, onClose, onCreated }: BookUpload
       setUploadedFileId(res.fileID);
       setUploadedFileName(file.name);
 
-      // 如果是 PDF，自动解析目录
+      // 如果是 PDF，动态加载解析器并提取目录
       if (ext.toLowerCase() === "pdf") {
         setParsingToc(true);
         try {
+          const { extractPdfToc } = await import("@/lib/pdf-toc");
           const tocItems = await extractPdfToc(file);
           if (tocItems.length > 0) {
             setToc(tocItems.join("\n"));
