@@ -135,6 +135,7 @@ export async function createPost(params: {
     author: doc.author,
     avatarColor: doc.avatarColor,
     tags: doc.tags,
+    category: doc.category,
     answers: 0,
     views: 0,
     votes: 0,
