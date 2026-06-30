@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useMemo } from "react";
 import { X, Loader2, Tag, Wrench, GraduationCap } from "lucide-react";
 import { fetchHotTags, searchTags, PRESET_TAGS, CATEGORY_LABEL, type TagInfo } from "@/lib/tags";
 
@@ -18,6 +18,7 @@ export default function TagSelector({
   const [hotTags, setHotTags] = useState<TagInfo[]>([]);
   const [showDropdown, setShowDropdown] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [activeIndex, setActiveIndex] = useState(-1);
   const containerRef = useRef<HTMLDivElement>(null);
 
   // 加载热门标签
@@ -46,6 +47,7 @@ export default function TagSelector({
     const handler = (e: MouseEvent) => {
       if (containerRef.current && !containerRef.current.contains(e.target as Node)) {
         setShowDropdown(false);
+        setActiveIndex(-1);
       }
     };
     window.addEventListener("mousedown", handler);
@@ -58,20 +60,11 @@ export default function TagSelector({
       onChange([...value, trimmed]);
     }
     setInput("");
+    setActiveIndex(-1);
   };
 
   const removeTag = (tag: string) => {
     onChange(value.filter((t) => t !== tag));
-  };
-
-  const handleKeyDown = (e: React.KeyboardEvent) => {
-    if (e.key === "Enter" && input.trim()) {
-      e.preventDefault();
-      addTag(input);
-      setShowDropdown(false);
-    } else if (e.key === "Backspace" && !input && value.length > 0) {
-      removeTag(value[value.length - 1]);
-    }
   };
 
   // 构建推荐列表：搜索结果优先，否则用热门+预设
@@ -79,24 +72,84 @@ export default function TagSelector({
   const hotToolTags = hotTags.filter((t) => t.category === "tool" && !value.includes(t.name));
   const hotSubjectTags = hotTags.filter((t) => (t.category === "subject" || !t.category) && !value.includes(t.name));
 
-  // 预设标签中未被选中的
   const presetTools = PRESET_TAGS.tool.filter((t) => !value.includes(t) && !hotToolTags.some((h) => h.name === t));
   const presetSubjects = PRESET_TAGS.subject.filter((t) => !value.includes(t) && !hotSubjectTags.some((h) => h.name === t));
 
-  const renderTagButton = (name: string, count?: number) => (
-    <button
-      key={name}
-      type="button"
-      onClick={() => addTag(name)}
-      className="flex items-center gap-1 rounded-full border border-void-600/40 bg-void-800/40 px-2.5 py-1 text-xs text-mist-300 transition-colors hover:border-star-400/40 hover:text-star-200"
-    >
-      <Tag size={9} />
-      {name}
-      {count !== undefined && count > 0 && (
-        <span className="text-[9px] text-mist-600">{count}</span>
-      )}
-    </button>
-  );
+  // 构建扁平化的可选标签列表（用于键盘导航）
+  const flatOptions = useMemo(() => {
+    if (hasSearch) {
+      return suggestions.filter((t) => !value.includes(t.name)).slice(0, 8).map((t) => ({ name: t.name, count: t.count }));
+    }
+    return [
+      ...hotToolTags.slice(0, 6).map((t) => ({ name: t.name, count: t.count })),
+      ...presetTools.slice(0, 6).map((t) => ({ name: t, count: undefined as number | undefined })),
+      ...hotSubjectTags.slice(0, 6).map((t) => ({ name: t.name, count: t.count })),
+      ...presetSubjects.slice(0, 6).map((t) => ({ name: t, count: undefined as number | undefined })),
+    ];
+  }, [hasSearch, suggestions, value, hotToolTags, hotSubjectTags, presetTools, presetSubjects]);
+
+  const handleKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === "ArrowDown") {
+      e.preventDefault();
+      if (!showDropdown) {
+        setShowDropdown(true);
+        setActiveIndex(0);
+      } else if (flatOptions.length > 0) {
+        setActiveIndex((prev) => (prev + 1) % flatOptions.length);
+      }
+    } else if (e.key === "ArrowUp") {
+      e.preventDefault();
+      if (showDropdown && flatOptions.length > 0) {
+        setActiveIndex((prev) => (prev <= 0 ? flatOptions.length - 1 : prev - 1));
+      }
+    } else if (e.key === "Enter" && input.trim()) {
+      e.preventDefault();
+      if (activeIndex >= 0 && activeIndex < flatOptions.length) {
+        addTag(flatOptions[activeIndex].name);
+      } else {
+        addTag(input);
+      }
+      setShowDropdown(false);
+    } else if (e.key === "Escape") {
+      e.preventDefault();
+      setShowDropdown(false);
+      setActiveIndex(-1);
+    } else if (e.key === "Backspace" && !input && value.length > 0) {
+      removeTag(value[value.length - 1]);
+    }
+  };
+
+  const renderTagOption = (name: string, count: number | undefined, globalIndex: number) => {
+    const isActive = globalIndex === activeIndex;
+    return (
+      <button
+        key={name}
+        type="button"
+        role="option"
+        id={`tag-option-${globalIndex}`}
+        aria-selected={isActive}
+        onClick={() => {
+          addTag(name);
+          setShowDropdown(false);
+        }}
+        onMouseEnter={() => setActiveIndex(globalIndex)}
+        className={`flex items-center gap-1 rounded-full border px-2.5 py-1 text-xs transition-colors ${
+          isActive
+            ? "border-star-400/60 bg-star-400/15 text-star-200"
+            : "border-void-600/40 bg-void-800/40 text-mist-300 hover:border-star-400/40 hover:text-star-200"
+        }`}
+      >
+        <Tag size={9} />
+        {name}
+        {count !== undefined && count > 0 && (
+          <span className="text-[9px] text-mist-600">{count}</span>
+        )}
+      </button>
+    );
+  };
+
+  // 为分组渲染构建索引映射
+  let optionCounter = 0;
 
   return (
     <div className="relative" ref={containerRef}>
@@ -110,6 +163,7 @@ export default function TagSelector({
             <button
               type="button"
               onClick={() => removeTag(t)}
+              aria-label={`移除标签 ${t}`}
               className="ml-0.5 text-mist-500 hover:text-red-300"
             >
               <X size={11} />
@@ -120,14 +174,20 @@ export default function TagSelector({
           <input
             name="tag-input"
             type="text"
+            role="combobox"
+            aria-expanded={showDropdown}
+            aria-controls="tag-listbox"
+            aria-activedescendant={activeIndex >= 0 ? `tag-option-${activeIndex}` : undefined}
+            aria-label="标签输入"
             value={input}
             onChange={(e) => {
               setInput(e.target.value);
               setShowDropdown(true);
+              setActiveIndex(0);
             }}
             onFocus={() => setShowDropdown(true)}
             onKeyDown={handleKeyDown}
-            placeholder={value.length < maxTags ? "输入标签后回车" : ""}
+            placeholder={value.length < maxTags ? "输入标签后回车，↑↓选择" : ""}
             disabled={value.length >= maxTags}
             className="w-full rounded-full border border-void-600/50 bg-void-950/50 px-3 py-1 text-xs text-parchment-100 placeholder:text-mist-500 focus:border-star-400/50 focus:outline-none disabled:opacity-40"
           />
@@ -136,7 +196,11 @@ export default function TagSelector({
 
       {/* 下拉推荐 */}
       {showDropdown && value.length < maxTags && (
-        <div className="mt-2 rounded-lg border border-void-600/40 bg-void-900/95 p-2.5 shadow-xl backdrop-blur-xl">
+        <div
+          id="tag-listbox"
+          role="listbox"
+          className="mt-2 rounded-lg border border-void-600/40 bg-void-900/95 p-2.5 shadow-xl backdrop-blur-xl"
+        >
           {loading && (
             <div className="flex items-center gap-1.5 px-2 py-1.5 text-xs text-mist-500">
               <Loader2 size={11} className="animate-spin" /> 搜索中…
@@ -146,9 +210,10 @@ export default function TagSelector({
           {/* 搜索结果 */}
           {!loading && hasSearch && (
             <div className="flex flex-wrap gap-1.5">
-              {suggestions.filter((t) => !value.includes(t.name)).slice(0, 8).map((t) =>
-                renderTagButton(t.name, t.count)
-              )}
+              {suggestions.filter((t) => !value.includes(t.name)).slice(0, 8).map((t) => {
+                const idx = optionCounter++;
+                return renderTagOption(t.name, t.count, idx);
+              })}
             </div>
           )}
 
@@ -156,28 +221,44 @@ export default function TagSelector({
           {!loading && !hasSearch && (
             <div className="space-y-2.5">
               {/* 工具与部署 */}
-              <div>
-                <div className="mb-1.5 flex items-center gap-1.5 px-1 text-[10px] font-medium text-star-300">
-                  <Wrench size={10} />
-                  {CATEGORY_LABEL.tool}
+              {(hotToolTags.length > 0 || presetTools.length > 0) && (
+                <div>
+                  <div className="mb-1.5 flex items-center gap-1.5 px-1 text-[10px] font-medium text-star-300">
+                    <Wrench size={10} />
+                    {CATEGORY_LABEL.tool}
+                  </div>
+                  <div className="flex flex-wrap gap-1.5">
+                    {hotToolTags.slice(0, 6).map((t) => {
+                      const idx = optionCounter++;
+                      return renderTagOption(t.name, t.count, idx);
+                    })}
+                    {presetTools.slice(0, 6).map((t) => {
+                      const idx = optionCounter++;
+                      return renderTagOption(t, undefined, idx);
+                    })}
+                  </div>
                 </div>
-                <div className="flex flex-wrap gap-1.5">
-                  {hotToolTags.slice(0, 6).map((t) => renderTagButton(t.name, t.count))}
-                  {presetTools.slice(0, 6).map((t) => renderTagButton(t))}
-                </div>
-              </div>
+              )}
 
               {/* 学科 */}
-              <div>
-                <div className="mb-1.5 flex items-center gap-1.5 px-1 text-[10px] font-medium text-tian-300">
-                  <GraduationCap size={10} />
-                  {CATEGORY_LABEL.subject}
+              {(hotSubjectTags.length > 0 || presetSubjects.length > 0) && (
+                <div>
+                  <div className="mb-1.5 flex items-center gap-1.5 px-1 text-[10px] font-medium text-tian-300">
+                    <GraduationCap size={10} />
+                    {CATEGORY_LABEL.subject}
+                  </div>
+                  <div className="flex flex-wrap gap-1.5">
+                    {hotSubjectTags.slice(0, 6).map((t) => {
+                      const idx = optionCounter++;
+                      return renderTagOption(t.name, t.count, idx);
+                    })}
+                    {presetSubjects.slice(0, 6).map((t) => {
+                      const idx = optionCounter++;
+                      return renderTagOption(t, undefined, idx);
+                    })}
+                  </div>
                 </div>
-                <div className="flex flex-wrap gap-1.5">
-                  {hotSubjectTags.slice(0, 6).map((t) => renderTagButton(t.name, t.count))}
-                  {presetSubjects.slice(0, 6).map((t) => renderTagButton(t))}
-                </div>
-              </div>
+              )}
             </div>
           )}
 

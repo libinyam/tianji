@@ -217,6 +217,21 @@ body {
   }
 }
 
+/* ========== 无障碍：减弱动画 ========== */
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto !important;
+  }
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
 /* ========== 浅色主题按钮覆盖 ========== */
 
 /* 公式颜色 - 公式是正文内容，默认保持统一清晰，不做随机变量染色。 */
