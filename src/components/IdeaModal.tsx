@@ -1,5 +1,4 @@
 import { useState } from "react";
-import { motion, AnimatePresence } from "motion/react";
 import { X, Loader2, Lightbulb, RotateCcw } from "lucide-react";
 import { createIdea } from "@/lib/ideas";
 import { ensureTags } from "@/lib/tags";
@@ -7,6 +6,7 @@ import { rateLimiters } from "@/lib/security";
 import { useAuthStore } from "@/stores/auth";
 import { useDraft } from "@/hooks/useDraft";
 import TagSelector from "@/components/TagSelector";
+import Dialog from "@/components/Dialog";
 import type { Idea } from "@/types";
 
 interface IdeaModalProps {
@@ -81,155 +81,135 @@ export default function IdeaModal({ open, onClose, onCreated }: IdeaModalProps) 
   };
 
   return (
-    <AnimatePresence>
-      {open && (
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          exit={{ opacity: 0 }}
-          className="fixed inset-0 z-[100] flex items-center justify-center p-4"
+    <Dialog open={open} onClose={handleClose} preventClose={loading} labelledById="idea-dialog-title" maxWidthClass="max-w-xl">
+      <div className="max-h-[90vh] overflow-y-auto">
+        <button
+          onClick={handleClose}
+          className="absolute right-4 top-4 flex h-8 w-8 items-center justify-center rounded-md text-mist-400 transition-colors hover:bg-void-700/50 hover:text-parchment-100"
+          aria-label="关闭"
         >
-          <div
-            className="absolute inset-0 bg-void-950/80 backdrop-blur-sm"
-            onClick={handleClose}
-          />
+          <X size={18} />
+        </button>
 
-          <motion.div
-            initial={{ opacity: 0, scale: 0.94, y: 16 }}
-            animate={{ opacity: 1, scale: 1, y: 0 }}
-            exit={{ opacity: 0, scale: 0.96, y: 8 }}
-            transition={{ duration: 0.25 }}
-            className="card-surface grain relative max-h-[90vh] w-full max-w-2xl overflow-y-auto p-7"
-          >
-            <button
-              onClick={handleClose}
-              className="absolute right-4 top-4 flex h-8 w-8 items-center justify-center rounded-md text-mist-400 transition-colors hover:bg-void-700/50 hover:text-parchment-100"
-              aria-label="关闭"
-            >
-              <X size={18} />
-            </button>
+        <div className="relative">
+          <div className="mb-2 flex items-center gap-2">
+            <Lightbulb size={14} className="text-star-400" />
+            <span className="font-mono text-xs uppercase tracking-[0.25em] text-star-300">
+              分享灵感
+            </span>
+          </div>
+          <h3 id="idea-dialog-title" className="heading-display text-2xl text-parchment-50">提出你的项目创意</h3>
+          <p className="mt-2 text-sm text-mist-400">
+            把你的想法描述清楚，让其他人能理解、共鸣并加入。
+          </p>
+        </div>
 
-            <div className="relative">
-              <div className="mb-2 flex items-center gap-2">
-                <Lightbulb size={14} className="text-star-400" />
-                <span className="font-mono text-xs uppercase tracking-[0.25em] text-star-300">
-                  分享灵感
-                </span>
-              </div>
-              <h3 className="heading-display text-2xl text-parchment-50">提出你的项目创意</h3>
-              <p className="mt-2 text-sm text-mist-400">
-                把你的想法描述清楚，让其他人能理解、共鸣并加入。
-              </p>
-            </div>
-
-            <form onSubmit={handleSubmit} className="relative mt-6 space-y-5">
-              {/* 草稿恢复提示 */}
-              {restored && (
-                <div className="flex items-center justify-between rounded-lg border border-star-400/30 bg-star-400/10 px-3 py-2 text-xs text-star-200">
-                  <span>已恢复上次未发布的草稿</span>
-                  <div className="flex items-center gap-3">
-                    <button
-                      type="button"
-                      onClick={() => { setDraft({ title: "", summary: "", topic: TOPIC_OPTIONS[0], tags: [] }); clearDraft(); }}
-                      className="flex items-center gap-1 text-mist-300 transition-colors hover:text-parchment-100"
-                    >
-                      <RotateCcw size={12} /> 清空
-                    </button>
-                    <button
-                      type="button"
-                      onClick={dismissRestored}
-                      className="text-mist-400 transition-colors hover:text-parchment-100"
-                    >
-                      忽略
-                    </button>
-                  </div>
-                </div>
-              )}
-              {/* 标题 */}
-              <div>
-                <label className="mb-1.5 block text-xs text-mist-400">标题</label>
-                <input
-                  name="title"
-                  type="text"
-                  required
-                  maxLength={100}
-                  value={title}
-                  onChange={(e) => setTitle(e.target.value)}
-                  placeholder="一句话描述你的项目创意"
-                  className="w-full rounded-lg border border-void-600/50 bg-void-950/50 px-3 py-2.5 text-sm text-parchment-100 placeholder:text-mist-500 focus:border-star-400/50 focus:outline-none focus:ring-1 focus:ring-star-400/30"
-                />
-              </div>
-
-              {/* 摘要 */}
-              <div>
-                <label className="mb-1.5 block text-xs text-mist-400">描述</label>
-                <textarea
-                  name="body"
-                  required
-                  rows={5}
-                  maxLength={500}
-                  value={summary}
-                  onChange={(e) => setSummary(e.target.value)}
-                  placeholder="描述这个创意的背景、解决的问题、技术方案，以及为什么值得做…"
-                  className="w-full resize-y rounded-lg border border-void-600/50 bg-void-950/50 p-3 text-sm leading-relaxed text-parchment-100 placeholder:text-mist-500 focus:border-star-400/50 focus:outline-none focus:ring-1 focus:ring-star-400/30"
-                />
-              </div>
-
-              {/* 主题 */}
-              <div>
-                <label className="mb-1.5 block text-xs text-mist-400">主题分类</label>
-                <div className="flex flex-wrap gap-2">
-                  {TOPIC_OPTIONS.map((t) => (
-                    <button
-                      key={t}
-                      type="button"
-                      onClick={() => setTopic(t)}
-                      className={`rounded-full border px-3 py-1.5 text-xs transition-all ${
-                        topic === t
-                          ? "border-star-400/60 bg-star-400/15 text-star-200"
-                          : "border-void-600/50 bg-void-800/40 text-mist-300 hover:border-mist-400/40"
-                      }`}
-                    >
-                      {t}
-                    </button>
-                  ))}
-                </div>
-              </div>
-
-              {/* 标签 */}
-              <div>
-                <label className="mb-1.5 block text-xs text-mist-400">标签（最多 5 个）</label>
-                <TagSelector value={tags} onChange={setTags} />
-              </div>
-
-              {error && (
-                <div className="rounded-lg border border-red-400/30 bg-red-400/10 px-3 py-2 text-xs text-red-300">
-                  {error}
-                </div>
-              )}
-
-              <div className="flex justify-end gap-3">
-                <button type="button" onClick={handleClose} className="btn-ghost">
-                  取消
+        <form onSubmit={handleSubmit} className="relative mt-6 space-y-5">
+          {/* 草稿恢复提示 */}
+          {restored && (
+            <div className="flex items-center justify-between rounded-lg border border-star-400/30 bg-star-400/10 px-3 py-2 text-xs text-star-200">
+              <span>已恢复上次未发布的草稿</span>
+              <div className="flex items-center gap-3">
+                <button
+                  type="button"
+                  onClick={() => { setDraft({ title: "", summary: "", topic: TOPIC_OPTIONS[0], tags: [] }); clearDraft(); }}
+                  className="flex items-center gap-1 text-mist-300 transition-colors hover:text-parchment-100"
+                >
+                  <RotateCcw size={12} /> 清空
                 </button>
                 <button
-                  type="submit"
-                  disabled={loading || !title.trim() || !summary.trim()}
-                  className="btn-gold disabled:cursor-not-allowed disabled:opacity-60"
+                  type="button"
+                  onClick={dismissRestored}
+                  className="text-mist-400 transition-colors hover:text-parchment-100"
                 >
-                  {loading ? (
-                    <>
-                      <Loader2 size={15} className="animate-spin" /> 发布中…
-                    </>
-                  ) : (
-                    "发布灵感"
-                  )}
+                  忽略
                 </button>
               </div>
-            </form>
-          </motion.div>
-        </motion.div>
-      )}
-    </AnimatePresence>
+            </div>
+          )}
+          {/* 标题 */}
+          <div>
+            <label className="mb-1.5 block text-xs text-mist-400">标题</label>
+            <input
+              name="title"
+              type="text"
+              required
+              maxLength={100}
+              value={title}
+              onChange={(e) => setTitle(e.target.value)}
+              placeholder="一句话描述你的项目创意"
+              className="w-full rounded-lg border border-void-600/50 bg-void-950/50 px-3 py-2.5 text-sm text-parchment-100 placeholder:text-mist-500 focus:border-star-400/50 focus:outline-none focus:ring-1 focus:ring-star-400/30"
+            />
+          </div>
+
+          {/* 摘要 */}
+          <div>
+            <label className="mb-1.5 block text-xs text-mist-400">描述</label>
+            <textarea
+              name="body"
+              required
+              rows={5}
+              maxLength={500}
+              value={summary}
+              onChange={(e) => setSummary(e.target.value)}
+              placeholder="描述这个创意的背景、解决的问题、技术方案，以及为什么值得做…"
+              className="w-full resize-y rounded-lg border border-void-600/50 bg-void-950/50 p-3 text-sm leading-relaxed text-parchment-100 placeholder:text-mist-500 focus:border-star-400/50 focus:outline-none focus:ring-1 focus:ring-star-400/30"
+            />
+          </div>
+
+          {/* 主题 */}
+          <div>
+            <label className="mb-1.5 block text-xs text-mist-400">主题分类</label>
+            <div className="flex flex-wrap gap-2">
+              {TOPIC_OPTIONS.map((t) => (
+                <button
+                  key={t}
+                  type="button"
+                  onClick={() => setTopic(t)}
+                  className={`rounded-full border px-3 py-1.5 text-xs transition-all ${
+                    topic === t
+                      ? "border-star-400/60 bg-star-400/15 text-star-200"
+                      : "border-void-600/50 bg-void-800/40 text-mist-300 hover:border-mist-400/40"
+                  }`}
+                >
+                  {t}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* 标签 */}
+          <div>
+            <label className="mb-1.5 block text-xs text-mist-400">标签（最多 5 个）</label>
+            <TagSelector value={tags} onChange={setTags} />
+          </div>
+
+          {error && (
+            <div className="rounded-lg border border-red-400/30 bg-red-400/10 px-3 py-2 text-xs text-red-300">
+              {error}
+            </div>
+          )}
+
+          <div className="flex justify-end gap-3">
+            <button type="button" onClick={handleClose} className="btn-ghost">
+              取消
+            </button>
+            <button
+              type="submit"
+              disabled={loading || !title.trim() || !summary.trim()}
+              className="btn-gold disabled:cursor-not-allowed disabled:opacity-60"
+            >
+              {loading ? (
+                <>
+                  <Loader2 size={15} className="animate-spin" /> 发布中…
+                </>
+              ) : (
+                "发布灵感"
+              )}
+            </button>
+          </div>
+        </form>
+      </div>
+    </Dialog>
   );
 }

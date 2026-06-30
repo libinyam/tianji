@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect } from "react";
-import { motion, AnimatePresence } from "motion/react";
 import { X, Mail, Lock, Sparkles, Loader2, Github, ShieldCheck, Phone } from "lucide-react";
+import Dialog from "@/components/Dialog";
 import { useAuthStore } from "@/stores/auth";
 import CanvasCaptcha, { type CanvasCaptchaHandle } from "@/components/CanvasCaptcha";
 
@@ -196,28 +196,13 @@ export default function AuthModal({ open, onClose }: AuthModalProps) {
   };
 
   return (
-    <AnimatePresence>
-      {open && (
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          exit={{ opacity: 0 }}
-          className="fixed inset-0 z-[100] flex items-center justify-center p-4"
-        >
-          {/* 遮罩 */}
-          <div
-            className="absolute inset-0 bg-void-950/80 backdrop-blur-sm"
-            onClick={handleClose}
-          />
-
-          {/* 弹窗 */}
-          <motion.div
-            initial={{ opacity: 0, scale: 0.94, y: 16 }}
-            animate={{ opacity: 1, scale: 1, y: 0 }}
-            exit={{ opacity: 0, scale: 0.96, y: 8 }}
-            transition={{ duration: 0.25 }}
-            className="card-surface grain relative w-full max-w-md overflow-hidden p-7"
-          >
+    <Dialog
+      open={open}
+      onClose={handleClose}
+      preventClose={loading}
+      labelledById="auth-dialog-title"
+      maxWidthClass="max-w-md"
+    >
             <div className="pointer-events-none absolute -right-16 -top-16 h-40 w-40 rounded-full bg-star-glow opacity-20 blur-3xl" />
 
             {/* 关闭 */}
@@ -237,7 +222,7 @@ export default function AuthModal({ open, onClose }: AuthModalProps) {
                   {mode === "login" ? "欢迎归来" : "加入星辰"}
                 </span>
               </div>
-              <h3 className="heading-display text-2xl text-parchment-50">
+              <h3 id="auth-dialog-title" className="heading-display text-2xl text-parchment-50">
                 {mode === "login"
                   ? "登录天玑"
                   : loginMethod === "email" && waitingForCode
@@ -605,9 +590,6 @@ export default function AuthModal({ open, onClose }: AuthModalProps) {
                 {mode === "login" ? "去注册" : "去登录"}
               </button>
             </p>
-          </motion.div>
-        </motion.div>
-      )}
-    </AnimatePresence>
+    </Dialog>
   );
 }

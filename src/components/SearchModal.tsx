@@ -1,8 +1,8 @@
 import { useState, useEffect, useRef, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
-import { motion, AnimatePresence } from "motion/react";
 import { Search, X, TrendingUp, MessageSquare, Lightbulb, BookOpen, Users, Loader2, Flame } from "lucide-react";
 import { searchAll, fetchHotList, type SearchResult, type HotItem } from "@/lib/search";
+import Dialog from "./Dialog";
 
 const TYPE_ICON = {
   帖子: MessageSquare,
@@ -87,38 +87,15 @@ export default function SearchModal({ open, onClose }: SearchModalProps) {
     navigate(link);
   };
 
-  // 键盘快捷键
-  useEffect(() => {
-    if (!open) return;
-    const handler = (e: KeyboardEvent) => {
-      if (e.key === "Escape") onClose();
-    };
-    window.addEventListener("keydown", handler);
-    return () => window.removeEventListener("keydown", handler);
-  }, [open, onClose]);
-
   return (
-    <AnimatePresence>
-      {open && (
-        <>
-          {/* 遮罩 */}
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            onClick={onClose}
-            className="fixed inset-0 z-[60] bg-void-950/80 backdrop-blur-sm"
-          />
-
-          {/* 弹窗 */}
-          <motion.div
-            initial={{ opacity: 0, scale: 0.96, y: -20 }}
-            animate={{ opacity: 1, scale: 1, y: 0 }}
-            exit={{ opacity: 0, scale: 0.96, y: -20 }}
-            transition={{ duration: 0.18 }}
-            className="fixed left-1/2 top-[12%] z-[61] w-[92%] max-w-2xl -translate-x-1/2"
-          >
-            <div className="overflow-hidden rounded-2xl border border-void-600/60 bg-void-900/95 shadow-2xl backdrop-blur-xl">
+    <Dialog
+      open={open}
+      onClose={onClose}
+      labelledById="search-dialog-title"
+      maxWidthClass="max-w-2xl"
+      paddingClass="p-0"
+    >
+      <div className="overflow-hidden rounded-2xl border border-void-600/60 bg-void-900/95 shadow-2xl backdrop-blur-xl">
               {/* 搜索栏 */}
               <div className="flex items-center gap-3 border-b border-void-600/40 px-4 py-3">
                 {loading ? (
@@ -128,16 +105,18 @@ export default function SearchModal({ open, onClose }: SearchModalProps) {
                 )}
                 <input
                   name="search"
+                  id="search-dialog-title"
                   ref={inputRef}
                   value={keyword}
                   onChange={(e) => handleInputChange(e.target.value)}
                   placeholder="搜索帖子、灵感、资源、协作…"
+                  aria-label="搜索"
                   className="flex-1 bg-transparent text-sm text-parchment-100 outline-none placeholder:text-mist-600"
                 />
                 <kbd className="hidden rounded border border-void-600 px-1.5 py-0.5 font-mono text-[10px] text-mist-500 sm:inline">
                   ESC
                 </kbd>
-                <button onClick={onClose} className="text-mist-500 hover:text-parchment-100">
+                <button onClick={onClose} aria-label="关闭" className="text-mist-500 hover:text-parchment-100">
                   <X size={18} />
                 </button>
               </div>
@@ -245,10 +224,7 @@ export default function SearchModal({ open, onClose }: SearchModalProps) {
                   </div>
                 )}
               </div>
-            </div>
-          </motion.div>
-        </>
-      )}
-    </AnimatePresence>
+      </div>
+    </Dialog>
   );
 }

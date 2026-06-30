@@ -1,6 +1,6 @@
 import { useState, useRef } from "react";
-import { motion, AnimatePresence } from "motion/react";
 import { X, Loader2, BookOpen, Link2, UploadCloud, FileText, ListTree } from "lucide-react";
+import Dialog from "@/components/Dialog";
 import { createBook } from "@/lib/books";
 import { ensureTags } from "@/lib/tags";
 import { rateLimiters } from "@/lib/security";
@@ -167,42 +167,31 @@ export default function BookUploadModal({ open, onClose, onCreated }: BookUpload
   };
 
   return (
-    <AnimatePresence>
-      {open && (
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          exit={{ opacity: 0 }}
-          className="fixed inset-0 z-[100] flex items-center justify-center p-4"
+    <Dialog
+      open={open}
+      onClose={handleClose}
+      preventClose={loading}
+      labelledById="book-upload-dialog-title"
+      maxWidthClass="max-w-2xl"
+      paddingClass="p-7"
+    >
+      <div className="max-h-[90vh] overflow-y-auto">
+        <button
+          onClick={handleClose}
+          className="absolute right-4 top-4 flex h-8 w-8 items-center justify-center rounded-md text-mist-400 transition-colors hover:bg-void-700/50 hover:text-parchment-100"
+          aria-label="关闭"
         >
-          <div
-            className="absolute inset-0 bg-void-950/80 backdrop-blur-sm"
-            onClick={handleClose}
-          />
+          <X size={18} />
+        </button>
 
-          <motion.div
-            initial={{ opacity: 0, scale: 0.94, y: 16 }}
-            animate={{ opacity: 1, scale: 1, y: 0 }}
-            exit={{ opacity: 0, scale: 0.96, y: 8 }}
-            transition={{ duration: 0.25 }}
-            className="card-surface grain relative max-h-[90vh] w-full max-w-2xl overflow-y-auto p-7"
-          >
-            <button
-              onClick={handleClose}
-              className="absolute right-4 top-4 flex h-8 w-8 items-center justify-center rounded-md text-mist-400 transition-colors hover:bg-void-700/50 hover:text-parchment-100"
-              aria-label="关闭"
-            >
-              <X size={18} />
-            </button>
-
-            <div className="relative">
+        <div className="relative">
               <div className="mb-2 flex items-center gap-2">
                 <BookOpen size={14} className="text-star-400" />
                 <span className="font-mono text-xs uppercase tracking-[0.25em] text-star-300">
                   上传资源
                 </span>
               </div>
-              <h3 className="heading-display text-2xl text-parchment-50">分享学习资源</h3>
+              <h3 id="book-upload-dialog-title" className="heading-display text-2xl text-parchment-50">分享学习资源</h3>
               <p className="mt-2 text-sm text-mist-400">
                 推荐好书、教程或工具，帮助其他学习者找到方向。
               </p>
@@ -432,9 +421,7 @@ export default function BookUploadModal({ open, onClose, onCreated }: BookUpload
                 </button>
               </div>
             </form>
-          </motion.div>
-        </motion.div>
-      )}
-    </AnimatePresence>
+      </div>
+    </Dialog>
   );
 }

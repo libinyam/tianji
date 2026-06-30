@@ -1,10 +1,10 @@
 import { useState } from "react";
-import { motion, AnimatePresence } from "motion/react";
 import { X, Loader2, Plus, Trash2, BookOpen, FileText } from "lucide-react";
 import { createWorkshop, type WorkshopType, type OutlineChapter } from "@/lib/workshops";
 import { ensureTags } from "@/lib/tags";
 import { rateLimiters } from "@/lib/security";
 import TagSelector from "@/components/TagSelector";
+import Dialog from "@/components/Dialog";
 import { useAuthStore } from "@/stores/auth";
 import type { WorkshopProject } from "@/lib/workshops";
 
@@ -94,35 +94,27 @@ export default function WorkshopCreateModal({ open, onClose, onCreated }: Worksh
   };
 
   return (
-    <AnimatePresence>
-      {open && (
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          exit={{ opacity: 0 }}
-          className="fixed inset-0 z-[100] flex items-center justify-center p-4"
+    <Dialog
+      open={open}
+      onClose={handleClose}
+      preventClose={loading}
+      labelledById="workshop-create-dialog-title"
+      maxWidthClass="max-w-xl"
+    >
+      <div className="max-h-[90vh] overflow-y-auto">
+        <button
+          onClick={handleClose}
+          aria-label="关闭"
+          className="absolute right-4 top-4 flex h-8 w-8 items-center justify-center rounded-md text-mist-400 transition-colors hover:bg-void-700/50 hover:text-parchment-100"
         >
-          <div className="absolute inset-0 bg-void-950/80 backdrop-blur-sm" onClick={handleClose} />
+          <X size={18} />
+        </button>
 
-          <motion.div
-            initial={{ opacity: 0, scale: 0.94, y: 16 }}
-            animate={{ opacity: 1, scale: 1, y: 0 }}
-            exit={{ opacity: 0, scale: 0.96, y: 8 }}
-            transition={{ duration: 0.25 }}
-            className="card-surface grain relative max-h-[90vh] w-full max-w-2xl overflow-y-auto p-7"
-          >
-            <button
-              onClick={handleClose}
-              className="absolute right-4 top-4 flex h-8 w-8 items-center justify-center rounded-md text-mist-400 transition-colors hover:bg-void-700/50 hover:text-parchment-100"
-            >
-              <X size={18} />
-            </button>
-
-            <div className="relative">
-              <span className="font-mono text-xs uppercase tracking-[0.25em] text-star-300">
-                新建协作项目
-              </span>
-              <h3 className="mt-1 heading-display text-2xl text-parchment-50">发起共创</h3>
+        <div className="relative">
+          <span className="font-mono text-xs uppercase tracking-[0.25em] text-star-300">
+            新建协作项目
+          </span>
+          <h3 id="workshop-create-dialog-title" className="mt-1 heading-display text-2xl text-parchment-50">发起共创</h3>
               <p className="mt-2 text-sm text-mist-400">
                 创建大纲，邀请其他学习者共同书写教材或论文。
               </p>
@@ -286,9 +278,7 @@ export default function WorkshopCreateModal({ open, onClose, onCreated }: Worksh
                 </button>
               </div>
             </form>
-          </motion.div>
-        </motion.div>
-      )}
-    </AnimatePresence>
+      </div>
+    </Dialog>
   );
 }
