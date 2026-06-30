@@ -54,21 +54,22 @@ export async function toggleFavorite(params: {
   const uid = getCurrentUid();
   if (!uid) throw new Error("请先登录");
 
-  const existing = await db
-    .collection(COLLECTION)
+  const favCol = db.collection(COLLECTION);
+
+  // 查询是否已收藏
+  const { data: existing } = await favCol
     .where({ uid, targetId: params.targetId })
     .get();
+  const list = existing ?? [];
 
-  if (existing.data && existing.data.length > 0) {
-    // 已收藏 -> 取消（先取文档 ID，再按 ID 删除，确保安全规则匹配）
-    const docId = (existing.data[0] as FavoriteDoc)._id;
-    if (docId) {
-      await db.collection(COLLECTION).doc(docId).remove();
-    } else {
-      await db
-        .collection(COLLECTION)
-        .where({ uid, targetId: params.targetId })
-        .remove();
+  if (list.length > 0) {
+    // 已收藏 -> 取消
+    const docId = (list[0] as FavoriteDoc)._id;
+    if (!docId) throw new Error("无法获取收藏记录ID");
+    const res = await favCol.doc(docId).remove();
+    // CloudBase 安全规则拦截时不会 throw，而是 deleted=0
+    if (res.deleted === 0) {
+      throw new Error("取消收藏失败，可能是权限不足");
     }
     return false;
   }
@@ -83,7 +84,10 @@ export async function toggleFavorite(params: {
     link: params.link,
     createdAt: new Date().toISOString(),
   };
-  await db.collection(COLLECTION).add(doc);
+  const addRes = await favCol.add(doc);
+  if (!addRes.id && !addRes._id) {
+    throw new Error("收藏失败，可能是权限不足");
+  }
   return true;
 }
 
@@ -128,7 +132,7 @@ export async function fetchMyFavorites(): Promise<FavoriteItem[]> {
       .orderBy("createdAt", "desc")
       .limit(100)
       .get();
-    return (data as FavoriteDoc[]).map(toFav);
+    return ((data as FavoriteDoc[]) ?? []).map(toFav);
   } catch {
     return [];
   }

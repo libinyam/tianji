@@ -22,6 +22,7 @@ import Avatar from "@/components/Avatar";
 import ReportModal from "@/components/ReportModal";
 import { toggleFavorite, isFavorited } from "@/lib/favorites";
 import { useAuthStore } from "@/stores/auth";
+import { toast } from "@/stores/toast";
 
 export default function BookDetail() {
   const { id } = useParams();
@@ -95,8 +96,10 @@ export default function BookDetail() {
         link: `/library/${book.id}`,
       });
       setFavorited(fav);
-    } catch {
-      // 静默
+      toast.success(fav ? "已收藏" : "已取消收藏");
+    } catch (e) {
+      console.error("收藏操作失败:", e);
+      toast.error("操作失败，请重试");
     }
   };
 
