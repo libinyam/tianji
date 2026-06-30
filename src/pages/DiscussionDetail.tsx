@@ -766,6 +766,15 @@ export default function DiscussionDetail() {
                               采纳
                             </button>
                           )}
+                          {user?.uid === question.authorUid && a.accepted && (
+                            <button
+                              onClick={() => handleAccept(a.id, false)}
+                              className="inline-flex items-center gap-1 rounded-md border border-mist-500/30 bg-mist-500/5 px-2.5 py-1 text-[11px] text-mist-400 transition-all hover:border-mist-400/60 hover:bg-mist-500/10"
+                            >
+                              <X size={11} />
+                              取消采纳
+                            </button>
+                          )}
                         </div>
                         <div className="flex items-center gap-2 text-xs text-mist-500">
                           <Avatar name={a.author} color={a.avatarColor} size={22} />
