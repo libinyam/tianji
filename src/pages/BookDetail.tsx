@@ -33,6 +33,7 @@ export default function BookDetail() {
   const [reportOpen, setReportOpen] = useState(false);
   const [resolvedFileUrl, setResolvedFileUrl] = useState<string | undefined>(undefined);
   const [resolvingUrl, setResolvingUrl] = useState(false);
+  const [downloading, setDownloading] = useState(false);
   const { user } = useAuthStore();
 
   useEffect(() => {
@@ -80,6 +81,33 @@ export default function BookDetail() {
     })();
     return () => { mounted = false; };
   }, [book?.fileUrl]);
+
+  // 真正触发下载：fetch 成 blob 后用 blob URL 下载，绕过跨域 download 属性失效问题
+  const handleDownload = async () => {
+    if (!book) return;
+    const url = resolvedFileUrl ?? book.fileUrl;
+    if (!url) return;
+    setDownloading(true);
+    try {
+      const res = await fetch(url);
+      if (!res.ok) throw new Error("下载失败");
+      const blob = await res.blob();
+      const blobUrl = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = blobUrl;
+      a.download = book.fileName || `${book.title}.pdf`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(blobUrl);
+      incrementBookDownloads(book.id);
+    } catch {
+      // fetch 失败（如 CORS），退回到直接打开链接
+      window.open(url, "_blank");
+    } finally {
+      setDownloading(false);
+    }
+  };
 
   const handleFav = async () => {
     if (!user) {
@@ -169,14 +197,14 @@ export default function BookDetail() {
                   <Loader2 size={15} className="animate-spin" /> 准备下载链接…
                 </button>
               ) : (
-                <a
-                  href={resolvedFileUrl ?? book.fileUrl}
-                  download={book.fileName || book.title}
-                  onClick={() => incrementBookDownloads(book.id)}
-                  className="btn-gold col-span-2"
+                <button
+                  onClick={handleDownload}
+                  disabled={downloading}
+                  className="btn-gold col-span-2 disabled:opacity-70"
                 >
-                  <Download size={15} /> 下载资源
-                </a>
+                  {downloading ? <Loader2 size={15} className="animate-spin" /> : <Download size={15} />}
+                  {downloading ? "下载中…" : "下载资源"}
+                </button>
               )
             ) : book.link ? (
               <a

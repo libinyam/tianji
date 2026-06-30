@@ -78,12 +78,12 @@
   --c-void-700: #f0ede5;
   --c-void-600: #ddd8c8;
 
-  /* 星芒暖金 - 加深保证对比度 */
+  /* 星芒暖金 - 浅色模式下加深，浅色值在白底上不可读 */
   --c-star-50: #fffbeb;
-  --c-star-100: #fef3c7;
-  --c-star-200: #f5d77a;
-  --c-star-300: #e8b940;
-  --c-star-400: #d99e2a;
+  --c-star-100: #6b4a06;
+  --c-star-200: #855a10;
+  --c-star-300: #9A6400;
+  --c-star-400: #B58100;
   --c-star-500: #c4881e;
   --c-star-600: #a36f15;
   --c-star-700: #855a10;
@@ -272,6 +272,14 @@ body {
   background-color: rgba(37, 99, 235, 0.06);
   color: #1D4ED8;
   font-weight: 500;
+}
+
+/* 浅色模式下 Tailwind 原生黄色文字加深，白底上不可读 */
+:root.light .text-yellow-300 {
+  color: #B58100;
+}
+:root.light .text-yellow-400 {
+  color: #9A6400;
 }
 
 @layer utilities {

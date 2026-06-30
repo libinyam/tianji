@@ -21,11 +21,11 @@ function applyTheme(mode: ThemeMode) {
 }
 
 export const useThemeStore = create<ThemeState>((set, get) => ({
-  mode: "dark",
+  mode: "light",
 
   initTheme: () => {
     const saved = localStorage.getItem(STORAGE_KEY) as ThemeMode | null;
-    const mode = saved ?? "dark";
+    const mode = saved ?? "light";
     applyTheme(mode);
     set({ mode });
   },
