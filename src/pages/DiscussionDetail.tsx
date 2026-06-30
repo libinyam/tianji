@@ -36,7 +36,7 @@ import { toggleFavorite, isFavorited } from "@/lib/favorites";
 import { rateLimiters } from "@/lib/security";
 import { app } from "@/lib/cloudbase";
 import { useAuthStore } from "@/stores/auth";
-import MathText from "@/components/MathText";
+import LazyMathText from "@/components/LazyMathText";
 import Avatar from "@/components/Avatar";
 import RelatedContent from "@/components/RelatedContent";
 import ReportModal from "@/components/ReportModal";
@@ -560,7 +560,7 @@ export default function DiscussionDetail() {
               </div>
             ) : (
               <div className="mt-6 rounded-xl border border-void-600/40 bg-void-800/30 p-6">
-                <MathText
+                <LazyMathText
                   content={question.body}
                   className="text-[15px] leading-relaxed text-parchment-100"
                 />
@@ -637,7 +637,7 @@ export default function DiscussionDetail() {
                           </div>
                         </div>
                       ) : (
-                        <MathText
+                        <LazyMathText
                           content={a.content}
                           className="text-sm leading-relaxed text-mist-200"
                         />

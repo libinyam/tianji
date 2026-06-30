@@ -29,10 +29,12 @@ export default function Layout() {
 
   return (
     <div className="grain relative min-h-screen bg-void-radial text-parchment-200">
-      {/* 固定背景星点 */}
-      <div className="pointer-events-none fixed inset-0 z-0">
-        <StarField count={70} />
-      </div>
+      {/* 固定背景星点 - 浅色模式不渲染，移动端减少数量 */}
+      {themeMode === "dark" && (
+        <div className="pointer-events-none fixed inset-0 z-0">
+          <StarField count={typeof window !== "undefined" && window.innerWidth < 768 ? 30 : 70} />
+        </div>
+      )}
       {/* 顶部辉光 */}
       <div
         className="pointer-events-none fixed inset-x-0 top-0 z-0 h-[480px]"

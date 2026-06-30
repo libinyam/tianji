@@ -34,7 +34,7 @@ import {
 import { useAuthStore } from "@/stores/auth";
 import { toast } from "@/stores/toast";
 import Avatar from "@/components/Avatar";
-import MathText from "@/components/MathText";
+import LazyMathText from "@/components/LazyMathText";
 import RelatedContent from "@/components/RelatedContent";
 
 function formatTime(iso: string): string {
@@ -616,7 +616,7 @@ export default function WorkshopDetail() {
                 />
               ) : content ? (
                 <div className="prose-tj">
-                  <MathText
+                  <LazyMathText
                     content={content}
                     className="text-[15px] leading-relaxed text-mist-200"
                   />
@@ -810,7 +810,7 @@ function AnnotationCard({
           {formatTime(annotation.createdAt)}
         </span>
       </div>
-      <MathText
+      <LazyMathText
         content={annotation.content}
         className="text-xs leading-relaxed text-mist-200"
       />

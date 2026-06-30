@@ -9,7 +9,7 @@ import {
   PenLine,
   Circle,
 } from "lucide-react";
-import MathText from "@/components/MathText";
+import LazyMathText from "@/components/LazyMathText";
 
 const CONTENT = `本章我们从链式法则出发，重新审视反向传播。设前向计算为 $z = Wa + b$，激活 $a' = \\sigma(z)$，则损失对参数的梯度可写作：
 
@@ -94,7 +94,7 @@ export default function EditorPreview() {
         <div className="relative p-6 sm:p-8">
           <div className="prose-tj">
             <h3 className="heading-display text-xl text-parchment-50">3.2 链式法则与误差反传</h3>
-            <MathText content={CONTENT} className="mt-4 text-[15px] leading-relaxed text-mist-200" />
+            <LazyMathText content={CONTENT} className="mt-4 text-[15px] leading-relaxed text-mist-200" />
           </div>
 
           {/* 模拟协作者光标 */}
@@ -149,7 +149,7 @@ export default function EditorPreview() {
                   </span>
                   <span className="font-mono text-[9px] text-mist-500">{c.line}</span>
                 </div>
-                <MathText content={c.text} className="mt-2 text-xs leading-relaxed text-mist-300" />
+                <LazyMathText content={c.text} className="mt-2 text-xs leading-relaxed text-mist-300" />
                 <span className="mt-1 block text-[10px] text-mist-500">{c.author}</span>
               </motion.div>
             ))}
