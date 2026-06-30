@@ -85,7 +85,8 @@ export async function toggleFavorite(params: {
     createdAt: new Date().toISOString(),
   };
   const addRes = await favCol.add(doc);
-  if (!addRes.id && !addRes._id) {
+  const addResult = addRes as { id?: string; _id?: string };
+  if (!addResult.id && !addResult._id) {
     throw new Error("收藏失败，可能是权限不足");
   }
   return true;
