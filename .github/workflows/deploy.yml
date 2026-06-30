@@ -1,11 +1,11 @@
-name: Deploy to CloudBase
+name: Build
 
 on:
   push:
     branches: [main, master]
 
 jobs:
-  deploy:
+  build:
     runs-on: ubuntu-latest
 
     steps:
@@ -27,12 +27,3 @@ jobs:
           VITE_CLOUDBASE_ENV_ID: ${{ secrets.VITE_CLOUDBASE_ENV_ID }}
           VITE_CLOUDBASE_REGION: ap-shanghai
           VITE_CLOUDBASE_ACCESS_KEY: ${{ secrets.VITE_CLOUDBASE_ACCESS_KEY }}
-
-      - name: Install CloudBase CLI
-        run: npm install -g @cloudbase/cli
-
-      - name: Login CloudBase CLI
-        run: tcb login --apiKeyId ${{ secrets.TCB_SECRET_ID }} --apiKey ${{ secrets.TCB_SECRET_KEY }}
-
-      - name: Deploy to CloudBase Static Hosting
-        run: tcb hosting deploy ./dist / -e ${{ secrets.TCB_ENV_ID }}
