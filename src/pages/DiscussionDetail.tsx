@@ -756,17 +756,13 @@ export default function DiscussionDetail() {
                               ? `${a.comments.length} 条评论 · 添加评论`
                               : "添加评论"}
                           </button>
-                          {user?.uid === question.authorUid && a.authorUid !== "ai-bot-001" && (
+                          {user?.uid === question.authorUid && a.authorUid !== "ai-bot-001" && !a.accepted && (
                             <button
-                              onClick={() => handleAccept(a.id, !a.accepted)}
-                              className={`inline-flex items-center gap-1 rounded-md border px-2.5 py-1 text-[11px] transition-all ${
-                                a.accepted
-                                  ? "border-star-400/60 bg-star-400/10 text-star-300 hover:border-red-400/40 hover:text-red-300"
-                                  : "border-emerald-400/40 bg-emerald-400/5 text-emerald-300 hover:border-emerald-400/70 hover:bg-emerald-400/10"
-                              }`}
+                              onClick={() => handleAccept(a.id, true)}
+                              className="inline-flex items-center gap-1 rounded-md border border-emerald-400/40 bg-emerald-400/5 px-2.5 py-1 text-[11px] text-emerald-300 transition-all hover:border-emerald-400/70 hover:bg-emerald-400/10"
                             >
                               <Check size={11} />
-                              {a.accepted ? "取消采纳" : "采纳"}
+                              采纳
                             </button>
                           )}
                         </div>
