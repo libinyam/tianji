@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from "react";
-import { Link, useParams } from "react-router-dom";
+import { Link, useParams, useNavigate } from "react-router-dom";
 import { motion } from "motion/react";
 import {
   ArrowLeft,
@@ -16,6 +16,8 @@ import {
   Send,
   X,
   Eye,
+  Trash2,
+  Settings,
 } from "lucide-react";
 import { PostDetailSkeleton } from "@/components/Skeleton";
 import {
@@ -23,6 +25,7 @@ import {
   joinWorkshop,
   canViewContent,
   updateWorkshop,
+  deleteWorkshop,
   addAnnotation,
   resolveAnnotation,
   type WorkshopProject,
@@ -49,6 +52,7 @@ function formatTime(iso: string): string {
 export default function WorkshopDetail() {
   const { id } = useParams();
   const { user } = useAuthStore();
+  const navigate = useNavigate();
 
   const [project, setProject] = useState<WorkshopProject | null>(null);
   const [loading, setLoading] = useState(true);
@@ -60,6 +64,16 @@ export default function WorkshopDetail() {
   const [saveStatus, setSaveStatus] = useState<"idle" | "saving" | "saved" | "error">("idle");
   const saveTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const contentRef = useRef<HTMLDivElement>(null);
+
+  // 元信息编辑状态
+  const [metaEditing, setMetaEditing] = useState(false);
+  const [editTitle, setEditTitle] = useState("");
+  const [editDesc, setEditDesc] = useState("");
+  const [metaSaving, setMetaSaving] = useState(false);
+
+  // 删除确认状态
+  const [deleteConfirm, setDeleteConfirm] = useState(false);
+  const [deleting, setDeleting] = useState(false);
 
   // 批注状态
   const [selectedText, setSelectedText] = useState("");
@@ -194,6 +208,67 @@ export default function WorkshopDetail() {
     setEditing(!editing);
   };
 
+  // 元信息编辑：进入编辑
+  const handleStartMetaEdit = () => {
+    if (!project) return;
+    setEditTitle(project.title);
+    setEditDesc(project.description);
+    setMetaEditing(true);
+  };
+
+  // 元信息编辑：保存
+  const handleSaveMeta = async () => {
+    if (!id || !project) return;
+    if (!editTitle.trim()) {
+      toast.error("标题不能为空");
+      return;
+    }
+    setMetaSaving(true);
+    try {
+      const ok = await updateWorkshop(id, {
+        title: editTitle.trim(),
+        description: editDesc.trim(),
+      });
+      if (ok) {
+        setProject({
+          ...project,
+          title: editTitle.trim(),
+          description: editDesc.trim(),
+          updatedAt: new Date().toISOString(),
+        });
+        setMetaEditing(false);
+        toast.success("已保存");
+      } else {
+        toast.error("保存失败，请重试");
+      }
+    } catch {
+      toast.error("保存失败，可能是权限不足");
+    } finally {
+      setMetaSaving(false);
+    }
+  };
+
+  // 删除项目
+  const handleDelete = async () => {
+    if (!id) return;
+    setDeleting(true);
+    try {
+      const ok = await deleteWorkshop(id);
+      if (ok) {
+        toast.success("项目已删除");
+        navigate("/workshop");
+      } else {
+        toast.error("删除失败，请重试");
+        setDeleteConfirm(false);
+      }
+    } catch (err) {
+      toast.error((err as Error).message || "删除失败，可能是权限不足");
+      setDeleteConfirm(false);
+    } finally {
+      setDeleting(false);
+    }
+  };
+
   // 文本选中 → 显示批注表单
   const handleMouseUp = () => {
     if (editing) return;
@@ -290,32 +365,83 @@ export default function WorkshopDetail() {
         </div>
 
         <div className="mt-4 flex items-start justify-between gap-4">
-          <h1 className="heading-display text-2xl leading-snug text-parchment-50 sm:text-3xl">
-            {project.title}
-          </h1>
-          {isCreator && (
-            <button
-              onClick={handleToggleEdit}
-              className={`btn-ghost shrink-0 text-xs ${
-                editing ? "border-star-400/40 text-star-300" : ""
-              }`}
-            >
-              {editing ? (
-                <>
-                  <Eye size={13} /> 完成编辑
-                </>
-              ) : (
-                <>
-                  <Edit3 size={13} /> 编辑文档
-                </>
-              )}
-            </button>
+          {metaEditing ? (
+            <div className="flex-1 space-y-2">
+              <input
+                name="workshop-title"
+                value={editTitle}
+                onChange={(e) => setEditTitle(e.target.value)}
+                placeholder="项目标题"
+                className="w-full rounded-lg border border-void-600/50 bg-void-950/50 px-3 py-2 text-xl font-bold text-parchment-50 placeholder:text-mist-500 focus:border-star-400/50 focus:outline-none"
+              />
+              <textarea
+                name="workshop-desc"
+                value={editDesc}
+                onChange={(e) => setEditDesc(e.target.value)}
+                rows={2}
+                placeholder="项目简介"
+                className="w-full resize-y rounded-lg border border-void-600/50 bg-void-950/50 px-3 py-2 text-sm text-parchment-100 placeholder:text-mist-500 focus:border-star-400/50 focus:outline-none"
+              />
+            </div>
+          ) : (
+            <h1 className="heading-display text-2xl leading-snug text-parchment-50 sm:text-3xl">
+              {project.title}
+            </h1>
+          )}
+          {isCreator && !metaEditing && (
+            <div className="flex shrink-0 items-center gap-2">
+              <button
+                onClick={handleToggleEdit}
+                className={`btn-ghost text-xs ${
+                  editing ? "border-star-400/40 text-star-300" : ""
+                }`}
+              >
+                {editing ? (
+                  <>
+                    <Eye size={13} /> 完成编辑
+                  </>
+                ) : (
+                  <>
+                    <Edit3 size={13} /> 编辑文档
+                  </>
+                )}
+              </button>
+              <button
+                onClick={handleStartMetaEdit}
+                className="btn-ghost text-xs"
+                title="编辑标题和简介"
+              >
+                <Settings size={13} /> 项目设置
+              </button>
+            </div>
           )}
         </div>
 
-        <p className="mt-3 max-w-2xl text-sm leading-relaxed text-mist-300">
-          {project.description}
-        </p>
+        {metaEditing ? (
+          <div className="mt-3 flex items-center gap-2">
+            <button
+              onClick={handleSaveMeta}
+              disabled={metaSaving}
+              className="btn-gold text-xs disabled:opacity-60"
+            >
+              {metaSaving ? (
+                <><Loader2 size={13} className="animate-spin" /> 保存中…</>
+              ) : (
+                <><Check size={13} /> 保存</>
+              )}
+            </button>
+            <button
+              onClick={() => setMetaEditing(false)}
+              className="btn-ghost text-xs"
+            >
+              <X size={13} /> 取消
+            </button>
+          </div>
+        ) : (
+          <p className="mt-3 max-w-2xl text-sm leading-relaxed text-mist-300">
+            {project.description}
+          </p>
+        )}
 
         <div className="mt-4 flex flex-wrap items-center gap-4 text-xs text-mist-500">
           <div className="flex items-center gap-2">
@@ -388,6 +514,39 @@ export default function WorkshopDetail() {
           <span className="mt-5 inline-flex items-center gap-1.5 rounded-lg border border-emerald-400/30 bg-emerald-400/10 px-3 py-1.5 text-xs text-emerald-300">
             <Check size={13} /> 已加入
           </span>
+        )}
+
+        {/* 创建者：删除项目 */}
+        {isCreator && !metaEditing && (
+          <div className="mt-6 border-t border-void-600/30 pt-4">
+            {deleteConfirm ? (
+              <div className="flex items-center gap-3">
+                <span className="text-sm text-red-300">确定删除整个项目？此操作不可撤销。</span>
+                <button
+                  onClick={handleDelete}
+                  disabled={deleting}
+                  className="inline-flex items-center gap-1.5 rounded-lg border border-red-500/40 bg-red-500/20 px-3 py-1.5 text-xs font-medium text-red-300 transition-all hover:bg-red-500/30 disabled:opacity-60"
+                >
+                  {deleting ? <Loader2 size={12} className="animate-spin" /> : <Trash2 size={12} />}
+                  {deleting ? "删除中…" : "确认删除"}
+                </button>
+                <button
+                  onClick={() => setDeleteConfirm(false)}
+                  disabled={deleting}
+                  className="btn-ghost text-xs"
+                >
+                  取消
+                </button>
+              </div>
+            ) : (
+              <button
+                onClick={() => setDeleteConfirm(true)}
+                className="inline-flex items-center gap-1.5 text-xs text-mist-500 transition-colors hover:text-red-400"
+              >
+                <Trash2 size={12} /> 删除项目
+              </button>
+            )}
+          </div>
         )}
       </motion.div>
 

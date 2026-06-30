@@ -265,11 +265,16 @@ export function canViewContent(project: WorkshopProject): boolean {
 /**
  * 更新文档内容（仅创建者可编辑）
  * @param id 文档 id
- * @param params 可更新 title 和 content
+ * @param params 可更新 title、description、content、status
  */
 export async function updateWorkshop(
   id: string,
-  params: { title?: string; content?: string }
+  params: {
+    title?: string;
+    description?: string;
+    content?: string;
+    status?: WorkshopStatus;
+  }
 ): Promise<boolean> {
   const uid = getCurrentUid();
   if (!uid) throw new Error("请先登录");
@@ -288,12 +293,40 @@ export async function updateWorkshop(
       updatedAt: new Date().toISOString(),
     };
     if (params.title !== undefined) updateFields.title = params.title;
+    if (params.description !== undefined) updateFields.description = params.description;
     if (params.content !== undefined) updateFields.content = params.content;
+    if (params.status !== undefined) updateFields.status = params.status;
 
     await docRef.update(updateFields);
     return true;
   } catch (err) {
     // 权限错误向上抛出，其他错误返回 false
+    if (err instanceof Error && err.message.includes("仅创建者")) throw err;
+    return false;
+  }
+}
+
+/**
+ * 删除协作项目（仅创建者可删除）
+ * @param id 文档 id
+ */
+export async function deleteWorkshop(id: string): Promise<boolean> {
+  const uid = getCurrentUid();
+  if (!uid) throw new Error("请先登录");
+
+  try {
+    const docRef = db.collection(COLLECTION).doc(id);
+    const { data } = await docRef.get();
+    if (!data || data.length === 0) return false;
+
+    const project = data[0] as WorkshopDoc;
+    if (project.creatorUid !== uid) {
+      throw new Error("仅创建者可删除项目");
+    }
+
+    await docRef.remove();
+    return true;
+  } catch (err) {
     if (err instanceof Error && err.message.includes("仅创建者")) throw err;
     return false;
   }

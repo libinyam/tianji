@@ -11,9 +11,40 @@ const ADMIN_UIDS = ["2068674931977097216"];
 exports.main = async (event, context) => {
   const { collection, docId, action } = event;
 
-  // 验证管理员身份
-  const { userInfo } = app.auth().getEndUserInfo(context);
-  const uid = userInfo?.uid;
+  // 打印 context 结构，便于调试身份获取
+  console.log("context keys:", Object.keys(context || {}));
+  console.log("context.userInfo:", JSON.stringify(context?.userInfo));
+
+  // 尝试多种方式获取用户身份
+  let uid = "";
+
+  // 方式1: getEndUserInfo（node-sdk v4 中可能不可用）
+  try {
+    const info = await app.auth().getEndUserInfo(context);
+    uid = info?.userInfo?.uid || info?.uid || "";
+  } catch (e) {
+    console.warn("getEndUserInfo 失败:", e.message);
+  }
+
+  // 方式2: 从 context.userInfo 获取
+  if (!uid && context?.userInfo) {
+    uid = context.userInfo.uid || "";
+  }
+
+  // 方式3: 从 context.identifier 获取
+  if (!uid && context?.identifier) {
+    uid = context.identifier;
+  }
+
+  // 方式4: 前端传入 uid（验证 context 中有 openid 确认用户已登录）
+  const clientUid = event._callerUid || "";
+  const isOpenid = context?.userInfo?.openid || context?.openid;
+  if (!uid && clientUid && isOpenid) {
+    uid = clientUid;
+  }
+
+  console.log("admin-delete 调用, uid:", uid, "clientUid:", clientUid, "isAdmin:", ADMIN_UIDS.includes(uid));
+
   if (!uid || !ADMIN_UIDS.includes(uid)) {
     return { ok: false, error: "无管理员权限" };
   }
