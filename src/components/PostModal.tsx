@@ -65,16 +65,20 @@ export default function PostModal({ open, onClose, onCreated, defaultCategory = 
     setLoading(true);
     setError(null);
     try {
+      // 闲聊区：用子分类作为标签；学术区：用用户输入或默认标签
+      const finalTags = category === "casual"
+        ? (subCategory ? [subCategory] : ["闲聊"])
+        : (tags.length > 0 ? tags : ["综合讨论"]);
       const post = await createPost({
         title: title.trim(),
         body: body.trim(),
-        tags: tags.length > 0 ? tags : ["综合讨论"],
+        tags: finalTags,
         category,
         subCategory: category === "casual" && subCategory ? subCategory : undefined,
       });
       if (post) {
         // 更新标签计数
-        ensureTags(tags.length > 0 ? tags : ["综合讨论"]);
+        ensureTags(finalTags);
         clearDraft();
         onCreated(post);
         handleClose();
@@ -88,7 +92,7 @@ export default function PostModal({ open, onClose, onCreated, defaultCategory = 
             postBody: post.body,
             contentType: "post",
             content: post.body,
-            tags: tags.length > 0 ? tags : ["综合讨论"],
+            tags: finalTags,
           },
         }).then(() => {
           // AI 回复已异步写入数据库
@@ -252,11 +256,13 @@ export default function PostModal({ open, onClose, onCreated, defaultCategory = 
                 />
               </div>
 
-              {/* 标签 */}
-              <div>
-                <label className="mb-1.5 block text-xs text-mist-400">标签（最多 5 个）</label>
-                <TagSelector value={tags} onChange={setTags} />
-              </div>
+              {/* 标签 - 仅学术区显示 */}
+              {category === "academic" && (
+                <div>
+                  <label className="mb-1.5 block text-xs text-mist-400">标签（最多 5 个）</label>
+                  <TagSelector value={tags} onChange={setTags} />
+                </div>
+              )}
 
               {error && (
                 <div className="rounded-lg border border-red-400/30 bg-red-400/10 px-3 py-2 text-xs text-red-300">

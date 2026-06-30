@@ -60,11 +60,13 @@ export default function Discussion() {
 
   const filtered = useMemo(() => {
     let list = allQuestions.filter((q) => {
-      // 一级分类筛选
-      if (categoryFilter === "学科" && !q.tags.some((t) => PRESET_TAGS.subject.includes(t))) return false;
-      if (categoryFilter === "工具与部署" && !q.tags.some((t) => PRESET_TAGS.tool.includes(t))) return false;
-      // 二级标签筛选
-      if (activeTag !== "全部" && !q.tags.includes(activeTag)) return false;
+      // 学术区：一级分类筛选
+      if (section === "academic") {
+        if (categoryFilter === "学科" && !q.tags.some((t) => PRESET_TAGS.subject.includes(t))) return false;
+        if (categoryFilter === "工具与部署" && !q.tags.some((t) => PRESET_TAGS.tool.includes(t))) return false;
+        // 二级标签筛选
+        if (activeTag !== "全部" && !q.tags.includes(activeTag)) return false;
+      }
       return true;
     });
     list = [...list].sort((a, b) => {
@@ -185,35 +187,37 @@ export default function Discussion() {
           </div>
         )}
 
-        {/* 二级标签筛选 */}
+        {/* 标签筛选（仅学术区）+ 排序 */}
         <div className="mb-8 flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
-          <div className="flex flex-wrap items-center gap-2">
-            <button
-              onClick={() => setActiveTag("全部")}
-              className={`rounded-full border px-3.5 py-1.5 text-xs transition-all ${
-                activeTag === "全部"
-                  ? "border-star-400/60 bg-star-400/15 text-star-200"
-                  : "border-void-600/50 bg-void-800/40 text-mist-300 hover:border-mist-400/40"
-              }`}
-            >
-              全部
-            </button>
-            {ALL_TAGS.map((t) => (
+          {section === "academic" && (
+            <div className="flex flex-wrap items-center gap-2">
               <button
-                key={t}
-                onClick={() => setActiveTag(t)}
+                onClick={() => setActiveTag("全部")}
                 className={`rounded-full border px-3.5 py-1.5 text-xs transition-all ${
-                  activeTag === t
-                    ? "border-tian-400/50 bg-tian-400/15 text-tian-100"
+                  activeTag === "全部"
+                    ? "border-star-400/60 bg-star-400/15 text-star-200"
                     : "border-void-600/50 bg-void-800/40 text-mist-300 hover:border-mist-400/40"
                 }`}
               >
-                {t}
+                全部
               </button>
-            ))}
-          </div>
+              {ALL_TAGS.map((t) => (
+                <button
+                  key={t}
+                  onClick={() => setActiveTag(t)}
+                  className={`rounded-full border px-3.5 py-1.5 text-xs transition-all ${
+                    activeTag === t
+                      ? "border-tian-400/50 bg-tian-400/15 text-tian-100"
+                      : "border-void-600/50 bg-void-800/40 text-mist-300 hover:border-mist-400/40"
+                  }`}
+                >
+                  {t}
+                </button>
+              ))}
+            </div>
+          )}
 
-          <div className="flex items-center gap-3 text-xs">
+          <div className={`flex items-center gap-3 text-xs ${section === "academic" ? "" : "lg:ml-auto"}`}>
             <span className="text-mist-500">排序</span>
             {(["最新", "热度", "悬赏"] as SortKey[]).map((s) => (
               <button
