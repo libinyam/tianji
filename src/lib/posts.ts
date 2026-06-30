@@ -455,17 +455,19 @@ export async function voteAnswer(
     const { data: existing } = await votesCol
       .where({ answerId, uid })
       .get();
-    if (existing.length > 0) return false; // 已投过票
+    if ((existing ?? []).length > 0) return false; // 已投过票
 
     // 记录投票
     await votesCol.add({ answerId, uid, postId, createdAt: Date.now() });
   } else {
-    // 取消投票
+    // 取消投票 — 用 doc(id).remove() 避免安全规则拦截 where().remove()
     const { data: existing } = await votesCol
       .where({ answerId, uid })
       .get();
-    if (existing.length === 0) return false; // 没投过票
-    await votesCol.where({ answerId, uid }).remove();
+    const list = existing ?? [];
+    if (list.length === 0) return false; // 没投过票
+    const voteDocId = (list[0] as { _id: string })._id;
+    await votesCol.doc(voteDocId).remove();
   }
 
   // 更新回答票数（使用原子操作 inc）
