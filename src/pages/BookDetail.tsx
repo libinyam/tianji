@@ -20,6 +20,7 @@ import { app } from "@/lib/cloudbase";
 import DifficultyDots from "@/components/DifficultyDots";
 import Avatar from "@/components/Avatar";
 import ReportModal from "@/components/ReportModal";
+import RelatedContent from "@/components/RelatedContent";
 import { toggleFavorite, isFavorited } from "@/lib/favorites";
 import { useAuthStore } from "@/stores/auth";
 import { toast } from "@/stores/toast";
@@ -398,6 +399,10 @@ export default function BookDetail() {
             ))}
           </div>
         </section>
+      )}
+
+      {book.tags.length > 0 && (
+        <RelatedContent tags={book.tags} excludeId={book.id} />
       )}
 
       <ReportModal

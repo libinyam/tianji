@@ -35,6 +35,7 @@ import { useAuthStore } from "@/stores/auth";
 import { toast } from "@/stores/toast";
 import Avatar from "@/components/Avatar";
 import MathText from "@/components/MathText";
+import RelatedContent from "@/components/RelatedContent";
 
 function formatTime(iso: string): string {
   if (!iso) return "";
@@ -759,6 +760,10 @@ export default function WorkshopDetail() {
             </div>
           </aside>
         </div>
+      )}
+
+      {project.tags.length > 0 && (
+        <RelatedContent tags={project.tags} excludeId={project.id} />
       )}
     </div>
   );

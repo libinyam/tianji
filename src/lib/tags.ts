@@ -203,3 +203,44 @@ export async function fetchTagCount(tagName: string): Promise<number> {
 function escapeRegex(str: string): string {
   return str.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 }
+
+export type ContentType = "post" | "idea" | "book" | "workshop";
+
+/**
+ * 查询跨模块相关内容（基于标签匹配）
+ * 取前2个标签并行查询，合并去重后排除当前内容，每模块最多3条
+ */
+export async function fetchRelatedContent(
+  tags: string[],
+  excludeId: string
+): Promise<{
+  posts: TagContentItem[];
+  ideas: TagContentItem[];
+  books: TagContentItem[];
+  workshops: TagContentItem[];
+}> {
+  if (!tags.length) return { posts: [], ideas: [], books: [], workshops: [] };
+
+  // 只取前2个标签查询，避免过多数据库请求
+  const queryTags = tags.slice(0, 2);
+  const results = await Promise.all(queryTags.map((t) => fetchContentByTag(t)));
+
+  const mergeUnique = (key: "posts" | "ideas" | "books" | "workshops"): TagContentItem[] => {
+    const map = new Map<string, TagContentItem>();
+    for (const r of results) {
+      for (const item of r[key]) {
+        if (item.id !== excludeId) {
+          map.set(item.id, item);
+        }
+      }
+    }
+    return Array.from(map.values()).slice(0, 3);
+  };
+
+  return {
+    posts: mergeUnique("posts"),
+    ideas: mergeUnique("ideas"),
+    books: mergeUnique("books"),
+    workshops: mergeUnique("workshops"),
+  };
+}

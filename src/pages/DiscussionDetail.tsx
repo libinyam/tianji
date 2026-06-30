@@ -38,6 +38,7 @@ import { app } from "@/lib/cloudbase";
 import { useAuthStore } from "@/stores/auth";
 import MathText from "@/components/MathText";
 import Avatar from "@/components/Avatar";
+import RelatedContent from "@/components/RelatedContent";
 import ReportModal from "@/components/ReportModal";
 import type { Question, Comment } from "@/types";
 
@@ -894,6 +895,10 @@ export default function DiscussionDetail() {
           </div>
         </aside>
       </div>
+
+      {question && question.tags.length > 0 && (
+        <RelatedContent tags={question.tags} excludeId={question.id} />
+      )}
 
       <ReportModal
         open={!!reportTarget}
