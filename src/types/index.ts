@@ -52,6 +52,7 @@ export interface Answer {
 }
 
 export type PostCategory = "academic" | "casual";
+export type CasualSubCategory = "灌水" | "动态" | "新闻" | "其他";
 
 export interface Question {
   id: string;
@@ -66,6 +67,7 @@ export interface Question {
   votes: number;
   bounty?: number;
   category?: PostCategory;
+  subCategory?: CasualSubCategory;
   createdAt: string;
   body: string; // 含 LaTeX 行间公式占位
   answerList: Answer[];

@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { motion, AnimatePresence } from "motion/react";
 import { X, Loader2, RotateCcw, GraduationCap, Coffee } from "lucide-react";
-import { createPost, type PostCategory } from "@/lib/posts";
+import { createPost, type PostCategory, type CasualSubCategory, CASUAL_SUB_CATEGORIES } from "@/lib/posts";
 import { ensureTags } from "@/lib/tags";
 import { rateLimiters } from "@/lib/security";
 import { app } from "@/lib/cloudbase";
@@ -24,21 +24,24 @@ export default function PostModal({ open, onClose, onCreated, defaultCategory = 
     body: "",
     tags: [] as string[],
     category: defaultCategory as PostCategory,
+    subCategory: "" as CasualSubCategory | "",
   });
   const title = draft.title;
   const body = draft.body;
   const tags = draft.tags;
   const category = (draft.category as PostCategory) ?? defaultCategory;
+  const subCategory = (draft.subCategory as CasualSubCategory | "") ?? "";
   const setTitle = (v: string) => setDraft({ ...draft, title: v });
   const setBody = (v: string) => setDraft({ ...draft, body: v });
   const setTags = (v: string[]) => setDraft({ ...draft, tags: v });
-  const setCategory = (v: PostCategory) => setDraft({ ...draft, category: v });
+  const setCategory = (v: PostCategory) => setDraft({ ...draft, category: v, subCategory: "" });
+  const setSubCategory = (v: CasualSubCategory) => setDraft({ ...draft, subCategory: v });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const { user } = useAuthStore();
 
   const handleClose = () => {
-    setDraft({ title: "", body: "", tags: [], category: defaultCategory });
+    setDraft({ title: "", body: "", tags: [], category: defaultCategory, subCategory: "" });
     clearDraft();
     setError(null);
     onClose();
@@ -67,6 +70,7 @@ export default function PostModal({ open, onClose, onCreated, defaultCategory = 
         body: body.trim(),
         tags: tags.length > 0 ? tags : ["综合讨论"],
         category,
+        subCategory: category === "casual" && subCategory ? subCategory : undefined,
       });
       if (post) {
         // 更新标签计数
@@ -149,7 +153,7 @@ export default function PostModal({ open, onClose, onCreated, defaultCategory = 
                   <div className="flex items-center gap-3">
                     <button
                       type="button"
-                      onClick={() => { setDraft({ title: "", body: "", tags: [], category: defaultCategory }); clearDraft(); }}
+                      onClick={() => { setDraft({ title: "", body: "", tags: [], category: defaultCategory, subCategory: "" }); clearDraft(); }}
                       className="flex items-center gap-1 text-mist-300 transition-colors hover:text-parchment-100"
                     >
                       <RotateCcw size={12} /> 清空
@@ -191,6 +195,28 @@ export default function PostModal({ open, onClose, onCreated, defaultCategory = 
                   })}
                 </div>
               </div>
+              {/* 闲聊区子分类 */}
+              {category === "casual" && (
+                <div>
+                  <label className="mb-1.5 block text-xs text-mist-400">子分类</label>
+                  <div className="flex flex-wrap gap-2">
+                    {CASUAL_SUB_CATEGORIES.map((sc) => (
+                      <button
+                        key={sc}
+                        type="button"
+                        onClick={() => setSubCategory(sc)}
+                        className={`rounded-lg border px-3 py-1.5 text-xs transition-all ${
+                          subCategory === sc
+                            ? "border-tian-400/50 bg-tian-400/15 text-tian-100"
+                            : "border-void-600/40 bg-void-900/30 text-mist-400 hover:border-mist-400/30"
+                        }`}
+                      >
+                        {sc}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
               {/* 标题 */}
               <div>
                 <label className="mb-1.5 block text-xs text-mist-400">标题</label>

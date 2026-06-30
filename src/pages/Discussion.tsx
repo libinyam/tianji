@@ -7,7 +7,7 @@ import Avatar from "@/components/Avatar";
 import PostModal from "@/components/PostModal";
 import { PostCardSkeleton, ListSkeleton } from "@/components/Skeleton";
 
-import { fetchPosts, type PostCategory } from "@/lib/posts";
+import { fetchPosts, type PostCategory, type CasualSubCategory, CASUAL_SUB_CATEGORIES } from "@/lib/posts";
 import { PRESET_TAGS } from "@/lib/tags";
 import { useAuthStore } from "@/stores/auth";
 import type { Question } from "@/types";
@@ -24,6 +24,7 @@ export default function Discussion() {
   const [section, setSection] = useState<PostCategory>("academic");
   const [activeTag, setActiveTag] = useState<string>("全部");
   const [categoryFilter, setCategoryFilter] = useState<CategoryFilter>("全部");
+  const [subFilter, setSubFilter] = useState<CasualSubCategory | "全部">("全部");
   const [sort, setSort] = useState<SortKey>("热度");
   const [postModalOpen, setPostModalOpen] = useState(false);
   const [realPosts, setRealPosts] = useState<Question[]>([]);
@@ -36,7 +37,10 @@ export default function Discussion() {
     let mounted = true;
     (async () => {
       setLoading(true);
-      const posts = await fetchPosts(section);
+      const posts = await fetchPosts(
+        section,
+        section === "casual" && subFilter !== "全部" ? subFilter : undefined
+      );
       if (mounted) {
         setRealPosts(posts);
         setLoading(false);
@@ -45,7 +49,7 @@ export default function Discussion() {
     return () => {
       mounted = false;
     };
-  }, [section]);
+  }, [section, subFilter]);
 
   const allQuestions = realPosts;
 
@@ -110,7 +114,12 @@ export default function Discussion() {
             return (
               <button
                 key={s.key}
-                onClick={() => setSection(s.key)}
+                onClick={() => {
+                  setSection(s.key);
+                  setSubFilter("全部");
+                  setCategoryFilter("全部");
+                  setActiveTag("全部");
+                }}
                 className={`flex flex-1 items-center gap-3 rounded-xl border p-4 transition-all ${
                   isActive
                     ? "border-star-400/40 bg-star-400/10"
@@ -135,25 +144,46 @@ export default function Discussion() {
           })}
         </div>
 
-        {/* 一级分类筛选 */}
-        <div className="mb-4 flex items-center gap-2">
-          {(["全部", "学科", "工具与部署"] as CategoryFilter[]).map((c) => (
-            <button
-              key={c}
-              onClick={() => {
-                setCategoryFilter(c);
-                setActiveTag("全部");
-              }}
-              className={`rounded-lg border px-4 py-2 text-xs font-medium transition-all ${
-                categoryFilter === c
-                  ? "border-star-400/60 bg-star-400/15 text-star-200"
-                  : "border-void-600/50 bg-void-800/40 text-mist-400 hover:border-mist-400/40 hover:text-mist-200"
-              }`}
-            >
-              {c}
-            </button>
-          ))}
-        </div>
+        {/* 一级分类筛选 - 学术区：学科/工具；闲聊区：子分类 */}
+        {section === "academic" ? (
+          <div className="mb-4 flex items-center gap-2">
+            {(["全部", "学科", "工具与部署"] as CategoryFilter[]).map((c) => (
+              <button
+                key={c}
+                onClick={() => {
+                  setCategoryFilter(c);
+                  setActiveTag("全部");
+                }}
+                className={`rounded-lg border px-4 py-2 text-xs font-medium transition-all ${
+                  categoryFilter === c
+                    ? "border-star-400/60 bg-star-400/15 text-star-200"
+                    : "border-void-600/50 bg-void-800/40 text-mist-400 hover:border-mist-400/40 hover:text-mist-200"
+                }`}
+              >
+                {c}
+              </button>
+            ))}
+          </div>
+        ) : (
+          <div className="mb-4 flex items-center gap-2">
+            {(["全部", ...CASUAL_SUB_CATEGORIES] as (CasualSubCategory | "全部")[]).map((c) => (
+              <button
+                key={c}
+                onClick={() => {
+                  setSubFilter(c);
+                  setActiveTag("全部");
+                }}
+                className={`rounded-lg border px-4 py-2 text-xs font-medium transition-all ${
+                  subFilter === c
+                    ? "border-tian-400/50 bg-tian-400/15 text-tian-100"
+                    : "border-void-600/50 bg-void-800/40 text-mist-400 hover:border-mist-400/40 hover:text-mist-200"
+                }`}
+              >
+                {c}
+              </button>
+            ))}
+          </div>
+        )}
 
         {/* 二级标签筛选 */}
         <div className="mb-8 flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">

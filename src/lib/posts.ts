@@ -8,6 +8,10 @@ const POSTS_COLLECTION = "posts";
 /** 数据库中存储的帖子文档结构 */
 export type PostCategory = "academic" | "casual";
 
+/** 闲聊区子分类 */
+export type CasualSubCategory = "灌水" | "动态" | "新闻" | "其他";
+export const CASUAL_SUB_CATEGORIES: CasualSubCategory[] = ["灌水", "动态", "新闻", "其他"];
+
 export interface PostDoc {
   _id?: string;
   title: string;
@@ -19,6 +23,7 @@ export interface PostDoc {
   avatarColor: string;
   bounty?: number;
   category?: PostCategory; // "academic"(学术区) | "casual"(闲聊区)
+  subCategory?: CasualSubCategory; // 闲聊区子分类
   // 统计字段
   views: number;
   votes: number;
@@ -46,6 +51,7 @@ function toQuestion(doc: PostDoc): Question {
     body: doc.body,
     answerList: doc.answerList ?? [],
     category: doc.category ?? "academic",
+    subCategory: doc.subCategory,
   };
 }
 
@@ -64,12 +70,18 @@ import { useAuthStore } from "@/stores/auth";
 
 const AVATAR_COLORS = ["#7cc4ff", "#f3c969", "#5aa6f0", "#a78bfa", "#34d399", "#fb923c"];
 
-/** 获取所有帖子，可按分区筛选，按时间倒序 */
-export async function fetchPosts(category?: PostCategory): Promise<Question[]> {
+/** 获取所有帖子，可按分区和子分类筛选，按时间倒序 */
+export async function fetchPosts(
+  category?: PostCategory,
+  subCategory?: CasualSubCategory
+): Promise<Question[]> {
   try {
     const col = db.collection(POSTS_COLLECTION);
-    const { data } = category
-      ? await col.where({ category }).orderBy("createdAt", "desc").limit(100).get()
+    const whereCond: Record<string, string> = {};
+    if (category) whereCond.category = category;
+    if (subCategory) whereCond.subCategory = subCategory;
+    const { data } = Object.keys(whereCond).length
+      ? await col.where(whereCond).orderBy("createdAt", "desc").limit(100).get()
       : await col.orderBy("createdAt", "desc").limit(100).get();
 
     const realPosts = ((data as PostDoc[]) ?? []).map(toQuestion);
@@ -101,6 +113,7 @@ export async function createPost(params: {
   tags: string[];
   bounty?: number;
   category?: PostCategory;
+  subCategory?: CasualSubCategory;
 }): Promise<Question | null> {
   const uid = getCurrentUid();
   if (!uid) throw new Error("请先登录");
@@ -118,6 +131,7 @@ export async function createPost(params: {
     avatarColor: AVATAR_COLORS[Math.floor(Math.random() * AVATAR_COLORS.length)],
     bounty: params.bounty,
     category: params.category ?? "academic",
+    subCategory: params.subCategory,
     views: 0,
     votes: 0,
     answersCount: 0,
@@ -136,6 +150,7 @@ export async function createPost(params: {
     avatarColor: doc.avatarColor,
     tags: doc.tags,
     category: doc.category,
+    subCategory: doc.subCategory,
     answers: 0,
     views: 0,
     votes: 0,
