@@ -136,7 +136,7 @@ export async function createPost(params: {
     votes: 0,
     answersCount: 0,
     answerList: [],
-    createdAt: new Date().toISOString().slice(0, 10),
+    createdAt: new Date().toISOString(),
   };
 
   const res = await db.collection(POSTS_COLLECTION).add(doc);
@@ -196,7 +196,7 @@ export async function submitAnswer(
     votes: 0,
     accepted: false,
     content,
-    date: new Date().toISOString().slice(0, 10),
+    date: new Date().toISOString(),
   };
 
   const newAnswerList = [...(post.answerList ?? []), answer];

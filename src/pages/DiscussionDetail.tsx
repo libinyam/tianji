@@ -37,6 +37,7 @@ import { toggleFavorite, isFavorited } from "@/lib/favorites";
 import { rateLimiters } from "@/lib/security";
 import { app } from "@/lib/cloudbase";
 import { useAuthStore } from "@/stores/auth";
+import { formatRelativeTime } from "@/lib/format";
 import LazyMathText from "@/components/LazyMathText";
 import Avatar from "@/components/Avatar";
 import RelatedContent from "@/components/RelatedContent";
@@ -97,9 +98,12 @@ export default function DiscussionDetail() {
     }
     if (!id) return;
 
+    // 导航到新帖子时立即清空旧内容，避免短暂显示旧数据
+    setQuestion(null);
+    setLoading(true);
+
     let mounted = true;
     (async () => {
-      setLoading(true);
       const post = await fetchPostById(id);
       if (mounted) {
         setQuestion(post);
@@ -493,7 +497,7 @@ export default function DiscussionDetail() {
                 <span className="text-mist-300">{question.author}</span>
               )}
               <span>·</span>
-              <span className="font-mono">{question.createdAt}</span>
+              <span className="font-mono">{formatRelativeTime(question.createdAt)}</span>
               <span>·</span>
               <span className="flex items-center gap-1">
                 <Eye size={12} /> {question.views} 浏览
@@ -654,8 +658,7 @@ export default function DiscussionDetail() {
                             return (
                               <div
                                 key={c.id}
-                                onClick={() => openReply(a.id, c)}
-                                className="group cursor-pointer rounded-lg bg-void-900/40 p-3 transition-colors hover:bg-void-900/60"
+                                className="group rounded-lg bg-void-900/40 p-3 transition-colors hover:bg-void-900/60"
                               >
                                 <div className="mb-1 flex items-center gap-2 text-xs text-mist-500">
                                   <Avatar name={c.author} color={c.avatarColor} size={18} />
@@ -666,14 +669,20 @@ export default function DiscussionDetail() {
                                     </span>
                                   )}
                                   <span>·</span>
-                                  <span className="font-mono">{c.date}</span>
+                                  <span className="font-mono">{formatRelativeTime(c.date)}</span>
+                                  <button
+                                    onClick={() => openReply(a.id, c)}
+                                    className="ml-auto text-mist-500 opacity-0 transition-opacity hover:text-tian-300 group-hover:opacity-100"
+                                    title="回复评论"
+                                  >
+                                    <CornerDownRight size={11} />
+                                  </button>
                                   {user?.uid === c.authorUid && (
                                     <button
-                                      onClick={(e) => {
-                                        e.stopPropagation();
+                                      onClick={() => {
                                         handleDeleteComment(a.id, c.id);
                                       }}
-                                      className="ml-auto text-mist-500 opacity-0 transition-opacity hover:text-red-300 group-hover:opacity-100"
+                                      className="text-mist-500 opacity-0 transition-opacity hover:text-red-300 group-hover:opacity-100"
                                       title="删除评论"
                                     >
                                       <Trash2 size={11} />
@@ -681,11 +690,10 @@ export default function DiscussionDetail() {
                                   )}
                                   {user && user.uid !== c.authorUid && (
                                     <button
-                                      onClick={(e) => {
-                                        e.stopPropagation();
+                                      onClick={() => {
                                         openReport("comment", c.id, `评论：${c.content.slice(0, 30)}`);
                                       }}
-                                      className="ml-auto text-mist-500 opacity-0 transition-opacity hover:text-red-300 group-hover:opacity-100"
+                                      className="text-mist-500 opacity-0 transition-opacity hover:text-red-300 group-hover:opacity-100"
                                       title="举报评论"
                                     >
                                       <Flag size={11} />
@@ -784,7 +792,7 @@ export default function DiscussionDetail() {
                           <Avatar name={a.author} color={a.avatarColor} size={22} />
                           <span className="text-mist-300">{a.author}</span>
                           <span>·</span>
-                          <span className="font-mono">{a.date}</span>
+                          <span className="font-mono">{formatRelativeTime(a.date)}</span>
                           {user?.uid !== a.authorUid && (
                             <button
                               onClick={() => openReport("answer", a.id, `回答：${a.content.slice(0, 30)}`)}

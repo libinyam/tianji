@@ -11,6 +11,7 @@ import { PostCardSkeleton, ListSkeleton } from "@/components/Skeleton";
 import { fetchPosts, type PostCategory, type CasualSubCategory, CASUAL_SUB_CATEGORIES } from "@/lib/posts";
 import { PRESET_TAGS } from "@/lib/tags";
 import { useAuthStore } from "@/stores/auth";
+import { formatRelativeTime } from "@/lib/format";
 import type { Question } from "@/types";
 
 type SortKey = "最新" | "热度" | "悬赏";
