@@ -43,7 +43,8 @@ interface PostItem {
 
 interface IdeaItem {
   _id: string;
-  content: string;
+  title: string;
+  summary: string;
   author: string;
   authorUid: string;
   resonance: number;
@@ -415,9 +416,14 @@ export default function Admin() {
             >
               <div className="min-w-0 flex-1">
                 <p className="truncate text-sm text-star-100">
-                  {i.content.slice(0, 80)}
-                  {i.content.length > 80 ? "…" : ""}
+                  {i.title}
                 </p>
+                {i.summary && (
+                  <p className="mt-0.5 truncate text-xs text-mist-400">
+                    {i.summary.slice(0, 80)}
+                    {i.summary.length > 80 ? "…" : ""}
+                  </p>
+                )}
                 <div className="mt-1 flex items-center gap-3 text-xs text-mist-500">
                   <span>{i.author}</span>
                   <span>共鸣 {i.resonance}</span>
