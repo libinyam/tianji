@@ -28,6 +28,25 @@
   </head>
   <body>
     <div id="root"></div>
+    <script>
+      // 部署更新后旧 chunk hash 失效，自动刷新一次获取最新资源
+      (function () {
+        var KEY = 'tianji:reloaded';
+        window.addEventListener('error', function (e) {
+          var target = e.target;
+          if (target && target.tagName === 'SCRIPT' && target.src && target.src.includes('/assets/')) {
+            if (!sessionStorage.getItem(KEY)) {
+              sessionStorage.setItem(KEY, '1');
+              window.location.reload();
+            }
+          }
+        }, true);
+        // 页面成功加载后清除标记，下次部署再出错才能再刷新
+        window.addEventListener('load', function () {
+          setTimeout(function () { sessionStorage.removeItem(KEY); }, 5000);
+        });
+      })();
+    </script>
     <script type="module" src="/src/main.tsx"></script>
   </body>
 </html>
