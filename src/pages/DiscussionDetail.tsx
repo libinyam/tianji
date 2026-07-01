@@ -692,7 +692,10 @@ export default function DiscussionDetail() {
                                     </button>
                                   )}
                                 </div>
-                                <p className="text-sm text-mist-200">{c.content}</p>
+                                <LazyMathText
+  content={c.content}
+  className="text-sm text-mist-200"
+/>
                               </div>
                             );
                           })}

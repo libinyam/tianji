@@ -24,6 +24,7 @@ import RelatedContent from "@/components/RelatedContent";
 import { toggleFavorite, isFavorited } from "@/lib/favorites";
 import { useAuthStore } from "@/stores/auth";
 import { toast } from "@/stores/toast";
+import LazyMathText from "@/components/LazyMathText";
 
 export default function BookDetail() {
   const { id } = useParams();
@@ -374,7 +375,10 @@ export default function BookDetail() {
                       ))}
                     </div>
                   </div>
-                  <p className="mt-3 text-sm leading-relaxed text-mist-300">{r.content}</p>
+                  <LazyMathText
+  content={r.content}
+  className="mt-3 text-sm leading-relaxed text-mist-300"
+/>
                   <p className="mt-2 font-mono text-[10px] text-mist-500">{r.date}</p>
                 </div>
               ))}
