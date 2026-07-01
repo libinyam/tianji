@@ -62,18 +62,16 @@ exports.main = async (event, context) => {
       // 删除文档
       await db.collection(collection).doc(docId).remove();
 
-      // 级联清理关联数据（仅 posts/ideas）
-      if (collection === "posts" || collection === "ideas") {
-        try {
-          await db.collection("favorites").where({ targetId: docId }).remove();
-        } catch (e) {
-          console.warn("清理 favorites 失败:", e);
-        }
-        try {
-          await db.collection("reports").where({ targetId: docId }).remove();
-        } catch (e) {
-          console.warn("清理 reports 失败:", e);
-        }
+      // 级联清理关联数据（所有内容类型）
+      try {
+        await db.collection("favorites").where({ targetId: docId }).remove();
+      } catch (e) {
+        console.warn("清理 favorites 失败:", e);
+      }
+      try {
+        await db.collection("reports").where({ targetId: docId }).remove();
+      } catch (e) {
+        console.warn("清理 reports 失败:", e);
       }
 
       return { ok: true };
