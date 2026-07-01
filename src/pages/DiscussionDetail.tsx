@@ -415,8 +415,8 @@ export default function DiscussionDetail() {
           });
         }
       }
-    } catch {
-      // 静默处理
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "评论提交失败");
     } finally {
       setCommentSubmitting(false);
     }
