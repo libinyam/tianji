@@ -34,7 +34,7 @@
         var KEY = 'tianji:reloaded';
         window.addEventListener('error', function (e) {
           var target = e.target;
-          if (target && target.tagName === 'SCRIPT' && target.src && target.src.includes('/assets/')) {
+          if (target && (target.tagName === 'SCRIPT' || target.tagName === 'LINK') && (target.src || target.href) && (target.src || target.href).includes('/assets/')) {
             if (!sessionStorage.getItem(KEY)) {
               sessionStorage.setItem(KEY, '1');
               window.location.reload();
