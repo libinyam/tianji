@@ -1,22 +1,44 @@
-import { lazy, Suspense } from "react";
+import { lazy, Suspense, type ComponentType } from "react";
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import Layout from "@/components/Layout";
 import ScrollToTop from "@/components/ScrollToTop";
 import ToastContainer from "@/components/ToastContainer";
 import Home from "@/pages/Home";
 
+/**
+ * 包装 lazy，捕获动态 import 失败（新部署后旧 chunk hash 失效）自动刷新页面。
+ * 刷新后浏览器获取最新 index.html，引用正确的 chunk 文件名。
+ */
+function lazyWithReload<T extends ComponentType<any>>(
+  factory: () => Promise<{ default: T }>
+) {
+  return lazy(() =>
+    factory().catch((err: unknown) => {
+      const msg = err instanceof Error ? err.message : String(err);
+      if (
+        msg.includes("Failed to fetch dynamically imported module") ||
+        msg.includes("Importing a module script failed") ||
+        msg.includes("error loading dynamically imported module")
+      ) {
+        window.location.reload();
+      }
+      throw err;
+    })
+  );
+}
+
 // 路由级懒加载 — 首屏只加载 Home，其余按需加载
-const Library = lazy(() => import("@/pages/Library"));
-const BookDetail = lazy(() => import("@/pages/BookDetail"));
-const Discussion = lazy(() => import("@/pages/Discussion"));
-const DiscussionDetail = lazy(() => import("@/pages/DiscussionDetail"));
-const Ideas = lazy(() => import("@/pages/Ideas"));
-const Workshop = lazy(() => import("@/pages/Workshop"));
-const WorkshopDetail = lazy(() => import("@/pages/WorkshopDetail"));
-const Profile = lazy(() => import("@/pages/Profile"));
-const UserProfile = lazy(() => import("@/pages/UserProfile"));
-const TagDetail = lazy(() => import("@/pages/TagDetail"));
-const Admin = lazy(() => import("@/pages/Admin"));
+const Library = lazyWithReload(() => import("@/pages/Library"));
+const BookDetail = lazyWithReload(() => import("@/pages/BookDetail"));
+const Discussion = lazyWithReload(() => import("@/pages/Discussion"));
+const DiscussionDetail = lazyWithReload(() => import("@/pages/DiscussionDetail"));
+const Ideas = lazyWithReload(() => import("@/pages/Ideas"));
+const Workshop = lazyWithReload(() => import("@/pages/Workshop"));
+const WorkshopDetail = lazyWithReload(() => import("@/pages/WorkshopDetail"));
+const Profile = lazyWithReload(() => import("@/pages/Profile"));
+const UserProfile = lazyWithReload(() => import("@/pages/UserProfile"));
+const TagDetail = lazyWithReload(() => import("@/pages/TagDetail"));
+const Admin = lazyWithReload(() => import("@/pages/Admin"));
 
 // 页面加载骨架
 function PageFallback() {
