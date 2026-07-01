@@ -8,16 +8,58 @@ interface OutlineItem {
   items?: OutlineItem[];
 }
 
-/** 递归提取 PDF 大纲为扁平的标题列表 */
-function flattenOutline(items: OutlineItem[], depth = 0, result: string[] = []): string[] {
+/** 检测标题是否已包含章节编号 */
+function hasChapterNumber(title: string): boolean {
+  return /^(第[一二三四五六七八九十百\d]+[章节回卷]|Chapter\s*\d+|Ch\.?\s*\d+|\d+\.\s|\d+\s)/i.test(
+    title.trim()
+  );
+}
+
+interface NumberedNode {
+  title: string;
+  number: string; // e.g. "1", "1.1", "1.1.1"
+  depth: number;
+}
+
+/** 递归提取大纲，生成带层级编号的节点列表 */
+function buildNumberedTree(
+  items: OutlineItem[],
+  depth: number,
+  parentNumber: number[],
+  result: NumberedNode[]
+): void {
+  let index = 0;
   for (const item of items) {
-    const prefix = depth > 0 ? "  ".repeat(depth) + "· " : "";
-    result.push(prefix + item.title.trim());
+    index++;
+    const number = [...parentNumber, index].join(".");
+    const title = item.title.trim();
+
+    result.push({ title, number, depth });
+
     if (item.items && item.items.length > 0) {
-      flattenOutline(item.items, depth + 1, result);
+      buildNumberedTree(item.items, depth + 1, [...parentNumber, index], result);
     }
   }
-  return result;
+}
+
+/**
+ * 将带编号的节点列表格式化为目录字符串数组。
+ * 顶层条目：如果标题已含"第X章"则原样保留，否则加"第N章 "前缀。
+ * 子层条目：用 "N.M" 编号 + 缩进。
+ */
+function formatToc(nodes: NumberedNode[]): string[] {
+  return nodes.map((node) => {
+    const indent = "  ".repeat(node.depth);
+    if (node.depth === 0) {
+      // 顶层：检测是否已有章节编号
+      if (hasChapterNumber(node.title)) {
+        return node.title;
+      }
+      return `第${node.number}章 ${node.title}`;
+    }
+    // 子层：用数字编号 + 缩进
+    return `${indent}${node.number} ${node.title}`;
+  });
 }
 
 /**
@@ -35,8 +77,9 @@ export async function extractPdfToc(file: File): Promise<string[]> {
       return [];
     }
 
-    const toc = flattenOutline(outline);
-    return toc;
+    const nodes: NumberedNode[] = [];
+    buildNumberedTree(outline, 0, [], nodes);
+    return formatToc(nodes);
   } catch (err) {
     console.error("PDF 目录解析失败:", err);
     return [];

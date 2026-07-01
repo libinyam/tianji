@@ -322,18 +322,30 @@ export default function BookDetail() {
               />
             </button>
             {tocOpen && (
-              <ol className="space-y-1.5 border-t border-void-600/30 p-4">
-                {book.toc.map((c, i) => (
-                  <li
-                    key={c}
-                    className="flex items-baseline gap-3 text-sm text-mist-300"
-                  >
-                    <span className="font-mono text-xs text-star-400/70">
-                      {String(i + 1).padStart(2, "0")}
-                    </span>
-                    <span>{c}</span>
-                  </li>
-                ))}
+              <ol className="space-y-0.5 border-t border-void-600/30 p-4">
+                {book.toc.map((c, i) => {
+                  const depth = c.match(/^ */)?.[0].length ?? 0;
+                  const indent = Math.floor(depth / 2);
+                  const isChapter = indent === 0;
+                  return (
+                    <li
+                      key={i}
+                      className={`flex items-baseline gap-2 text-sm transition-colors hover:text-parchment-100 ${
+                        isChapter
+                          ? "mt-2 font-medium text-parchment-100"
+                          : "text-mist-300"
+                      }`}
+                      style={indent > 0 ? { paddingLeft: `${indent * 1.5}rem` } : undefined}
+                    >
+                      {isChapter && (
+                        <span className="font-mono text-xs text-star-400/70">
+                          {String(i + 1).padStart(2, "0")}
+                        </span>
+                      )}
+                      <span>{c.trim()}</span>
+                    </li>
+                  );
+                })}
               </ol>
             )}
           </div>
