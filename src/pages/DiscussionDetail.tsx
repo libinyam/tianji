@@ -70,6 +70,9 @@ export default function DiscussionDetail() {
   // 收藏状态
   const [favState, setFavState] = useState(false);
 
+  // 采纳操作进行中，防止快速点击竞态
+  const [acceptingId, setAcceptingId] = useState<string | null>(null);
+
   // 举报状态
   const [reportTarget, setReportTarget] = useState<{
     targetType: "post" | "answer" | "comment";
@@ -109,8 +112,12 @@ export default function DiscussionDetail() {
         setQuestion(post);
         setLoading(false);
         if (post) {
-          // 增加浏览量（异步，不阻塞渲染）
-          incrementViews(id);
+          // 增加浏览量（同一会话内不重复计数）
+          const viewedKey = `tianji:viewed:${id}`;
+          if (!sessionStorage.getItem(viewedKey)) {
+            sessionStorage.setItem(viewedKey, "1");
+            incrementViews(id);
+          }
           // 检查收藏状态
           isFavorited(id).then(setFavState);
           // 加载用户投票记录
@@ -244,6 +251,8 @@ export default function DiscussionDetail() {
 
   const handleAccept = async (aId: string, accept: boolean) => {
     if (!question) return;
+    if (acceptingId) return; // 防止快速点击
+    setAcceptingId(aId);
     try {
       await acceptAnswer(question.id, aId, accept);
       const newAnswerList = question.answerList.map((a) => ({
@@ -254,6 +263,8 @@ export default function DiscussionDetail() {
       toast.success(accept ? "已采纳该回答" : "已取消采纳");
     } catch (e) {
       toast.error((e as Error).message);
+    } finally {
+      setAcceptingId(null);
     }
   };
 
@@ -786,18 +797,20 @@ export default function DiscussionDetail() {
                           {user?.uid === question.authorUid && a.authorUid !== "ai-bot-001" && !a.accepted && (
                             <button
                               onClick={() => handleAccept(a.id, true)}
-                              className="inline-flex items-center gap-1 rounded-md border border-emerald-400/40 bg-emerald-400/5 px-2.5 py-1 text-[11px] text-emerald-300 transition-all hover:border-emerald-400/70 hover:bg-emerald-400/10"
+                              disabled={acceptingId !== null}
+                              className="inline-flex items-center gap-1 rounded-md border border-emerald-400/40 bg-emerald-400/5 px-2.5 py-1 text-[11px] text-emerald-300 transition-all hover:border-emerald-400/70 hover:bg-emerald-400/10 disabled:cursor-not-allowed disabled:opacity-50"
                             >
-                              <Check size={11} />
+                              {acceptingId === a.id ? <Loader2 size={11} className="animate-spin" /> : <Check size={11} />}
                               采纳
                             </button>
                           )}
                           {user?.uid === question.authorUid && a.accepted && (
                             <button
                               onClick={() => handleAccept(a.id, false)}
-                              className="inline-flex items-center gap-1 rounded-md border border-mist-500/30 bg-mist-500/5 px-2.5 py-1 text-[11px] text-mist-400 transition-all hover:border-mist-400/60 hover:bg-mist-500/10"
+                              disabled={acceptingId !== null}
+                              className="inline-flex items-center gap-1 rounded-md border border-mist-500/30 bg-mist-500/5 px-2.5 py-1 text-[11px] text-mist-400 transition-all hover:border-mist-400/60 hover:bg-mist-500/10 disabled:cursor-not-allowed disabled:opacity-50"
                             >
-                              <X size={11} />
+                              {acceptingId === a.id ? <Loader2 size={11} className="animate-spin" /> : <X size={11} />}
                               取消采纳
                             </button>
                           )}
