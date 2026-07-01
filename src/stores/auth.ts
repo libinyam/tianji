@@ -87,20 +87,23 @@ export const useAuthStore = create<AuthState>((set) => ({
       const { data, error } = await auth.getSession();
       if (error || !data?.session) {
         // 未登录时自动匿名登录，让未登录用户也能读取公开数据
+        // 匿名登录只用于获取 auth 上下文以查询数据库，UI 仍显示未登录状态
         try {
           await auth.signInAnonymously();
-          const { data: anonData } = await auth.getSession();
-          if (anonData?.session) {
-            set({ user: extractUser(anonData.session), loading: false });
-            return;
-          }
         } catch {
-          // 匿名登录失败也不阻塞，用户仍可浏览（accessKey 模式下可读）
+          // 匿名登录失败也不阻塞，accessKey 模式下仍可读取
         }
         set({ user: null, loading: false });
         return;
       }
-      set({ user: extractUser(data.session), loading: false });
+      // 已有真实登录会话
+      const extractedUser = extractUser(data.session);
+      // 匿名用户的 session 也当做未登录（刷新后恢复匿名会话的情况）
+      if (extractedUser && !extractedUser.email && !extractedUser.phone && !extractedUser.username) {
+        set({ user: null, loading: false });
+        return;
+      }
+      set({ user: extractedUser, loading: false });
     } catch {
       set({ user: null, loading: false });
     }
@@ -270,6 +273,8 @@ export const useAuthStore = create<AuthState>((set) => ({
   signOut: async () => {
     try {
       await auth.signOut();
+    } catch {
+      // 忽略登出错误
     } finally {
       set({
         user: null,
@@ -277,6 +282,12 @@ export const useAuthStore = create<AuthState>((set) => ({
         pendingSignUpEmail: null,
         pendingSignUpVerifier: null,
       });
+      // 退出后重新匿名登录，保持 auth 上下文以读取公开数据
+      try {
+        await auth.signInAnonymously();
+      } catch {
+        // 匿名登录失败也不影响
+      }
     }
   },
 
