@@ -130,10 +130,13 @@ export async function fetchUnreadCount(): Promise<number> {
 
 /** 标记单条通知为已读 */
 export async function markAsRead(id: string): Promise<void> {
+  const uid = getCurrentUid();
+  if (!uid) return;
   try {
-    await db.collection(COLLECTION).doc(id).update({ read: true });
-  } catch {
-    // 静默
+    // 使用 where 条件更新，将 uid 纳入查询以便安全规则验证
+    await db.collection(COLLECTION).where({ _id: id, uid }).update({ read: true });
+  } catch (e) {
+    console.warn("[notifications] markAsRead failed:", e);
   }
 }
 
@@ -142,16 +145,8 @@ export async function markAllRead(): Promise<void> {
   const uid = getCurrentUid();
   if (!uid) return;
   try {
-    const { data } = await db
-      .collection(COLLECTION)
-      .where({ uid, read: false })
-      .get();
-    await Promise.all(
-      (data as NotificationDoc[]).map((d) =>
-        db.collection(COLLECTION).doc(d._id).update({ read: true })
-      )
-    );
-  } catch {
-    // 静默
+    await db.collection(COLLECTION).where({ uid, read: false }).update({ read: true });
+  } catch (e) {
+    console.warn("[notifications] markAllRead failed:", e);
   }
 }
