@@ -89,7 +89,7 @@ exports.main = async (event) => {
           }
 
           const botComment = {
-            id: `botc_${Date.now()}`,
+            id: `botc_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`,
             author: BOT_NAME,
             authorUid: BOT_UID,
             avatarColor: BOT_AVATAR_COLOR,

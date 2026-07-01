@@ -230,7 +230,7 @@ export async function submitContribution(
 
   const project = data[0] as WorkshopDoc;
   const contribution: Contribution = {
-    id: `c_${Date.now()}`,
+    id: `c_${crypto.randomUUID()}`,
     chapterId,
     author: getCurrentUserName(),
     authorUid: uid,

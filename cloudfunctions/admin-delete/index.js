@@ -36,13 +36,8 @@ exports.main = async (event, context) => {
     uid = context.identifier;
   }
 
-  // 方式4: 前端传入 uid（Web SDK callFunction 不自动注入 context.userInfo）
-  const clientUid = event._callerUid || "";
-  if (!uid && clientUid) {
-    uid = clientUid;
-  }
-
-  console.log("admin-delete 调用, uid:", uid, "clientUid:", clientUid, "isAdmin:", ADMIN_UIDS.includes(uid));
+  // 不信任前端传入的任何身份信息，防止管理员权限伪造
+  console.log("admin-delete 调用, uid:", uid, "isAdmin:", ADMIN_UIDS.includes(uid));
 
   if (!uid || !ADMIN_UIDS.includes(uid)) {
     return { ok: false, error: "无管理员权限" };

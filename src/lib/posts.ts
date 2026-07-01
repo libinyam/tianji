@@ -236,7 +236,7 @@ export async function submitComment(
   if (answerIndex === -1) return null;
 
   const comment: Comment = {
-    id: `c_${Date.now()}`,
+    id: `c_${crypto.randomUUID()}`,
     author: getCurrentUserName(),
     authorUid: uid,
     avatarColor: AVATAR_COLORS[Math.floor(Math.random() * AVATAR_COLORS.length)],
