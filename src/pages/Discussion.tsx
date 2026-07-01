@@ -1,10 +1,11 @@
 import { useMemo, useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { motion } from "motion/react";
-import { MessageCircle, Eye, ThumbsUp, Star, Plus, GraduationCap, Coffee } from "lucide-react";
+import { MessageCircle, Eye, ThumbsUp, Star, Plus, GraduationCap, Coffee, Search } from "lucide-react";
 import PageHero from "@/components/PageHero";
 import Avatar from "@/components/Avatar";
 import PostModal from "@/components/PostModal";
+import EmptyState from "@/components/EmptyState";
 import { PostCardSkeleton, ListSkeleton } from "@/components/Skeleton";
 
 import { fetchPosts, type PostCategory, type CasualSubCategory, CASUAL_SUB_CATEGORIES } from "@/lib/posts";
@@ -241,7 +242,20 @@ export default function Discussion() {
         )}
 
         {/* 问题列表 */}
-        {!loading && (
+        {!loading && filtered.length === 0 && (
+          <EmptyState
+            icon={<Search size={28} strokeWidth={1.5} />}
+            title="这片星域还很安静"
+            description={
+              section === "academic"
+                ? "还没有学术讨论。你可以发起第一个讨论，分享你的问题或见解。"
+                : "闲聊区还没有帖子。来聊聊最近的学习动态、有趣新闻，或者灌个水？"
+            }
+            actionText={user ? "发起讨论" : "登录后发起讨论"}
+            onAction={handlePostClick}
+          />
+        )}
+        {!loading && filtered.length > 0 && (
           <div className="space-y-3">
             {filtered.map((q, i) => (
               <motion.div

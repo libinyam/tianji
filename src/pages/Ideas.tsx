@@ -7,6 +7,7 @@ import PageHero from "@/components/PageHero";
 import Avatar from "@/components/Avatar";
 import IdeaModal from "@/components/IdeaModal";
 import ReportModal from "@/components/ReportModal";
+import EmptyState from "@/components/EmptyState";
 
 import { fetchIdeas, resonanceIdea, updateIdea, deleteIdea } from "@/lib/ideas";
 import { toggleFavorite, getFavoritedIds } from "@/lib/favorites";
@@ -226,8 +227,19 @@ export default function Ideas() {
           </div>
         )}
 
+        {/* 空状态 */}
+        {!loading && filtered.length === 0 && (
+          <EmptyState
+            icon={<Lightbulb size={28} strokeWidth={1.5} />}
+            title="还没有灵感被点亮"
+            description="第一个灵感往往最难也最珍贵。分享你脑海中一闪而过的想法，或许能引发共鸣。"
+            actionText={user ? "分享灵感" : "登录后分享灵感"}
+            onAction={handleIdeaClick}
+          />
+        )}
+
         {/* 星图陈列：交错网格 + 装饰连线 */}
-        {!loading && (
+        {!loading && filtered.length > 0 && (
           <div className="relative">
             {/* 背景星座连线 */}
             <svg
