@@ -277,7 +277,21 @@ export default function DiscussionDetail() {
     });
     // 持久化到数据库
     try {
-      await voteAnswer(question.id, aid, newVoted);
+      const ok = await voteAnswer(question.id, aid, newVoted);
+      if (!ok) {
+        // 服务端未处理（已投过票/没投过票），回滚 UI
+        setVoted((v) => ({ ...v, [aid]: !newVoted }));
+        setQuestion((q) => {
+          if (!q) return q;
+          return {
+            ...q,
+            answerList: q.answerList.map((a) =>
+              a.id === aid ? { ...a, votes: Math.max(0, (a.votes ?? 0) + (newVoted ? -1 : 1)) } : a
+            ),
+          };
+        });
+        toast.info(newVoted ? "你已经投过票了" : "你还没有投票");
+      }
     } catch {
       // 回滚
       setVoted((v) => ({ ...v, [aid]: !newVoted }));
