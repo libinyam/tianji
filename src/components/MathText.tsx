@@ -10,13 +10,18 @@ interface Segment {
 
 function parseContent(content: string): Segment[] {
   const segments: Segment[] = [];
-  // 先按块级 $$...$$ 切分
-  const blockParts = content.split(/(\$\$[\s\S]+?\$\$)/g);
+  // 按块级 $$...$$ 和 \[...\] 切分
+  const blockParts = content.split(/(\$\$[\s\S]+?\$\$|\\\[.+?\])/g);
   for (const block of blockParts) {
     if (!block) continue;
     const blockMatch = /^\$\$([\s\S]+?)\$\$$/.exec(block);
     if (blockMatch) {
       segments.push({ type: "block", value: blockMatch[1] });
+      continue;
+    }
+    const bracketMatch = /^\\\[(.+?)\]$/.exec(block);
+    if (bracketMatch) {
+      segments.push({ type: "block", value: bracketMatch[1] });
       continue;
     }
     // 再按代码块 ```...``` 切分
@@ -28,13 +33,18 @@ function parseContent(content: string): Segment[] {
         segments.push({ type: "codeblock", value: cbMatch[1].replace(/^\n/, "") });
         continue;
       }
-      // 行内：按 $...$ 与 `...` 交替切分
-      const inlineParts = cb.split(/(\$[^$\n]+?\$|`[^`\n]+?`)/g);
+      // 行内：按 $...$、\(...\) 与 `...` 交替切分
+      const inlineParts = cb.split(/(\$[^$\n]+?\$|\\\(.+?\\\)|`[^`\n]+?`)/g);
       for (const inline of inlineParts) {
         if (!inline) continue;
         const mathMatch = /^\$([^$\n]+?)\$$/.exec(inline);
         if (mathMatch) {
           segments.push({ type: "inline", value: mathMatch[1] });
+          continue;
+        }
+        const parenMatch = /^\\\((.+?)\\\)$/.exec(inline);
+        if (parenMatch) {
+          segments.push({ type: "inline", value: parenMatch[1] });
           continue;
         }
         const codeMatch = /^`([^`\n]+?)`$/.exec(inline);
