@@ -11,7 +11,7 @@ interface Segment {
 function parseContent(content: string): Segment[] {
   const segments: Segment[] = [];
   // 按块级 $$...$$ 和 \[...\] 切分（\[...\] 支持跨行）
-  const blockParts = content.split(/(\$\$[\s\S]+?\$\$|\\\[[\s\S]+?\])/g);
+  const blockParts = content.split(/(\$\$[\s\S]+?\$\$|\\\[[\s\S]+?\\\])/g);
   for (const block of blockParts) {
     if (!block) continue;
     const blockMatch = /^\$\$([\s\S]+?)\$\$$/.exec(block);
@@ -19,7 +19,7 @@ function parseContent(content: string): Segment[] {
       segments.push({ type: "block", value: blockMatch[1] });
       continue;
     }
-    const bracketMatch = /^\\\[([\s\S]+?)\]$/.exec(block);
+    const bracketMatch = /^\\\[([\s\S]+?)\\\]$/.exec(block);
     if (bracketMatch) {
       segments.push({ type: "block", value: bracketMatch[1] });
       continue;
