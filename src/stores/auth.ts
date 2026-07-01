@@ -86,6 +86,17 @@ export const useAuthStore = create<AuthState>((set) => ({
     try {
       const { data, error } = await auth.getSession();
       if (error || !data?.session) {
+        // 未登录时自动匿名登录，让未登录用户也能读取公开数据
+        try {
+          await auth.signInAnonymously();
+          const { data: anonData } = await auth.getSession();
+          if (anonData?.session) {
+            set({ user: extractUser(anonData.session), loading: false });
+            return;
+          }
+        } catch {
+          // 匿名登录失败也不阻塞，用户仍可浏览（accessKey 模式下可读）
+        }
         set({ user: null, loading: false });
         return;
       }
