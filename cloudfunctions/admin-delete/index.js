@@ -36,10 +36,9 @@ exports.main = async (event, context) => {
     uid = context.identifier;
   }
 
-  // 方式4: 前端传入 uid（验证 context 中有 openid 确认用户已登录）
+  // 方式4: 前端传入 uid（Web SDK callFunction 不自动注入 context.userInfo）
   const clientUid = event._callerUid || "";
-  const isOpenid = context?.userInfo?.openid || context?.openid;
-  if (!uid && clientUid && isOpenid) {
+  if (!uid && clientUid) {
     uid = clientUid;
   }
 
