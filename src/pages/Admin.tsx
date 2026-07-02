@@ -221,10 +221,12 @@ export default function Admin() {
             const result = res.result as { ok?: boolean; error?: string };
             if (!result?.ok) {
               toast.error(result?.error || "内容删除失败");
+              return;
             }
           } catch (e) {
             console.warn("删除被举报内容失败：", e);
             toast.error("内容删除失败，可能需要手动处理");
+            return;
           }
         } else if (report.targetType === "answer" || report.targetType === "comment") {
           toast.info("该举报涉及回答/评论，需在帖子详情页手动处理");

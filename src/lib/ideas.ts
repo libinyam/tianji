@@ -81,7 +81,7 @@ export async function createIdea(params: {
     tags: params.tags,
     resonance: 0,
     replies: 0,
-    createdAt: new Date().toISOString().slice(0, 10),
+    createdAt: new Date().toISOString(),
   };
 
   const res = await db.collection(IDEAS_COLLECTION).add(doc);
@@ -112,8 +112,7 @@ export async function resonanceIdea(id: string): Promise<boolean> {
     const { data } = await docRef.get();
     if (!data || data.length === 0) return false;
 
-    const current = (data[0] as IdeaDoc).resonance ?? 0;
-    await docRef.update({ resonance: current + 1 });
+    await docRef.update({ resonance: db.command.inc(1) });
 
     // 通知灵感作者
     await createNotification({

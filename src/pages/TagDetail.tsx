@@ -33,12 +33,15 @@ export default function TagDetail() {
 
   useEffect(() => {
     if (!name) return;
+    let mounted = true;
     setLoading(true);
     Promise.all([fetchContentByTag(name), fetchTagCount(name)]).then(([c, n]) => {
+      if (!mounted) return;
       setContent(c);
       setCount(n);
       setLoading(false);
     });
+    return () => { mounted = false; };
   }, [name]);
 
   const tabData = [

@@ -236,7 +236,7 @@ export async function submitContribution(
     authorUid: uid,
     avatarColor: AVATAR_COLORS[Math.floor(Math.random() * AVATAR_COLORS.length)],
     content,
-    createdAt: new Date().toISOString().slice(0, 10),
+    createdAt: new Date().toISOString(),
   };
 
   await docRef.update({

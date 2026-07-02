@@ -165,11 +165,7 @@ export async function createPost(params: {
 export async function incrementViews(id: string): Promise<void> {
   try {
     const docRef = db.collection(POSTS_COLLECTION).doc(id);
-    const { data } = await docRef.get();
-    if (data && data.length > 0) {
-      const current = (data[0] as PostDoc).views ?? 0;
-      await docRef.update({ views: current + 1 });
-    }
+    await docRef.update({ views: db.command.inc(1) });
   } catch {
     // 静默失败，浏览量不影响核心体验
   }
@@ -241,7 +237,7 @@ export async function submitComment(
     authorUid: uid,
     avatarColor: AVATAR_COLORS[Math.floor(Math.random() * AVATAR_COLORS.length)],
     content,
-    date: new Date().toISOString().slice(0, 10),
+    date: new Date().toISOString(),
     replyTo,
   };
 
