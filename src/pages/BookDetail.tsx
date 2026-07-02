@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { Link, useParams } from "react-router-dom";
 import { motion } from "motion/react";
+import { PostDetailSkeleton } from "@/components/Skeleton";
 import {
   ArrowLeft,
   BookOpen,
@@ -30,6 +31,7 @@ export default function BookDetail() {
   const { id } = useParams();
   const mockBook = books.find((b) => b.id === id);
   const [book, setBook] = useState(mockBook || null);
+  const [loading, setLoading] = useState(!mockBook);
   const [tocOpen, setTocOpen] = useState(true);
   const [favorited, setFavorited] = useState(false);
   const [reportOpen, setReportOpen] = useState(false);
@@ -41,13 +43,17 @@ export default function BookDetail() {
   useEffect(() => {
     if (mockBook) {
       setBook(mockBook);
+      setLoading(false);
       return;
     }
     if (!id) return;
     let mounted = true;
     (async () => {
       const dbBook = await fetchBookById(id);
-      if (mounted && dbBook) setBook(dbBook);
+      if (mounted) {
+        if (dbBook) setBook(dbBook);
+        setLoading(false);
+      }
     })();
     return () => { mounted = false; };
   }, [id, mockBook]);
@@ -143,6 +149,10 @@ export default function BookDetail() {
     }
     setReportOpen(true);
   };
+
+  if (loading) {
+    return <PostDetailSkeleton />;
+  }
 
   if (!book) {
     return (

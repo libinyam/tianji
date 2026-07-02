@@ -2,6 +2,7 @@ import { useMemo, useState, useEffect } from "react";
 import { Search, SlidersHorizontal, BookOpen, Plus } from "lucide-react";
 import PageHero from "@/components/PageHero";
 import BookCard from "@/components/BookCard";
+import { BookCardSkeleton } from "@/components/Skeleton";
 import BookUploadModal from "@/components/BookUploadModal";
 
 import { fetchBooks } from "@/lib/books";
@@ -160,6 +161,14 @@ export default function Library() {
         </div>
 
         {/* 书卡网格 */}
+        {loading && (
+          <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+            {Array.from({ length: 8 }).map((_, i) => (
+              <BookCardSkeleton key={i} />
+            ))}
+          </div>
+        )}
+
         {!loading && filtered.length > 0 && (
           <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
             {filtered.map((b, i) => (
