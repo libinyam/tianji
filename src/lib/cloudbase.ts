@@ -16,9 +16,9 @@ if (!ENV_ID || !ACCESS_KEY) {
 
 /** CloudBase 应用单例 */
 const app = cloudbase.init({
-  env: ENV_ID || "tianji-d3gozv3qr802e49cb",
+  env: ENV_ID,
   region: REGION,
-  accessKey: ACCESS_KEY || "",
+  accessKey: ACCESS_KEY,
   auth: { detectSessionInUrl: true },
 });
 

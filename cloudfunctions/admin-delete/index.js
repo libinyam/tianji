@@ -11,33 +11,22 @@ const ADMIN_UIDS = ["2068674931977097216"];
 exports.main = async (event, context) => {
   const { collection, docId, action } = event;
 
-  // 打印 context 结构，便于调试身份获取
-  console.log("context keys:", Object.keys(context || {}));
-  console.log("context.userInfo:", JSON.stringify(context?.userInfo));
-
-  // 尝试多种方式获取用户身份
   let uid = "";
 
-  // 方式1: getEndUserInfo（node-sdk v4 中可能不可用）
   try {
     const info = await app.auth().getEndUserInfo(context);
     uid = info?.userInfo?.uid || info?.uid || "";
   } catch (e) {
-    console.warn("getEndUserInfo 失败:", e.message);
+    // getEndUserInfo 不可用时，回退到 context
   }
 
-  // 方式2: 从 context.userInfo 获取
   if (!uid && context?.userInfo) {
     uid = context.userInfo.uid || "";
   }
 
-  // 方式3: 从 context.identifier 获取
   if (!uid && context?.identifier) {
     uid = context.identifier;
   }
-
-  // 不信任前端传入的任何身份信息，防止管理员权限伪造
-  console.log("admin-delete 调用, uid:", uid, "isAdmin:", ADMIN_UIDS.includes(uid));
 
   if (!uid || !ADMIN_UIDS.includes(uid)) {
     return { ok: false, error: "无管理员权限" };
