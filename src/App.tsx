@@ -33,6 +33,7 @@ const BookDetail = lazyWithReload(() => import("@/pages/BookDetail"));
 const Discussion = lazyWithReload(() => import("@/pages/Discussion"));
 const DiscussionDetail = lazyWithReload(() => import("@/pages/DiscussionDetail"));
 const Ideas = lazyWithReload(() => import("@/pages/Ideas"));
+const IdeaDetail = lazyWithReload(() => import("@/pages/IdeaDetail"));
 const Workshop = lazyWithReload(() => import("@/pages/Workshop"));
 const WorkshopDetail = lazyWithReload(() => import("@/pages/WorkshopDetail"));
 const Profile = lazyWithReload(() => import("@/pages/Profile"));
@@ -75,6 +76,7 @@ export default function App() {
                   <Route path="/discussion" element={<Discussion />} />
                   <Route path="/discussion/:id" element={<DiscussionDetail />} />
                   <Route path="/ideas" element={<Ideas />} />
+                  <Route path="/ideas/:id" element={<IdeaDetail />} />
                   <Route path="/workshop" element={<Workshop />} />
                   <Route path="/workshop/:id" element={<WorkshopDetail />} />
                   <Route path="/profile" element={<Profile />} />

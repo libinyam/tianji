@@ -62,6 +62,17 @@ export async function fetchIdeas(): Promise<Idea[]> {
   }
 }
 
+/** 按 ID 获取单个灵感 */
+export async function fetchIdeaById(id: string): Promise<Idea | null> {
+  try {
+    const { data } = await db.collection(IDEAS_COLLECTION).doc(id).get();
+    if (!data || data.length === 0) return null;
+    return toIdea(data[0] as IdeaDoc);
+  } catch {
+    return null;
+  }
+}
+
 /** 创建新灵感 */
 export async function createIdea(params: {
   title: string;

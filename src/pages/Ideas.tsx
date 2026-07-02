@@ -317,7 +317,9 @@ export default function Ideas() {
                   </div>
 
                   <h3 className="mt-4 heading-display text-lg leading-snug text-parchment-50 transition-colors group-hover:text-star-200">
-                    {idea.title}
+                    <Link to={`/ideas/${idea.id}`} className="after:absolute after:inset-0">
+                      {idea.title}
+                    </Link>
                   </h3>
                   <p className="mt-2.5 flex-1 text-sm leading-relaxed text-mist-300">
                     {idea.summary}
