@@ -109,7 +109,7 @@ export default function Ideas() {
       // 回滚
       setResonated((v) => ({ ...v, [idea.id]: false }));
       setRealIdeas((prev) =>
-        prev.map((i) => (i.id === idea.id ? { ...i, resonance: i.resonance - 1 } : i))
+        prev.map((i) => (i.id === idea.id ? { ...i, resonance: Math.max(0, i.resonance - 1) } : i))
       );
       toast.error("操作失败，请重试");
     }

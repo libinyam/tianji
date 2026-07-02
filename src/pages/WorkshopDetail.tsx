@@ -788,7 +788,7 @@ function AnnotationCard({
   canResolve: boolean;
   onResolve: () => void;
 }) {
-  const avatarColor = `hsl(${(annotation.authorUid.charCodeAt(0) * 37) % 360}, 60%, 65%)`;
+  const avatarColor = `hsl(${((annotation.authorUid || "x").charCodeAt(0) * 37) % 360}, 60%, 65%)`;
   return (
     <motion.div
       initial={{ opacity: 0, x: 12 }}

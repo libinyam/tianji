@@ -38,6 +38,10 @@ export default function BookUploadModal({ open, onClose, onCreated }: BookUpload
   const { user } = useAuthStore();
 
   const handleClose = () => {
+    // 清理已上传但未提交的文件
+    if (uploadedFileId) {
+      app.deleteFile({ fileList: [uploadedFileId] }).catch(() => {});
+    }
     setTitle("");
     setAuthor("");
     setCategory("AI工具实战");

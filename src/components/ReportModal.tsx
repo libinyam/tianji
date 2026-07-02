@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { X, Flag, Loader2, Check } from "lucide-react";
 import { createReport } from "@/lib/reports";
 import Dialog from "@/components/Dialog";
@@ -25,6 +25,7 @@ export default function ReportModal({
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [done, setDone] = useState(false);
+  const closeTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   // 打开时重置状态
   useEffect(() => {
@@ -35,6 +36,9 @@ export default function ReportModal({
       setError(null);
       setDone(false);
     }
+    return () => {
+      if (closeTimerRef.current) clearTimeout(closeTimerRef.current);
+    };
   }, [open]);
 
   const handleClose = () => {
@@ -53,7 +57,7 @@ export default function ReportModal({
         : reason;
       await createReport({ targetType, targetId, targetTitle, reason: finalReason });
       setDone(true);
-      setTimeout(() => handleClose(), 1200);
+      closeTimerRef.current = setTimeout(() => handleClose(), 1200);
     } catch (err) {
       setError((err as Error).message);
     } finally {

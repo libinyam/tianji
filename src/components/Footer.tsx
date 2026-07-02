@@ -27,26 +27,28 @@ export default function Footer() {
             </p>
             <div className="mt-5 flex items-center gap-3">
               <a
-                href="#"
+                href="https://github.com/libinyam/tianji"
+                target="_blank"
+                rel="noopener noreferrer"
                 className="flex h-9 w-9 items-center justify-center rounded-lg border border-void-600/60 text-mist-400 transition-colors hover:border-star-400/50 hover:text-star-300"
                 aria-label="GitHub"
               >
                 <Github size={16} />
               </a>
               <a
-                href="#"
+                href="mailto:tianji@example.com"
                 className="flex h-9 w-9 items-center justify-center rounded-lg border border-void-600/60 text-mist-400 transition-colors hover:border-star-400/50 hover:text-star-300"
                 aria-label="邮箱"
               >
                 <Mail size={16} />
               </a>
-              <a
-                href="#"
+              <Link
+                to="/library"
                 className="flex h-9 w-9 items-center justify-center rounded-lg border border-void-600/60 text-mist-400 transition-colors hover:border-star-400/50 hover:text-star-300"
-                aria-label="资源"
+                aria-label="资源库"
               >
                 <BookOpen size={16} />
-              </a>
+              </Link>
             </div>
           </div>
 

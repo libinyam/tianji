@@ -47,6 +47,7 @@ export default function Profile() {
   const [avatarUrl, setAvatarUrl] = useState("");
   const [saving, setSaving] = useState(false);
   const [uploading, setUploading] = useState(false);
+  const [newAvatarFileId, setNewAvatarFileId] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
@@ -69,6 +70,7 @@ export default function Profile() {
     setSaving(false);
     if (ok) {
       setEditing(false);
+      setNewAvatarFileId(null);
       toast.success("资料已更新");
     } else {
       toast.error("保存失败，请重试");
@@ -95,7 +97,10 @@ export default function Profile() {
         fileList: [{ fileID: res.fileID, maxAge: 365 * 24 * 60 * 60 * 1000 }],
       });
       const url = urlRes.fileList?.[0]?.tempFileURL;
-      if (url) setAvatarUrl(url);
+      if (url) {
+        setAvatarUrl(url);
+        setNewAvatarFileId(res.fileID);
+      }
     } catch {
       toast.error("上传失败，请重试");
     } finally {
@@ -207,6 +212,11 @@ export default function Profile() {
                     </button>
                     <button
                       onClick={() => {
+                        // 清理已上传但未保存的头像
+                        if (newAvatarFileId) {
+                          app.deleteFile({ fileList: [newAvatarFileId] }).catch(() => {});
+                        }
+                        setNewAvatarFileId(null);
                         setEditing(false);
                         setNickname(user.nickname ?? "");
                         setAvatarUrl(user.avatarUrl ?? "");

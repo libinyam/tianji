@@ -199,7 +199,8 @@ export default function DiscussionDetail() {
     if (!question || !editTitle.trim() || !editBody.trim()) return;
     try {
       await updatePost(question.id, { title: editTitle.trim(), body: editBody.trim(), tags: question.tags });
-      setQuestion({ ...question, title: editTitle.trim(), body: editBody.trim(), excerpt: editBody.trim().slice(0, 120) + "…" });
+      const trimmedBody = editBody.trim();
+      setQuestion({ ...question, title: editTitle.trim(), body: trimmedBody, excerpt: trimmedBody.length > 120 ? trimmedBody.slice(0, 120) + "…" : trimmedBody });
       setEditingPost(false);
     } catch (e) {
       toast.error((e as Error).message);
