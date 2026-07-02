@@ -18,6 +18,7 @@ export interface IdeaDoc {
   resonance: number;
   replies: number;
   createdAt: string;
+  resonatedBy?: string[];
 }
 
 const AVATAR_COLORS = ["#7cc4ff", "#f3c969", "#5aa6f0", "#a78bfa", "#34d399", "#fb923c"];
@@ -112,7 +113,18 @@ export async function resonanceIdea(id: string): Promise<boolean> {
     const { data } = await docRef.get();
     if (!data || data.length === 0) return false;
 
-    await docRef.update({ resonance: db.command.inc(1) });
+    const doc = data[0] as IdeaDoc;
+    const resonatedBy = doc.resonatedBy ?? [];
+
+    // 防重复共鸣
+    if (resonatedBy.includes(uid)) {
+      throw new Error("已共鸣过此灵感");
+    }
+
+    await docRef.update({
+      resonance: db.command.inc(1),
+      resonatedBy: db.command.addToSet(uid),
+    });
 
     // 通知灵感作者
     await createNotification({

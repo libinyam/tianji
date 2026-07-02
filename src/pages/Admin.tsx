@@ -83,11 +83,6 @@ export default function Admin() {
 
   useEffect(() => {
     if (!isAdmin) return;
-    fetchStats();
-  }, [isAdmin]);
-
-  useEffect(() => {
-    if (!isAdmin) return;
     if (tab === "overview") fetchStats();
     else if (tab === "posts") fetchPosts();
     else if (tab === "ideas") fetchIdeas();

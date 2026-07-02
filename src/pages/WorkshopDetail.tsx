@@ -98,6 +98,7 @@ export default function WorkshopDetail() {
     })();
     return () => {
       mounted = false;
+      if (saveTimerRef.current) clearTimeout(saveTimerRef.current);
     };
   }, [id]);
 

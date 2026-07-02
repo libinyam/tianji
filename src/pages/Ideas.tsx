@@ -53,10 +53,11 @@ export default function Ideas() {
   }, []);
 
   // 加载收藏状态
+  const ideaIdsKey = realIdeas.map((i) => i.id).join(",");
   useEffect(() => {
-    if (!user || realIdeas.length === 0) return;
-    getFavoritedIds(realIdeas.map((i) => i.id)).then(setFavedIdeas);
-  }, [user, realIdeas]);
+    if (!user || !ideaIdsKey) return;
+    getFavoritedIds(ideaIdsKey.split(",")).then(setFavedIdeas);
+  }, [user, ideaIdsKey]);
 
   const allIdeas = realIdeas;
 

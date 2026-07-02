@@ -60,7 +60,7 @@ export default function BookDetail() {
 
   useEffect(() => {
     if (id) isFavorited(id).then(setFavorited);
-  }, [id]);
+  }, [id, user?.uid]);
 
   // 如果 fileUrl 是 cloud:// fileID，先换取临时下载链接
   useEffect(() => {

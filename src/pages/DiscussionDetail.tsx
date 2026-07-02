@@ -140,6 +140,23 @@ export default function DiscussionDetail() {
     };
   }, [id, mockQuestion]);
 
+  // 登录状态变化时重新检查收藏和投票
+  useEffect(() => {
+    if (!id || !user) return;
+    isFavorited(id).then(setFavState);
+    if (question) {
+      const answerIds = (question.answerList ?? []).map((a) => a.id);
+      if (answerIds.length > 0) {
+        getVotedAnswerIds(answerIds).then((votedSet) => {
+          const votedMap: Record<string, boolean> = {};
+          votedSet.forEach((aid) => { votedMap[aid] = true; });
+          setVoted(votedMap);
+        });
+      }
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [user?.uid]);
+
   const handleToggleFav = async () => {
     if (!user) {
       window.dispatchEvent(new CustomEvent("tianji:open-auth"));
