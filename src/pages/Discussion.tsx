@@ -1,5 +1,5 @@
 import { useMemo, useState, useEffect } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useNavigate, useLocation } from "react-router-dom";
 import { motion } from "motion/react";
 import { MessageCircle, Eye, ThumbsUp, Star, Plus, GraduationCap, Coffee, Search } from "lucide-react";
 import PageHero from "@/components/PageHero";
@@ -32,6 +32,8 @@ export default function Discussion() {
   const [loading, setLoading] = useState(true);
   const { user } = useAuthStore();
   const navigate = useNavigate();
+  const location = useLocation();
+  const prefill = (location.state as { prefill?: { title: string; body: string; tags: string[] } } | null)?.prefill;
 
   // 加载真实帖子（按分区筛选）
   useEffect(() => {
@@ -51,6 +53,12 @@ export default function Discussion() {
       mounted = false;
     };
   }, [section, subFilter]);
+
+  useEffect(() => {
+    if (prefill) {
+      setPostModalOpen(true);
+    }
+  }, [prefill]);
 
   const allQuestions = realPosts;
 
@@ -344,6 +352,7 @@ export default function Discussion() {
         onClose={() => setPostModalOpen(false)}
         onCreated={handleNewPost}
         defaultCategory={section}
+        prefill={prefill}
       />
     </>
   );

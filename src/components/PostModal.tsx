@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { X, Loader2, RotateCcw, GraduationCap, Coffee } from "lucide-react";
 import { createPost, type PostCategory, type CasualSubCategory, CASUAL_SUB_CATEGORIES } from "@/lib/posts";
 import { ensureTags } from "@/lib/tags";
@@ -16,9 +16,10 @@ interface PostModalProps {
   onClose: () => void;
   onCreated: (post: Question) => void;
   defaultCategory?: PostCategory;
+  prefill?: { title: string; body: string; tags: string[] };
 }
 
-export default function PostModal({ open, onClose, onCreated, defaultCategory = "academic" }: PostModalProps) {
+export default function PostModal({ open, onClose, onCreated, defaultCategory = "academic", prefill }: PostModalProps) {
   const { value: draft, setValue: setDraft, clearDraft, restored, dismissRestored } = useDraft("tianji-draft-post", {
     title: "",
     body: "",
@@ -39,6 +40,18 @@ export default function PostModal({ open, onClose, onCreated, defaultCategory = 
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const { user } = useAuthStore();
+
+  useEffect(() => {
+    if (open && prefill) {
+      setDraft({
+        title: prefill.title,
+        body: prefill.body,
+        tags: prefill.tags,
+        category: "academic" as PostCategory,
+        subCategory: "" as CasualSubCategory | "",
+      });
+    }
+  }, [open, prefill, setDraft]);
 
   const handleClose = () => {
     setDraft({ title: "", body: "", tags: [], category: defaultCategory, subCategory: "" });

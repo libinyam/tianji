@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Link, useParams } from "react-router-dom";
+import { Link, useParams, useNavigate } from "react-router-dom";
 import { motion } from "motion/react";
 import { PostDetailSkeleton } from "@/components/Skeleton";
 import {
@@ -8,15 +8,16 @@ import {
   Star,
   Bookmark,
   Download,
-  Eye,
   ChevronDown,
   Calendar,
   FileText,
   Flag,
   Loader2,
+  MessageCircle,
+  Send,
 } from "lucide-react";
 import { books } from "@/data/books";
-import { fetchBookById, incrementBookDownloads } from "@/lib/books";
+import { fetchBookById, incrementBookDownloads, addReview } from "@/lib/books";
 import { app } from "@/lib/cloudbase";
 import DifficultyDots from "@/components/DifficultyDots";
 import Avatar from "@/components/Avatar";
@@ -39,6 +40,12 @@ export default function BookDetail() {
   const [resolvingUrl, setResolvingUrl] = useState(false);
   const [downloading, setDownloading] = useState(false);
   const { user } = useAuthStore();
+  const [reviewRating, setReviewRating] = useState(0);
+  const [reviewText, setReviewText] = useState("");
+  const [reviewSubmitting, setReviewSubmitting] = useState(false);
+  const [questionPage, setQuestionPage] = useState("");
+  const [questionText, setQuestionText] = useState("");
+  const navigate = useNavigate();
 
   useEffect(() => {
     if (mockBook) {
@@ -142,6 +149,27 @@ export default function BookDetail() {
     }
   };
 
+  const handleReviewSubmit = async () => {
+    if (!user) {
+      window.dispatchEvent(new CustomEvent("tianji:open-auth"));
+      return;
+    }
+    if (!book || reviewRating === 0 || !reviewText.trim()) return;
+    setReviewSubmitting(true);
+    try {
+      const author = user.nickname || user.username || user.email || "匿名用户";
+      await addReview(book.id, { author, rating: reviewRating, content: reviewText.trim() });
+      setBook({ ...book, reviews: [...book.reviews, { author, rating: reviewRating, content: reviewText.trim(), date: new Date().toISOString().slice(0, 10) }] });
+      setReviewRating(0);
+      setReviewText("");
+      toast.success("评价已提交");
+    } catch {
+      toast.error("提交失败，请重试");
+    } finally {
+      setReviewSubmitting(false);
+    }
+  };
+
   const openReport = () => {
     if (!user) {
       window.dispatchEvent(new CustomEvent("tianji:open-auth"));
@@ -240,16 +268,6 @@ export default function BookDetail() {
               className="col-span-2 inline-flex items-center justify-center gap-2 rounded-lg border border-red-500/40 bg-red-500/10 px-5 py-2.5 text-sm font-medium text-red-300 transition-all hover:bg-red-500/20"
             >
               <Flag size={15} /> 举报资源
-            </button>
-            <button
-              onClick={() => {
-                const url = resolvedFileUrl ?? book.fileUrl ?? book.link;
-                if (url) window.open(url, "_blank");
-              }}
-              disabled={!book.fileUrl && !book.link || resolvingUrl}
-              className="btn-ghost disabled:cursor-not-allowed disabled:opacity-40"
-            >
-              {resolvingUrl ? <Loader2 size={15} className="animate-spin" /> : <Eye size={15} />} 预览
             </button>
             <button
               onClick={handleFav}
@@ -364,37 +382,113 @@ export default function BookDetail() {
             )}
           </div>
 
-          {/* 评价 */}
+          {/* 读者评价 */}
           <div className="mt-8">
             <h2 className="heading-display text-xl text-parchment-50">读者评价</h2>
-            <div className="mt-4 space-y-4">
-              {book.reviews.map((r, i) => (
-                <div
-                  key={i}
-                  className="rounded-xl border border-void-600/40 bg-void-800/30 p-5"
+
+            {/* 评价表单 */}
+            <div className="mt-4 rounded-xl border border-void-600/40 bg-void-800/30 p-5">
+              <div className="flex items-center gap-2">
+                <span className="text-sm text-mist-400">我的评分：</span>
+                {Array.from({ length: 5 }, (_, k) => (
+                  <button
+                    key={k}
+                    onClick={() => setReviewRating(k + 1)}
+                    className="transition-transform hover:scale-110"
+                  >
+                    <Star
+                      size={18}
+                      className={k < reviewRating ? "fill-star-400 text-star-400" : "text-void-600"}
+                    />
+                  </button>
+                ))}
+              </div>
+              <textarea
+                value={reviewText}
+                onChange={(e) => setReviewText(e.target.value)}
+                rows={3}
+                maxLength={500}
+                placeholder="分享你对这本书的评价、收获或建议…"
+                className="mt-3 w-full resize-none rounded-lg border border-void-600/50 bg-void-950/50 p-3 text-sm text-parchment-100 focus:border-star-400/50 focus:outline-none"
+              />
+              <div className="mt-3 flex justify-end">
+                <button
+                  onClick={handleReviewSubmit}
+                  disabled={reviewSubmitting || reviewRating === 0 || !reviewText.trim()}
+                  className="btn-gold text-sm disabled:opacity-50"
                 >
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-2.5">
-                      <Avatar name={r.author} size={30} />
-                      <span className="text-sm text-parchment-100">{r.author}</span>
+                  {reviewSubmitting ? <Loader2 size={14} className="animate-spin" /> : <Send size={14} />}
+                  提交评价
+                </button>
+              </div>
+            </div>
+
+            {/* 评价列表 */}
+            <div className="mt-4 space-y-4">
+              {book.reviews.length === 0 ? (
+                <p className="py-8 text-center text-sm text-mist-500">还没有评价，第一个来分享你的想法吧</p>
+              ) : (
+                book.reviews.map((r, i) => (
+                  <div key={i} className="rounded-xl border border-void-600/40 bg-void-800/30 p-5">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-2.5">
+                        <Avatar name={r.author} size={30} />
+                        <span className="text-sm text-parchment-100">{r.author}</span>
+                      </div>
+                      <div className="flex items-center gap-0.5">
+                        {Array.from({ length: 5 }, (_, k) => (
+                          <Star key={k} size={12} className={k < r.rating ? "fill-star-400 text-star-400" : "text-void-600"} />
+                        ))}
+                      </div>
                     </div>
-                    <div className="flex items-center gap-0.5">
-                      {Array.from({ length: 5 }, (_, k) => (
-                        <Star
-                          key={k}
-                          size={12}
-                          className={k < r.rating ? "fill-star-400 text-star-400" : "text-void-600"}
-                        />
-                      ))}
-                    </div>
+                    <LazyMathText content={r.content} className="mt-3 text-sm leading-relaxed text-mist-300" />
+                    <p className="mt-2 font-mono text-[10px] text-mist-500">{r.date}</p>
                   </div>
-                  <LazyMathText
-  content={r.content}
-  className="mt-3 text-sm leading-relaxed text-mist-300"
-/>
-                  <p className="mt-2 font-mono text-[10px] text-mist-500">{r.date}</p>
-                </div>
-              ))}
+                ))
+              )}
+            </div>
+          </div>
+
+          {/* 疑问板块 */}
+          <div className="mt-8 rounded-xl border border-void-600/40 bg-void-800/30 p-5">
+            <h2 className="heading-display text-lg text-parchment-50 flex items-center gap-2">
+              <MessageCircle size={18} className="text-star-400" /> 对内容有疑问？
+            </h2>
+            <p className="mt-2 text-sm text-mist-400">标注你有疑问的页码和问题，直接去讨论区发帖交流。</p>
+            <div className="mt-4 flex flex-col gap-3 sm:flex-row sm:items-center">
+              <input
+                value={questionPage}
+                onChange={(e) => setQuestionPage(e.target.value)}
+                placeholder="页码（如 42 或 42-45）"
+                className="w-full rounded-lg border border-void-600/50 bg-void-950/50 px-3 py-2 text-sm text-parchment-100 focus:border-star-400/50 focus:outline-none sm:w-40"
+              />
+              <input
+                value={questionText}
+                onChange={(e) => setQuestionText(e.target.value)}
+                placeholder="简要描述你的疑问…"
+                className="flex-1 rounded-lg border border-void-600/50 bg-void-950/50 px-3 py-2 text-sm text-parchment-100 focus:border-star-400/50 focus:outline-none"
+              />
+              <button
+                onClick={() => {
+                  if (!user) {
+                    window.dispatchEvent(new CustomEvent("tianji:open-auth"));
+                    return;
+                  }
+                  const pageStr = questionPage.trim() ? `第 ${questionPage.trim()} 页：` : "";
+                  navigate("/discussion", {
+                    state: {
+                      prefill: {
+                        title: `关于《${book.title}》${pageStr}的疑问`,
+                        body: questionText.trim() ? `${pageStr}${questionText.trim()}` : "",
+                        tags: [book.title],
+                      },
+                    },
+                  });
+                }}
+                className="btn-gold whitespace-nowrap text-sm"
+              >
+                <MessageCircle size={14} /> 去发帖
+              </button>
             </div>
           </div>
         </motion.div>

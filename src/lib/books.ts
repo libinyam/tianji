@@ -65,6 +65,18 @@ export async function incrementBookDownloads(id: string): Promise<void> {
   }
 }
 
+/** 添加读者评价 */
+export async function addReview(bookId: string, review: { author: string; rating: number; content: string }): Promise<void> {
+  const docRef = db.collection(BOOKS_COLLECTION).doc(bookId);
+  const { data } = await docRef.get();
+  if (!data || data.length === 0) throw new Error("资源不存在");
+  const book = data[0] as BookDoc;
+  const reviews = [...(book.reviews ?? []), { ...review, date: new Date().toISOString().slice(0, 10) }];
+  const totalRating = reviews.reduce((sum, r) => sum + r.rating, 0);
+  const avgRating = reviews.length > 0 ? totalRating / reviews.length : 0;
+  await docRef.update({ reviews, rating: Math.round(avgRating * 10) / 10 });
+}
+
 function getCurrentUid(): string {
   return useAuthStore.getState().user?.uid ?? "";
 }
