@@ -39,7 +39,10 @@ export default function BookDetail() {
   const { user } = useAuthStore();
 
   useEffect(() => {
-    if (mockBook) return; // Mock 数据直接用
+    if (mockBook) {
+      setBook(mockBook);
+      return;
+    }
     if (!id) return;
     let mounted = true;
     (async () => {

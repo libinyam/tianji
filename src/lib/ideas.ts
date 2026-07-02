@@ -31,9 +31,9 @@ function toIdea(doc: IdeaDoc): Idea {
     authorUid: doc.authorUid,
     avatarColor: doc.avatarColor,
     topic: doc.topic,
-    tags: doc.tags,
-    resonance: doc.resonance,
-    replies: doc.replies,
+    tags: doc.tags ?? [],
+    resonance: doc.resonance ?? 0,
+    replies: doc.replies ?? 0,
     createdAt: doc.createdAt,
   };
 }
