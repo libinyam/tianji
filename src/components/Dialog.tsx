@@ -14,6 +14,8 @@ interface DialogProps {
   maxWidthClass?: string;
   /** 内边距 class，默认 p-7 */
   paddingClass?: string;
+  /** 是否使用不透明背景（覆盖 card-surface 的半透明默认值） */
+  opaque?: boolean;
   children: ReactNode;
 }
 
@@ -35,6 +37,7 @@ export default function Dialog({
   preventClose = false,
   maxWidthClass = "max-w-lg",
   paddingClass = "p-7",
+  opaque = false,
   children,
 }: DialogProps) {
   const dialogRef = useRef<HTMLDivElement>(null);
@@ -122,7 +125,7 @@ export default function Dialog({
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
-          className="fixed inset-0 z-[100] flex items-center justify-center p-4"
+          className="fixed inset-0 z-[100] flex items-center justify-center overflow-y-auto p-4 py-8"
           onClick={handleBackdropClick}
         >
           <div
@@ -141,7 +144,7 @@ export default function Dialog({
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.96, y: 8 }}
             transition={{ duration: 0.25 }}
-            className={`card-surface grain relative w-full ${maxWidthClass} ${paddingClass} outline-none`}
+            className={`card-surface grain relative my-auto w-full ${maxWidthClass} ${paddingClass} outline-none ${opaque ? "!bg-void-900 !backdrop-blur-0" : ""}`}
           >
             {children}
           </motion.div>

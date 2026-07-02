@@ -94,6 +94,7 @@ export default function SearchModal({ open, onClose }: SearchModalProps) {
       labelledById="search-dialog-title"
       maxWidthClass="max-w-2xl"
       paddingClass="p-0"
+      opaque
     >
       <div className="overflow-hidden rounded-2xl border border-void-600/60 bg-void-900 shadow-2xl">
               {/* 搜索栏 */}
