@@ -257,12 +257,14 @@ export async function submitComment(
   await docRef.update({ answerList: newAnswerList });
 
   // 通知回答作者（createNotification 内部会跳过自己）
-  await createNotification({
-    uid: targetAnswer.authorUid,
-    type: "comment",
-    title: post.title,
-    link: `/discussion/${postId}`,
-  });
+  if (targetAnswer.authorUid) {
+    await createNotification({
+      uid: targetAnswer.authorUid,
+      type: "comment",
+      title: post.title,
+      link: `/discussion/${postId}`,
+    });
+  }
 
   return comment;
 }
