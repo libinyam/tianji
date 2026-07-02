@@ -99,6 +99,7 @@ export default function ContributeModal({
                 onChange={(e) => setContent(e.target.value)}
                 placeholder="撰写章节内容…"
                 className="w-full resize-y rounded-lg border border-void-600/50 bg-void-950/50 p-3 text-sm leading-relaxed text-parchment-100 placeholder:text-mist-500 focus:border-star-400/50 focus:outline-none focus:ring-1 focus:ring-star-400/30"
+                maxLength={15000}
               />
 
               {error && (

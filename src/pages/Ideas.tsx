@@ -397,6 +397,7 @@ export default function Ideas() {
               onChange={(e) => setEditTitle(e.target.value)}
               className="mb-3 w-full rounded-lg border border-void-600/50 bg-void-950/50 px-3 py-2.5 text-sm text-parchment-100 focus:border-star-400/50 focus:outline-none"
               placeholder="标题"
+              maxLength={200}
             />
             <textarea
               name="body"
@@ -404,6 +405,7 @@ export default function Ideas() {
               value={editSummary}
               onChange={(e) => setEditSummary(e.target.value)}
               className="w-full resize-none rounded-lg border border-void-600/50 bg-void-950/50 p-3 text-sm text-parchment-100 focus:border-star-400/50 focus:outline-none"
+              maxLength={500}
               placeholder="灵感内容"
             />
             <div className="mt-4 flex justify-end gap-2">

@@ -129,6 +129,7 @@ export default function ReportModal({
                 value={detail}
                 onChange={(e) => setDetail(e.target.value)}
                 placeholder="补充描述具体情况，帮助我们更好地判断…"
+                maxLength={500}
                 className="w-full resize-y rounded-lg border border-void-600/50 bg-void-950/50 p-3 text-sm leading-relaxed text-parchment-100 placeholder:text-mist-500 focus:border-red-400/50 focus:outline-none focus:ring-1 focus:ring-red-400/30"
               />
             </div>

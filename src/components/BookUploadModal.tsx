@@ -285,6 +285,7 @@ export default function BookUploadModal({ open, onClose, onCreated }: BookUpload
                   onChange={(e) => setSummary(e.target.value)}
                   placeholder="简要描述这份资源的内容、适合的人群和学习的价值…"
                   className="w-full resize-y rounded-lg border border-void-600/50 bg-void-950/50 p-3 text-sm leading-relaxed text-parchment-100 placeholder:text-mist-500 focus:border-star-400/50 focus:outline-none focus:ring-1 focus:ring-star-400/30"
+                  maxLength={2000}
                 />
               </div>
 
@@ -369,6 +370,7 @@ export default function BookUploadModal({ open, onClose, onCreated }: BookUpload
                           onChange={(e) => setToc(e.target.value)}
                           placeholder="每行一个章节标题，缩进表示层级"
                           className="w-full resize-y rounded-lg border border-void-600/50 bg-void-950/50 p-3 font-mono text-xs leading-relaxed text-parchment-100 placeholder:text-mist-500 focus:border-star-400/50 focus:outline-none focus:ring-1 focus:ring-star-400/30"
+                          maxLength={3000}
                         />
                       ) : (
                         <div className="rounded-lg border border-void-600/40 bg-void-800/20 px-4 py-3">
@@ -382,6 +384,7 @@ export default function BookUploadModal({ open, onClose, onCreated }: BookUpload
                             onChange={(e) => setToc(e.target.value)}
                             placeholder="每行一个章节标题"
                             className="mt-2 w-full resize-y rounded-lg border border-void-600/50 bg-void-950/50 p-3 font-mono text-xs leading-relaxed text-parchment-100 placeholder:text-mist-500 focus:border-star-400/50 focus:outline-none focus:ring-1 focus:ring-star-400/30"
+                            maxLength={3000}
                           />
                         </div>
                       )}

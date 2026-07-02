@@ -374,14 +374,16 @@ export default function WorkshopDetail() {
                 onChange={(e) => setEditTitle(e.target.value)}
                 placeholder="项目标题"
                 className="w-full rounded-lg border border-void-600/50 bg-void-950/50 px-3 py-2 text-xl font-bold text-parchment-50 placeholder:text-mist-500 focus:border-star-400/50 focus:outline-none"
+                maxLength={200}
               />
               <textarea
                 name="workshop-desc"
                 value={editDesc}
                 onChange={(e) => setEditDesc(e.target.value)}
-                rows={2}
-                placeholder="项目简介"
-                className="w-full resize-y rounded-lg border border-void-600/50 bg-void-950/50 px-3 py-2 text-sm text-parchment-100 placeholder:text-mist-500 focus:border-star-400/50 focus:outline-none"
+                placeholder="简要描述项目的目标、适合的人群、协作方式…"
+                rows={4}
+                className="w-full resize-none rounded-lg border border-void-600/50 bg-void-950/50 p-3 text-sm leading-relaxed text-parchment-100 placeholder:text-mist-500 focus:border-star-400/50 focus:outline-none"
+                maxLength={5000}
               />
             </div>
           ) : (
@@ -612,6 +614,7 @@ export default function WorkshopDetail() {
                   rows={20}
                   autoFocus
                   placeholder="撰写文档内容…支持 LaTeX：行内 $...$，行间 $$...$$"
+                  maxLength={30000}
                   className="w-full resize-y rounded-lg border border-void-600/50 bg-void-950/50 p-4 text-sm leading-relaxed text-parchment-100 placeholder:text-mist-500 focus:border-star-400/50 focus:outline-none focus:ring-1 focus:ring-star-400/30"
                 />
               ) : content ? (
@@ -683,6 +686,7 @@ export default function WorkshopDetail() {
                     onChange={(e) => setAnnotInput(e.target.value)}
                     rows={3}
                     placeholder="写下你的批注…"
+                    maxLength={500}
                     className="w-full resize-y rounded-md border border-void-600/50 bg-void-950/50 p-2 text-xs leading-relaxed text-parchment-100 placeholder:text-mist-500 focus:border-star-400/50 focus:outline-none"
                   />
                   {annotError && (

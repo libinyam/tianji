@@ -176,6 +176,7 @@ export default function WorkshopCreateModal({ open, onClose, onCreated }: Worksh
                   onChange={(e) => setDescription(e.target.value)}
                   placeholder="描述项目的目标、适合的人群和预期成果…"
                   className="w-full resize-y rounded-lg border border-void-600/50 bg-void-950/50 p-3 text-sm leading-relaxed text-parchment-100 placeholder:text-mist-500 focus:border-star-400/50 focus:outline-none focus:ring-1 focus:ring-star-400/30"
+                  maxLength={3000}
                 />
               </div>
 
@@ -191,6 +192,7 @@ export default function WorkshopCreateModal({ open, onClose, onCreated }: Worksh
                   onChange={(e) => setContent(e.target.value)}
                   placeholder="写下文档初始内容…支持 LaTeX：行内 $...$，行间 $$...$$"
                   className="w-full resize-y rounded-lg border border-void-600/50 bg-void-950/50 p-3 text-sm leading-relaxed text-parchment-100 placeholder:text-mist-500 focus:border-star-400/50 focus:outline-none focus:ring-1 focus:ring-star-400/30"
+                  maxLength={20000}
                 />
               </div>
 
@@ -215,6 +217,7 @@ export default function WorkshopCreateModal({ open, onClose, onCreated }: Worksh
                           value={ch.title}
                           onChange={(e) => updateChapter(ch.id, "title", e.target.value)}
                           placeholder="章节标题"
+                          maxLength={150}
                           className="w-full rounded-md border border-void-600/50 bg-void-950/50 px-2.5 py-1.5 text-sm text-parchment-100 placeholder:text-mist-500 focus:border-star-400/50 focus:outline-none"
                         />
                         <input
@@ -223,6 +226,7 @@ export default function WorkshopCreateModal({ open, onClose, onCreated }: Worksh
                           value={ch.brief}
                           onChange={(e) => updateChapter(ch.id, "brief", e.target.value)}
                           placeholder="简述（可选）"
+                          maxLength={200}
                           className="w-full rounded-md border border-void-600/50 bg-void-950/50 px-2.5 py-1.5 text-xs text-mist-300 placeholder:text-mist-500 focus:border-star-400/50 focus:outline-none"
                         />
                       </div>

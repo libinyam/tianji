@@ -575,6 +575,7 @@ export default function DiscussionDetail() {
                   onChange={(e) => setEditTitle(e.target.value)}
                   className="mb-3 w-full rounded-lg border border-void-600/50 bg-void-950/50 px-3 py-2 text-lg text-parchment-100 focus:border-star-400/50 focus:outline-none"
                   placeholder="标题"
+                  maxLength={200}
                 />
                 <textarea
                   name="body"
@@ -582,6 +583,7 @@ export default function DiscussionDetail() {
                   value={editBody}
                   onChange={(e) => setEditBody(e.target.value)}
                   className="w-full resize-none rounded-lg border border-void-600/50 bg-void-950/50 p-3 text-sm text-parchment-100 focus:border-star-400/50 focus:outline-none"
+                  maxLength={10000}
                 />
                 <div className="mt-3 flex justify-end gap-2">
                   <button onClick={() => setEditingPost(false)} className="btn-ghost text-xs">取消</button>
@@ -660,6 +662,7 @@ export default function DiscussionDetail() {
                             value={editAnswerText}
                             onChange={(e) => setEditAnswerText(e.target.value)}
                             className="w-full resize-none rounded-lg border border-tian-400/30 bg-void-950/50 p-3 text-sm text-parchment-100 focus:border-star-400/50 focus:outline-none"
+                            maxLength={8000}
                           />
                           <div className="mt-2 flex justify-end gap-2">
                             <button onClick={() => setEditingAnswerId(null)} className="btn-ghost text-xs">取消</button>
@@ -760,6 +763,7 @@ export default function DiscussionDetail() {
                             onChange={(e) => setCommentText(e.target.value)}
                             placeholder="写下你的评论…"
                             className="w-full resize-none rounded-md border border-void-600/50 bg-void-950/50 p-2.5 text-sm text-parchment-100 placeholder:text-mist-500 focus:border-star-400/50 focus:outline-none"
+                            maxLength={500}
                           />
                           <div className="mt-2 flex justify-end gap-2">
                             <button
@@ -870,6 +874,7 @@ export default function DiscussionDetail() {
                 placeholder={user ? "撰写你的推导与解答…" : "请先登录后再回答…"}
                 disabled={!user}
                 className="mt-3 w-full resize-none rounded-lg border border-void-600/50 bg-void-950/50 p-3 text-sm text-parchment-100 placeholder:text-mist-500 focus:border-star-400/50 focus:outline-none disabled:opacity-50"
+                maxLength={8000}
               />
               {answerError && (
                 <p className="mt-2 text-xs text-red-300">{answerError}</p>
