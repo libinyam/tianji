@@ -113,7 +113,8 @@ export default function Dialog({
 
   const handleBackdropClick = (e: React.MouseEvent) => {
     if (preventClose) return;
-    if (e.target === e.currentTarget) {
+    // 如果点击的不是弹窗内容本身，就关闭
+    if (dialogRef.current && !dialogRef.current.contains(e.target as Node)) {
       onClose();
     }
   };
@@ -121,34 +122,41 @@ export default function Dialog({
   return (
     <AnimatePresence onExitComplete={restoreFocus}>
       {open && (
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          exit={{ opacity: 0 }}
-          className="fixed inset-0 z-[100] flex items-center justify-center overflow-y-auto p-4 py-8"
-          onClick={handleBackdropClick}
-        >
-          <div
-            className="absolute inset-0 bg-void-950/80 backdrop-blur-sm"
-            onClick={handleBackdropClick}
-          />
-
+        <>
+          {/* 背景遮罩：独立 fixed 元素，始终全屏覆盖 */}
           <motion.div
-            ref={dialogRef}
-            role="dialog"
-            aria-modal="true"
-            aria-labelledby={labelledById}
-            aria-describedby={describedById}
-            tabIndex={-1}
-            initial={{ opacity: 0, scale: 0.94, y: 16 }}
-            animate={{ opacity: 1, scale: 1, y: 0 }}
-            exit={{ opacity: 0, scale: 0.96, y: 8 }}
-            transition={{ duration: 0.25 }}
-            className={`card-surface grain relative my-auto w-full ${maxWidthClass} ${paddingClass} outline-none ${opaque ? "!bg-void-900 !backdrop-blur-0" : ""}`}
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.2 }}
+            className="fixed inset-0 z-[100] bg-void-950/80 backdrop-blur-sm"
+            aria-hidden
+          />
+          {/* 内容容器：可滚动，内容短时居中，长时从顶部开始 */}
+          <div
+            className="fixed inset-0 z-[101] overflow-y-auto"
+            onClick={handleBackdropClick}
           >
-            {children}
-          </motion.div>
-        </motion.div>
+            <div className="flex min-h-full items-start justify-center px-4 py-8 sm:items-center sm:py-12">
+              <motion.div
+                ref={dialogRef}
+                role="dialog"
+                aria-modal="true"
+                aria-labelledby={labelledById}
+                aria-describedby={describedById}
+                tabIndex={-1}
+                initial={{ opacity: 0, scale: 0.94, y: 16 }}
+                animate={{ opacity: 1, scale: 1, y: 0 }}
+                exit={{ opacity: 0, scale: 0.96, y: 8 }}
+                transition={{ duration: 0.25 }}
+                className={`card-surface grain relative w-full ${maxWidthClass} ${paddingClass} outline-none ${opaque ? "!bg-void-900 !backdrop-blur-0" : ""}`}
+                style={opaque ? { backgroundColor: "var(--c-void-900, rgb(15 20 33))" } : undefined}
+              >
+                {children}
+              </motion.div>
+            </div>
+          </div>
+        </>
       )}
     </AnimatePresence>
   );
