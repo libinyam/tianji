@@ -1,4 +1,5 @@
 import { useEffect, useRef, useCallback, type ReactNode } from "react";
+import { createPortal } from "react-dom";
 import { motion, AnimatePresence } from "motion/react";
 
 interface DialogProps {
@@ -119,7 +120,7 @@ export default function Dialog({
     }
   };
 
-  return (
+  return createPortal(
     <AnimatePresence onExitComplete={restoreFocus}>
       {open && (
         <>
@@ -158,6 +159,7 @@ export default function Dialog({
           </div>
         </>
       )}
-    </AnimatePresence>
+    </AnimatePresence>,
+    document.body
   );
 }
