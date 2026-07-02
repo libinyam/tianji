@@ -95,7 +95,7 @@ export default function SearchModal({ open, onClose }: SearchModalProps) {
       maxWidthClass="max-w-2xl"
       paddingClass="p-0"
     >
-      <div className="overflow-hidden rounded-2xl border border-void-600/60 bg-void-900/95 shadow-2xl backdrop-blur-xl">
+      <div className="overflow-hidden rounded-2xl border border-void-600/60 bg-void-900 shadow-2xl">
               {/* 搜索栏 */}
               <div className="flex items-center gap-3 border-b border-void-600/40 px-4 py-3">
                 {loading ? (
