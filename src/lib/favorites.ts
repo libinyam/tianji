@@ -71,6 +71,10 @@ export async function toggleFavorite(params: {
     if (res.deleted === 0) {
       throw new Error("取消收藏失败，可能是权限不足");
     }
+    // 更新对应集合的 favorites 计数
+    if (params.type === "book") {
+      db.collection("books").doc(params.targetId).update({ favorites: db.command.inc(-1) }).catch(() => {});
+    }
     return false;
   }
 
@@ -88,6 +92,10 @@ export async function toggleFavorite(params: {
   const addResult = addRes as { id?: string; _id?: string };
   if (!addResult.id && !addResult._id) {
     throw new Error("收藏失败，可能是权限不足");
+  }
+  // 更新对应集合的 favorites 计数
+  if (params.type === "book") {
+    db.collection("books").doc(params.targetId).update({ favorites: db.command.inc(1) }).catch(() => {});
   }
   return true;
 }

@@ -118,6 +118,7 @@ export default function DiscussionDetail() {
           if (!sessionStorage.getItem(viewedKey)) {
             sessionStorage.setItem(viewedKey, "1");
             incrementViews(id);
+            setQuestion((prev) => prev ? { ...prev, views: prev.views + 1 } : prev);
           }
           // 检查收藏状态
           isFavorited(id).then(setFavState);
@@ -492,6 +493,8 @@ export default function DiscussionDetail() {
             console.error("AI bot comment error:", err);
           });
         }
+      } else {
+        toast.error("评论提交失败，请刷新后重试");
       }
     } catch (err) {
       toast.error(err instanceof Error ? err.message : "评论提交失败");

@@ -188,9 +188,13 @@ export async function deleteIdea(ideaId: string): Promise<boolean> {
 
   await docRef.remove();
 
-  // 级联清理收藏和举报
-  await db.collection("favorites").where({ targetId: ideaId }).remove();
-  await db.collection("reports").where({ targetId: ideaId }).remove();
+  // 级联清理收藏和举报（不阻塞主流程）
+  try {
+    await db.collection("favorites").where({ targetId: ideaId }).remove();
+  } catch { /* 安全规则可能拦截，忽略 */ }
+  try {
+    await db.collection("reports").where({ targetId: ideaId }).remove();
+  } catch { /* 安全规则可能拦截，忽略 */ }
 
   return true;
 }

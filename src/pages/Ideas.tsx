@@ -126,7 +126,7 @@ export default function Ideas() {
         type: "idea",
         title: idea.title,
         excerpt: idea.summary,
-        link: `/ideas`,
+        link: `/ideas/${idea.id}`,
       });
       setFavedIdeas((prev) => {
         const next = new Set(prev);

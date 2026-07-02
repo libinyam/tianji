@@ -73,7 +73,7 @@ export default function Discussion() {
     list = [...list].sort((a, b) => {
       if (sort === "热度") return b.views - a.views;
       if (sort === "悬赏") return (b.bounty ?? 0) - (a.bounty ?? 0);
-      return b.createdAt < a.createdAt ? 1 : -1;
+      return b.createdAt < a.createdAt ? -1 : 1;
     });
     return list;
   }, [allQuestions, activeTag, categoryFilter, sort, section]);
@@ -122,6 +122,7 @@ export default function Discussion() {
                   setSubFilter("全部");
                   setCategoryFilter("全部");
                   setActiveTag("全部");
+                  setSort("热度");
                 }}
                 className={`flex flex-1 items-center gap-3 rounded-xl border p-4 transition-all ${
                   isActive

@@ -58,7 +58,7 @@ export default function IdeaDetail() {
       await resonanceIdea(idea.id);
     } catch {
       setResonated(false);
-      setIdea((prev) => prev ? { ...prev, resonance: prev.resonance - 1 } : prev);
+      setIdea((prev) => prev ? { ...prev, resonance: Math.max(0, prev.resonance - 1) } : prev);
       toast.error("操作失败，请重试");
     }
   };

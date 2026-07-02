@@ -132,17 +132,10 @@ export default function BookUploadModal({ open, onClose, onCreated }: BookUpload
     setLoading(true);
     setError(null);
     try {
-      // 如果有上传文件，获取临时下载 URL
+      // 如果有上传文件，存储 cloud:// fileID（详情页动态换取临时URL）
       let fileUrl: string | undefined;
       if (uploadedFileId) {
-        try {
-          const urlRes = await app.getTempFileURL({
-            fileList: [{ fileID: uploadedFileId, maxAge: 365 * 24 * 60 * 60 * 1000 }],
-          });
-          fileUrl = urlRes.fileList?.[0]?.tempFileURL;
-        } catch {
-          // 获取 URL 失败不阻塞，仍然存储 fileID
-        }
+        fileUrl = uploadedFileId;
       }
 
       const book = await createBook({

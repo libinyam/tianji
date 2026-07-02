@@ -8,6 +8,11 @@ function getCurrentUid(): string {
   return useAuthStore.getState().user?.uid ?? "";
 }
 
+function getCurrentUserName(): string {
+  const user = useAuthStore.getState().user;
+  return user?.nickname || user?.username || user?.email || "匿名用户";
+}
+
 const COLLECTION = "reports";
 
 export interface Report {
@@ -44,7 +49,7 @@ export async function createReport(params: {
 
   await db.collection(COLLECTION).add({
     reporterUid: uid,
-    reporterName: "",
+    reporterName: getCurrentUserName(),
     targetType: params.targetType,
     targetId: params.targetId,
     targetTitle: params.targetTitle,

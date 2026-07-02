@@ -147,6 +147,7 @@ export async function createPost(params: {
     title: doc.title,
     excerpt: doc.excerpt,
     author: doc.author,
+    authorUid: uid,
     avatarColor: doc.avatarColor,
     tags: doc.tags,
     category: doc.category,
