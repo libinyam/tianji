@@ -80,6 +80,7 @@ export default function PostModal({ open, onClose, onCreated, defaultCategory = 
         // 更新标签计数
         ensureTags(finalTags);
         clearDraft();
+        toast.success("讨论已发布");
         onCreated(post);
         handleClose();
 

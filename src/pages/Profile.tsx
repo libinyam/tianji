@@ -67,7 +67,12 @@ export default function Profile() {
     setSaving(true);
     const ok = await updateProfile({ nickname, avatarUrl });
     setSaving(false);
-    if (ok) setEditing(false);
+    if (ok) {
+      setEditing(false);
+      toast.success("资料已更新");
+    } else {
+      toast.error("保存失败，请重试");
+    }
   };
 
   const handleUploadAvatar = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -92,7 +97,7 @@ export default function Profile() {
       const url = urlRes.fileList?.[0]?.tempFileURL;
       if (url) setAvatarUrl(url);
     } catch {
-      alert("上传失败，请重试");
+      toast.error("上传失败，请重试");
     } finally {
       setUploading(false);
       if (fileInputRef.current) fileInputRef.current.value = "";

@@ -6,6 +6,7 @@ import { ensureTags } from "@/lib/tags";
 import { rateLimiters } from "@/lib/security";
 import { app } from "@/lib/cloudbase";
 import { useAuthStore } from "@/stores/auth";
+import { toast } from "@/stores/toast";
 import TagSelector from "@/components/TagSelector";
 import type { Book, BookCategory } from "@/types";
 
@@ -156,6 +157,7 @@ export default function BookUploadModal({ open, onClose, onCreated }: BookUpload
       });
       if (book) {
         ensureTags(tags.length > 0 ? tags : ["综合"]);
+        toast.success("资源已发布");
         onCreated(book);
         handleClose();
       }

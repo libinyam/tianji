@@ -6,6 +6,7 @@ import { rateLimiters } from "@/lib/security";
 import TagSelector from "@/components/TagSelector";
 import Dialog from "@/components/Dialog";
 import { useAuthStore } from "@/stores/auth";
+import { toast } from "@/stores/toast";
 import type { WorkshopProject } from "@/lib/workshops";
 
 interface WorkshopCreateModalProps {
@@ -83,6 +84,7 @@ export default function WorkshopCreateModal({ open, onClose, onCreated }: Worksh
       });
       if (project) {
         ensureTags(tags.length > 0 ? tags : ["综合"]);
+        toast.success("项目已创建");
         onCreated(project);
         handleClose();
       }

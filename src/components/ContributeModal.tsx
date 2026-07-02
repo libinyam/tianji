@@ -3,6 +3,7 @@ import { motion, AnimatePresence } from "motion/react";
 import { X, Loader2 } from "lucide-react";
 import { submitContribution } from "@/lib/workshops";
 import { useAuthStore } from "@/stores/auth";
+import { toast } from "@/stores/toast";
 import type { Contribution } from "@/lib/workshops";
 
 interface ContributeModalProps {
@@ -46,6 +47,7 @@ export default function ContributeModal({
     try {
       const contribution = await submitContribution(workshopId, chapterId, content.trim());
       if (contribution) {
+        toast.success("贡献已提交");
         onContributed(contribution);
         handleClose();
       }

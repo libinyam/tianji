@@ -4,6 +4,7 @@ import { createIdea } from "@/lib/ideas";
 import { ensureTags } from "@/lib/tags";
 import { rateLimiters } from "@/lib/security";
 import { useAuthStore } from "@/stores/auth";
+import { toast } from "@/stores/toast";
 import { useDraft } from "@/hooks/useDraft";
 import TagSelector from "@/components/TagSelector";
 import Dialog from "@/components/Dialog";
@@ -70,6 +71,7 @@ export default function IdeaModal({ open, onClose, onCreated }: IdeaModalProps) 
       if (idea) {
         ensureTags(tags.length > 0 ? tags : ["综合"]);
         clearDraft();
+        toast.success("灵感已发布");
         onCreated(idea);
         handleClose();
       }
