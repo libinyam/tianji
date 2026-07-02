@@ -44,7 +44,7 @@ export default function RelatedContent({
     return () => {
       mounted = false;
     };
-  }, [tags.join(","), excludeId]);
+  }, [tags, excludeId]);
 
   if (loading) {
     return (

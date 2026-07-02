@@ -9,7 +9,7 @@ import Home from "@/pages/Home";
  * 包装 lazy，捕获动态 import 失败（新部署后旧 chunk hash 失效）自动刷新页面。
  * 刷新后浏览器获取最新 index.html，引用正确的 chunk 文件名。
  */
-function lazyWithReload<T extends ComponentType<any>>(
+function lazyWithReload<T extends ComponentType<unknown>>(
   factory: () => Promise<{ default: T }>
 ) {
   return lazy(() =>

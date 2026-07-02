@@ -11,7 +11,6 @@ import { PostCardSkeleton, ListSkeleton } from "@/components/Skeleton";
 import { fetchPosts, type PostCategory, type CasualSubCategory, CASUAL_SUB_CATEGORIES } from "@/lib/posts";
 import { PRESET_TAGS } from "@/lib/tags";
 import { useAuthStore } from "@/stores/auth";
-import { formatRelativeTime } from "@/lib/format";
 import type { Question } from "@/types";
 
 type SortKey = "最新" | "热度" | "悬赏";
@@ -77,7 +76,7 @@ export default function Discussion() {
       return b.createdAt < a.createdAt ? 1 : -1;
     });
     return list;
-  }, [allQuestions, activeTag, categoryFilter, sort]);
+  }, [allQuestions, activeTag, categoryFilter, sort, section]);
 
   const handleNewPost = (post: Question) => {
     if (post.category !== section) return;
