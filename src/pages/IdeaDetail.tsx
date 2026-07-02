@@ -1,11 +1,11 @@
 import { useEffect, useState } from "react";
 import { Link, useParams } from "react-router-dom";
-import { Lightbulb, ThumbsUp, Bookmark, Flag, ArrowLeft, Loader2 } from "lucide-react";
+import { Lightbulb, ThumbsUp, Bookmark, Flag, ArrowLeft, Loader2, Send, MessageCircle } from "lucide-react";
 import { toast } from "@/stores/toast";
 import Avatar from "@/components/Avatar";
 import ReportModal from "@/components/ReportModal";
 import { PostDetailSkeleton } from "@/components/Skeleton";
-import { fetchIdeaById, resonanceIdea } from "@/lib/ideas";
+import { fetchIdeaById, resonanceIdea, addIdeaComment } from "@/lib/ideas";
 import { toggleFavorite, isFavorited } from "@/lib/favorites";
 import { useAuthStore } from "@/stores/auth";
 import { formatRelativeTime } from "@/lib/format";
@@ -19,6 +19,8 @@ export default function IdeaDetail() {
   const [resonated, setResonated] = useState(false);
   const [faved, setFaved] = useState(false);
   const [reportOpen, setReportOpen] = useState(false);
+  const [commentText, setCommentText] = useState("");
+  const [commentSubmitting, setCommentSubmitting] = useState(false);
 
   useEffect(() => {
     if (!id) return;
@@ -81,6 +83,29 @@ export default function IdeaDetail() {
       toast.success(fav ? "已收藏" : "已取消收藏");
     } catch {
       toast.error("操作失败，请重试");
+    }
+  };
+
+  const handleComment = async () => {
+    if (!user) {
+      window.dispatchEvent(new CustomEvent("tianji:open-auth"));
+      return;
+    }
+    if (!idea || !commentText.trim()) return;
+    setCommentSubmitting(true);
+    try {
+      const comment = await addIdeaComment(idea.id, commentText);
+      if (comment) {
+        setIdea({ ...idea, comments: [...(idea.comments ?? []), comment], replies: idea.replies + 1 });
+        setCommentText("");
+        toast.success("评论已发布");
+      } else {
+        toast.error("评论失败，该灵感可能已被删除");
+      }
+    } catch (e) {
+      toast.error((e as Error).message || "评论失败，请重试");
+    } finally {
+      setCommentSubmitting(false);
     }
   };
 
@@ -191,12 +216,59 @@ export default function IdeaDetail() {
           </div>
         </article>
 
-        {/* 评论/讨论区域占位 */}
-        <div className="mt-8 rounded-2xl border border-void-600/30 bg-void-800/20 p-8 text-center">
-          <p className="text-sm text-mist-500">
-            <Loader2 size={14} className="mr-1.5 inline animate-spin" />
-            讨论功能即将上线
-          </p>
+        {/* 评论区 */}
+        <div className="mt-8">
+          <h2 className="heading-display text-xl text-parchment-50 flex items-center gap-2">
+            <MessageCircle size={20} className="text-star-400" />
+            评论 {(idea.comments ?? []).length > 0 && `(${(idea.comments ?? []).length})`}
+          </h2>
+
+          {/* 评论输入 */}
+          <div className="mt-4 rounded-xl border border-void-600/40 bg-void-800/30 p-4">
+            <textarea
+              value={commentText}
+              onChange={(e) => setCommentText(e.target.value)}
+              rows={3}
+              maxLength={1000}
+              placeholder="写下你的想法…"
+              className="w-full resize-none rounded-lg border border-void-600/50 bg-void-950/50 p-3 text-sm text-parchment-100 focus:border-star-400/50 focus:outline-none"
+            />
+            <div className="mt-3 flex items-center justify-between">
+              <span className="text-xs text-mist-500">{commentText.length}/1000</span>
+              <button
+                onClick={handleComment}
+                disabled={commentSubmitting || !commentText.trim()}
+                className="btn-gold text-sm disabled:opacity-50"
+              >
+                {commentSubmitting ? <Loader2 size={14} className="animate-spin" /> : <Send size={14} />}
+                发布评论
+              </button>
+            </div>
+          </div>
+
+          {/* 评论列表 */}
+          <div className="mt-4 space-y-4">
+            {(idea.comments ?? []).length === 0 ? (
+              <p className="py-8 text-center text-sm text-mist-500">还没有评论，第一个来分享你的想法吧</p>
+            ) : (
+              (idea.comments ?? []).map((c) => (
+                <div key={c.id} className="rounded-xl border border-void-600/40 bg-void-800/30 p-4">
+                  <div className="flex items-center gap-2.5">
+                    <Avatar name={c.author} color={c.avatarColor} size={28} />
+                    {c.authorUid ? (
+                      <Link to={`/user/${c.authorUid}`} className="text-sm text-mist-300 transition-colors hover:text-star-300">
+                        {c.author}
+                      </Link>
+                    ) : (
+                      <span className="text-sm text-mist-300">{c.author}</span>
+                    )}
+                    <span className="text-xs text-mist-500">{formatRelativeTime(c.createdAt)}</span>
+                  </div>
+                  <p className="mt-2.5 text-sm leading-relaxed text-mist-200 whitespace-pre-wrap">{c.content}</p>
+                </div>
+              ))
+            )}
+          </div>
         </div>
       </div>
 

@@ -73,6 +73,15 @@ export interface Question {
   answerList: Answer[];
 }
 
+export interface IdeaComment {
+  id: string;
+  author: string;
+  authorUid: string;
+  avatarColor: string;
+  content: string;
+  createdAt: string;
+}
+
 export interface Idea {
   id: string;
   title: string;
@@ -85,6 +94,7 @@ export interface Idea {
   resonance: number;
   replies: number;
   createdAt: string;
+  comments?: IdeaComment[];
 }
 
 export interface Doc {

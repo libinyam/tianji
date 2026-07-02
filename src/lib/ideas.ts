@@ -1,7 +1,7 @@
 import { app } from "@/lib/cloudbase";
 import { createNotification } from "@/lib/notifications";
 import { useAuthStore } from "@/stores/auth";
-import type { Idea } from "@/types";
+import type { Idea, IdeaComment } from "@/types";
 
 const db = app.database();
 const IDEAS_COLLECTION = "ideas";
@@ -19,6 +19,7 @@ export interface IdeaDoc {
   replies: number;
   createdAt: string;
   resonatedBy?: string[];
+  comments?: IdeaComment[];
 }
 
 const AVATAR_COLORS = ["#7cc4ff", "#f3c969", "#5aa6f0", "#a78bfa", "#34d399", "#fb923c"];
@@ -36,6 +37,7 @@ function toIdea(doc: IdeaDoc): Idea {
     resonance: doc.resonance ?? 0,
     replies: doc.replies ?? 0,
     createdAt: doc.createdAt,
+    comments: doc.comments ?? [],
   };
 }
 
@@ -172,6 +174,44 @@ export async function updateIdea(
     tags: params.tags,
   });
   return true;
+}
+
+/** 添加评论 */
+export async function addIdeaComment(ideaId: string, content: string): Promise<IdeaComment | null> {
+  const uid = getCurrentUid();
+  if (!uid) throw new Error("请先登录");
+  if (!content.trim()) throw new Error("评论内容不能为空");
+
+  const docRef = db.collection(IDEAS_COLLECTION).doc(ideaId);
+  const { data } = await docRef.get();
+  if (!data || data.length === 0) return null;
+
+  const idea = data[0] as IdeaDoc;
+  const comment: IdeaComment = {
+    id: `c_${crypto.randomUUID()}`,
+    author: getCurrentUserName(),
+    authorUid: uid,
+    avatarColor: AVATAR_COLORS[Math.floor(Math.random() * AVATAR_COLORS.length)],
+    content: content.trim(),
+    createdAt: new Date().toISOString(),
+  };
+
+  await docRef.update({
+    comments: db.command.push([comment]),
+    replies: db.command.inc(1),
+  });
+
+  // 通知灵感作者
+  if (idea.authorUid !== uid) {
+    await createNotification({
+      uid: idea.authorUid,
+      type: "comment",
+      title: idea.title,
+      link: `/ideas/${ideaId}`,
+    }).catch(() => {});
+  }
+
+  return comment;
 }
 
 /** 删除灵感（仅作者） */
