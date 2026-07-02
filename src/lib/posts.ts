@@ -394,6 +394,37 @@ export async function deleteComment(
   return true;
 }
 
+/** 编辑评论（仅作者） */
+export async function updateComment(
+  postId: string,
+  answerId: string,
+  commentId: string,
+  content: string
+): Promise<boolean> {
+  const uid = getCurrentUid();
+  if (!uid) throw new Error("请先登录");
+
+  const docRef = db.collection(POSTS_COLLECTION).doc(postId);
+  const { data } = await docRef.get();
+  if (!data || data.length === 0) return false;
+
+  const post = data[0] as PostDoc;
+  const answerList = post.answerList ?? [];
+  const aIdx = answerList.findIndex((a) => a.id === answerId);
+  if (aIdx === -1) return false;
+
+  const comments = answerList[aIdx].comments ?? [];
+  const cIdx = comments.findIndex((c) => c.id === commentId);
+  if (cIdx === -1) return false;
+
+  if (comments[cIdx].authorUid !== uid) throw new Error("无权编辑他人评论");
+
+  comments[cIdx] = { ...comments[cIdx], content };
+  answerList[aIdx] = { ...answerList[aIdx], comments };
+  await docRef.update({ answerList });
+  return true;
+}
+
 /** 采纳回答（仅帖子作者可操作，每篇帖子只能有一个采纳回答） */
 export async function acceptAnswer(
   postId: string,

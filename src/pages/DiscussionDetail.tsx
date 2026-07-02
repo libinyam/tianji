@@ -29,6 +29,7 @@ import {
   updateAnswer,
   deleteAnswer,
   deleteComment,
+  updateComment,
   voteAnswer,
   getVotedAnswerIds,
   acceptAnswer,
@@ -167,6 +168,8 @@ export default function DiscussionDetail() {
   const [editBody, setEditBody] = useState("");
   const [editingAnswerId, setEditingAnswerId] = useState<string | null>(null);
   const [editAnswerText, setEditAnswerText] = useState("");
+  const [editingCommentId, setEditingCommentId] = useState<string | null>(null);
+  const [editCommentText, setEditCommentText] = useState("");
 
   const startEditPost = () => {
     if (!question) return;
@@ -244,6 +247,34 @@ export default function DiscussionDetail() {
       });
       setQuestion({ ...question, answerList: newAnswerList });
       toast.success("评论已删除");
+    } catch (e) {
+      toast.error((e as Error).message);
+    }
+  };
+
+  const startEditComment = (commentId: string, content: string) => {
+    setEditingCommentId(commentId);
+    setEditCommentText(content);
+  };
+
+  const handleSaveComment = async (answerId: string, commentId: string) => {
+    if (!question || !editCommentText.trim()) return;
+    try {
+      await updateComment(question.id, answerId, commentId, editCommentText.trim());
+      const newAnswerList = question.answerList.map((a) => {
+        if (a.id === answerId) {
+          return {
+            ...a,
+            comments: (a.comments ?? []).map((c) =>
+              c.id === commentId ? { ...c, content: editCommentText.trim() } : c
+            ),
+          };
+        }
+        return a;
+      });
+      setQuestion({ ...question, answerList: newAnswerList });
+      setEditingCommentId(null);
+      toast.success("评论已更新");
     } catch (e) {
       toast.error((e as Error).message);
     }
@@ -706,15 +737,24 @@ export default function DiscussionDetail() {
                                     <CornerDownRight size={11} />
                                   </button>
                                   {user?.uid === c.authorUid && (
-                                    <button
-                                      onClick={() => {
-                                        handleDeleteComment(a.id, c.id);
-                                      }}
-                                      className="text-mist-500 opacity-0 transition-opacity hover:text-red-300 group-hover:opacity-100"
-                                      title="删除评论"
-                                    >
-                                      <Trash2 size={11} />
-                                    </button>
+                                    <>
+                                      <button
+                                        onClick={() => startEditComment(c.id, c.content)}
+                                        className="text-mist-500 opacity-0 transition-opacity hover:text-tian-300 group-hover:opacity-100"
+                                        title="编辑评论"
+                                      >
+                                        <Pencil size={11} />
+                                      </button>
+                                      <button
+                                        onClick={() => {
+                                          handleDeleteComment(a.id, c.id);
+                                        }}
+                                        className="text-mist-500 opacity-0 transition-opacity hover:text-red-300 group-hover:opacity-100"
+                                        title="删除评论"
+                                      >
+                                        <Trash2 size={11} />
+                                      </button>
+                                    </>
                                   )}
                                   {user && user.uid !== c.authorUid && (
                                     <button
@@ -728,10 +768,26 @@ export default function DiscussionDetail() {
                                     </button>
                                   )}
                                 </div>
-                                <LazyMathText
-  content={c.content}
-  className="text-sm text-mist-200"
-/>
+                                {editingCommentId === c.id ? (
+                                  <div>
+                                    <textarea
+                                      rows={3}
+                                      value={editCommentText}
+                                      onChange={(e) => setEditCommentText(e.target.value)}
+                                      className="w-full resize-none rounded-lg border border-tian-400/30 bg-void-950/50 p-2 text-sm text-parchment-100 focus:border-star-400/50 focus:outline-none"
+                                      maxLength={2000}
+                                    />
+                                    <div className="mt-1 flex justify-end gap-2">
+                                      <button onClick={() => setEditingCommentId(null)} className="btn-ghost text-xs">取消</button>
+                                      <button onClick={() => handleSaveComment(a.id, c.id)} className="btn-gold text-xs">保存</button>
+                                    </div>
+                                  </div>
+                                ) : (
+                                  <LazyMathText
+                                    content={c.content}
+                                    className="text-sm text-mist-200"
+                                  />
+                                )}
                               </div>
                             );
                           })}
