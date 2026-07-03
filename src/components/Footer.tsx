@@ -82,7 +82,17 @@ export default function Footer() {
 
         <div className="mt-12 flex flex-col items-center justify-between gap-3 border-t border-void-600/40 pt-6 text-xs text-mist-500 sm:flex-row">
           <p>© 2025 天玑 Tianji · 跨专业 AI 学习与项目共创社区</p>
-          <p className="font-mono">从单点闪光，到完整星图</p>
+          <div className="flex items-center gap-4">
+            <p className="font-mono">从单点闪光，到完整星图</p>
+            <a
+              href="https://beian.miit.gov.cn"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-mist-500 transition-colors hover:text-mist-300"
+            >
+              鲁ICP备2026036314号-1
+            </a>
+          </div>
         </div>
       </div>
     </footer>
