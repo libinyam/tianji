@@ -57,7 +57,10 @@ export default function Discussion() {
   useEffect(() => {
     if (prefill) {
       setPostModalOpen(true);
+      // 消费后清除 location.state，避免弹窗与内容粘滞
+      navigate(location.pathname, { replace: true, state: null });
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [prefill]);
 
   const allQuestions = realPosts;

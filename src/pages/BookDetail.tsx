@@ -158,8 +158,16 @@ export default function BookDetail() {
     setReviewSubmitting(true);
     try {
       const author = user.nickname || user.username || user.email || "匿名用户";
-      await addReview(book.id, { author, rating: reviewRating, content: reviewText.trim() });
-      setBook({ ...book, reviews: [...book.reviews, { author, rating: reviewRating, content: reviewText.trim(), date: new Date().toISOString().slice(0, 10) }] });
+      const result = await addReview(book.id, { author, authorUid: user.uid, rating: reviewRating, content: reviewText.trim() });
+      if (!result) {
+        toast.error("该资源可能已被删除，无法评价");
+        return;
+      }
+      setBook({
+        ...book,
+        reviews: [...book.reviews, { author, authorUid: user.uid, rating: reviewRating, content: reviewText.trim(), date: new Date().toISOString().slice(0, 10) }],
+        rating: result.avgRating,
+      });
       setReviewRating(0);
       setReviewText("");
       toast.success("评价已提交");
@@ -394,6 +402,7 @@ export default function BookDetail() {
                   <button
                     key={k}
                     onClick={() => setReviewRating(k + 1)}
+                    aria-label={`评分 ${k + 1} 星`}
                     className="transition-transform hover:scale-110"
                   >
                     <Star
@@ -409,6 +418,7 @@ export default function BookDetail() {
                 rows={3}
                 maxLength={500}
                 placeholder="分享你对这本书的评价、收获或建议…"
+                aria-label="评价内容"
                 className="mt-3 w-full resize-none rounded-lg border border-void-600/50 bg-void-950/50 p-3 text-sm text-parchment-100 focus:border-star-400/50 focus:outline-none"
               />
               <div className="mt-3 flex justify-end">
@@ -460,12 +470,14 @@ export default function BookDetail() {
                 value={questionPage}
                 onChange={(e) => setQuestionPage(e.target.value)}
                 placeholder="页码（如 42 或 42-45）"
+                aria-label="有疑问的页码"
                 className="w-full rounded-lg border border-void-600/50 bg-void-950/50 px-3 py-2 text-sm text-parchment-100 focus:border-star-400/50 focus:outline-none sm:w-40"
               />
               <input
                 value={questionText}
                 onChange={(e) => setQuestionText(e.target.value)}
                 placeholder="简要描述你的疑问…"
+                aria-label="疑问描述"
                 className="flex-1 rounded-lg border border-void-600/50 bg-void-950/50 px-3 py-2 text-sm text-parchment-100 focus:border-star-400/50 focus:outline-none"
               />
               <button

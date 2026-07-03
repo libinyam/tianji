@@ -4,6 +4,7 @@ export type BookCategory = "基础理论" | "AI工具实战" | "项目实战" | 
 
 export interface Review {
   author: string;
+  authorUid?: string;
   rating: number;
   content: string;
   date: string;

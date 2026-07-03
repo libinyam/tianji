@@ -186,7 +186,7 @@ export async function submitAnswer(
 
   const post = data[0] as PostDoc;
   const answer: Answer = {
-    id: `a_${Date.now()}`,
+    id: `a_${crypto.randomUUID()}`,
     author: getCurrentUserName(),
     authorUid: uid,
     avatarColor: AVATAR_COLORS[Math.floor(Math.random() * AVATAR_COLORS.length)],
@@ -305,9 +305,13 @@ export async function deletePost(postId: string): Promise<boolean> {
 
   await docRef.remove();
 
-  // 级联清理收藏和举报
-  await db.collection("favorites").where({ targetId: postId }).remove();
-  await db.collection("reports").where({ targetId: postId }).remove();
+  // 级联清理收藏和举报（不阻塞主流程）
+  try {
+    await db.collection("favorites").where({ targetId: postId }).remove();
+  } catch { /* 安全规则可能拦截，忽略 */ }
+  try {
+    await db.collection("reports").where({ targetId: postId }).remove();
+  } catch { /* 安全规则可能拦截，忽略 */ }
 
   return true;
 }

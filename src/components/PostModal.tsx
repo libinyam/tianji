@@ -42,7 +42,8 @@ export default function PostModal({ open, onClose, onCreated, defaultCategory = 
   const { user } = useAuthStore();
 
   useEffect(() => {
-    if (open && prefill) {
+    // 仅在草稿为空时应用 prefill，避免覆盖用户未发布的草稿
+    if (open && prefill && !title && !body) {
       setDraft({
         title: prefill.title,
         body: prefill.body,
@@ -51,7 +52,7 @@ export default function PostModal({ open, onClose, onCreated, defaultCategory = 
         subCategory: "" as CasualSubCategory | "",
       });
     }
-  }, [open, prefill, setDraft]);
+  }, [open, prefill, setDraft, title, body]);
 
   const handleClose = () => {
     setDraft({ title: "", body: "", tags: [], category: defaultCategory, subCategory: "" });
@@ -68,9 +69,9 @@ export default function PostModal({ open, onClose, onCreated, defaultCategory = 
       return;
     }
 
-    // 频率限制
-    const rl = rateLimiters.post.tryAction();
-    if (!rl.ok) {
+    // 频率限制：先检查，成功后再记录
+    const rl = rateLimiters.post.check();
+    if (!rl.allowed) {
       setError(`操作太快了，请等待 ${rl.remaining} 秒后再试`);
       return;
     }
@@ -90,6 +91,8 @@ export default function PostModal({ open, onClose, onCreated, defaultCategory = 
         subCategory: category === "casual" && subCategory ? subCategory : undefined,
       });
       if (post) {
+        // 发帖成功后才记录频率限制
+        rateLimiters.post.record();
         // 更新标签计数
         ensureTags(finalTags);
         clearDraft();

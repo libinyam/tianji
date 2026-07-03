@@ -21,7 +21,7 @@ export interface BookDoc {
   year: number;
   pages: number;
   toc: string[];
-  reviews: { author: string; rating: number; content: string; date: string }[];
+  reviews: { author: string; authorUid: string; rating: number; content: string; date: string }[];
   authorUid: string;
   link?: string; // 外部链接（如 GitHub、电子书地址）
   fileUrl?: string; // 上传文件的临时下载 URL
@@ -66,15 +66,26 @@ export async function incrementBookDownloads(id: string): Promise<void> {
 }
 
 /** 添加读者评价 */
-export async function addReview(bookId: string, review: { author: string; rating: number; content: string }): Promise<void> {
+export async function addReview(bookId: string, review: { author: string; authorUid: string; rating: number; content: string }): Promise<{ avgRating: number } | null> {
   const docRef = db.collection(BOOKS_COLLECTION).doc(bookId);
   const { data } = await docRef.get();
-  if (!data || data.length === 0) throw new Error("资源不存在");
+  if (!data || data.length === 0) return null;
+
   const book = data[0] as BookDoc;
-  const reviews = [...(book.reviews ?? []), { ...review, date: new Date().toISOString().slice(0, 10) }];
-  const totalRating = reviews.reduce((sum, r) => sum + r.rating, 0);
-  const avgRating = reviews.length > 0 ? totalRating / reviews.length : 0;
-  await docRef.update({ reviews, rating: Math.round(avgRating * 10) / 10 });
+  const newReview = { ...review, date: new Date().toISOString().slice(0, 10) };
+
+  // 原子追加评论，避免并发丢失
+  await docRef.update({
+    reviews: db.command.push([newReview]),
+  });
+
+  // 计算新平均评分并更新
+  const allReviews = [...(book.reviews ?? []), newReview];
+  const totalRating = allReviews.reduce((sum, r) => sum + r.rating, 0);
+  const avgRating = allReviews.length > 0 ? Math.round((totalRating / allReviews.length) * 10) / 10 : 0;
+  await docRef.update({ rating: avgRating });
+
+  return { avgRating };
 }
 
 function getCurrentUid(): string {
