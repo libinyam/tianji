@@ -38,6 +38,7 @@ function toIdea(doc: IdeaDoc): Idea {
     replies: doc.replies ?? 0,
     createdAt: doc.createdAt,
     comments: doc.comments ?? [],
+    resonatedBy: doc.resonatedBy ?? [],
   };
 }
 
@@ -116,41 +117,37 @@ export async function createIdea(params: {
   };
 }
 
-/** 共鸣（点赞），增加 resonance */
+/** 共鸣（点赞），增加 resonance。失败（含已共鸣过）时抛错，由调用方回滚乐观更新 */
 export async function resonanceIdea(id: string): Promise<boolean> {
   const uid = getCurrentUid();
   if (!uid) throw new Error("请先登录");
 
-  try {
-    const docRef = db.collection(IDEAS_COLLECTION).doc(id);
-    const { data } = await docRef.get();
-    if (!data || data.length === 0) return false;
+  const docRef = db.collection(IDEAS_COLLECTION).doc(id);
+  const { data } = await docRef.get();
+  if (!data || data.length === 0) throw new Error("灵感不存在");
 
-    const doc = data[0] as IdeaDoc;
-    const resonatedBy = doc.resonatedBy ?? [];
+  const doc = data[0] as IdeaDoc;
+  const resonatedBy = doc.resonatedBy ?? [];
 
-    // 防重复共鸣
-    if (resonatedBy.includes(uid)) {
-      throw new Error("已共鸣过此灵感");
-    }
-
-    await docRef.update({
-      resonance: db.command.inc(1),
-      resonatedBy: db.command.addToSet(uid),
-    });
-
-    // 通知灵感作者
-    await createNotification({
-      uid: (data[0] as IdeaDoc).authorUid,
-      type: "resonance",
-      title: (data[0] as IdeaDoc).title,
-      link: "/ideas",
-    });
-
-    return true;
-  } catch {
-    return false;
+  // 防重复共鸣
+  if (resonatedBy.includes(uid)) {
+    throw new Error("已共鸣过此灵感");
   }
+
+  await docRef.update({
+    resonance: db.command.inc(1),
+    resonatedBy: db.command.addToSet(uid),
+  });
+
+  // 通知灵感作者（通知失败不影响共鸣结果）
+  await createNotification({
+    uid: doc.authorUid,
+    type: "resonance",
+    title: doc.title,
+    link: `/ideas/${id}`,
+  }).catch(() => {});
+
+  return true;
 }
 
 /** 编辑灵感（仅作者） */

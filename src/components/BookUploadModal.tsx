@@ -2,7 +2,6 @@ import { useState, useRef } from "react";
 import { X, Loader2, BookOpen, Link2, UploadCloud, FileText, ListTree } from "lucide-react";
 import Dialog from "@/components/Dialog";
 import { createBook } from "@/lib/books";
-import { ensureTags } from "@/lib/tags";
 import { rateLimiters } from "@/lib/security";
 import { app } from "@/lib/cloudbase";
 import { useAuthStore } from "@/stores/auth";
@@ -154,7 +153,6 @@ export default function BookUploadModal({ open, onClose, onCreated }: BookUpload
       });
       if (book) {
         rateLimiters.book.record();
-        ensureTags(tags.length > 0 ? tags : ["综合"]);
         toast.success("资源已发布");
         onCreated(book);
         handleClose();

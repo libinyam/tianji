@@ -34,15 +34,18 @@ export default function IdeaDetail() {
       setLoading(false);
       if (data) {
         isFavorited(id).then((f) => mounted && setFaved(f));
+        const curUid = useAuthStore.getState().user?.uid ?? "";
+        setResonated(!!data.resonatedBy?.includes(curUid));
       }
     })();
     return () => { mounted = false; };
   }, [id]);
 
-  // 登录状态变化时重新检查收藏
+  // 登录状态变化时重新检查收藏与共鸣状态
   useEffect(() => {
     if (id && user) {
       isFavorited(id).then(setFaved);
+      setResonated(!!idea?.resonatedBy?.includes(user.uid));
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user?.uid]);
@@ -59,10 +62,10 @@ export default function IdeaDetail() {
 
     try {
       await resonanceIdea(idea.id);
-    } catch {
+    } catch (err) {
       setResonated(false);
       setIdea((prev) => prev ? { ...prev, resonance: Math.max(0, prev.resonance - 1) } : prev);
-      toast.error("操作失败，请重试");
+      toast.error((err as Error).message || "操作失败，请重试");
     }
   };
 

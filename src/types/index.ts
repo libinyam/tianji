@@ -96,6 +96,7 @@ export interface Idea {
   replies: number;
   createdAt: string;
   comments?: IdeaComment[];
+  resonatedBy?: string[];
 }
 
 export interface Doc {
