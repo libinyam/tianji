@@ -196,10 +196,10 @@ export async function submitAnswer(
     date: new Date().toISOString(),
   };
 
-  const newAnswerList = [...(post.answerList ?? []), answer];
+  // 使用原子操作追加回答，避免读-改-写竞态导致并发回答丢失
   await docRef.update({
-    answerList: newAnswerList,
-    answersCount: newAnswerList.length,
+    answerList: db.command.push([answer]),
+    answersCount: db.command.inc(1),
   });
 
   // 通知帖子作者

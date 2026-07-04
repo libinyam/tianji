@@ -350,7 +350,6 @@ export async function addAnnotation(
     const { data } = await docRef.get();
     if (!data || data.length === 0) return null;
 
-    const project = data[0] as WorkshopDoc;
     const annotation: Annotation = {
       id: `a_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`,
       author: getCurrentUserName(),
@@ -360,8 +359,9 @@ export async function addAnnotation(
       createdAt: new Date().toISOString(),
     };
 
+    // 使用原子 push 追加批注，避免读-改-写竞态
     await docRef.update({
-      annotations: [...(project.annotations ?? []), annotation],
+      annotations: db.command.push([annotation]),
       updatedAt: new Date().toISOString(),
     });
 
