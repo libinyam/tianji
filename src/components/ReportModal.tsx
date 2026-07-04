@@ -151,7 +151,7 @@ export default function ReportModal({
               <button
                 type="submit"
                 disabled={loading || !reason}
-                className="inline-flex items-center justify-center gap-2 rounded-lg border border-red-400/50 bg-red-500/15 px-5 py-2.5 text-sm font-medium text-red-200 transition-all hover:bg-red-500/25 disabled:cursor-not-allowed disabled:opacity-60"
+                className="inline-flex items-center justify-center gap-2 rounded-lg border border-red-400/60 bg-red-500 px-5 py-2.5 text-sm font-medium text-white shadow-sm transition-all hover:bg-red-600 disabled:cursor-not-allowed disabled:opacity-60"
               >
                 {loading ? (
                   <>
