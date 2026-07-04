@@ -1,12 +1,13 @@
 import { useEffect, useState } from "react";
 import { Link, useParams } from "react-router-dom";
-import { Lightbulb, ThumbsUp, Bookmark, Flag, ArrowLeft, Loader2, Send, MessageCircle } from "lucide-react";
+import { Lightbulb, ThumbsUp, Bookmark, Flag, ArrowLeft, Loader2, Send, MessageCircle, Trash2 } from "lucide-react";
 import { toast } from "@/stores/toast";
 import Avatar from "@/components/Avatar";
 import ReportModal from "@/components/ReportModal";
 import { PostDetailSkeleton } from "@/components/Skeleton";
-import { fetchIdeaById, resonanceIdea, addIdeaComment } from "@/lib/ideas";
+import { fetchIdeaById, resonanceIdea, addIdeaComment, deleteIdeaComment } from "@/lib/ideas";
 import { toggleFavorite, isFavorited } from "@/lib/favorites";
+import { rateLimiters } from "@/lib/security";
 import { useAuthStore } from "@/stores/auth";
 import { formatRelativeTime } from "@/lib/format";
 import type { Idea } from "@/types";
@@ -92,10 +93,19 @@ export default function IdeaDetail() {
       return;
     }
     if (!idea || !commentText.trim()) return;
+
+    // 频率限制：先检查，成功后再记录（防刷屏+通知轰炸 #115）
+    const rl = rateLimiters.comment.check();
+    if (!rl.allowed) {
+      toast.error(`操作太快了，请等待 ${rl.remaining} 秒后再试`);
+      return;
+    }
+
     setCommentSubmitting(true);
     try {
       const comment = await addIdeaComment(idea.id, commentText);
       if (comment) {
+        rateLimiters.comment.record();
         setIdea({ ...idea, comments: [...(idea.comments ?? []), comment], replies: idea.replies + 1 });
         setCommentText("");
         toast.success("评论已发布");
@@ -106,6 +116,23 @@ export default function IdeaDetail() {
       toast.error((e as Error).message || "评论失败，请重试");
     } finally {
       setCommentSubmitting(false);
+    }
+  };
+
+  const handleDeleteComment = async (commentId: string) => {
+    if (!user || !idea) return;
+    try {
+      const ok = await deleteIdeaComment(idea.id, commentId);
+      if (ok) {
+        setIdea({
+          ...idea,
+          comments: (idea.comments ?? []).filter((c) => c.id !== commentId),
+          replies: Math.max(0, idea.replies - 1),
+        });
+        toast.success("评论已删除");
+      }
+    } catch (e) {
+      toast.error((e as Error).message || "删除失败，请重试");
     }
   };
 
@@ -231,6 +258,7 @@ export default function IdeaDetail() {
               rows={3}
               maxLength={1000}
               placeholder="写下你的想法…"
+              aria-label="评论内容"
               className="w-full resize-none rounded-lg border border-void-600/50 bg-void-950/50 p-3 text-sm text-parchment-100 focus:border-star-400/50 focus:outline-none"
             />
             <div className="mt-3 flex items-center justify-between">
@@ -253,16 +281,27 @@ export default function IdeaDetail() {
             ) : (
               (idea.comments ?? []).map((c) => (
                 <div key={c.id} className="rounded-xl border border-void-600/40 bg-void-800/30 p-4">
-                  <div className="flex items-center gap-2.5">
-                    <Avatar name={c.author} color={c.avatarColor} size={28} />
-                    {c.authorUid ? (
-                      <Link to={`/user/${c.authorUid}`} className="text-sm text-mist-300 transition-colors hover:text-star-300">
-                        {c.author}
-                      </Link>
-                    ) : (
-                      <span className="text-sm text-mist-300">{c.author}</span>
+                  <div className="flex items-center justify-between gap-2.5">
+                    <div className="flex items-center gap-2.5">
+                      <Avatar name={c.author} color={c.avatarColor} size={28} />
+                      {c.authorUid ? (
+                        <Link to={`/user/${c.authorUid}`} className="text-sm text-mist-300 transition-colors hover:text-star-300">
+                          {c.author}
+                        </Link>
+                      ) : (
+                        <span className="text-sm text-mist-300">{c.author}</span>
+                      )}
+                      <span className="text-xs text-mist-500">{formatRelativeTime(c.createdAt)}</span>
+                    </div>
+                    {user?.uid === c.authorUid && (
+                      <button
+                        onClick={() => handleDeleteComment(c.id)}
+                        aria-label="删除评论"
+                        className="flex h-7 w-7 items-center justify-center rounded-md text-mist-500 transition-colors hover:bg-red-400/10 hover:text-red-300"
+                      >
+                        <Trash2 size={13} />
+                      </button>
                     )}
-                    <span className="text-xs text-mist-500">{formatRelativeTime(c.createdAt)}</span>
                   </div>
                   <p className="mt-2.5 text-sm leading-relaxed text-mist-200 whitespace-pre-wrap">{c.content}</p>
                 </div>

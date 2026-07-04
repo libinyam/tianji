@@ -37,14 +37,6 @@ export class RateLimiter {
   record(): void {
     localStorage.setItem(this.key, String(Date.now()));
   }
-
-  /** 尝试操作，如果允许则记录并返回 true，否则返回剩余秒数 */
-  tryAction(): { ok: boolean; remaining: number } {
-    const { allowed, remaining } = this.check();
-    if (!allowed) return { ok: false, remaining };
-    this.record();
-    return { ok: true, remaining: 0 };
-  }
 }
 
 // 预定义频率限制器

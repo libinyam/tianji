@@ -122,9 +122,9 @@ export default function BookUploadModal({ open, onClose, onCreated }: BookUpload
       return;
     }
 
-    // 频率限制
-    const rl = rateLimiters.book.tryAction();
-    if (!rl.ok) {
+    // 频率限制：先检查，成功后再记录（失败不白等冷却）
+    const rl = rateLimiters.book.check();
+    if (!rl.allowed) {
       setError(`操作太快了，请等待 ${rl.remaining} 秒后再试`);
       return;
     }
@@ -153,6 +153,7 @@ export default function BookUploadModal({ open, onClose, onCreated }: BookUpload
           : [],
       });
       if (book) {
+        rateLimiters.book.record();
         ensureTags(tags.length > 0 ? tags : ["综合"]);
         toast.success("资源已发布");
         onCreated(book);

@@ -17,9 +17,10 @@ interface PostModalProps {
   onCreated: (post: Question) => void;
   defaultCategory?: PostCategory;
   prefill?: { title: string; body: string; tags: string[] };
+  onPrefillApplied?: () => void;
 }
 
-export default function PostModal({ open, onClose, onCreated, defaultCategory = "academic", prefill }: PostModalProps) {
+export default function PostModal({ open, onClose, onCreated, defaultCategory = "academic", prefill, onPrefillApplied }: PostModalProps) {
   const { value: draft, setValue: setDraft, clearDraft, restored, dismissRestored } = useDraft("tianji-draft-post", {
     title: "",
     body: "",
@@ -51,8 +52,11 @@ export default function PostModal({ open, onClose, onCreated, defaultCategory = 
         category: "academic" as PostCategory,
         subCategory: "" as CasualSubCategory | "",
       });
+      // 通知父组件预填已应用，使其清空 prefill，保证 once 语义：
+      // 避免用户手动清空标题/正文后被 prefill effect 再次预填（#113）
+      onPrefillApplied?.();
     }
-  }, [open, prefill, setDraft, title, body]);
+  }, [open, prefill, setDraft, title, body, onPrefillApplied]);
 
   const handleClose = () => {
     setDraft({ title: "", body: "", tags: [], category: defaultCategory, subCategory: "" });

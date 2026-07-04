@@ -52,9 +52,9 @@ export default function IdeaModal({ open, onClose, onCreated }: IdeaModalProps) 
       return;
     }
 
-    // 频率限制
-    const rl = rateLimiters.idea.tryAction();
-    if (!rl.ok) {
+    // 频率限制：先检查，成功后再记录（失败不白等冷却）
+    const rl = rateLimiters.idea.check();
+    if (!rl.allowed) {
       setError(`操作太快了，请等待 ${rl.remaining} 秒后再试`);
       return;
     }
@@ -69,6 +69,7 @@ export default function IdeaModal({ open, onClose, onCreated }: IdeaModalProps) 
         tags: tags.length > 0 ? tags : ["综合"],
       });
       if (idea) {
+        rateLimiters.idea.record();
         ensureTags(tags.length > 0 ? tags : ["综合"]);
         clearDraft();
         toast.success("灵感已发布");

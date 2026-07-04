@@ -201,8 +201,8 @@ export async function addIdeaComment(ideaId: string, content: string): Promise<I
     replies: db.command.inc(1),
   });
 
-  // 通知灵感作者
-  if (idea.authorUid !== uid) {
+  // 通知灵感作者（legacy 灵感缺 authorUid 时不写无主通知 #115）
+  if (idea.authorUid && idea.authorUid !== uid) {
     await createNotification({
       uid: idea.authorUid,
       type: "comment",
@@ -212,6 +212,29 @@ export async function addIdeaComment(ideaId: string, content: string): Promise<I
   }
 
   return comment;
+}
+
+/** 删除评论（仅作者） */
+export async function deleteIdeaComment(ideaId: string, commentId: string): Promise<boolean> {
+  const uid = getCurrentUid();
+  if (!uid) throw new Error("请先登录");
+
+  const docRef = db.collection(IDEAS_COLLECTION).doc(ideaId);
+  const { data } = await docRef.get();
+  if (!data || data.length === 0) return false;
+
+  const idea = data[0] as IdeaDoc;
+  const comments = idea.comments ?? [];
+  const comment = comments.find((c) => c.id === commentId);
+  if (!comment) return false;
+  if (comment.authorUid !== uid) throw new Error("无权删除他人评论");
+
+  await docRef.update({
+    comments: db.command.pull({ id: commentId }),
+    replies: db.command.inc(-1),
+  });
+
+  return true;
 }
 
 /** 删除灵感（仅作者） */

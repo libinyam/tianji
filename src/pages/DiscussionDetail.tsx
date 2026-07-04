@@ -376,9 +376,9 @@ export default function DiscussionDetail() {
     }
     if (!answerText.trim() || !question) return;
 
-    // 频率限制
-    const rl = rateLimiters.answer.tryAction();
-    if (!rl.ok) {
+    // 频率限制：先检查，成功后再记录（失败不白等冷却）
+    const rl = rateLimiters.answer.check();
+    if (!rl.allowed) {
       setAnswerError(`操作太快了，请等待 ${rl.remaining} 秒后再试`);
       return;
     }
@@ -388,6 +388,7 @@ export default function DiscussionDetail() {
     try {
       const answer = await submitAnswer(question.id, answerText.trim());
       if (answer) {
+        rateLimiters.answer.record();
         // 更新本地状态
         setQuestion({
           ...question,
@@ -433,9 +434,9 @@ export default function DiscussionDetail() {
     if (!question) return;
     if (!commentText.trim()) return;
 
-    // 频率限制
-    const rl = rateLimiters.comment.tryAction();
-    if (!rl.ok) {
+    // 频率限制：先检查，成功后再记录（失败不白等冷却）
+    const rl = rateLimiters.comment.check();
+    if (!rl.allowed) {
       toast.error(`操作太频繁，请 ${rl.remaining}s 后再试`);
       return;
     }
@@ -449,6 +450,7 @@ export default function DiscussionDetail() {
         replyTarget?.commentId
       );
       if (comment) {
+        rateLimiters.comment.record();
         // 更新本地状态
         const newAnswerList = question.answerList.map((a) => {
           if (a.id === answerId) {

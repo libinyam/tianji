@@ -24,6 +24,7 @@ import Avatar from "@/components/Avatar";
 import ReportModal from "@/components/ReportModal";
 import RelatedContent from "@/components/RelatedContent";
 import { toggleFavorite, isFavorited } from "@/lib/favorites";
+import { rateLimiters } from "@/lib/security";
 import { useAuthStore } from "@/stores/auth";
 import { toast } from "@/stores/toast";
 import LazyMathText from "@/components/LazyMathText";
@@ -155,6 +156,14 @@ export default function BookDetail() {
       return;
     }
     if (!book || reviewRating === 0 || !reviewText.trim()) return;
+
+    // 频率限制：先检查，成功后再记录
+    const rl = rateLimiters.comment.check();
+    if (!rl.allowed) {
+      toast.error(`操作太快了，请等待 ${rl.remaining} 秒后再试`);
+      return;
+    }
+
     setReviewSubmitting(true);
     try {
       const author = user.nickname || user.username || user.email || "匿名用户";
@@ -163,14 +172,21 @@ export default function BookDetail() {
         toast.error("该资源可能已被删除，无法评价");
         return;
       }
+      rateLimiters.comment.record();
+      const newReview = { author, authorUid: user.uid, rating: reviewRating, content: reviewText.trim(), date: new Date().toISOString() };
+      // 按 uid 去重：已评过则替换原评价，未评过则追加
+      const existingIdx = book.reviews.findIndex((r) => r.authorUid === user.uid);
+      const newReviews = existingIdx >= 0
+        ? book.reviews.map((r, i) => (i === existingIdx ? newReview : r))
+        : [...book.reviews, newReview];
       setBook({
         ...book,
-        reviews: [...book.reviews, { author, authorUid: user.uid, rating: reviewRating, content: reviewText.trim(), date: new Date().toISOString().slice(0, 10) }],
+        reviews: newReviews,
         rating: result.avgRating,
       });
       setReviewRating(0);
       setReviewText("");
-      toast.success("评价已提交");
+      toast.success(result.updated ? "评价已更新" : "评价已提交");
     } catch {
       toast.error("提交失败，请重试");
     } finally {
@@ -394,7 +410,12 @@ export default function BookDetail() {
           <div className="mt-8">
             <h2 className="heading-display text-xl text-parchment-50">读者评价</h2>
 
-            {/* 评价表单 */}
+            {/* 评价表单（内置书目不支持评价） */}
+            {mockBook ? (
+              <div className="mt-4 rounded-xl border border-void-600/40 bg-void-800/30 p-5 text-center text-sm text-mist-500">
+                内置资源暂不支持评价
+              </div>
+            ) : (
             <div className="mt-4 rounded-xl border border-void-600/40 bg-void-800/30 p-5">
               <div className="flex items-center gap-2">
                 <span className="text-sm text-mist-400">我的评分：</span>
@@ -432,6 +453,7 @@ export default function BookDetail() {
                 </button>
               </div>
             </div>
+            )}
 
             {/* 评价列表 */}
             <div className="mt-4 space-y-4">
@@ -452,7 +474,7 @@ export default function BookDetail() {
                       </div>
                     </div>
                     <LazyMathText content={r.content} className="mt-3 text-sm leading-relaxed text-mist-300" />
-                    <p className="mt-2 font-mono text-[10px] text-mist-500">{r.date}</p>
+                    <p className="mt-2 font-mono text-[10px] text-mist-500">{r.date.slice(0, 10)}</p>
                   </div>
                 ))
               )}

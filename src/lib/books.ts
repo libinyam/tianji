@@ -32,6 +32,11 @@ export interface BookDoc {
 const ACCENT_COLORS = ["#7cc4ff", "#f3c969", "#5aa6f0", "#a78bfa", "#34d399", "#fb923c"];
 
 function toBook(doc: BookDoc): Book {
+  // rating 从 reviews 实时计算，彻底避免并发评价时的均分漂移（#114）
+  const reviews = doc.reviews ?? [];
+  const rating = reviews.length > 0
+    ? Math.round((reviews.reduce((sum, r) => sum + r.rating, 0) / reviews.length) * 10) / 10
+    : 0;
   return {
     id: doc._id ?? "",
     title: doc.title,
@@ -42,11 +47,11 @@ function toBook(doc: BookDoc): Book {
     accent: doc.accent,
     summary: doc.summary,
     favorites: doc.favorites ?? 0,
-    rating: doc.rating ?? 0,
+    rating,
     year: doc.year ?? new Date().getFullYear(),
     pages: doc.pages ?? 0,
     toc: doc.toc ?? [],
-    reviews: doc.reviews ?? [],
+    reviews,
     link: doc.link,
     fileUrl: doc.fileUrl,
     fileName: doc.fileName,
@@ -65,27 +70,40 @@ export async function incrementBookDownloads(id: string): Promise<void> {
   }
 }
 
-/** 添加读者评价 */
-export async function addReview(bookId: string, review: { author: string; authorUid: string; rating: number; content: string }): Promise<{ avgRating: number } | null> {
+/** 添加读者评价（按 uid 去重，已评过则更新原评价） */
+export async function addReview(bookId: string, review: { author: string; authorUid: string; rating: number; content: string }): Promise<{ avgRating: number; updated: boolean } | null> {
   const docRef = db.collection(BOOKS_COLLECTION).doc(bookId);
   const { data } = await docRef.get();
   if (!data || data.length === 0) return null;
 
   const book = data[0] as BookDoc;
-  const newReview = { ...review, date: new Date().toISOString().slice(0, 10) };
+  const reviews = book.reviews ?? [];
+  const existingIdx = reviews.findIndex((r) => r.authorUid === review.authorUid);
+  const newReview = { ...review, date: new Date().toISOString() };
+  const updated = existingIdx >= 0;
 
-  // 原子追加评论，避免并发丢失
-  await docRef.update({
-    reviews: db.command.push([newReview]),
-  });
+  if (updated) {
+    // 已评过：只更新自己的那条评价，不影响他人（路径更新避免并发覆盖）
+    await docRef.update({
+      [`reviews.${existingIdx}`]: newReview,
+    });
+  } else {
+    // 未评过：原子追加，避免并发丢失
+    await docRef.update({
+      reviews: db.command.push([newReview]),
+    });
+  }
 
-  // 计算新平均评分并更新
-  const allReviews = [...(book.reviews ?? []), newReview];
-  const totalRating = allReviews.reduce((sum, r) => sum + r.rating, 0);
-  const avgRating = allReviews.length > 0 ? Math.round((totalRating / allReviews.length) * 10) / 10 : 0;
+  // 基于去重后的完整数组计算 avgRating 并写回缓存字段
+  // （toBook 读取时会从 reviews 实时重算，此字段仅作兼容缓存）
+  const updatedReviews = updated
+    ? reviews.map((r, i) => (i === existingIdx ? newReview : r))
+    : [...reviews, newReview];
+  const totalRating = updatedReviews.reduce((sum, r) => sum + r.rating, 0);
+  const avgRating = updatedReviews.length > 0 ? Math.round((totalRating / updatedReviews.length) * 10) / 10 : 0;
   await docRef.update({ rating: avgRating });
 
-  return { avgRating };
+  return { avgRating, updated };
 }
 
 function getCurrentUid(): string {

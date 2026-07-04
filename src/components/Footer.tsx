@@ -90,7 +90,7 @@ export default function Footer() {
               rel="noopener noreferrer"
               className="text-mist-500 transition-colors hover:text-mist-300"
             >
-              鲁ICP备2026036314号-1
+              鲁ICP备2026036314号
             </a>
           </div>
         </div>

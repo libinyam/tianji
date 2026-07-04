@@ -28,6 +28,7 @@ export default function Discussion() {
   const [subFilter, setSubFilter] = useState<CasualSubCategory | "全部">("全部");
   const [sort, setSort] = useState<SortKey>("热度");
   const [postModalOpen, setPostModalOpen] = useState(false);
+  const [capturedPrefill, setCapturedPrefill] = useState<{ title: string; body: string; tags: string[] } | null>(null);
   const [realPosts, setRealPosts] = useState<Question[]>([]);
   const [loading, setLoading] = useState(true);
   const { user } = useAuthStore();
@@ -56,8 +57,11 @@ export default function Discussion() {
 
   useEffect(() => {
     if (prefill) {
+      // 先把 prefill 捕获进本地 state，再清除 location.state。
+      // 否则 React 18 自动批处理会让 setPostModalOpen(true) 与 navigate(state:null)
+      // 合并为同一次重渲染，PostModal 的 prefill effect 条件永不同时成立（#113）。
+      setCapturedPrefill(prefill);
       setPostModalOpen(true);
-      // 消费后清除 location.state，避免弹窗与内容粘滞
       navigate(location.pathname, { replace: true, state: null });
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -352,10 +356,16 @@ export default function Discussion() {
 
       <PostModal
         open={postModalOpen}
-        onClose={() => setPostModalOpen(false)}
+        onClose={() => {
+          setPostModalOpen(false);
+          // 弹窗关闭时清空捕获的 prefill，保证 once 语义：
+          // 避免用户清空标题/正文后被 prefill effect 再次预填
+          setCapturedPrefill(null);
+        }}
         onCreated={handleNewPost}
         defaultCategory={section}
-        prefill={prefill}
+        prefill={capturedPrefill ?? undefined}
+        onPrefillApplied={() => setCapturedPrefill(null)}
       />
     </>
   );

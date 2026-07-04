@@ -305,12 +305,15 @@ export async function deletePost(postId: string): Promise<boolean> {
 
   await docRef.remove();
 
-  // 级联清理收藏和举报（不阻塞主流程）
+  // 级联清理收藏、举报和投票（不阻塞主流程）
   try {
     await db.collection("favorites").where({ targetId: postId }).remove();
   } catch { /* 安全规则可能拦截，忽略 */ }
   try {
     await db.collection("reports").where({ targetId: postId }).remove();
+  } catch { /* 安全规则可能拦截，忽略 */ }
+  try {
+    await db.collection("votes").where({ postId }).remove();
   } catch { /* 安全规则可能拦截，忽略 */ }
 
   return true;
@@ -362,6 +365,12 @@ export async function deleteAnswer(
 
   answerList.splice(idx, 1);
   await docRef.update({ answerList, answersCount: answerList.length });
+
+  // 级联清理该回答的投票记录（不阻塞主流程）
+  try {
+    await db.collection("votes").where({ answerId }).remove();
+  } catch { /* 安全规则可能拦截，忽略 */ }
+
   return true;
 }
 
