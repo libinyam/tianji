@@ -1,6 +1,6 @@
 import { app } from "@/lib/cloudbase";
 import { useAuthStore } from "@/stores/auth";
-import { isAdminUid } from "@/lib/admin";
+import { assertAdmin } from "@/lib/admin";
 
 const db = app.database();
 
@@ -63,8 +63,7 @@ export async function createReport(params: {
 
 /** 获取举报列表（管理员） */
 export async function fetchReports(status?: string): Promise<Report[]> {
-  const uid = getCurrentUid();
-  if (!isAdminUid(uid)) throw new Error("无权限");
+  await assertAdmin();
   const base = db.collection(COLLECTION);
   const { data } = status
     ? await base.where({ status }).orderBy("createdAt", "desc").limit(50).get()
@@ -80,8 +79,7 @@ export async function resolveReport(
   reportId: string,
   action: "resolved" | "dismissed"
 ): Promise<boolean> {
-  const uid = getCurrentUid();
-  if (!isAdminUid(uid)) throw new Error("无权限");
+  await assertAdmin();
   await db.collection(COLLECTION).doc(reportId).update({ status: action });
   return true;
 }

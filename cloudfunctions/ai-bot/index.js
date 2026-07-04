@@ -12,13 +12,46 @@ const BOT_NAME = "天玑bot";
 const BOT_AVATAR_COLOR = "#a78bfa";
 const BOT_UID = "ai-bot-001";
 
-exports.main = async (event) => {
+exports.main = async (event, context) => {
   const { postId, postTitle, postBody, tags, replyType, answerId, answerContent, userComment } = event;
 
   const apiKey = process.env.DEEPSEEK_API_KEY;
   if (!apiKey) {
     return { ok: false, error: "未配置 DEEPSEEK_API_KEY" };
   }
+
+  // 获取调用者 uid 用于服务端限流
+  let uid = "";
+  try {
+    const info = await app.auth().getEndUserInfo(context);
+    uid = info?.userInfo?.uid || info?.uid || "";
+  } catch (e) {
+    // getEndUserInfo 不可用时回退到 context
+  }
+  if (!uid && context?.userInfo) uid = context.userInfo.uid || "";
+  if (!uid && context?.identifier) uid = context.identifier;
+
+  // 服务端频率限制：同一 uid 15s 内仅允许一次调用
+  if (uid) {
+    const RATE_WINDOW = 15000;
+    const limitCol = db.collection("ai_bot_limits");
+    try {
+      const { data } = await limitCol.doc(uid).get();
+      const now = Date.now();
+      if (data && data.length > 0 && now - (data[0].lastCallAt || 0) < RATE_WINDOW) {
+        return { ok: false, error: "操作过于频繁，请稍后再试" };
+      }
+      await limitCol.doc(uid).set({ lastCallAt: now });
+    } catch (e) {
+      // 限流失败不阻塞主流程（best-effort）
+    }
+  }
+
+  // 输入长度限制，防止超长内容 / prompt injection 滥用
+  const safeTitle = (postTitle || "").slice(0, 200);
+  const safeBody = (postBody || "").slice(0, 10000);
+  const safeComment = (userComment || "").slice(0, 2000);
+  const safeAnswer = (answerContent || "").slice(0, 5000);
 
   const tagStr = tags && tags.length > 0 ? tags.join("、") : "综合";
 
@@ -30,14 +63,14 @@ exports.main = async (event) => {
       return { ok: false, error: "缺少必要参数" };
     }
     systemPrompt = `你是"天玑bot"，天玑知识社区的AI助手。你擅长${tagStr}领域。用户在你的回答下发了评论，请用简洁、友好、专业的语气回应。回复控制在100字以内，可以使用 LaTeX 公式。不要说"作为AI"，直接给出有价值的回应。`;
-    userMessage = `帖子标题：${postTitle}\n你之前的回答：${answerContent || ""}\n用户评论：${userComment}\n\n请生成一条简短的回复。`;
+    userMessage = `帖子标题：${safeTitle}\n你之前的回答：${safeAnswer}\n用户评论：${safeComment}\n\n请生成一条简短的回复。`;
   } else {
     // 发帖回复场景
     if (!postTitle || !postBody) {
       return { ok: false, error: "缺少必要参数" };
     }
     systemPrompt = `你是"天玑bot"，天玑知识社区的AI助手。你擅长${tagStr}领域。用户发了新帖子，请用简洁、友好、专业的语气回应。回复控制在150字以内，可以使用 LaTeX 公式（用 $...$ 包裹行内公式，$$...$$ 包裹块级公式）。不要说"作为AI"，直接给出有价值的回应。`;
-    userMessage = `帖子标题：${postTitle}\n帖子内容：${postBody}\n\n请生成一条简短、有价值的回复。`;
+    userMessage = `帖子标题：${safeTitle}\n帖子内容：${safeBody}\n\n请生成一条简短、有价值的回复。`;
   }
 
   try {
@@ -66,7 +99,7 @@ exports.main = async (event) => {
     }
 
     const data = await response.json();
-    const reply = data.choices?.[0]?.message?.content?.trim();
+    const reply = (data.choices?.[0]?.message?.content || "").trim().slice(0, 1000);
 
     if (!reply) {
       return { ok: false, error: "AI 未返回内容" };
