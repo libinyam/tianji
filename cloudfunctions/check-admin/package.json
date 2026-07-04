@@ -1,0 +1,9 @@
+{
+  "name": "check-admin",
+  "version": "1.0.0",
+  "description": "判断调用者是否为管理员（服务端持有 UID 列表）",
+  "main": "index.js",
+  "dependencies": {
+    "@cloudbase/node-sdk": "^4.0.0"
+  }
+}

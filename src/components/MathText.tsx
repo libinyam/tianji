@@ -59,19 +59,9 @@ function parseContent(content: string): Segment[] {
   return segments;
 }
 
-function decodeMathEntities(tex: string): string {
-  return tex
-    .replace(/&#x27;|&#39;/g, "'")
-    .replace(/&quot;/g, '"')
-    .replace(/&lt;/g, "<")
-    .replace(/&gt;/g, ">")
-    .replace(/&amp;/g, "&");
-}
-
 function renderTex(tex: string, displayMode: boolean): string {
   try {
-    const normalizedTex = decodeMathEntities(tex);
-    return katex.renderToString(normalizedTex, {
+    return katex.renderToString(tex, {
       displayMode,
       throwOnError: false,
       output: "html",
