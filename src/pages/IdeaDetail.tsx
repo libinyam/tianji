@@ -41,14 +41,19 @@ export default function IdeaDetail() {
     return () => { mounted = false; };
   }, [id]);
 
-  // 登录状态变化时重新检查收藏与共鸣状态
+  // 登录状态变化时重新检查收藏与共鸣状态；登出时重置为未选中（#132）
   useEffect(() => {
-    if (id && user) {
+    if (!user) {
+      setFaved(false);
+      setResonated(false);
+      return;
+    }
+    if (id) {
       isFavorited(id).then(setFaved);
       setResonated(!!idea?.resonatedBy?.includes(user.uid));
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [user?.uid]);
+  }, [user?.uid, idea?.id]);
 
   const handleResonance = async () => {
     if (!user) {

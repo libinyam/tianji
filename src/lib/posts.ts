@@ -364,7 +364,9 @@ export async function deleteAnswer(
   if (answerList[idx].authorUid !== uid) throw new Error("无权删除他人回答");
 
   answerList.splice(idx, 1);
-  await docRef.update({ answerList, answersCount: answerList.length });
+  // answersCount 用 inc(-1) 原子递减，避免与 submitAnswer 的 inc(1) 混用导致计数漂移（#131）
+  // answerList 数组移除仍为读-改-写（SDK 不支持位置 $ 操作符），根治见 #105
+  await docRef.update({ answerList, answersCount: db.command.inc(-1) });
 
   // 级联清理该回答的投票记录（不阻塞主流程）
   try {

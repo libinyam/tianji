@@ -196,8 +196,9 @@ export async function joinWorkshop(id: string): Promise<boolean> {
     const project = data[0] as WorkshopDoc;
     if (project.participants?.includes(uid)) return true;
 
+    // 使用原子 addToSet 追加参与者，避免读-改-写竞态（PR #129 该处编辑丢失，#131 复修）
     await docRef.update({
-      participants: [...(project.participants ?? []), uid],
+      participants: db.command.addToSet(uid),
       updatedAt: new Date().toISOString(),
     });
 
@@ -239,8 +240,9 @@ export async function submitContribution(
     createdAt: new Date().toISOString(),
   };
 
+  // 使用原子 push 追加贡献，避免读-改-写竞态（PR #129 该处编辑丢失，#131 复修）
   await docRef.update({
-    contributions: [...(project.contributions ?? []), contribution],
+    contributions: db.command.push([contribution]),
     updatedAt: new Date().toISOString(),
   });
 
