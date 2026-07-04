@@ -65,7 +65,7 @@ interface WorkshopItem {
   title: string;
   creator: string;
   creatorUid: string;
-  participants: number;
+  participants: string[];
   status: string;
 }
 
@@ -479,7 +479,7 @@ export default function Admin() {
                 <p className="truncate font-medium text-star-100">{w.title}</p>
                 <div className="mt-1 flex items-center gap-3 text-xs text-mist-500">
                   <span>{w.creator}</span>
-                  <span>参与 {w.participants ?? 0}</span>
+                  <span>参与 {w.participants?.length ?? 0}</span>
                   <span>{w.status}</span>
                 </div>
               </div>
