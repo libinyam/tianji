@@ -87,7 +87,7 @@ export default function App() {
                     path="*"
                     element={
                       <div className="container-tj py-40 text-center">
-                        <p className="heading-display text-3xl text-parchment-50">迷失在星海</p>
+                        <h1 className="heading-display text-3xl text-parchment-50">迷失在星海</h1>
                         <p className="mt-3 text-mist-400">你访问的页面不存在，或许它还在被某个星辰书写。</p>
                       </div>
                     }

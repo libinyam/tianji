@@ -83,7 +83,7 @@ export async function searchAll(keyword: string, signal?: AbortSignal): Promise<
             title: String(d.title ?? ""),
             excerpt: String(d.summary ?? ""),
             type: "灵感",
-            link: `/ideas`,
+            link: `/ideas/${d._id}`,
             hot: resonance * 4 + replies * 2,
             tags: (d.tags as string[]) ?? [],
             author: String(d.author ?? ""),
@@ -198,7 +198,7 @@ export async function fetchHotList(): Promise<HotItem[]> {
             id: String(d._id ?? ""),
             title: String(d.title ?? ""),
             type: "灵感",
-            link: `/ideas`,
+            link: `/ideas/${d._id}`,
             hot: Number(d.resonance ?? 0) * 4 + Number(d.replies ?? 0) * 2,
           });
         });

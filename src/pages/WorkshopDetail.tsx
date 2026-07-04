@@ -474,7 +474,7 @@ export default function WorkshopDetail() {
               return (
                 <span
                   key={pUid + i}
-                  title={isCreatorMember ? `${project.creator}（创建者）` : `用户 ${pUid.slice(-6)}`}
+                  title={isCreatorMember ? `${project.creator}（创建者）` : `用户 ${pUid ? pUid.slice(-6) : "未知"}`}
                   className="flex h-7 w-7 items-center justify-center rounded-full border-2 border-void-900 font-display text-[10px] text-void-900"
                   style={{
                     background: isCreatorMember

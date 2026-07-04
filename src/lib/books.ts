@@ -82,26 +82,27 @@ export async function addReview(bookId: string, review: { author: string; author
   const newReview = { ...review, date: new Date().toISOString() };
   const updated = existingIdx >= 0;
 
-  if (updated) {
-    // 已评过：只更新自己的那条评价，不影响他人（路径更新避免并发覆盖）
-    await docRef.update({
-      [`reviews.${existingIdx}`]: newReview,
-    });
-  } else {
-    // 未评过：原子追加，避免并发丢失
-    await docRef.update({
-      reviews: db.command.push([newReview]),
-    });
-  }
-
-  // 基于去重后的完整数组计算 avgRating 并写回缓存字段
-  // （toBook 读取时会从 reviews 实时重算，此字段仅作兼容缓存）
+  // 基于去重后的完整数组计算 avgRating（toBook 读取时会从 reviews 实时重算，此字段仅作兼容缓存）
   const updatedReviews = updated
     ? reviews.map((r, i) => (i === existingIdx ? newReview : r))
     : [...reviews, newReview];
   const totalRating = updatedReviews.reduce((sum, r) => sum + r.rating, 0);
   const avgRating = updatedReviews.length > 0 ? Math.round((totalRating / updatedReviews.length) * 10) / 10 : 0;
-  await docRef.update({ rating: avgRating });
+
+  // 单次 update 同时写入 reviews 与 rating 缓存，避免两次更新中途失败导致不一致
+  if (updated) {
+    // 已评过：只更新自己的那条评价，不影响他人（路径更新避免并发覆盖）
+    await docRef.update({
+      [`reviews.${existingIdx}`]: newReview,
+      rating: avgRating,
+    });
+  } else {
+    // 未评过：原子追加，避免并发丢失
+    await docRef.update({
+      reviews: db.command.push([newReview]),
+      rating: avgRating,
+    });
+  }
 
   return { avgRating, updated };
 }
