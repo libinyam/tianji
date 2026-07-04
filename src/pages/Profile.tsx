@@ -62,7 +62,8 @@ export default function Profile() {
       setFavorites(favs);
       setLoading(false);
     });
-  }, [user, navigate]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [user?.uid, navigate]);
 
   const handleSave = async () => {
     setSaving(true);

@@ -58,13 +58,14 @@ export default function SearchModal({ open, onClose }: SearchModalProps) {
     if (!kw.trim()) {
       setResults([]);
       setSearched(false);
+      setLoading(false);
       return;
     }
     const ac = new AbortController();
     searchAbortRef.current = ac;
     setLoading(true);
     setSearched(true);
-    searchAll(kw)
+    searchAll(kw, ac.signal)
       .then((res) => {
         if (!ac.signal.aborted) setResults(res);
       })

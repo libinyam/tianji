@@ -36,7 +36,7 @@ function buildRegex(keyword: string) {
 }
 
 /** 跨四个集合搜索，返回统一结构并按热度排序 */
-export async function searchAll(keyword: string): Promise<SearchResult[]> {
+export async function searchAll(keyword: string, signal?: AbortSignal): Promise<SearchResult[]> {
   if (!keyword.trim()) return [];
   const regex = buildRegex(keyword.trim());
   const results: SearchResult[] = [];
@@ -144,7 +144,20 @@ export async function searchAll(keyword: string): Promise<SearchResult[]> {
       .catch(() => {}),
   ];
 
-  await Promise.all(tasks);
+  // 中止时立即 reject，不等待所有查询完成（CloudBase SDK 不支持取消单个查询，
+  // 但 race 可避免调用方等待过期结果）
+  const allDone = Promise.all(tasks);
+  if (signal) {
+    await Promise.race([
+      allDone,
+      new Promise<never>((_, reject) => {
+        if (signal.aborted) reject(new Error("aborted"));
+        else signal.addEventListener("abort", () => reject(new Error("aborted")), { once: true });
+      }),
+    ]);
+  } else {
+    await allDone;
+  }
 
   // 按热度降序
   results.sort((a, b) => b.hot - a.hot);
