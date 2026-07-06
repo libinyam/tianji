@@ -5,6 +5,13 @@ import { useIsAdmin } from "@/lib/admin";
 import { useAuthStore } from "@/stores/auth";
 import { toast } from "@/stores/toast";
 import { fetchReports, resolveReport, type Report } from "@/lib/reports";
+import {
+  fetchAllAnnouncements,
+  createAnnouncement,
+  toggleAnnouncement,
+  deleteAnnouncement,
+  type Announcement,
+} from "@/lib/announcements";
 
 const db = app.database();
 import {
@@ -20,6 +27,9 @@ import {
   Flag,
   CheckCircle2,
   XCircle,
+  Megaphone,
+  Plus,
+  Power,
 } from "lucide-react";
 
 interface Stats {
@@ -72,13 +82,16 @@ interface WorkshopItem {
 export default function Admin() {
   const isAdmin = useIsAdmin();
   const { user, loading } = useAuthStore();
-  const [tab, setTab] = useState<"overview" | "posts" | "ideas" | "books" | "workshops" | "reports">("overview");
+  const [tab, setTab] = useState<"overview" | "posts" | "ideas" | "books" | "workshops" | "reports" | "announcements">("overview");
   const [stats, setStats] = useState<Stats | null>(null);
   const [posts, setPosts] = useState<PostItem[]>([]);
   const [ideas, setIdeas] = useState<IdeaItem[]>([]);
   const [books, setBooks] = useState<BookItem[]>([]);
   const [workshops, setWorkshops] = useState<WorkshopItem[]>([]);
   const [reports, setReports] = useState<Report[]>([]);
+  const [announcements, setAnnouncements] = useState<Announcement[]>([]);
+  const [annForm, setAnnForm] = useState({ title: "", content: "" });
+  const [annSubmitting, setAnnSubmitting] = useState(false);
   const [loadingData, setLoadingData] = useState(false);
 
   useEffect(() => {
@@ -89,6 +102,7 @@ export default function Admin() {
     else if (tab === "books") fetchBooks();
     else if (tab === "workshops") fetchWorkshops();
     else if (tab === "reports") fetchReportsData();
+    else if (tab === "announcements") fetchAnnouncementsData();
   }, [tab, isAdmin]);
 
   const fetchStats = async () => {
@@ -186,6 +200,56 @@ export default function Admin() {
       console.error("fetchReports error:", err);
     } finally {
       setLoadingData(false);
+    }
+  };
+
+  const fetchAnnouncementsData = async () => {
+    setLoadingData(true);
+    try {
+      const list = await fetchAllAnnouncements();
+      setAnnouncements(list);
+    } catch (err) {
+      console.error("fetchAnnouncements error:", err);
+    } finally {
+      setLoadingData(false);
+    }
+  };
+
+  const handleCreateAnnouncement = async () => {
+    if (!annForm.title.trim() || !annForm.content.trim()) return;
+    setAnnSubmitting(true);
+    try {
+      const ann = await createAnnouncement(annForm.title, annForm.content);
+      setAnnouncements((prev) => [ann, ...prev]);
+      setAnnForm({ title: "", content: "" });
+      toast.success("公告已发布");
+    } catch (err) {
+      toast.error((err as Error).message || "发布失败");
+    } finally {
+      setAnnSubmitting(false);
+    }
+  };
+
+  const handleToggleAnnouncement = async (id: string, active: boolean) => {
+    try {
+      await toggleAnnouncement(id, active);
+      setAnnouncements((prev) =>
+        prev.map((a) => (a.id === id ? { ...a, active } : a))
+      );
+      toast.success(active ? "公告已激活" : "公告已隐藏");
+    } catch (err) {
+      toast.error((err as Error).message || "操作失败");
+    }
+  };
+
+  const handleDeleteAnnouncement = async (id: string) => {
+    if (!confirm("确定删除此公告？")) return;
+    try {
+      await deleteAnnouncement(id);
+      setAnnouncements((prev) => prev.filter((a) => a.id !== id));
+      toast.success("公告已删除");
+    } catch (err) {
+      toast.error((err as Error).message || "删除失败");
     }
   };
 
@@ -570,6 +634,94 @@ export default function Admin() {
               </div>
             );
           })}
+        </div>
+      )}
+
+      {tab === "announcements" && !loadingData && (
+        <div className="space-y-4">
+          {/* 发布表单 */}
+          <div className="rounded-xl border border-tian-400/30 bg-tian-400/5 p-5">
+            <div className="mb-3 flex items-center gap-2">
+              <Megaphone size={16} className="text-tian-300" />
+              <span className="text-sm font-medium text-tian-200">发布公告</span>
+            </div>
+            <input
+              value={annForm.title}
+              onChange={(e) => setAnnForm((p) => ({ ...p, title: e.target.value }))}
+              placeholder="公告标题"
+              maxLength={100}
+              className="mb-3 w-full rounded-lg border border-void-600/50 bg-void-950/50 px-4 py-2.5 text-sm text-parchment-100 placeholder:text-mist-500 focus:border-tian-400/50 focus:outline-none focus:ring-1 focus:ring-tian-400/30"
+            />
+            <textarea
+              value={annForm.content}
+              onChange={(e) => setAnnForm((p) => ({ ...p, content: e.target.value }))}
+              placeholder="公告内容…"
+              rows={3}
+              maxLength={500}
+              className="mb-3 w-full resize-y rounded-lg border border-void-600/50 bg-void-950/50 px-4 py-2.5 text-sm leading-relaxed text-parchment-100 placeholder:text-mist-500 focus:border-tian-400/50 focus:outline-none focus:ring-1 focus:ring-tian-400/30"
+            />
+            <button
+              onClick={handleCreateAnnouncement}
+              disabled={!annForm.title.trim() || !annForm.content.trim() || annSubmitting}
+              className="inline-flex items-center gap-2 rounded-lg border border-tian-400/60 bg-tian-500 px-4 py-2 text-sm font-medium text-white transition-all hover:bg-tian-600 disabled:cursor-not-allowed disabled:opacity-50"
+            >
+              <Plus size={15} /> {annSubmitting ? "发布中…" : "发布公告"}
+            </button>
+          </div>
+
+          {/* 公告列表 */}
+          {announcements.length === 0 && (
+            <p className="py-8 text-center text-mist-400">暂无公告</p>
+          )}
+          {announcements.map((a) => (
+            <div
+              key={a.id}
+              className={`rounded-xl border p-4 ${
+                a.active
+                  ? "border-void-600/40 bg-void-800/30"
+                  : "border-void-600/20 bg-void-900/20 opacity-60"
+              }`}
+            >
+              <div className="flex items-start justify-between gap-3">
+                <div className="min-w-0 flex-1">
+                  <div className="flex items-center gap-2">
+                    <h4 className="font-medium text-parchment-50">{a.title}</h4>
+                    <span
+                      className={`rounded-md border px-1.5 py-0.5 text-[10px] ${
+                        a.active
+                          ? "border-green-400/40 bg-green-400/10 text-green-300"
+                          : "border-void-600/50 bg-void-700/40 text-mist-500"
+                      }`}
+                    >
+                      {a.active ? "活跃" : "隐藏"}
+                    </span>
+                  </div>
+                  <p className="mt-1 whitespace-pre-wrap text-sm text-mist-300">{a.content}</p>
+                  <div className="mt-2 flex items-center gap-2 text-xs text-mist-500">
+                    <span>{a.authorName}</span>
+                    <span>·</span>
+                    <span className="font-mono">{a.createdAt}</span>
+                  </div>
+                </div>
+                <div className="flex flex-shrink-0 items-center gap-2">
+                  <button
+                    onClick={() => handleToggleAnnouncement(a.id, !a.active)}
+                    className="flex items-center gap-1 rounded-lg border border-void-600/50 bg-void-800/40 px-2.5 py-1.5 text-xs text-mist-300 transition-all hover:border-mist-400/40"
+                    title={a.active ? "隐藏公告" : "激活公告"}
+                  >
+                    <Power size={14} /> {a.active ? "隐藏" : "激活"}
+                  </button>
+                  <button
+                    onClick={() => handleDeleteAnnouncement(a.id)}
+                    className="flex items-center gap-1 rounded-lg border border-red-500/30 bg-red-500/10 px-2.5 py-1.5 text-xs text-red-400 transition-all hover:bg-red-500/20"
+                    title="删除公告"
+                  >
+                    <Trash2 size={14} /> 删除
+                  </button>
+                </div>
+              </div>
+            </div>
+          ))}
         </div>
       )}
     </div>

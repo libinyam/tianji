@@ -1,7 +1,7 @@
 import { useMemo, useState, useEffect } from "react";
 import { Link, useNavigate, useLocation } from "react-router-dom";
 import { motion } from "motion/react";
-import { MessageCircle, Eye, ThumbsUp, Star, Plus, GraduationCap, Coffee, Search } from "lucide-react";
+import { MessageCircle, Eye, ThumbsUp, Star, Plus, GraduationCap, Coffee, Search, Megaphone, X } from "lucide-react";
 import PageHero from "@/components/PageHero";
 import Avatar from "@/components/Avatar";
 import PostModal from "@/components/PostModal";
@@ -9,6 +9,7 @@ import EmptyState from "@/components/EmptyState";
 import { PostCardSkeleton, ListSkeleton } from "@/components/Skeleton";
 
 import { fetchPosts, type PostCategory, type CasualSubCategory, CASUAL_SUB_CATEGORIES } from "@/lib/posts";
+import { fetchActiveAnnouncements, type Announcement } from "@/lib/announcements";
 import { PRESET_TAGS } from "@/lib/tags";
 import { useAuthStore } from "@/stores/auth";
 import type { Question } from "@/types";
@@ -31,6 +32,8 @@ export default function Discussion() {
   const [capturedPrefill, setCapturedPrefill] = useState<{ title: string; body: string; tags: string[] } | null>(null);
   const [realPosts, setRealPosts] = useState<Question[]>([]);
   const [loading, setLoading] = useState(true);
+  const [announcements, setAnnouncements] = useState<Announcement[]>([]);
+  const [dismissedAnn, setDismissedAnn] = useState<Set<string>>(new Set());
   const { user } = useAuthStore();
   const navigate = useNavigate();
   const location = useLocation();
@@ -54,6 +57,20 @@ export default function Discussion() {
       mounted = false;
     };
   }, [section, subFilter]);
+
+  // 加载活跃公告
+  useEffect(() => {
+    let mounted = true;
+    (async () => {
+      try {
+        const list = await fetchActiveAnnouncements();
+        if (mounted) setAnnouncements(list);
+      } catch {
+        /* 公告加载失败不阻塞主流程 */
+      }
+    })();
+    return () => { mounted = false; };
+  }, []);
 
   useEffect(() => {
     if (prefill) {
@@ -162,6 +179,39 @@ export default function Discussion() {
             );
           })}
         </div>
+
+        {/* 公告栏 */}
+        {announcements.filter((a) => !dismissedAnn.has(a.id)).length > 0 && (
+          <div className="mb-6 space-y-2">
+            {announcements
+              .filter((a) => !dismissedAnn.has(a.id))
+              .map((a) => (
+                <div
+                  key={a.id}
+                  className="flex items-start gap-3 rounded-xl border border-tian-400/30 bg-tian-400/5 px-4 py-3"
+                >
+                  <Megaphone size={16} className="mt-0.5 shrink-0 text-tian-300" />
+                  <div className="min-w-0 flex-1">
+                    <div className="flex items-center gap-2">
+                      <span className="text-xs font-medium uppercase tracking-wider text-tian-300">公告</span>
+                      <span className="text-sm font-medium text-parchment-50">{a.title}</span>
+                    </div>
+                    <p className="mt-1 whitespace-pre-wrap text-sm leading-relaxed text-mist-300">{a.content}</p>
+                    <div className="mt-1.5 text-xs text-mist-500">
+                      {a.authorName} · {a.createdAt.slice(0, 10)}
+                    </div>
+                  </div>
+                  <button
+                    onClick={() => setDismissedAnn((prev) => new Set(prev).add(a.id))}
+                    className="shrink-0 text-mist-500 transition-colors hover:text-mist-300"
+                    aria-label="关闭公告"
+                  >
+                    <X size={14} />
+                  </button>
+                </div>
+              ))}
+          </div>
+        )}
 
         {/* 一级分类筛选 - 学术区：学科/工具；闲聊区：子分类 */}
         {section === "academic" ? (
