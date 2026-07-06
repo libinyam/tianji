@@ -1,5 +1,5 @@
 import { useMemo, useState, useEffect } from "react";
-import { Search, SlidersHorizontal, BookOpen, Plus } from "lucide-react";
+import { Search, BookOpen, Plus } from "lucide-react";
 import PageHero from "@/components/PageHero";
 import BookCard from "@/components/BookCard";
 import { BookCardSkeleton } from "@/components/Skeleton";
@@ -104,32 +104,32 @@ export default function Library() {
         </div>
       </PageHero>
 
-      <section className="container-tj py-12">
+      <section className="container-tj py-8">
         {/* 检索筛选栏 */}
-        <div className="mb-8 flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
-          <div className="relative max-w-md flex-1">
+        <div className="mb-6 flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
+          <div className="relative max-w-sm flex-1">
             <Search
-              size={16}
-              className="absolute left-3.5 top-1/2 -translate-y-1/2 text-mist-500"
+              size={15}
+              className="absolute left-3 top-1/2 -translate-y-1/2 text-mist-500"
             />
             <input
               name="search"
               value={query}
               onChange={(e) => setQuery(e.target.value)}
               placeholder="搜索书名、作者或标签…"
-              className="w-full rounded-lg border border-void-600/50 bg-void-800/40 py-2.5 pl-10 pr-4 text-sm text-parchment-100 placeholder:text-mist-500 focus:border-star-400/50 focus:outline-none focus:ring-1 focus:ring-star-400/30"
+              className="w-full rounded-lg border border-void-600/30 bg-void-800/20 py-2 pl-9 pr-3 text-sm text-parchment-100 placeholder:text-mist-500 focus:border-void-600/60 focus:outline-none"
             />
           </div>
 
-          <div className="flex flex-wrap items-center gap-2">
+          <div className="flex flex-wrap items-center gap-1">
             {CATEGORIES.map((c) => (
               <button
                 key={c}
                 onClick={() => setCategory(c)}
-                className={`rounded-full border px-3.5 py-1.5 text-xs transition-all ${
+                className={`rounded-lg px-3 py-1.5 text-xs transition-colors ${
                   category === c
-                    ? "border-star-400/60 bg-star-400/15 text-star-200"
-                    : "border-void-600/50 bg-void-800/40 text-mist-300 hover:border-mist-400/40"
+                    ? "bg-void-700/50 text-parchment-100"
+                    : "text-mist-400 hover:text-mist-300"
                 }`}
               >
                 {c}
@@ -139,22 +139,20 @@ export default function Library() {
         </div>
 
         {/* 排序 + 结果数 */}
-        <div className="mb-6 flex items-center justify-between">
-          <p className="text-sm text-mist-400">
-            共 <span className="text-star-300">{filtered.length}</span> 部书目
+        <div className="mb-5 flex items-center justify-between">
+          <p className="text-xs text-mist-500">
+            共 <span className="text-mist-300">{filtered.length}</span> 部书目
           </p>
           <div className="flex items-center gap-2">
-            <SlidersHorizontal size={14} className="text-mist-500" />
             {SORTS.map((s) => (
               <button
                 key={s}
                 onClick={() => setSort(s)}
                 className={`text-xs transition-colors ${
-                  sort === s ? "text-star-300" : "text-mist-500 hover:text-mist-300"
+                  sort === s ? "text-parchment-100" : "text-mist-500 hover:text-mist-300"
                 }`}
               >
                 {s}
-                {sort === s && <span className="ml-1">·</span>}
               </button>
             ))}
           </div>
@@ -162,7 +160,7 @@ export default function Library() {
 
         {/* 书卡网格 */}
         {loading && (
-          <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
             {Array.from({ length: 8 }).map((_, i) => (
               <BookCardSkeleton key={i} />
             ))}
@@ -170,7 +168,7 @@ export default function Library() {
         )}
 
         {!loading && filtered.length > 0 && (
-          <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
             {filtered.map((b, i) => (
               <BookCard key={b.id} book={b} index={i} />
             ))}

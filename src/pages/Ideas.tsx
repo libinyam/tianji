@@ -1,8 +1,7 @@
 import { useMemo, useState, useEffect } from "react";
 import { Link } from "react-router-dom";
-import { motion } from "motion/react";
 import { toast } from "@/stores/toast";
-import { Lightbulb, ThumbsUp, MessageCircle, Sparkles, Plus, Loader2, Bookmark, Pencil, Trash2, Flag } from "lucide-react";
+import { Lightbulb, ThumbsUp, MessageCircle, Plus, Loader2, Bookmark, Pencil, Trash2, Flag } from "lucide-react";
 import PageHero from "@/components/PageHero";
 import Avatar from "@/components/Avatar";
 import IdeaModal from "@/components/IdeaModal";
@@ -185,17 +184,17 @@ export default function Ideas() {
         </button>
       </PageHero>
 
-      <section className="container-tj py-12">
+      <section className="container-tj py-8">
         {/* 主题筛选 */}
-        <div className="mb-10 flex flex-wrap items-center gap-2">
+        <div className="mb-8 flex flex-wrap items-center gap-2">
           {TOPICS.map((t) => (
             <button
               key={t}
               onClick={() => setTopic(t)}
-              className={`rounded-full border px-3.5 py-1.5 text-xs transition-all ${
+              className={`rounded-lg border px-3 py-1.5 text-xs transition-colors ${
                 topic === t
-                  ? "border-star-400/60 bg-star-400/15 text-star-200"
-                  : "border-void-600/50 bg-void-800/40 text-mist-300 hover:border-mist-400/40"
+                  ? "border-void-600/50 bg-void-700/50 text-parchment-100"
+                  : "border-void-600/30 bg-transparent text-mist-400 hover:text-mist-300"
               }`}
             >
               {t}
@@ -210,10 +209,8 @@ export default function Ideas() {
             <button
               key={s}
               onClick={() => setSort(s)}
-              className={`rounded-lg border px-3 py-1.5 text-xs font-medium transition-all ${
-                sort === s
-                  ? "border-star-400/60 bg-star-400/15 text-star-200"
-                  : "border-void-600/50 bg-void-800/40 text-mist-300 hover:border-mist-400/40"
+              className={`text-xs transition-colors ${
+                sort === s ? "text-parchment-100" : "text-mist-500 hover:text-mist-300"
               }`}
             >
               {s}
@@ -239,146 +236,95 @@ export default function Ideas() {
           />
         )}
 
-        {/* 星图陈列：交错网格 + 装饰连线 */}
+        {/* 灵感卡片网格 */}
         {!loading && filtered.length > 0 && (
-          <div className="relative">
-            {/* 背景星座连线 */}
-            <svg
-              className="pointer-events-none absolute inset-0 hidden h-full w-full lg:block"
-              aria-hidden
-            >
-              <defs>
-                <linearGradient id="ideaLine" x1="0" y1="0" x2="1" y2="1">
-                  <stop offset="0%" stopColor="#7cc4ff" stopOpacity="0" />
-                  <stop offset="50%" stopColor="#f3c969" stopOpacity="0.25" />
-                  <stop offset="100%" stopColor="#7cc4ff" stopOpacity="0" />
-                </linearGradient>
-              </defs>
-              {[
-                [15, 18, 55, 42],
-                [55, 42, 85, 12],
-                [30, 68, 70, 78],
-              ].map(([x1, y1, x2, y2], i) => (
-                <line
-                  key={i}
-                  x1={`${x1}%`}
-                  y1={`${y1}%`}
-                  x2={`${x2}%`}
-                  y2={`${y2}%`}
-                  stroke="url(#ideaLine)"
-                  strokeWidth="1"
-                  strokeDasharray="4 6"
-                />
-              ))}
-            </svg>
+          <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+            {filtered.map((idea) => (
+              <article
+                key={idea.id}
+                className="group relative flex flex-col rounded-lg border border-void-600/30 bg-void-800/20 px-5 py-5 transition-colors hover:bg-void-800/40"
+              >
+                {/* 作者操作 */}
+                {user?.uid === idea.authorUid && (
+                  <div className="absolute right-4 top-4 flex gap-1 opacity-0 transition-opacity group-hover:opacity-100">
+                    <button
+                      onClick={() => startEditIdea(idea)}
+                      className="rounded p-1 text-mist-400 hover:bg-void-700/60 hover:text-tian-300"
+                      title="编辑灵感"
+                    >
+                      <Pencil size={13} />
+                    </button>
+                    <button
+                      onClick={() => handleDeleteIdea(idea)}
+                      className="rounded p-1 text-mist-400 hover:bg-void-700/60 hover:text-red-300"
+                      title="删除灵感"
+                    >
+                      <Trash2 size={13} />
+                    </button>
+                  </div>
+                )}
 
-            <div className="grid gap-5 md:grid-cols-2 xl:grid-cols-3">
-              {filtered.map((idea, i) => (
-                <motion.article
-                  key={idea.id}
-                  initial={{ opacity: 0, y: 24, scale: 0.97 }}
-                  whileInView={{ opacity: 1, y: 0, scale: 1 }}
-                  viewport={{ once: true, margin: "-50px" }}
-                  transition={{ duration: 0.5, delay: (i % 3) * 0.1 }}
-                  className={`group relative flex flex-col rounded-xl border border-void-600/40 bg-void-800/40 p-6 backdrop-blur-sm transition-all duration-300 hover:border-star-400/40 hover:bg-void-700/40 ${
-                    i % 3 === 1 ? "xl:translate-y-8" : ""
-                  }`}
-                >
-                  {/* 星点装饰 */}
-                  <Sparkles
-                    size={14}
-                    className="absolute right-5 top-5 text-star-400/30 transition-colors group-hover:text-star-400/70"
-                    strokeWidth={1.5}
-                  />
-                  {user?.uid === idea.authorUid && (
-                    <div className="absolute right-5 top-12 flex gap-1 opacity-0 transition-opacity group-hover:opacity-100">
-                      <button
-                        onClick={() => startEditIdea(idea)}
-                        className="rounded-md p-1 text-mist-400 hover:bg-void-700/60 hover:text-tian-300"
-                        title="编辑灵感"
-                      >
-                        <Pencil size={13} />
-                      </button>
-                      <button
-                        onClick={() => handleDeleteIdea(idea)}
-                        className="rounded-md p-1 text-mist-400 hover:bg-void-700/60 hover:text-red-300"
-                        title="删除灵感"
-                      >
-                        <Trash2 size={13} />
-                      </button>
-                    </div>
-                  )}
+                <div className="flex items-center gap-2">
+                  <Lightbulb size={14} className="text-star-400/60" />
+                  <span className="text-xs text-mist-500">{idea.topic}</span>
+                </div>
 
-                  <div className="flex items-center gap-2.5">
-                    <span className="flex h-9 w-9 items-center justify-center rounded-lg border border-star-400/30 bg-star-400/10 text-star-300">
-                      <Lightbulb size={17} />
+                <h3 className="mt-3 heading-display text-base leading-snug text-parchment-50 transition-colors group-hover:text-star-300">
+                  <Link to={`/ideas/${idea.id}`} className="after:absolute after:inset-0">
+                    {idea.title}
+                  </Link>
+                </h3>
+                <p className="mt-2 flex-1 text-sm leading-relaxed text-mist-400">
+                  {idea.summary}
+                </p>
+
+                <div className="mt-4 flex items-center justify-between border-t border-void-600/20 pt-3">
+                  <div className="flex items-center gap-2">
+                    <Avatar name={idea.author} color={idea.avatarColor} size={20} />
+                    {idea.authorUid ? (
+                      <Link to={`/user/${idea.authorUid}`} className="text-xs text-mist-400 transition-colors hover:text-star-300" onClick={(e) => e.stopPropagation()}>
+                        {idea.author}
+                      </Link>
+                    ) : (
+                      <span className="text-xs text-mist-400">{idea.author}</span>
+                    )}
+                  </div>
+                  <div className="flex items-center gap-3 text-xs text-mist-400">
+                    <button
+                      onClick={() => handleResonance(idea)}
+                      className={`flex items-center gap-1 transition-colors hover:text-star-300 ${
+                        resonated[idea.id] ? "text-star-300" : ""
+                      }`}
+                      title="共鸣"
+                    >
+                      <ThumbsUp size={12} className={resonated[idea.id] ? "fill-star-400" : ""} />{" "}
+                      {idea.resonance}
+                    </button>
+                    <button
+                      onClick={() => handleFav(idea)}
+                      className={`transition-colors hover:text-star-300 ${
+                        favedIdeas.has(idea.id) ? "text-star-300" : ""
+                      }`}
+                      title="收藏"
+                    >
+                      <Bookmark size={12} className={favedIdeas.has(idea.id) ? "fill-star-400" : ""} />
+                    </button>
+                    {user?.uid !== idea.authorUid && (
+                      <button
+                        onClick={() => openReport(idea)}
+                        className="transition-colors hover:text-red-300"
+                        title="举报"
+                      >
+                        <Flag size={12} />
+                      </button>
+                    )}
+                    <span className="flex items-center gap-1">
+                      <MessageCircle size={12} /> {idea.replies}
                     </span>
-                    <span className="pill-blue">{idea.topic}</span>
                   </div>
-
-                  <h3 className="mt-4 heading-display text-lg leading-snug text-parchment-50 transition-colors group-hover:text-star-200">
-                    <Link to={`/ideas/${idea.id}`} className="after:absolute after:inset-0">
-                      {idea.title}
-                    </Link>
-                  </h3>
-                  <p className="mt-2.5 flex-1 text-sm leading-relaxed text-mist-300">
-                    {idea.summary}
-                  </p>
-
-                  <div className="mt-5 flex items-center justify-between border-t border-void-600/30 pt-4">
-                    <div className="flex items-center gap-2">
-                      <Avatar name={idea.author} color={idea.avatarColor} size={24} />
-                      {idea.authorUid ? (
-                        <Link to={`/user/${idea.authorUid}`} className="text-xs text-mist-300 transition-colors hover:text-star-300" onClick={(e) => e.stopPropagation()}>
-                          {idea.author}
-                        </Link>
-                      ) : (
-                        <span className="text-xs text-mist-300">{idea.author}</span>
-                      )}
-                    </div>
-                    <div className="flex items-center gap-4 text-xs text-mist-400">
-                      <button
-                        onClick={() => handleResonance(idea)}
-                        className={`flex items-center gap-1 transition-colors hover:text-star-300 ${
-                          resonated[idea.id] ? "text-star-300" : ""
-                        }`}
-                        title="共鸣"
-                      >
-                        <ThumbsUp
-                          size={12}
-                          className={resonated[idea.id] ? "fill-star-400" : ""}
-                        />{" "}
-                        {idea.resonance}
-                      </button>
-                      <button
-                        onClick={() => handleFav(idea)}
-                        className={`flex items-center gap-1 transition-colors hover:text-star-300 ${
-                          favedIdeas.has(idea.id) ? "text-star-300" : ""
-                        }`}
-                        title="收藏"
-                      >
-                        <Bookmark
-                          size={12}
-                          className={favedIdeas.has(idea.id) ? "fill-star-400" : ""}
-                        />
-                      </button>
-                      {user?.uid !== idea.authorUid && (
-                        <button
-                          onClick={() => openReport(idea)}
-                          className="flex items-center gap-1 text-mist-400 transition-colors hover:text-red-300"
-                          title="举报"
-                        >
-                          <Flag size={12} />
-                        </button>
-                      )}
-                      <span className="flex items-center gap-1">
-                        <MessageCircle size={12} /> {idea.replies}
-                      </span>
-                    </div>
-                  </div>
-                </motion.article>
-              ))}
-            </div>
+                </div>
+              </article>
+            ))}
           </div>
         )}
       </section>

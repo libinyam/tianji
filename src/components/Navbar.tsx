@@ -51,34 +51,21 @@ export default function Navbar({ onLoginClick }: NavbarProps) {
   };
 
   return (
-    <header className="sticky top-0 z-50 border-b border-void-600/40 bg-void-950/70 backdrop-blur-xl">
-      <nav className="container-tj flex h-16 items-center justify-between">
+    <header className="sticky top-0 z-50 border-b border-void-600/30 bg-void-950/80 backdrop-blur-md">
+      <nav className="container-tj flex h-14 items-center justify-between">
         {/* Logo */}
-        <Link to="/" className="group flex items-center gap-2.5" onClick={() => setOpen(false)}>
-          <span className="relative flex h-8 w-8 items-center justify-center">
-            <span className="absolute inset-0 rounded-lg bg-star-glow opacity-60 blur-md transition-opacity group-hover:opacity-100" />
-            <Sparkles className="relative h-5 w-5 text-star-400" strokeWidth={1.5} />
-          </span>
-          <span className="heading-display text-xl text-parchment-50">
+        <Link to="/" className="flex items-center gap-2" onClick={() => setOpen(false)}>
+          <Sparkles className="h-4.5 w-4.5 text-star-400" strokeWidth={1.5} />
+          <span className="heading-display text-lg text-parchment-50">
             天<span className="text-star-400">玑</span>
-          </span>
-          <span className="hidden font-mono text-[10px] uppercase tracking-[0.3em] text-mist-500 sm:inline">
-            Tianji
           </span>
         </Link>
 
         {/* Desktop nav */}
-        <div className="hidden items-center gap-7 lg:flex">
+        <div className="hidden items-center gap-6 lg:flex">
           {NAV.map((item) => (
             <NavLink key={item.to} to={item.to} end={item.end} className={linkClass}>
-              {({ isActive }) => (
-                <>
-                  {item.label}
-                  {isActive && (
-                    <span className="absolute -bottom-1 left-0 h-px w-full bg-gradient-to-r from-transparent via-star-400 to-transparent" />
-                  )}
-                </>
-              )}
+              {item.label}
             </NavLink>
           ))}
         </div>
@@ -87,7 +74,7 @@ export default function Navbar({ onLoginClick }: NavbarProps) {
           {/* 搜索按钮 */}
           <button
             onClick={() => setSearchOpen(true)}
-            className="flex items-center gap-2 rounded-lg border border-void-600/50 bg-void-800/40 px-3 py-1.5 text-xs text-mist-500 transition-colors hover:border-star-400/40 hover:text-mist-300"
+            className="flex items-center gap-2 rounded-md border border-void-600/30 bg-void-800/30 px-2.5 py-1.5 text-xs text-mist-500 transition-colors hover:text-mist-300"
             title="搜索 (Ctrl+K)"
           >
             <Search size={14} />
@@ -100,10 +87,10 @@ export default function Navbar({ onLoginClick }: NavbarProps) {
           {/* 主题切换 */}
           <button
             onClick={toggle}
-            className="flex h-9 w-9 items-center justify-center rounded-lg border border-void-600/50 bg-void-800/40 text-mist-400 transition-colors hover:border-star-400/40 hover:text-star-300"
+            className="flex h-8 w-8 items-center justify-center rounded-md text-mist-400 transition-colors hover:text-parchment-100"
             title={mode === "dark" ? "切换到浅色模式" : "切换到深色模式"}
           >
-            {mode === "dark" ? <Sun size={16} /> : <Moon size={16} />}
+            {mode === "dark" ? <Sun size={15} /> : <Moon size={15} />}
           </button>
 
           {/* 通知铃铛 */}

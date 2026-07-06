@@ -1,6 +1,5 @@
 import { useMemo, useState, useEffect } from "react";
 import { Link, useNavigate, useLocation } from "react-router-dom";
-import { motion } from "motion/react";
 import { MessageCircle, Eye, ThumbsUp, Star, Plus, GraduationCap, Coffee, Search, Megaphone, X } from "lucide-react";
 import PageHero from "@/components/PageHero";
 import Avatar from "@/components/Avatar";
@@ -140,9 +139,9 @@ export default function Discussion() {
         </button>
       </PageHero>
 
-      <section className="container-tj py-12">
-        {/* 分区切换 */}
-        <div className="mb-6 flex gap-3">
+      <section className="container-tj py-8">
+        {/* 分区切换 - 精简为文字 tab */}
+        <div className="mb-6 flex gap-1 rounded-lg border border-void-600/30 bg-void-900/30 p-1">
           {SECTIONS.map((s) => {
             const Icon = s.icon;
             const isActive = section === s.key;
@@ -156,25 +155,14 @@ export default function Discussion() {
                   setActiveTag("全部");
                   setSort("最新");
                 }}
-                className={`flex flex-1 items-center gap-3 rounded-xl border p-4 transition-all ${
+                className={`flex flex-1 items-center justify-center gap-2 rounded-md px-4 py-2.5 text-sm transition-colors ${
                   isActive
-                    ? "border-star-400/40 bg-star-400/10"
-                    : "border-void-600/40 bg-void-900/30 hover:border-mist-400/30"
+                    ? "bg-void-700/60 text-parchment-100"
+                    : "text-mist-400 hover:text-mist-300"
                 }`}
               >
-                <span
-                  className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-lg ${
-                    isActive ? "bg-star-400/20 text-star-300" : "bg-void-800/50 text-mist-400"
-                  }`}
-                >
-                  <Icon size={20} />
-                </span>
-                <div className="text-left">
-                  <div className={`text-sm font-medium ${isActive ? "text-parchment-100" : "text-mist-300"}`}>
-                    {s.label}
-                  </div>
-                  <div className="text-xs text-mist-500">{s.desc}</div>
-                </div>
+                <Icon size={15} />
+                {s.label}
               </button>
             );
           })}
@@ -322,68 +310,61 @@ export default function Discussion() {
           />
         )}
         {!loading && filtered.length > 0 && (
-          <div className="space-y-3">
-            {filtered.map((q, i) => (
-              <motion.div
+          <div className="space-y-2">
+            {filtered.map((q) => (
+              <div
                 key={q.id}
-                initial={{ opacity: 0, y: 16 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true, margin: "-40px" }}
-                transition={{ duration: 0.4, delay: (i % 6) * 0.06 }}
+                onClick={() => navigate(`/discussion/${q.id}`)}
+                className="group flex cursor-pointer items-start gap-4 rounded-lg border border-void-600/30 bg-void-800/20 px-5 py-4 transition-colors hover:border-void-600/50 hover:bg-void-800/40"
               >
-                <div
-                  onClick={() => navigate(`/discussion/${q.id}`)}
-                  className="group flex cursor-pointer items-start gap-5 rounded-xl border border-void-600/40 bg-void-800/30 p-5 transition-all hover:border-star-400/30 hover:bg-void-700/30"
-                >
-                  {/* 投票/回答统计列 */}
-                  <div className="hidden flex-col items-center gap-3 border-r border-void-600/40 pr-5 text-center sm:flex">
-                    <div>
-                      <div className="heading-display text-lg text-tian-300">{q.answers}</div>
-                      <div className="text-[10px] text-mist-500">回答</div>
-                    </div>
-                    <div>
-                      <div className="text-sm text-mist-300">{q.votes}</div>
-                      <div className="text-[10px] text-mist-500">票数</div>
-                    </div>
-                    <div>
-                      <div className="text-sm text-mist-300">
-                        {q.views >= 1000 ? `${(q.views / 1000).toFixed(1)}k` : q.views}
-                      </div>
-                      <div className="text-[10px] text-mist-500">浏览</div>
-                    </div>
+                {/* 投票/回答统计列 */}
+                <div className="hidden flex-col items-center gap-3 border-r border-void-600/40 pr-5 text-center sm:flex">
+                  <div>
+                    <div className="heading-display text-lg text-tian-300">{q.answers}</div>
+                    <div className="text-[10px] text-mist-500">回答</div>
                   </div>
-
-                  {/* 主体 */}
-                  <div className="min-w-0 flex-1">
-                    <div className="flex items-start justify-between gap-3">
-                      <h3 className="heading-display text-lg leading-snug text-parchment-50 transition-colors group-hover:text-star-200">
-                        {q.title}
-                      </h3>
-                      {q.bounty && (
-                        <span className="pill-gold shrink-0">
-                          <Star size={10} className="fill-star-400" /> 悬赏 {q.bounty}
-                        </span>
-                      )}
+                  <div>
+                    <div className="text-sm text-mist-300">{q.votes}</div>
+                    <div className="text-[10px] text-mist-500">票数</div>
+                  </div>
+                  <div>
+                    <div className="text-sm text-mist-300">
+                      {q.views >= 1000 ? `${(q.views / 1000).toFixed(1)}k` : q.views}
                     </div>
-                    <p className="mt-2 line-clamp-2 text-sm leading-relaxed text-mist-400">
-                      {q.excerpt}
-                    </p>
-                    <div className="mt-3 flex flex-wrap items-center gap-2">
-                      {q.tags.map((t) => (
-                        <Link key={t} to={`/tags/${encodeURIComponent(t)}`} className="pill transition-colors hover:border-star-400/40 hover:text-star-200" onClick={(e) => e.stopPropagation()}>
-                          {t}
-                        </Link>
-                      ))}
-                    </div>
-                    <div className="mt-3 flex items-center gap-3 text-xs text-mist-500">
-                      <Avatar name={q.author} color={q.avatarColor} size={20} />
-                      <span className="text-mist-300">{q.author}</span>
-                      <span>·</span>
-                      <span className="font-mono">{q.createdAt}</span>
-                    </div>
+                    <div className="text-[10px] text-mist-500">浏览</div>
                   </div>
                 </div>
-              </motion.div>
+
+                {/* 主体 */}
+                <div className="min-w-0 flex-1">
+                  <div className="flex items-start justify-between gap-3">
+                    <h3 className="heading-display text-lg leading-snug text-parchment-50 transition-colors group-hover:text-star-200">
+                      {q.title}
+                    </h3>
+                    {q.bounty && (
+                      <span className="pill-gold shrink-0">
+                        <Star size={10} className="fill-star-400" /> 悬赏 {q.bounty}
+                      </span>
+                    )}
+                  </div>
+                  <p className="mt-2 line-clamp-2 text-sm leading-relaxed text-mist-400">
+                    {q.excerpt}
+                  </p>
+                  <div className="mt-3 flex flex-wrap items-center gap-2">
+                    {q.tags.map((t) => (
+                      <Link key={t} to={`/tags/${encodeURIComponent(t)}`} className="pill transition-colors hover:border-star-400/40 hover:text-star-200" onClick={(e) => e.stopPropagation()}>
+                        {t}
+                      </Link>
+                    ))}
+                  </div>
+                  <div className="mt-3 flex items-center gap-3 text-xs text-mist-500">
+                    <Avatar name={q.author} color={q.avatarColor} size={20} />
+                    <span className="text-mist-300">{q.author}</span>
+                    <span>·</span>
+                    <span className="font-mono">{q.createdAt}</span>
+                  </div>
+                </div>
+              </div>
             ))}
           </div>
         )}

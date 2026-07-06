@@ -1,6 +1,5 @@
 import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
-import { motion } from "motion/react";
 import { Plus, PenLine, Users, BookOpen, FileText, Lock } from "lucide-react";
 import PageHero from "@/components/PageHero";
 import WorkshopCreateModal from "@/components/WorkshopCreateModal";
@@ -85,20 +84,7 @@ export default function Workshop() {
       </PageHero>
 
       {/* 真实项目列表 */}
-      <section className="container-tj py-14">
-        <div className="mb-8 flex items-end justify-between gap-4">
-          <div>
-            <div className="mb-3 flex items-center gap-2">
-              <span className="h-px w-8 bg-gradient-to-r from-transparent to-star-400" />
-              <span className="font-mono text-xs uppercase tracking-[0.25em] text-star-300">
-                协作项目 · 进行中
-              </span>
-            </div>
-            <h2 className="heading-display text-2xl text-parchment-50 sm:text-3xl">
-              {loading ? "加载中…" : "共创作品"}
-            </h2>
-          </div>
-        </div>
+      <section className="container-tj py-8">
 
         {loading && (
           <ListSkeleton count={3}>
@@ -107,75 +93,62 @@ export default function Workshop() {
         )}
 
         {!loading && realProjects.length > 0 && (
-          <div className="mb-10 grid gap-5 md:grid-cols-2 xl:grid-cols-3">
-            {realProjects.map((p, i) => {
+          <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+            {realProjects.map((p) => {
               const canView = canViewContent(p);
               return (
-                <motion.div
+                <Link
                   key={p.id}
-                  initial={{ opacity: 0, y: 22 }}
-                  whileInView={{ opacity: 1, y: 0 }}
-                  viewport={{ once: true, margin: "-50px" }}
-                  transition={{ duration: 0.45, delay: (i % 3) * 0.08 }}
+                  to={`/workshop/${p.id}`}
+                  className="group flex h-full flex-col rounded-lg border border-void-600/30 bg-void-800/20 p-5 transition-colors hover:bg-void-800/40"
                 >
-                  <Link
-                    to={`/workshop/${p.id}`}
-                    className="group flex h-full flex-col rounded-xl border border-void-600/50 bg-void-800/40 p-6 transition-all duration-300 hover:-translate-y-1 hover:border-star-400/40 hover:shadow-card"
-                  >
-                    <div className="mb-3 flex items-center justify-between">
+                  <div className="mb-2 flex items-center justify-between">
+                    <span className="flex items-center gap-1.5 text-xs text-mist-400">
+                      {p.type === "教材" ? <BookOpen size={12} /> : <FileText size={12} />}
+                      {p.type}
+                    </span>
+                    <span className="text-[11px] text-mist-500">{p.status}</span>
+                  </div>
+
+                  <h3 className="heading-display text-base leading-snug text-parchment-50 transition-colors group-hover:text-star-300">
+                    {p.title}
+                  </h3>
+                  <p className="mt-1.5 line-clamp-2 flex-1 text-sm leading-relaxed text-mist-400">
+                    {p.description}
+                  </p>
+
+                  {!canView && (
+                    <div className="mt-3 flex items-center gap-1.5 rounded-md border border-tian-400/20 bg-tian-400/5 px-2.5 py-1.5 text-xs text-tian-200">
+                      <Lock size={11} /> 加入后查看内容
+                    </div>
+                  )}
+
+                  {canView && (
+                    <div className="mt-3 text-xs text-mist-500">
+                      {p.content ? `${p.content.length} 字` : "空文档"} · {p.annotations.filter((a) => !a.resolved).length} 条批注
+                    </div>
+                  )}
+
+                  <div className="mt-3 flex items-center justify-between border-t border-void-600/20 pt-3 text-xs text-mist-400">
+                    <div className="flex items-center gap-2">
                       <span
-                        className={`flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-xs ${
-                          p.type === "教材"
-                            ? "border-star-400/40 bg-star-400/10 text-star-300"
-                            : "border-tian-400/40 bg-tian-400/10 text-tian-200"
-                        }`}
+                        className="flex h-5 w-5 items-center justify-center rounded-full text-[9px] font-medium text-void-900"
+                        style={{ background: p.avatarColor }}
                       >
-                        {p.type === "教材" ? <BookOpen size={11} /> : <FileText size={11} />}
-                        {p.type}
+                        {p.creator.charAt(0)}
                       </span>
-                      <span className="text-[11px] text-mist-500">{p.status}</span>
+                      <span className="text-mist-400">{p.creator}</span>
                     </div>
-
-                    <h3 className="heading-display text-lg leading-snug text-parchment-50 transition-colors group-hover:text-star-200">
-                      {p.title}
-                    </h3>
-                    <p className="mt-2 line-clamp-2 flex-1 text-sm leading-relaxed text-mist-300">
-                      {p.description}
-                    </p>
-
-                    {!canView && (
-                      <div className="mt-3 flex items-center gap-1.5 rounded-lg border border-tian-400/20 bg-tian-400/5 px-3 py-2 text-xs text-tian-200">
-                        <Lock size={11} /> 加入后查看内容
-                      </div>
-                    )}
-
-                    {canView && (
-                      <div className="mt-3 text-xs text-mist-500">
-                        {p.content ? `${p.content.length} 字` : "空文档"} · {p.annotations.filter((a) => !a.resolved).length} 条批注
-                      </div>
-                    )}
-
-                    <div className="mt-4 flex items-center justify-between border-t border-void-600/30 pt-3 text-xs text-mist-400">
-                      <div className="flex items-center gap-2">
-                        <span
-                          className="flex h-6 w-6 items-center justify-center rounded-full text-[10px] font-medium text-void-900"
-                          style={{ background: p.avatarColor }}
-                        >
-                          {p.creator.charAt(0)}
-                        </span>
-                        <span className="text-mist-300">{p.creator}</span>
-                      </div>
-                      <div className="flex items-center gap-3">
-                        <span className="flex items-center gap-1">
-                          <Users size={11} /> {p.participants.length}
-                        </span>
-                        {p.updatedAt && (
-                          <span className="text-[10px] text-mist-500">{formatUpdatedAt(p.updatedAt)}</span>
-                        )}
-                      </div>
+                    <div className="flex items-center gap-3">
+                      <span className="flex items-center gap-1">
+                        <Users size={11} /> {p.participants.length}
+                      </span>
+                      {p.updatedAt && (
+                        <span className="text-[10px] text-mist-500">{formatUpdatedAt(p.updatedAt)}</span>
+                      )}
                     </div>
-                  </Link>
-                </motion.div>
+                  </div>
+                </Link>
               );
             })}
           </div>
@@ -183,8 +156,8 @@ export default function Workshop() {
 
         {/* 空状态 */}
         {!loading && realProjects.length === 0 && (
-          <div className="rounded-xl border border-dashed border-void-600/40 bg-void-800/20 py-16 text-center">
-            <PenLine size={28} className="mx-auto mb-3 text-mist-500" />
+          <div className="rounded-lg border border-dashed border-void-600/30 bg-void-800/10 py-16 text-center">
+            <PenLine size={24} className="mx-auto mb-3 text-mist-500" />
             <p className="text-sm text-mist-400">还没有协作项目</p>
             <p className="mt-1 text-xs text-mist-500">点击「新建项目」发起第一个共创文档</p>
           </div>
