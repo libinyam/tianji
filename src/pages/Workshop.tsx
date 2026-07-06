@@ -1,12 +1,10 @@
 import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { Plus, PenLine, Users, BookOpen, FileText, Lock } from "lucide-react";
-import PageHero from "@/components/PageHero";
 import WorkshopCreateModal from "@/components/WorkshopCreateModal";
 import { WorkshopCardSkeleton, ListSkeleton } from "@/components/Skeleton";
 import { fetchWorkshops, canViewContent, type WorkshopProject } from "@/lib/workshops";
 import { useAuthStore } from "@/stores/auth";
-import { contributors } from "@/data/community";
 
 function formatUpdatedAt(iso: string): string {
   if (!iso) return "";
@@ -54,37 +52,23 @@ export default function Workshop() {
     setRealProjects((prev) => [project, ...prev]);
   };
 
-  const totalContributors = new Set(
-    realProjects.flatMap((p) => p.participants)
-  ).size;
-
   return (
     <>
-      <PageHero
-        eyebrow="Workshop · 协作工坊"
-        title={
-          <>
-            多人共创，把知识打磨成<span className="text-star-400">作品集</span>
-          </>
-        }
-        subtitle="多人协作的项目与文档创作空间。发起大纲、邀请贡献者、共同书写教材与论文——把分散的学习与想法，编织成完整的作品。"
-      >
-        <div className="flex flex-wrap items-center gap-4 text-sm text-mist-400">
-          <span className="flex items-center gap-1.5">
-            <PenLine size={14} className="text-star-400" /> {realProjects.length} 部共创中
-          </span>
-          <span className="text-void-600">|</span>
-          <span className="flex items-center gap-1.5">
-            <Users size={14} className="text-star-400" /> {totalContributors || contributors.length} 位协作者
-          </span>
-          <button onClick={handleCreateClick} className="btn-gold ml-2">
-            <Plus size={15} /> 新建项目
+      {/* 顶部工具栏 */}
+      <div className="border-b border-void-600/30 bg-void-900/20">
+        <div className="container-tj flex h-12 items-center justify-between">
+          <div className="flex items-center gap-4">
+            <h1 className="text-sm font-medium text-parchment-100">协作工坊</h1>
+            <span className="text-xs text-mist-500">{realProjects.length} 个项目</span>
+          </div>
+          <button onClick={handleCreateClick} className="inline-flex items-center gap-1.5 rounded-md bg-star-400/10 px-3 py-1.5 text-xs font-medium text-star-300 transition-colors hover:bg-star-400/20">
+            <Plus size={13} /> 新建项目
           </button>
         </div>
-      </PageHero>
+      </div>
 
-      {/* 真实项目列表 */}
-      <section className="container-tj py-8">
+      {/* 项目列表 */}
+      <section className="container-tj py-6">
 
         {loading && (
           <ListSkeleton count={3}>

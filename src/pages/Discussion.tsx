@@ -1,8 +1,6 @@
 import { useMemo, useState, useEffect } from "react";
 import { Link, useNavigate, useLocation } from "react-router-dom";
-import { MessageCircle, Eye, ThumbsUp, Star, Plus, GraduationCap, Coffee, Search, Megaphone, X, AlertCircle, RefreshCw } from "lucide-react";
-import PageHero from "@/components/PageHero";
-import Avatar from "@/components/Avatar";
+import { Plus, GraduationCap, Coffee, Search, Megaphone, X, AlertCircle, RefreshCw } from "lucide-react";
 import PostModal from "@/components/PostModal";
 import EmptyState from "@/components/EmptyState";
 import { PostCardSkeleton, ListSkeleton } from "@/components/Skeleton";
@@ -17,9 +15,9 @@ import type { Question } from "@/types";
 type SortKey = "最新" | "热度" | "悬赏";
 type CategoryFilter = "全部" | "学科" | "工具与部署";
 
-const SECTIONS: { key: PostCategory; label: string; icon: typeof GraduationCap; desc: string }[] = [
-  { key: "academic", label: "学术区", icon: GraduationCap, desc: "课程答疑 · 论文探讨 · 学术辩论" },
-  { key: "casual", label: "闲聊区", icon: Coffee, desc: "日常交流 · 行业八卦 · 随心分享" },
+const SECTIONS: { key: PostCategory; label: string; icon: typeof GraduationCap }[] = [
+  { key: "academic", label: "学术区", icon: GraduationCap },
+  { key: "casual", label: "闲聊区", icon: Coffee },
 ];
 
 export default function Discussion() {
@@ -40,7 +38,6 @@ export default function Discussion() {
   const location = useLocation();
   const prefill = (location.state as { prefill?: { title: string; body: string; tags: string[] } } | null)?.prefill;
 
-  // 加载真实帖子（按分区筛选）
   useEffect(() => {
     let mounted = true;
     (async () => {
@@ -60,30 +57,22 @@ export default function Discussion() {
         setLoading(false);
       }
     })();
-    return () => {
-      mounted = false;
-    };
+    return () => { mounted = false; };
   }, [section, subFilter]);
 
-  // 加载活跃公告
   useEffect(() => {
     let mounted = true;
     (async () => {
       try {
         const list = await fetchActiveAnnouncements();
         if (mounted) setAnnouncements(list);
-      } catch {
-        /* 公告加载失败不阻塞主流程 */
-      }
+      } catch { /* noop */ }
     })();
     return () => { mounted = false; };
   }, []);
 
   useEffect(() => {
     if (prefill) {
-      // 先把 prefill 捕获进本地 state，再清除 location.state。
-      // 否则 React 18 自动批处理会让 setPostModalOpen(true) 与 navigate(state:null)
-      // 合并为同一次重渲染，PostModal 的 prefill effect 条件永不同时成立（#113）。
       setCapturedPrefill(prefill);
       setPostModalOpen(true);
       navigate(location.pathname, { replace: true, state: null });
@@ -100,11 +89,9 @@ export default function Discussion() {
 
   const filtered = useMemo(() => {
     let list = allQuestions.filter((q) => {
-      // 学术区：一级分类筛选
       if (section === "academic") {
         if (categoryFilter === "学科" && !q.tags.some((t) => PRESET_TAGS.subject.includes(t))) return false;
         if (categoryFilter === "工具与部署" && !q.tags.some((t) => PRESET_TAGS.tool.includes(t))) return false;
-        // 二级标签筛选
         if (activeTag !== "全部" && !q.tags.includes(activeTag)) return false;
       }
       return true;
@@ -124,170 +111,123 @@ export default function Discussion() {
 
   const handlePostClick = () => {
     if (!user) {
-      // 未登录时触发登录弹窗（通过全局事件）
       window.dispatchEvent(new CustomEvent("tianji:open-auth"));
       return;
     }
     setPostModalOpen(true);
   };
 
+  // 分类筛选选项
+  const categoryOptions = section === "academic"
+    ? (["全部", "学科", "工具与部署"] as CategoryFilter[])
+    : (["全部", ...CASUAL_SUB_CATEGORIES] as (CasualSubCategory | "全部")[]);
+  const activeCategory = section === "academic" ? categoryFilter : subFilter;
+  const setActiveCategory = (v: string) => {
+    if (section === "academic") { setCategoryFilter(v as CategoryFilter); }
+    else { setSubFilter(v as CasualSubCategory | "全部"); }
+    setActiveTag("全部");
+  };
+
   return (
     <>
-      <PageHero
-        eyebrow="Discussion · 学问讨论"
-        title={
-          <>
-            跨专业答疑，打通<span className="text-star-400">从理论到实战</span>
-          </>
-        }
-        subtitle="工具配置、项目落地、跨专业转型……在这里每一个卡点都值得被认真解决。从 PowerShell 报错到论文复现，总有人陪你一步步走通。"
-      >
-        <button onClick={handlePostClick} className="btn-gold">
-          <Plus size={15} /> 发起讨论
-        </button>
-      </PageHero>
-
-      <section className="container-tj py-8">
-        {/* 分区切换 - 精简为文字 tab */}
-        <div className="mb-6 flex gap-1 rounded-lg border border-void-600/30 bg-void-900/30 p-1">
-          {SECTIONS.map((s) => {
-            const Icon = s.icon;
-            const isActive = section === s.key;
-            return (
-              <button
-                key={s.key}
-                onClick={() => {
-                  setSection(s.key);
-                  setSubFilter("全部");
-                  setCategoryFilter("全部");
-                  setActiveTag("全部");
-                  setSort("最新");
-                }}
-                className={`flex flex-1 items-center justify-center gap-2 rounded-md px-4 py-2.5 text-sm transition-colors ${
-                  isActive
-                    ? "bg-void-700/60 text-parchment-100"
-                    : "text-mist-400 hover:text-mist-300"
-                }`}
-              >
-                <Icon size={15} />
-                {s.label}
-              </button>
-            );
-          })}
+      {/* 顶部工具栏：标题 + 操作 */}
+      <div className="border-b border-void-600/30 bg-void-900/20">
+        <div className="container-tj flex h-12 items-center justify-between">
+          <div className="flex items-center gap-4">
+            <h1 className="text-sm font-medium text-parchment-100">学问讨论</h1>
+            {/* 分区切换：极简文字 tab */}
+            <div className="flex items-center gap-1 text-xs">
+              {SECTIONS.map((s) => {
+                const Icon = s.icon;
+                const isActive = section === s.key;
+                return (
+                  <button
+                    key={s.key}
+                    onClick={() => {
+                      setSection(s.key);
+                      setSubFilter("全部");
+                      setCategoryFilter("全部");
+                      setActiveTag("全部");
+                      setSort("最新");
+                    }}
+                    className={`inline-flex items-center gap-1 rounded px-2 py-1 transition-colors ${
+                      isActive ? "text-parchment-100" : "text-mist-500 hover:text-mist-300"
+                    }`}
+                  >
+                    <Icon size={12} />
+                    {s.label}
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+          <button onClick={handlePostClick} className="inline-flex items-center gap-1.5 rounded-md bg-star-400/10 px-3 py-1.5 text-xs font-medium text-star-300 transition-colors hover:bg-star-400/20">
+            <Plus size={13} /> 发起讨论
+          </button>
         </div>
+      </div>
 
+      <section className="container-tj py-6">
         {/* 公告栏 */}
         {announcements.filter((a) => !dismissedAnn.has(a.id)).length > 0 && (
-          <div className="mb-6 space-y-2">
+          <div className="mb-4 space-y-2">
             {announcements
               .filter((a) => !dismissedAnn.has(a.id))
               .map((a) => (
-                <div
-                  key={a.id}
-                  className="flex items-start gap-3 rounded-xl border border-tian-400/30 bg-tian-400/5 px-4 py-3"
-                >
-                  <Megaphone size={16} className="mt-0.5 shrink-0 text-tian-300" />
+                <div key={a.id} className="flex items-start gap-3 rounded-md border border-tian-400/20 bg-tian-400/5 px-3 py-2 text-sm">
+                  <Megaphone size={14} className="mt-0.5 shrink-0 text-tian-300" />
                   <div className="min-w-0 flex-1">
-                    <div className="flex items-center gap-2">
-                      <span className="text-xs font-medium uppercase tracking-wider text-tian-300">公告</span>
-                      <span className="text-sm font-medium text-parchment-50">{a.title}</span>
-                    </div>
-                    <p className="mt-1 whitespace-pre-wrap text-sm leading-relaxed text-mist-300">{a.content}</p>
-                    <div className="mt-1.5 text-xs text-mist-500">
-                      {a.authorName} · {a.createdAt.slice(0, 10)}
-                    </div>
+                    <span className="text-tian-200">{a.title}</span>
+                    <p className="mt-0.5 text-mist-400">{a.content}</p>
                   </div>
-                  <button
-                    onClick={() => setDismissedAnn((prev) => new Set(prev).add(a.id))}
-                    className="shrink-0 text-mist-500 transition-colors hover:text-mist-300"
-                    aria-label="关闭公告"
-                  >
-                    <X size={14} />
+                  <button onClick={() => setDismissedAnn((prev) => new Set(prev).add(a.id))} className="shrink-0 text-mist-500 hover:text-mist-300" aria-label="关闭">
+                    <X size={12} />
                   </button>
                 </div>
               ))}
           </div>
         )}
 
-        {/* 一级分类筛选 - 学术区：学科/工具；闲聊区：子分类 */}
-        {section === "academic" ? (
-          <div className="mb-4 flex items-center gap-2">
-            {(["全部", "学科", "工具与部署"] as CategoryFilter[]).map((c) => (
+        {/* 筛选栏：分类 + 标签 + 排序，合并为紧凑单行 */}
+        <div className="mb-4 flex flex-wrap items-center gap-x-4 gap-y-2 text-xs">
+          {/* 分类筛选 */}
+          <div className="flex items-center gap-0.5">
+            {categoryOptions.map((c) => (
               <button
                 key={c}
-                onClick={() => {
-                  setCategoryFilter(c);
-                  setActiveTag("全部");
-                }}
-                className={`rounded-lg border px-4 py-2 text-xs font-medium transition-all ${
-                  categoryFilter === c
-                    ? "border-star-400/60 bg-star-400/15 text-star-200"
-                    : "border-void-600/50 bg-void-800/40 text-mist-400 hover:border-mist-400/40 hover:text-mist-200"
+                onClick={() => setActiveCategory(c)}
+                className={`rounded px-2 py-1 transition-colors ${
+                  activeCategory === c ? "text-parchment-100" : "text-mist-500 hover:text-mist-300"
                 }`}
               >
                 {c}
               </button>
             ))}
           </div>
-        ) : (
-          <div className="mb-4 flex items-center gap-2">
-            {(["全部", ...CASUAL_SUB_CATEGORIES] as (CasualSubCategory | "全部")[]).map((c) => (
-              <button
-                key={c}
-                onClick={() => {
-                  setSubFilter(c);
-                  setActiveTag("全部");
-                }}
-                className={`rounded-lg border px-4 py-2 text-xs font-medium transition-all ${
-                  subFilter === c
-                    ? "border-tian-400/50 bg-tian-400/15 text-tian-100"
-                    : "border-void-600/50 bg-void-800/40 text-mist-400 hover:border-mist-400/40 hover:text-mist-200"
-                }`}
-              >
-                {c}
-              </button>
-            ))}
-          </div>
-        )}
 
-        {/* 标签筛选（仅学术区）+ 排序 */}
-        <div className="mb-8 flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
-          {section === "academic" && (
-            <div className="flex flex-wrap items-center gap-2">
-              <button
-                onClick={() => setActiveTag("全部")}
-                className={`rounded-full border px-3.5 py-1.5 text-xs transition-all ${
-                  activeTag === "全部"
-                    ? "border-star-400/60 bg-star-400/15 text-star-200"
-                    : "border-void-600/50 bg-void-800/40 text-mist-300 hover:border-mist-400/40"
-                }`}
-              >
+          {/* 标签筛选（仅学术区 + 选中分类时） */}
+          {section === "academic" && categoryFilter !== "全部" && (
+            <div className="flex items-center gap-0.5 text-mist-500">
+              <span className="mr-1 text-mist-600">|</span>
+              <button onClick={() => setActiveTag("全部")} className={`rounded px-2 py-1 transition-colors ${activeTag === "全部" ? "text-parchment-100" : ""}`}>
                 全部
               </button>
               {ALL_TAGS.map((t) => (
-                <button
-                  key={t}
-                  onClick={() => setActiveTag(t)}
-                  className={`rounded-full border px-3.5 py-1.5 text-xs transition-all ${
-                    activeTag === t
-                      ? "border-tian-400/50 bg-tian-400/15 text-tian-100"
-                      : "border-void-600/50 bg-void-800/40 text-mist-300 hover:border-mist-400/40"
-                  }`}
-                >
+                <button key={t} onClick={() => setActiveTag(t)} className={`rounded px-2 py-1 transition-colors ${activeTag === t ? "text-parchment-100" : "hover:text-mist-300"}`}>
                   {t}
                 </button>
               ))}
             </div>
           )}
 
-          <div className={`flex items-center gap-3 text-xs ${section === "academic" ? "" : "lg:ml-auto"}`}>
-            <span className="text-mist-500">排序</span>
+          {/* 右侧排序 */}
+          <div className="ml-auto flex items-center gap-2">
             {(["最新", "热度", "悬赏"] as SortKey[]).map((s) => (
               <button
                 key={s}
                 onClick={() => setSort(s)}
-                className={`transition-colors ${
-                  sort === s ? "text-star-300" : "text-mist-500 hover:text-mist-300"
+                className={`rounded px-2 py-1 transition-colors ${
+                  sort === s ? "text-parchment-100" : "text-mist-500 hover:text-mist-300"
                 }`}
               >
                 {s}
@@ -337,7 +277,7 @@ export default function Discussion() {
           </div>
         )}
 
-        {/* 问题列表 */}
+        {/* 空状态 */}
         {!loading && !error && filtered.length === 0 && (
           <EmptyState
             icon={<Search size={28} strokeWidth={1.5} />}
@@ -351,78 +291,49 @@ export default function Discussion() {
             onAction={handlePostClick}
           />
         )}
+
+        {/* 帖子列表 - Lobsters/HN 风格：行内分割线，无卡片容器 */}
         {!loading && !error && filtered.length > 0 && (
-          <div className="space-y-2">
+          <div className="divide-y divide-void-600/20 rounded-lg border border-void-600/20">
             {filtered.map((q) => (
               <div
                 key={q.id}
                 onClick={() => navigate(`/discussion/${q.id}`)}
-                className="group flex cursor-pointer items-start gap-4 rounded-lg border border-void-600/30 bg-void-800/20 px-5 py-4 transition-colors hover:border-void-600/50 hover:bg-void-800/40"
+                className="group flex cursor-pointer items-center gap-3 px-4 py-3 transition-colors hover:bg-void-800/30"
               >
-                {/* 投票/回答统计列 */}
-                <div className="hidden flex-col items-center gap-3 border-r border-void-600/40 pr-5 text-center sm:flex">
-                  <div>
-                    <div className="heading-display text-lg text-tian-300">{q.answers}</div>
-                    <div className="text-[10px] text-mist-500">回答</div>
-                  </div>
-                  <div>
-                    <div className="text-sm text-mist-300">{q.votes}</div>
-                    <div className="text-[10px] text-mist-500">票数</div>
-                  </div>
-                  <div>
-                    <div className="text-sm text-mist-300">
-                      {q.views >= 1000 ? `${(q.views / 1000).toFixed(1)}k` : q.views}
-                    </div>
-                    <div className="text-[10px] text-mist-500">浏览</div>
-                  </div>
-                </div>
+                {/* 回答数 - Lobsters 式彩色小标签 */}
+                <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-md bg-tian-400/10 text-xs font-medium text-tian-300">
+                  {q.answers}
+                </span>
 
                 {/* 主体 */}
                 <div className="min-w-0 flex-1">
-                  <div className="flex items-start justify-between gap-3">
-                    <h3 className="heading-display text-lg leading-snug text-parchment-50 transition-colors group-hover:text-star-200">
+                  <div className="flex items-center gap-2">
+                    <h3 className="truncate text-sm font-medium text-parchment-100 transition-colors group-hover:text-star-300">
                       {q.title}
                     </h3>
                     {q.bounty && (
-                      <span className="pill-gold shrink-0">
-                        <Star size={10} className="fill-star-400" /> 悬赏 {q.bounty}
+                      <span className="shrink-0 rounded bg-star-400/10 px-1.5 py-0.5 text-[10px] font-medium text-star-300">
+                        {q.bounty}
                       </span>
                     )}
                   </div>
-                  <p className="mt-2 line-clamp-2 text-sm leading-relaxed text-mist-400">
-                    {q.excerpt}
-                  </p>
-                  <div className="mt-3 flex flex-wrap items-center gap-2">
-                    {q.tags.map((t) => (
-                      <Link key={t} to={`/tags/${encodeURIComponent(t)}`} className="pill transition-colors hover:border-star-400/40 hover:text-star-200" onClick={(e) => e.stopPropagation()}>
+                  <div className="mt-0.5 flex items-center gap-2 text-[11px] text-mist-500">
+                    {q.tags.slice(0, 3).map((t) => (
+                      <Link key={t} to={`/tags/${encodeURIComponent(t)}`} onClick={(e) => e.stopPropagation()} className="transition-colors hover:text-mist-300">
                         {t}
                       </Link>
                     ))}
-                  </div>
-                  <div className="mt-3 flex items-center gap-3 text-xs text-mist-500">
-                    <Avatar name={q.author} color={q.avatarColor} size={20} />
-                    <span className="text-mist-300">{q.author}</span>
-                    <span>·</span>
-                    <span className="font-mono">{q.createdAt}</span>
+                    <span className="text-mist-600">&middot;</span>
+                    <span>{q.author}</span>
+                    <span className="text-mist-600">&middot;</span>
+                    <span>{q.createdAt}</span>
+                    <span className="text-mist-600">&middot;</span>
+                    <span>{q.views} 浏览</span>
                   </div>
                 </div>
               </div>
             ))}
-          </div>
-        )}
-
-        {/* 移动端统计提示 */}
-        {!loading && !error && (
-          <div className="mt-6 flex items-center justify-center gap-6 text-xs text-mist-500 sm:hidden">
-            <span className="flex items-center gap-1">
-              <MessageCircle size={12} /> 回答数
-            </span>
-            <span className="flex items-center gap-1">
-              <ThumbsUp size={12} /> 票数
-            </span>
-            <span className="flex items-center gap-1">
-              <Eye size={12} /> 浏览
-            </span>
           </div>
         )}
       </section>
@@ -431,8 +342,6 @@ export default function Discussion() {
         open={postModalOpen}
         onClose={() => {
           setPostModalOpen(false);
-          // 弹窗关闭时清空捕获的 prefill，保证 once 语义：
-          // 避免用户清空标题/正文后被 prefill effect 再次预填
           setCapturedPrefill(null);
         }}
         onCreated={handleNewPost}

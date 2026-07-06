@@ -2,8 +2,6 @@ import { useMemo, useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { toast } from "@/stores/toast";
 import { Lightbulb, ThumbsUp, MessageCircle, Plus, Loader2, Bookmark, Pencil, Trash2, Flag } from "lucide-react";
-import PageHero from "@/components/PageHero";
-import Avatar from "@/components/Avatar";
 import IdeaModal from "@/components/IdeaModal";
 import ReportModal from "@/components/ReportModal";
 import EmptyState from "@/components/EmptyState";
@@ -171,52 +169,45 @@ export default function Ideas() {
 
   return (
     <>
-      <PageHero
-        eyebrow="Ideas · 灵感广场"
-        title={
-          <>
-            让思维的<span className="text-star-400">星火</span>，落地成真实作品
-          </>
-        }
-        subtitle="项目创意与研究思路的交流星图。把数学、物理、金融、算法与领域知识做成可展示的作品，让每一个萌芽的念头，都可能长成一个能分享的 Demo。"
-      >
-        <button onClick={handleIdeaClick} className="btn-gold">
-          <Plus size={15} /> 分享灵感
-        </button>
-      </PageHero>
-
-      <section className="container-tj py-8">
-        {/* 主题筛选 */}
-        <div className="mb-8 flex flex-wrap items-center gap-2">
-          {TOPICS.map((t) => (
-            <button
-              key={t}
-              onClick={() => setTopic(t)}
-              className={`rounded-lg border px-3 py-1.5 text-xs transition-colors ${
-                topic === t
-                  ? "border-void-600/50 bg-void-700/50 text-parchment-100"
-                  : "border-void-600/30 bg-transparent text-mist-400 hover:text-mist-300"
-              }`}
-            >
-              {t}
-            </button>
-          ))}
+      {/* 顶部工具栏 */}
+      <div className="border-b border-void-600/30 bg-void-900/20">
+        <div className="container-tj flex h-12 items-center justify-between">
+          <h1 className="text-sm font-medium text-parchment-100">灵感广场</h1>
+          <button onClick={handleIdeaClick} className="inline-flex items-center gap-1.5 rounded-md bg-star-400/10 px-3 py-1.5 text-xs font-medium text-star-300 transition-colors hover:bg-star-400/20">
+            <Plus size={13} /> 分享灵感
+          </button>
         </div>
+      </div>
 
-        {/* 排序 */}
-        <div className="mb-6 flex items-center justify-end gap-2">
-          <span className="text-xs text-mist-500">排序：</span>
-          {(["共鸣", "最新"] as const).map((s) => (
-            <button
-              key={s}
-              onClick={() => setSort(s)}
-              className={`text-xs transition-colors ${
-                sort === s ? "text-parchment-100" : "text-mist-500 hover:text-mist-300"
-              }`}
-            >
-              {s}
-            </button>
-          ))}
+      <section className="container-tj py-6">
+        {/* 筛选栏：主题 + 排序，单行 */}
+        <div className="mb-4 flex flex-wrap items-center gap-x-4 gap-y-2 text-xs">
+          <div className="flex items-center gap-0.5">
+            {TOPICS.map((t) => (
+              <button
+                key={t}
+                onClick={() => setTopic(t)}
+                className={`rounded px-2 py-1 transition-colors ${
+                  topic === t ? "text-parchment-100" : "text-mist-500 hover:text-mist-300"
+                }`}
+              >
+                {t}
+              </button>
+            ))}
+          </div>
+          <div className="ml-auto flex items-center gap-2">
+            {(["共鸣", "最新"] as const).map((s) => (
+              <button
+                key={s}
+                onClick={() => setSort(s)}
+                className={`rounded px-2 py-1 transition-colors ${
+                  sort === s ? "text-parchment-100" : "text-mist-500 hover:text-mist-300"
+                }`}
+              >
+                {s}
+              </button>
+            ))}
+          </div>
         </div>
 
         {/* 加载状态 */}
@@ -237,94 +228,69 @@ export default function Ideas() {
           />
         )}
 
-        {/* 灵感卡片网格 */}
+        {/* 灵感列表 - 行内分割线风格 */}
         {!loading && filtered.length > 0 && (
-          <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+          <div className="divide-y divide-void-600/20 rounded-lg border border-void-600/20">
             {filtered.map((idea) => (
-              <article
+              <div
                 key={idea.id}
-                className="group relative flex flex-col rounded-lg border border-void-600/30 bg-void-800/20 px-5 py-5 transition-colors hover:bg-void-800/40"
+                className="group relative px-4 py-3 transition-colors hover:bg-void-800/30"
               >
                 {/* 作者操作 */}
                 {isAuthor(user?.uid, idea.authorUid) && (
-                  <div className="absolute right-4 top-4 flex gap-1 opacity-0 transition-opacity group-hover:opacity-100">
-                    <button
-                      onClick={() => startEditIdea(idea)}
-                      className="rounded p-1 text-mist-400 hover:bg-void-700/60 hover:text-tian-300"
-                      title="编辑灵感"
-                    >
-                      <Pencil size={13} />
+                  <div className="absolute right-3 top-3 flex gap-1 opacity-0 transition-opacity group-hover:opacity-100">
+                    <button onClick={() => startEditIdea(idea)} className="rounded p-1 text-mist-500 hover:text-mist-300" title="编辑">
+                      <Pencil size={12} />
                     </button>
-                    <button
-                      onClick={() => handleDeleteIdea(idea)}
-                      className="rounded p-1 text-mist-400 hover:bg-void-700/60 hover:text-red-300"
-                      title="删除灵感"
-                    >
-                      <Trash2 size={13} />
+                    <button onClick={() => handleDeleteIdea(idea)} className="rounded p-1 text-mist-500 hover:text-red-300" title="删除">
+                      <Trash2 size={12} />
                     </button>
                   </div>
                 )}
 
-                <div className="flex items-center gap-2">
-                  <Lightbulb size={14} className="text-star-400/60" />
-                  <span className="text-xs text-mist-500">{idea.topic}</span>
-                </div>
+                <div className="flex items-start gap-3">
+                  {/* 共鸣数标签 */}
+                  <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-md bg-star-400/10 text-xs font-medium text-star-300">
+                    {idea.resonance}
+                  </span>
 
-                <h3 className="mt-3 heading-display text-base leading-snug text-parchment-50 transition-colors group-hover:text-star-300">
-                  <Link to={`/ideas/${idea.id}`} className="after:absolute after:inset-0">
-                    {idea.title}
-                  </Link>
-                </h3>
-                <p className="mt-2 flex-1 text-sm leading-relaxed text-mist-400">
-                  {idea.summary}
-                </p>
-
-                <div className="mt-4 flex items-center justify-between border-t border-void-600/20 pt-3">
-                  <div className="flex items-center gap-2">
-                    <Avatar name={idea.author} color={idea.avatarColor} size={20} />
-                    {idea.authorUid ? (
-                      <Link to={`/user/${idea.authorUid}`} className="text-xs text-mist-400 transition-colors hover:text-star-300" onClick={(e) => e.stopPropagation()}>
-                        {idea.author}
-                      </Link>
-                    ) : (
-                      <span className="text-xs text-mist-400">{idea.author}</span>
-                    )}
-                  </div>
-                  <div className="flex items-center gap-3 text-xs text-mist-400">
-                    <button
-                      onClick={() => handleResonance(idea)}
-                      className={`flex items-center gap-1 transition-colors hover:text-star-300 ${
-                        resonated[idea.id] ? "text-star-300" : ""
-                      }`}
-                      title="共鸣"
-                    >
-                      <ThumbsUp size={12} className={resonated[idea.id] ? "fill-star-400" : ""} />{" "}
-                      {idea.resonance}
-                    </button>
-                    <button
-                      onClick={() => handleFav(idea)}
-                      className={`transition-colors hover:text-star-300 ${
-                        favedIdeas.has(idea.id) ? "text-star-300" : ""
-                      }`}
-                      title="收藏"
-                    >
-                      <Bookmark size={12} className={favedIdeas.has(idea.id) ? "fill-star-400" : ""} />
-                    </button>
-                    {!isAuthor(user?.uid, idea.authorUid) && (
+                  <div className="min-w-0 flex-1">
+                    <Link to={`/ideas/${idea.id}`} className="block">
+                      <h3 className="truncate text-sm font-medium text-parchment-100 transition-colors group-hover:text-star-300">
+                        {idea.title}
+                      </h3>
+                    </Link>
+                    <p className="mt-0.5 line-clamp-1 text-xs text-mist-500">{idea.summary}</p>
+                    <div className="mt-1 flex items-center gap-2 text-[11px] text-mist-500">
+                      <span>{idea.topic}</span>
+                      <span className="text-mist-600">&middot;</span>
+                      <span>{idea.author}</span>
+                      <span className="text-mist-600">&middot;</span>
                       <button
-                        onClick={() => openReport(idea)}
-                        className="transition-colors hover:text-red-300"
-                        title="举报"
+                        onClick={() => handleResonance(idea)}
+                        className={`inline-flex items-center gap-0.5 transition-colors hover:text-star-300 ${resonated[idea.id] ? "text-star-300" : ""}`}
                       >
-                        <Flag size={12} />
+                        <ThumbsUp size={11} className={resonated[idea.id] ? "fill-star-400" : ""} />
+                        共鸣
                       </button>
-                    )}
-                    <span className="flex items-center gap-1">
-                      <MessageCircle size={12} /> {idea.replies}
-                    </span>
+                      <button
+                        onClick={() => handleFav(idea)}
+                        className={`transition-colors hover:text-star-300 ${favedIdeas.has(idea.id) ? "text-star-300" : ""}`}
+                      >
+                        <Bookmark size={11} className={favedIdeas.has(idea.id) ? "fill-star-400" : ""} />
+                      </button>
+                      {!isAuthor(user?.uid, idea.authorUid) && (
+                        <button onClick={() => openReport(idea)} className="transition-colors hover:text-red-300">
+                          <Flag size={11} />
+                        </button>
+                      )}
+                      <span className="flex items-center gap-0.5">
+                        <MessageCircle size={11} /> {idea.replies}
+                      </span>
+                    </div>
                   </div>
                 </div>
-              </article>
+              </div>
             ))}
           </div>
         )}

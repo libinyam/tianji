@@ -1,6 +1,5 @@
 import { useMemo, useState, useEffect } from "react";
-import { Search, BookOpen, Plus } from "lucide-react";
-import PageHero from "@/components/PageHero";
+import { Search, Plus } from "lucide-react";
 import BookCard from "@/components/BookCard";
 import { BookCardSkeleton } from "@/components/Skeleton";
 import BookUploadModal from "@/components/BookUploadModal";
@@ -96,80 +95,48 @@ export default function Library() {
 
   return (
     <>
-      <PageHero
-        eyebrow="Resource Library · 学习资源库"
-        title={
-          <>
-            从理论到<span className="text-star-400">工具实战</span>的资源星图
-          </>
-        }
-        subtitle="从机器学习理论到 GitHub、AI 编程工具与项目部署——按学习阶段系统整理的资源库，为跨专业转型者铺就从知识到作品的路径。"
-      >
-        <div className="flex items-center gap-4 text-sm text-mist-400">
-          <span className="flex items-center gap-1.5">
-            <BookOpen size={14} className="text-star-400" /> {allBooks.length} 份精选资源
-          </span>
-          <span className="text-void-600">|</span>
-          <button
-            onClick={handleUploadClick}
-            className="btn-gold inline-flex"
-          >
-            <Plus size={14} /> 上传资源
+      {/* 顶部工具栏 */}
+      <div className="border-b border-void-600/30 bg-void-900/20">
+        <div className="container-tj flex h-12 items-center justify-between">
+          <div className="flex items-center gap-4">
+            <h1 className="text-sm font-medium text-parchment-100">学习资源库</h1>
+            <span className="text-xs text-mist-500">{allBooks.length} 份资源</span>
+          </div>
+          <button onClick={handleUploadClick} className="inline-flex items-center gap-1.5 rounded-md bg-star-400/10 px-3 py-1.5 text-xs font-medium text-star-300 transition-colors hover:bg-star-400/20">
+            <Plus size={13} /> 上传资源
           </button>
         </div>
-      </PageHero>
+      </div>
 
-      <section className="container-tj py-8">
-        {/* 检索筛选栏 */}
-        <div className="mb-6 flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
-          <div className="relative max-w-sm flex-1">
-            <Search
-              size={15}
-              className="absolute left-3 top-1/2 -translate-y-1/2 text-mist-500"
-            />
+      <section className="container-tj py-6">
+        {/* 搜索 + 分类 + 排序，单行紧凑 */}
+        <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+          <div className="relative max-w-xs flex-1">
+            <Search size={14} className="absolute left-2.5 top-1/2 -translate-y-1/2 text-mist-500" />
             <input
               name="search"
               value={query}
               onChange={(e) => setQuery(e.target.value)}
               placeholder="搜索书名、作者或标签…"
-              className="w-full rounded-lg border border-void-600/30 bg-void-800/20 py-2 pl-9 pr-3 text-sm text-parchment-100 placeholder:text-mist-500 focus:border-void-600/60 focus:outline-none"
+              className="w-full rounded-md border border-void-600/30 bg-void-800/20 py-1.5 pl-8 pr-3 text-xs text-parchment-100 placeholder:text-mist-500 focus:border-void-600/60 focus:outline-none"
             />
           </div>
-
-          <div className="flex flex-wrap items-center gap-1">
-            {CATEGORIES.map((c) => (
-              <button
-                key={c}
-                onClick={() => setCategory(c)}
-                className={`rounded-lg px-3 py-1.5 text-xs transition-colors ${
-                  category === c
-                    ? "bg-void-700/50 text-parchment-100"
-                    : "text-mist-400 hover:text-mist-300"
-                }`}
-              >
-                {c}
-              </button>
-            ))}
-          </div>
-        </div>
-
-        {/* 排序 + 结果数 */}
-        <div className="mb-5 flex items-center justify-between">
-          <p className="text-xs text-mist-500">
-            共 <span className="text-mist-300">{filtered.length}</span> 部书目
-          </p>
-          <div className="flex items-center gap-2">
-            {SORTS.map((s) => (
-              <button
-                key={s}
-                onClick={() => setSort(s)}
-                className={`text-xs transition-colors ${
-                  sort === s ? "text-parchment-100" : "text-mist-500 hover:text-mist-300"
-                }`}
-              >
-                {s}
-              </button>
-            ))}
+          <div className="flex items-center gap-3 text-xs">
+            <div className="flex items-center gap-0.5">
+              {CATEGORIES.map((c) => (
+                <button key={c} onClick={() => setCategory(c)} className={`rounded px-2 py-1 transition-colors ${category === c ? "text-parchment-100" : "text-mist-500 hover:text-mist-300"}`}>
+                  {c}
+                </button>
+              ))}
+            </div>
+            <span className="text-mist-600">|</span>
+            <div className="flex items-center gap-1">
+              {SORTS.map((s) => (
+                <button key={s} onClick={() => setSort(s)} className={`rounded px-2 py-1 transition-colors ${sort === s ? "text-parchment-100" : "text-mist-500 hover:text-mist-300"}`}>
+                  {s}
+                </button>
+              ))}
+            </div>
           </div>
         </div>
 
