@@ -27,7 +27,7 @@ export default function Discussion() {
   const [activeTag, setActiveTag] = useState<string>("全部");
   const [categoryFilter, setCategoryFilter] = useState<CategoryFilter>("全部");
   const [subFilter, setSubFilter] = useState<CasualSubCategory | "全部">("全部");
-  const [sort, setSort] = useState<SortKey>("热度");
+  const [sort, setSort] = useState<SortKey>("最新");
   const [postModalOpen, setPostModalOpen] = useState(false);
   const [capturedPrefill, setCapturedPrefill] = useState<{ title: string; body: string; tags: string[] } | null>(null);
   const [realPosts, setRealPosts] = useState<Question[]>([]);
@@ -154,7 +154,7 @@ export default function Discussion() {
                   setSubFilter("全部");
                   setCategoryFilter("全部");
                   setActiveTag("全部");
-                  setSort("热度");
+                  setSort("最新");
                 }}
                 className={`flex flex-1 items-center gap-3 rounded-xl border p-4 transition-all ${
                   isActive

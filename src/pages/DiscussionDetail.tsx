@@ -664,7 +664,15 @@ export default function DiscussionDetail() {
             </div>
 
             <div className="space-y-4">
-              {question.answerList.map((a, i) => (
+              {[...question.answerList]
+                .sort((a, b) => {
+                  // 采纳的回答始终排第一
+                  if (a.accepted && !b.accepted) return -1;
+                  if (!a.accepted && b.accepted) return 1;
+                  // 其余按时间倒序（最新在最上面）
+                  return b.date > a.date ? 1 : -1;
+                })
+                .map((a, i) => (
                 <motion.div
                   key={a.id}
                   initial={{ opacity: 0, y: 16 }}
