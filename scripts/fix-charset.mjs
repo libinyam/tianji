@@ -31,9 +31,9 @@ async function main() {
 
   for (const key of HTML_FILES) {
     try {
-      // copyObject 到自身，用 MetadataDirective=Replaced 替换元数据
+      // putObjectCopy 到自身，用 MetadataDirective=Replaced 替换元数据
       await new Promise((resolve, reject) => {
-        cos.copyObject(
+        cos.putObjectCopy(
           {
             Bucket: BUCKET,
             Region: REGION,
