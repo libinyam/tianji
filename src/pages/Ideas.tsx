@@ -11,6 +11,7 @@ import EmptyState from "@/components/EmptyState";
 import { fetchIdeas, resonanceIdea, updateIdea, deleteIdea } from "@/lib/ideas";
 import { toggleFavorite, getFavoritedIds } from "@/lib/favorites";
 import { useAuthStore } from "@/stores/auth";
+import { isAuthor } from "@/lib/utils";
 import type { Idea } from "@/types";
 
 export default function Ideas() {
@@ -245,7 +246,7 @@ export default function Ideas() {
                 className="group relative flex flex-col rounded-lg border border-void-600/30 bg-void-800/20 px-5 py-5 transition-colors hover:bg-void-800/40"
               >
                 {/* 作者操作 */}
-                {user?.uid === idea.authorUid && (
+                {isAuthor(user?.uid, idea.authorUid) && (
                   <div className="absolute right-4 top-4 flex gap-1 opacity-0 transition-opacity group-hover:opacity-100">
                     <button
                       onClick={() => startEditIdea(idea)}
@@ -309,7 +310,7 @@ export default function Ideas() {
                     >
                       <Bookmark size={12} className={favedIdeas.has(idea.id) ? "fill-star-400" : ""} />
                     </button>
-                    {user?.uid !== idea.authorUid && (
+                    {!isAuthor(user?.uid, idea.authorUid) && (
                       <button
                         onClick={() => openReport(idea)}
                         className="transition-colors hover:text-red-300"

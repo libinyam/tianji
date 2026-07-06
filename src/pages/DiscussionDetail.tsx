@@ -44,6 +44,7 @@ import Avatar from "@/components/Avatar";
 import RelatedContent from "@/components/RelatedContent";
 import ReportModal from "@/components/ReportModal";
 import type { Question, Comment } from "@/types";
+import { isAuthor } from "@/lib/utils";
 
 export default function DiscussionDetail() {
   const { id } = useParams();
@@ -592,7 +593,7 @@ export default function DiscussionDetail() {
                 <Bookmark size={13} className={favState ? "fill-star-400" : ""} />
                 {favState ? "已收藏" : "收藏"}
               </button>
-              {user?.uid !== question.authorUid && (
+              {!isAuthor(user?.uid, question.authorUid) && (
                 <button
                   onClick={() => openReport("post", question.id, question.title)}
                   className="flex items-center gap-1 rounded-lg border border-void-600/50 bg-void-800/40 px-3 py-1.5 text-xs text-mist-300 transition-all hover:border-red-400/50 hover:text-red-300"
@@ -601,7 +602,7 @@ export default function DiscussionDetail() {
                   <Flag size={13} /> 举报
                 </button>
               )}
-              {user?.uid === question.authorUid && (
+              {isAuthor(user?.uid, question.authorUid) && (
                 <div className="flex items-center gap-1">
                   <button
                     onClick={startEditPost}
@@ -767,7 +768,7 @@ export default function DiscussionDetail() {
                                   >
                                     <CornerDownRight size={11} />
                                   </button>
-                                  {user?.uid === c.authorUid && (
+                                  {isAuthor(user?.uid, c.authorUid) && (
                                     <>
                                       <button
                                         onClick={() => startEditComment(c.id, c.content)}
@@ -787,7 +788,7 @@ export default function DiscussionDetail() {
                                       </button>
                                     </>
                                   )}
-                                  {user && user.uid !== c.authorUid && (
+                                  {user && !isAuthor(user.uid, c.authorUid) && (
                                     <button
                                       onClick={() => {
                                         openReport("comment", c.id, `评论：${c.content.slice(0, 30)}`);
@@ -885,7 +886,7 @@ export default function DiscussionDetail() {
                               ? `${a.comments.length} 条评论 · 添加评论`
                               : "添加评论"}
                           </button>
-                          {user?.uid === question.authorUid && a.authorUid !== "ai-bot-001" && !a.accepted && (
+                          {isAuthor(user?.uid, question.authorUid) && a.authorUid !== "ai-bot-001" && !a.accepted && (
                             <button
                               onClick={() => handleAccept(a.id, true)}
                               disabled={acceptingId !== null}
@@ -895,7 +896,7 @@ export default function DiscussionDetail() {
                               采纳
                             </button>
                           )}
-                          {user?.uid === question.authorUid && a.accepted && (
+                          {isAuthor(user?.uid, question.authorUid) && a.accepted && (
                             <button
                               onClick={() => handleAccept(a.id, false)}
                               disabled={acceptingId !== null}
@@ -911,7 +912,7 @@ export default function DiscussionDetail() {
                           <span className="text-mist-300">{a.author}</span>
                           <span>·</span>
                           <span className="font-mono">{formatRelativeTime(a.date)}</span>
-                          {user?.uid !== a.authorUid && (
+                          {!isAuthor(user?.uid, a.authorUid) && (
                             <button
                               onClick={() => openReport("answer", a.id, `回答：${a.content.slice(0, 30)}`)}
                               className="ml-1 text-mist-500 transition-colors hover:text-red-300"
@@ -920,7 +921,7 @@ export default function DiscussionDetail() {
                               <Flag size={12} />
                             </button>
                           )}
-                          {user?.uid === a.authorUid && (
+                          {isAuthor(user?.uid, a.authorUid) && (
                             <div className="ml-2 flex items-center gap-1">
                               <button
                                 onClick={() => startEditAnswer(a.id, a.content)}

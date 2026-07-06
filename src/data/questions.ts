@@ -7,6 +7,7 @@ export const questions: Question[] = [
     excerpt:
       "按教程装完 Claude Code，终端却提示「不是内部或外部命令」。环境变量、Node 版本、执行策略都排查过了，还是不行，求一份完整的配置流程。",
     author: "苏望舒",
+    authorUid: "demo-su-wangshu",
     avatarColor: "#7cc4ff",
     tags: ["Claude Code", "PowerShell", "环境配置"],
     answers: 8,
@@ -20,6 +21,7 @@ export const questions: Question[] = [
       {
         id: "a1",
         author: "林照夜",
+        authorUid: "demo-lin-zhaoye",
         avatarColor: "#7cc4ff",
         votes: 96,
         accepted: true,
@@ -30,6 +32,7 @@ export const questions: Question[] = [
       {
         id: "a2",
         author: "韩青圭",
+        authorUid: "demo-han-qinggui",
         avatarColor: "#5aa6f0",
         votes: 38,
         accepted: false,
@@ -45,6 +48,7 @@ export const questions: Question[] = [
     excerpt:
       "会推导、会做题，但面对一个空的项目文件夹就无从下手。从理论到能做出一个可展示的作品，到底该怎么规划学习路线？",
     author: "秦望舒",
+    authorUid: "demo-qin-wangshu",
     avatarColor: "#f3c969",
     tags: ["跨专业转型", "学习路线", "作品集"],
     answers: 11,
@@ -58,6 +62,7 @@ export const questions: Question[] = [
       {
         id: "a1",
         author: "陆星阑",
+        authorUid: "demo-lu-xinglan",
         avatarColor: "#5aa6f0",
         votes: 154,
         accepted: true,
@@ -68,6 +73,7 @@ export const questions: Question[] = [
       {
         id: "a2",
         author: "柯北辰",
+        authorUid: "demo-ke-beichen",
         avatarColor: "#f3c969",
         votes: 67,
         accepted: false,
@@ -83,6 +89,7 @@ export const questions: Question[] = [
     excerpt:
       "本地建了仓库，远程也建了，但 push 时报错 rejected / non-fast-forward。新人不太敢乱用 force，求稳妥的处理方法。",
     author: "周怀瑾",
+    authorUid: "demo-zhou-huaijin",
     avatarColor: "#5aa6f0",
     tags: ["GitHub", "Git", "协作"],
     answers: 6,
@@ -95,6 +102,7 @@ export const questions: Question[] = [
       {
         id: "a1",
         author: "宋知遥",
+        authorUid: "demo-song-zhiyao",
         avatarColor: "#7cc4ff",
         votes: 71,
         accepted: true,
@@ -110,6 +118,7 @@ export const questions: Question[] = [
     excerpt:
       "本地跑得好好的，推到 GitHub 用 Vercel 自动部署后打开是白屏。控制台一堆 404，怀疑是路径或构建配置问题。",
     author: "韩青圭",
+    authorUid: "demo-han-qinggui",
     avatarColor: "#5aa6f0",
     tags: ["部署", "Vercel", "前端"],
     answers: 5,
@@ -122,6 +131,7 @@ export const questions: Question[] = [
       {
         id: "a1",
         author: "林照夜",
+        authorUid: "demo-lin-zhaoye",
         avatarColor: "#7cc4ff",
         votes: 58,
         accepted: true,
@@ -137,6 +147,7 @@ export const questions: Question[] = [
     excerpt:
       "深度学习损失曲面高度非凸，但梯度下降却常能收敛到良好局部极小。能否从优化理论与几何角度解释这一现象？",
     author: "陆星阑",
+    authorUid: "demo-lu-xinglan",
     avatarColor: "#5aa6f0",
     tags: ["优化", "非凸优化", "理论"],
     answers: 7,
@@ -149,6 +160,7 @@ export const questions: Question[] = [
       {
         id: "a1",
         author: "柯北辰",
+        authorUid: "demo-ke-beichen",
         avatarColor: "#f3c969",
         votes: 88,
         accepted: true,
@@ -164,6 +176,7 @@ export const questions: Question[] = [
     excerpt:
       "非科班，想转向 AI 应用开发。用 Claude Code 配合学习，计划一个月内做出 2-3 个可展示项目，求方向和难度梯度建议。",
     author: "沈砚书",
+    authorUid: "demo-shen-yanshu",
     avatarColor: "#7cc4ff",
     tags: ["作品集", "项目实战", "求职"],
     answers: 9,
@@ -177,6 +190,7 @@ export const questions: Question[] = [
       {
         id: "a1",
         author: "陆星阑",
+        authorUid: "demo-lu-xinglan",
         avatarColor: "#5aa6f0",
         votes: 112,
         accepted: true,

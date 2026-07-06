@@ -10,6 +10,7 @@ import { toggleFavorite, isFavorited } from "@/lib/favorites";
 import { rateLimiters } from "@/lib/security";
 import { useAuthStore } from "@/stores/auth";
 import { formatRelativeTime } from "@/lib/format";
+import { isAuthor } from "@/lib/utils";
 import type { Idea } from "@/types";
 
 export default function IdeaDetail() {
@@ -234,7 +235,7 @@ export default function IdeaDetail() {
               {faved ? "已收藏" : "收藏"}
             </button>
 
-            {user?.uid !== idea.authorUid && (
+            {!isAuthor(user?.uid, idea.authorUid) && (
               <button
                 onClick={() => {
                   if (!user) {
@@ -301,7 +302,7 @@ export default function IdeaDetail() {
                       )}
                       <span className="text-xs text-mist-500">{formatRelativeTime(c.createdAt)}</span>
                     </div>
-                    {user?.uid === c.authorUid && (
+                    {isAuthor(user?.uid, c.authorUid) && (
                       <button
                         onClick={() => handleDeleteComment(c.id)}
                         aria-label="删除评论"
