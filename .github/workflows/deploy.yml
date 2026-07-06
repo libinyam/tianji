@@ -40,11 +40,8 @@ jobs:
       - name: Deploy to CloudBase Hosting
         run: tcb hosting deploy ./dist -e ${{ secrets.TCB_ENV_ID }}
 
-      - name: Install COS SDK for Python
-        run: pip install cos-python-sdk-v5
-
       - name: Fix Content-Type charset for HTML files
         env:
           TCB_SECRET_ID: ${{ secrets.TCB_SECRET_ID }}
           TCB_SECRET_KEY: ${{ secrets.TCB_SECRET_KEY }}
-        run: python scripts/fix-charset.py
+        run: node scripts/fix-charset.mjs
