@@ -454,7 +454,7 @@ export default function DiscussionDetail() {
         // 更新本地状态
         const newAnswerList = question.answerList.map((a) => {
           if (a.id === answerId) {
-            return { ...a, comments: [...(a.comments ?? []), comment] };
+            return { ...a, comments: [comment, ...(a.comments ?? [])] };
           }
           return a;
         });
@@ -484,7 +484,7 @@ export default function DiscussionDetail() {
                 if (!prev) return prev;
                 const updated = prev.answerList.map((a) => {
                   if (a.id === result.answerId) {
-                    return { ...a, comments: [...(a.comments ?? []), result.comment!] };
+                    return { ...a, comments: [result.comment!, ...(a.comments ?? [])] };
                   }
                   return a;
                 });
@@ -733,7 +733,7 @@ export default function DiscussionDetail() {
                       {/* 评论列表 */}
                       {a.comments && a.comments.length > 0 && (
                         <div className="mt-4 space-y-2 border-l-2 border-void-600/40 pl-4">
-                          {a.comments?.map((c) => {
+                          {[...(a.comments ?? [])].sort((x, y) => (y.date > x.date ? 1 : -1)).map((c) => {
                             const repliedComment = c.replyTo
                               ? a.comments?.find((rc) => rc.id === c.replyTo)
                               : null;

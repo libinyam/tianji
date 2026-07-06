@@ -114,7 +114,7 @@ export default function IdeaDetail() {
       const comment = await addIdeaComment(idea.id, commentText);
       if (comment) {
         rateLimiters.comment.record();
-        setIdea({ ...idea, comments: [...(idea.comments ?? []), comment], replies: idea.replies + 1 });
+        setIdea({ ...idea, comments: [comment, ...(idea.comments ?? [])], replies: idea.replies + 1 });
         setCommentText("");
         toast.success("评论已发布");
       } else {
@@ -287,7 +287,7 @@ export default function IdeaDetail() {
             {(idea.comments ?? []).length === 0 ? (
               <p className="py-8 text-center text-sm text-mist-500">还没有评论，第一个来分享你的想法吧</p>
             ) : (
-              (idea.comments ?? []).map((c) => (
+              [...(idea.comments ?? [])].sort((x, y) => (y.createdAt > x.createdAt ? 1 : -1)).map((c) => (
                 <div key={c.id} className="rounded-xl border border-void-600/40 bg-void-800/30 p-4">
                   <div className="flex items-center justify-between gap-2.5">
                     <div className="flex items-center gap-2.5">

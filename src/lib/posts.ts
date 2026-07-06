@@ -245,7 +245,7 @@ export async function submitComment(
   const targetAnswer = answerList[answerIndex];
   const updatedAnswer: Answer = {
     ...targetAnswer,
-    comments: [...(targetAnswer.comments ?? []), comment],
+    comments: [comment, ...(targetAnswer.comments ?? [])],
   };
 
   const newAnswerList = [...answerList];
