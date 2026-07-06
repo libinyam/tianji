@@ -1,6 +1,6 @@
 import { useMemo, useState, useEffect } from "react";
 import { Link, useNavigate, useLocation } from "react-router-dom";
-import { MessageCircle, Eye, ThumbsUp, Star, Plus, GraduationCap, Coffee, Search, Megaphone, X } from "lucide-react";
+import { MessageCircle, Eye, ThumbsUp, Star, Plus, GraduationCap, Coffee, Search, Megaphone, X, AlertCircle, RefreshCw } from "lucide-react";
 import PageHero from "@/components/PageHero";
 import Avatar from "@/components/Avatar";
 import PostModal from "@/components/PostModal";
@@ -8,6 +8,7 @@ import EmptyState from "@/components/EmptyState";
 import { PostCardSkeleton, ListSkeleton } from "@/components/Skeleton";
 
 import { fetchPosts, type PostCategory, type CasualSubCategory, CASUAL_SUB_CATEGORIES } from "@/lib/posts";
+import type { PostsResult } from "@/lib/posts";
 import { fetchActiveAnnouncements, type Announcement } from "@/lib/announcements";
 import { PRESET_TAGS } from "@/lib/tags";
 import { useAuthStore } from "@/stores/auth";
@@ -31,6 +32,7 @@ export default function Discussion() {
   const [capturedPrefill, setCapturedPrefill] = useState<{ title: string; body: string; tags: string[] } | null>(null);
   const [realPosts, setRealPosts] = useState<Question[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const [announcements, setAnnouncements] = useState<Announcement[]>([]);
   const [dismissedAnn, setDismissedAnn] = useState<Set<string>>(new Set());
   const { user } = useAuthStore();
@@ -43,12 +45,18 @@ export default function Discussion() {
     let mounted = true;
     (async () => {
       setLoading(true);
-      const posts = await fetchPosts(
+      setError(null);
+      const result: PostsResult = await fetchPosts(
         section,
         section === "casual" && subFilter !== "全部" ? subFilter : undefined
       );
       if (mounted) {
-        setRealPosts(posts);
+        if (result.error) {
+          setError(result.error);
+        } else {
+          setError(null);
+        }
+        setRealPosts(result.data);
         setLoading(false);
       }
     })();
@@ -295,8 +303,42 @@ export default function Discussion() {
           </ListSkeleton>
         )}
 
+        {/* 错误态 */}
+        {!loading && error && (
+          <div className="flex flex-col items-center justify-center rounded-xl border border-red-400/30 bg-red-400/5 px-6 py-20 text-center">
+            <div className="mb-5 flex h-16 w-16 items-center justify-center rounded-full bg-red-400/10 text-red-300">
+              <AlertCircle size={28} strokeWidth={1.5} />
+            </div>
+            <h3 className="heading-display text-xl text-parchment-50">讨论加载失败</h3>
+            <p className="mt-2 max-w-sm text-sm leading-relaxed text-mist-400">
+              {error}。请检查网络或稍后重试。
+            </p>
+            <button
+              onClick={() => {
+                // 通过更新 state 触发 effect 重新加载
+                setRealPosts([]);
+                setError(null);
+                setLoading(true);
+                // 手动重新触发
+                (async () => {
+                  const result = await fetchPosts(
+                    section,
+                    section === "casual" && subFilter !== "全部" ? subFilter : undefined
+                  );
+                  setError(result.error);
+                  setRealPosts(result.data);
+                  setLoading(false);
+                })();
+              }}
+              className="btn-gold mt-6 inline-flex items-center gap-2 text-sm"
+            >
+              <RefreshCw size={14} /> 重试
+            </button>
+          </div>
+        )}
+
         {/* 问题列表 */}
-        {!loading && filtered.length === 0 && (
+        {!loading && !error && filtered.length === 0 && (
           <EmptyState
             icon={<Search size={28} strokeWidth={1.5} />}
             title="这片星域还很安静"
@@ -309,7 +351,7 @@ export default function Discussion() {
             onAction={handlePostClick}
           />
         )}
-        {!loading && filtered.length > 0 && (
+        {!loading && !error && filtered.length > 0 && (
           <div className="space-y-2">
             {filtered.map((q) => (
               <div
@@ -370,7 +412,7 @@ export default function Discussion() {
         )}
 
         {/* 移动端统计提示 */}
-        {!loading && (
+        {!loading && !error && (
           <div className="mt-6 flex items-center justify-center gap-6 text-xs text-mist-500 sm:hidden">
             <span className="flex items-center gap-1">
               <MessageCircle size={12} /> 回答数

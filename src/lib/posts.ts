@@ -70,11 +70,18 @@ import { useAuthStore } from "@/stores/auth";
 
 const AVATAR_COLORS = ["#7cc4ff", "#f3c969", "#5aa6f0", "#a78bfa", "#34d399", "#fb923c"];
 
-/** 获取所有帖子，可按分区和子分类筛选，按时间倒序 */
+/** 结构化查询结果，区分「无数据」和「加载失败」（#106） */
+export interface PostsResult {
+  data: Question[];
+  error: string | null;
+}
+
+/** 获取所有帖子，可按分区和子分类筛选，按时间倒序。
+ *  返回 {data, error} 结构，调用方可区分「无数据」和「请求失败」 */
 export async function fetchPosts(
   category?: PostCategory,
   subCategory?: CasualSubCategory
-): Promise<Question[]> {
+): Promise<PostsResult> {
   try {
     const col = db.collection(POSTS_COLLECTION);
     const whereCond: Record<string, string> = {};
@@ -85,9 +92,11 @@ export async function fetchPosts(
       : await col.orderBy("createdAt", "desc").limit(100).get();
 
     const realPosts = ((data as PostDoc[]) ?? []).map(toQuestion);
-    return realPosts;
-  } catch {
-    return [];
+    return { data: realPosts, error: null };
+  } catch (err) {
+    // 不再把错误吞成空数组，让 UI 能区分「无数据」和「请求失败」
+    const msg = err instanceof Error ? err.message : "加载讨论失败";
+    return { data: [], error: msg };
   }
 }
 
