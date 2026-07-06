@@ -15,11 +15,12 @@ import os
 import sys
 
 # 自动安装依赖（CI 环境可能未预装）
+# 注意：PyPI 包名是 cos-python-sdk-v5，不是 qcloud-cos-sdk
 try:
     from qcloud_cos import CosConfig, CosS3Client
 except ImportError:
     import subprocess
-    subprocess.check_call([sys.executable, "-m", "pip", "install", "-q", "qcloud-cos-sdk"])
+    subprocess.check_call([sys.executable, "-m", "pip", "install", "-q", "cos-python-sdk-v5"])
     from qcloud_cos import CosConfig, CosS3Client
 
 # CloudBase 托管对应的 COS 桶（从 queryHosting 获取）
