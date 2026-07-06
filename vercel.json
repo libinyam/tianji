@@ -11,10 +11,18 @@
     {
       "source": "/index.html",
       "headers": [
+        { "key": "Content-Type", "value": "text/html; charset=utf-8" },
         { "key": "Cache-Control", "value": "no-cache" },
         { "key": "X-Content-Type-Options", "value": "nosniff" },
         { "key": "Content-Security-Policy", "value": "frame-ancestors 'none'" },
         { "key": "Referrer-Policy", "value": "strict-origin-when-cross-origin" }
+      ]
+    },
+    {
+      "source": "/(.*)",
+      "has": [{ "type": "header", "key": "Accept", "value": "text/html" }],
+      "headers": [
+        { "key": "Content-Type", "value": "text/html; charset=utf-8" }
       ]
     }
   ]
