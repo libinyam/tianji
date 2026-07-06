@@ -356,6 +356,7 @@ export default function Admin() {
     { key: "books" as const, label: "资源管理", icon: Book },
     { key: "workshops" as const, label: "协作管理", icon: HardHat },
     { key: "reports" as const, label: "举报管理", icon: Flag },
+    { key: "announcements" as const, label: "公告管理", icon: Megaphone },
   ];
 
   return (
