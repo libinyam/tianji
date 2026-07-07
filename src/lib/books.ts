@@ -112,16 +112,31 @@ function getCurrentUid(): string {
 }
 
 /** 获取所有用户上传的书籍 */
-export async function fetchBooks(): Promise<Book[]> {
-  try {
+export async function fetchBooks(): Promise<{ data: Book[]; error: boolean }> {
+  const doFetch = async (): Promise<Book[]> => {
     const { data } = await db
       .collection(BOOKS_COLLECTION)
       .orderBy("createdAt", "desc")
       .limit(100)
       .get();
     return (data as BookDoc[]).map(toBook);
-  } catch {
-    return [];
+  };
+
+  try {
+    const books = await doFetch();
+    return { data: books, error: false };
+  } catch (firstErr) {
+    // token 过期等错误：尝试刷新登录态后重试一次
+    try {
+      const auth = app.auth({ persistence: "local" });
+      await auth.refreshToken();
+      const books = await doFetch();
+      return { data: books, error: false };
+    } catch {
+      // 重试也失败，返回错误标记而非静默空数组
+      console.error("fetchBooks 失败:", firstErr);
+      return { data: [], error: true };
+    }
   }
 }
 

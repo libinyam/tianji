@@ -28,22 +28,37 @@ export default function Library() {
   const [uploadOpen, setUploadOpen] = useState(false);
   const [realBooks, setRealBooks] = useState<Book[]>([]);
   const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState(false);
   const { user } = useAuthStore();
 
   // 加载真实书籍
+  const loadBooks = async () => {
+    setLoading(true);
+    setLoadError(false);
+    const { data, error } = await fetchBooks();
+    if (error) {
+      setLoadError(true);
+    } else {
+      setRealBooks(data);
+    }
+    setLoading(false);
+  };
+
   useEffect(() => {
     let mounted = true;
     (async () => {
       setLoading(true);
-      const books = await fetchBooks();
-      if (mounted) {
-        setRealBooks(books);
-        setLoading(false);
+      setLoadError(false);
+      const { data, error } = await fetchBooks();
+      if (!mounted) return;
+      if (error) {
+        setLoadError(true);
+      } else {
+        setRealBooks(data);
       }
+      setLoading(false);
     })();
-    return () => {
-      mounted = false;
-    };
+    return () => { mounted = false; };
   }, []);
 
   const allBooks = realBooks;
@@ -167,7 +182,19 @@ export default function Library() {
           </div>
         )}
 
-        {!loading && filtered.length > 0 && (
+        {!loading && loadError && (
+          <div className="rounded-xl border border-dashed border-red-400/40 py-20 text-center">
+            <p className="text-mist-300">资源加载失败，可能是网络或登录态过期</p>
+            <button
+              onClick={loadBooks}
+              className="mt-4 rounded-lg border border-star-400/40 bg-star-400/10 px-6 py-2 text-sm text-star-300 transition-colors hover:bg-star-400/20"
+            >
+              重新加载
+            </button>
+          </div>
+        )}
+
+        {!loading && !loadError && filtered.length > 0 && (
           <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
             {filtered.map((b, i) => (
               <BookCard key={b.id} book={b} index={i} />
@@ -175,7 +202,7 @@ export default function Library() {
           </div>
         )}
 
-        {!loading && filtered.length === 0 && (
+        {!loading && !loadError && filtered.length === 0 && (
           <div className="rounded-xl border border-dashed border-void-600/50 py-20 text-center text-mist-400">
             未找到匹配的书目，试试其他关键词。
           </div>
