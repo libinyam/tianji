@@ -1,4 +1,4 @@
-import { app } from "@/lib/cloudbase";
+import { app, auth } from "@/lib/cloudbase";
 import { useAuthStore } from "@/stores/auth";
 import { ensureTags } from "@/lib/tags";
 import type { Book, BookCategory } from "@/types";
@@ -128,8 +128,7 @@ export async function fetchBooks(): Promise<{ data: Book[]; error: boolean }> {
   } catch (firstErr) {
     // token 过期等错误：尝试刷新登录态后重试一次
     try {
-      const auth = app.auth({ persistence: "local" });
-      await auth.refreshToken();
+      await auth.signInAnonymously();
       const books = await doFetch();
       return { data: books, error: false };
     } catch {
