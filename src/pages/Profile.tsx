@@ -52,7 +52,8 @@ export default function Profile() {
 
   useEffect(() => {
     if (!user) {
-      navigate("/");
+      // 不静默跳转，而是弹出登录弹窗并保留返回意图
+      window.dispatchEvent(new CustomEvent("tianji:open-auth"));
       return;
     }
     setNickname(user.nickname ?? "");
@@ -110,7 +111,19 @@ export default function Profile() {
     }
   };
 
-  if (!user) return null;
+  if (!user) {
+    return (
+      <div className="flex min-h-[60vh] flex-col items-center justify-center gap-4 px-4 text-center">
+        <p className="text-lg text-parchment-100">请先登录查看个人主页</p>
+        <button
+          onClick={() => window.dispatchEvent(new CustomEvent("tianji:open-auth"))}
+          className="rounded-lg border border-star-400/40 bg-star-400/10 px-6 py-2.5 text-sm text-star-300 transition-colors hover:bg-star-400/20"
+        >
+          登录 / 注册
+        </button>
+      </div>
+    );
+  }
 
   const displayName = user.nickname || user.username || user.email || "成员";
   const avatar = user.avatarUrl || `https://api.dicebear.com/7.x/identicon/svg?seed=${user.uid}&backgroundColor=1a1a2e,16213e,0f3460`;

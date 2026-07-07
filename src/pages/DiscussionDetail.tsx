@@ -145,17 +145,20 @@ export default function DiscussionDetail() {
   // 登录状态变化时重新检查收藏和投票
   useEffect(() => {
     if (!id || !user) return;
-    isFavorited(id).then(setFavState);
+    let mounted = true;
+    isFavorited(id).then((v) => { if (mounted) setFavState(v); });
     if (question) {
       const answerIds = (question.answerList ?? []).map((a) => a.id);
       if (answerIds.length > 0) {
         getVotedAnswerIds(answerIds).then((votedSet) => {
+          if (!mounted) return;
           const votedMap: Record<string, boolean> = {};
           votedSet.forEach((aid) => { votedMap[aid] = true; });
           setVoted(votedMap);
         });
       }
     }
+    return () => { mounted = false; };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user?.uid]);
 
@@ -606,15 +609,17 @@ export default function DiscussionDetail() {
                 <div className="flex items-center gap-1">
                   <button
                     onClick={startEditPost}
-                    className="flex items-center gap-1 rounded-lg border border-void-600/50 bg-void-800/40 px-2.5 py-1.5 text-xs text-mist-300 transition-all hover:border-tian-400/40 hover:text-tian-300"
+                    className="flex h-9 w-9 items-center justify-center rounded-lg border border-void-600/50 bg-void-800/40 text-mist-300 transition-all hover:border-tian-400/40 hover:text-tian-300"
                     title="编辑帖子"
+                    aria-label="编辑帖子"
                   >
                     <Pencil size={13} />
                   </button>
                   <button
                     onClick={handleDeletePost}
-                    className="flex items-center gap-1 rounded-lg border border-void-600/50 bg-void-800/40 px-2.5 py-1.5 text-xs text-mist-300 transition-all hover:border-red-400/40 hover:text-red-300"
+                    className="flex h-9 w-9 items-center justify-center rounded-lg border border-void-600/50 bg-void-800/40 text-mist-300 transition-all hover:border-red-400/40 hover:text-red-300"
                     title="删除帖子"
+                    aria-label="删除帖子"
                   >
                     <Trash2 size={13} />
                   </button>
@@ -772,8 +777,9 @@ export default function DiscussionDetail() {
                                     <>
                                       <button
                                         onClick={() => startEditComment(c.id, c.content)}
-                                        className="text-mist-500 opacity-0 transition-opacity hover:text-tian-300 group-hover:opacity-100"
+                                        className="flex h-7 w-7 items-center justify-center rounded-md text-mist-500 opacity-0 transition-opacity hover:text-tian-300 group-hover:opacity-100"
                                         title="编辑评论"
+                                        aria-label="编辑评论"
                                       >
                                         <Pencil size={11} />
                                       </button>
@@ -781,8 +787,9 @@ export default function DiscussionDetail() {
                                         onClick={() => {
                                           handleDeleteComment(a.id, c.id);
                                         }}
-                                        className="text-mist-500 opacity-0 transition-opacity hover:text-red-300 group-hover:opacity-100"
+                                        className="flex h-7 w-7 items-center justify-center rounded-md text-mist-500 opacity-0 transition-opacity hover:text-red-300 group-hover:opacity-100"
                                         title="删除评论"
+                                        aria-label="删除评论"
                                       >
                                         <Trash2 size={11} />
                                       </button>
@@ -925,15 +932,17 @@ export default function DiscussionDetail() {
                             <div className="ml-2 flex items-center gap-1">
                               <button
                                 onClick={() => startEditAnswer(a.id, a.content)}
-                                className="text-mist-500 transition-colors hover:text-tian-300"
+                                className="flex h-8 w-8 items-center justify-center rounded-md text-mist-500 transition-colors hover:text-tian-300"
                                 title="编辑回答"
+                                aria-label="编辑回答"
                               >
                                 <Pencil size={12} />
                               </button>
                               <button
                                 onClick={() => handleDeleteAnswer(a.id)}
-                                className="text-mist-500 transition-colors hover:text-red-300"
+                                className="flex h-8 w-8 items-center justify-center rounded-md text-mist-500 transition-colors hover:text-red-300"
                                 title="删除回答"
+                                aria-label="删除回答"
                               >
                                 <Trash2 size={12} />
                               </button>

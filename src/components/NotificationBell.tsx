@@ -45,21 +45,26 @@ export default function NotificationBell() {
 
   // 定时拉取未读数
   useEffect(() => {
-    fetchUnreadCount().then(setUnread);
+    let mounted = true;
+    const safeSetUnread = (n: number) => { if (mounted) setUnread(n); };
+    fetchUnreadCount().then(safeSetUnread);
     const timer = setInterval(() => {
-      fetchUnreadCount().then(setUnread);
+      fetchUnreadCount().then(safeSetUnread);
     }, 60000); // 每分钟刷新
-    return () => clearInterval(timer);
+    return () => { mounted = false; clearInterval(timer); };
   }, []);
 
   // 打开时加载列表
   useEffect(() => {
     if (!open) return;
+    let mounted = true;
     setLoading(true);
     fetchNotifications().then((items) => {
+      if (!mounted) return;
       setList(items);
       setLoading(false);
     });
+    return () => { mounted = false; };
   }, [open]);
 
   // 点击外部关闭
