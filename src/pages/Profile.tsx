@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link } from "react-router-dom";
 import {
   Edit3,
   MessageSquare,
@@ -37,7 +37,6 @@ function formatDate(s: string) {
 }
 
 export default function Profile() {
-  const navigate = useNavigate();
   const { user, updateProfile } = useAuthStore();
   const [content, setContent] = useState<UserContent | null>(null);
   const [favorites, setFavorites] = useState<FavoriteItem[]>([]);
@@ -64,7 +63,7 @@ export default function Profile() {
       setLoading(false);
     });
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [user?.uid, navigate]);
+  }, [user?.uid]);
 
   const handleSave = async () => {
     setSaving(true);
@@ -113,11 +112,12 @@ export default function Profile() {
 
   if (!user) {
     return (
-      <div className="flex min-h-[60vh] flex-col items-center justify-center gap-4 px-4 text-center">
+      <div className="container-tj flex min-h-[60vh] flex-col items-center justify-center gap-4 py-20 text-center">
         <p className="text-lg text-parchment-100">请先登录查看个人主页</p>
+        <p className="mt-1 text-sm text-mist-500">登录后即可管理你的资料、帖子和收藏</p>
         <button
           onClick={() => window.dispatchEvent(new CustomEvent("tianji:open-auth"))}
-          className="rounded-lg border border-star-400/40 bg-star-400/10 px-6 py-2.5 text-sm text-star-300 transition-colors hover:bg-star-400/20"
+          className="btn-gold mt-4"
         >
           登录 / 注册
         </button>

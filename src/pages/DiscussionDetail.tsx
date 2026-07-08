@@ -768,7 +768,8 @@ export default function DiscussionDetail() {
                                   <span className="font-mono">{formatRelativeTime(c.date)}</span>
                                   <button
                                     onClick={() => openReply(a.id, c)}
-                                    className="ml-auto text-mist-500 opacity-0 transition-opacity hover:text-tian-300 group-hover:opacity-100"
+                                    className="ml-auto flex h-8 w-8 items-center justify-center rounded text-mist-500 opacity-0 transition-opacity hover:text-tian-300 group-hover:opacity-100"
+                                    aria-label="回复评论"
                                     title="回复评论"
                                   >
                                     <CornerDownRight size={11} />
@@ -777,7 +778,7 @@ export default function DiscussionDetail() {
                                     <>
                                       <button
                                         onClick={() => startEditComment(c.id, c.content)}
-                                        className="flex h-7 w-7 items-center justify-center rounded-md text-mist-500 opacity-0 transition-opacity hover:text-tian-300 group-hover:opacity-100"
+                                        className="flex h-8 w-8 items-center justify-center rounded-md text-mist-500 opacity-0 transition-opacity hover:text-tian-300 group-hover:opacity-100"
                                         title="编辑评论"
                                         aria-label="编辑评论"
                                       >
@@ -787,7 +788,7 @@ export default function DiscussionDetail() {
                                         onClick={() => {
                                           handleDeleteComment(a.id, c.id);
                                         }}
-                                        className="flex h-7 w-7 items-center justify-center rounded-md text-mist-500 opacity-0 transition-opacity hover:text-red-300 group-hover:opacity-100"
+                                        className="flex h-8 w-8 items-center justify-center rounded-md text-mist-500 opacity-0 transition-opacity hover:text-red-300 group-hover:opacity-100"
                                         title="删除评论"
                                         aria-label="删除评论"
                                       >
@@ -800,7 +801,8 @@ export default function DiscussionDetail() {
                                       onClick={() => {
                                         openReport("comment", c.id, `评论：${c.content.slice(0, 30)}`);
                                       }}
-                                      className="text-mist-500 opacity-0 transition-opacity hover:text-red-300 group-hover:opacity-100"
+                                      className="flex h-8 w-8 items-center justify-center rounded text-mist-500 opacity-0 transition-opacity hover:text-red-300 group-hover:opacity-100"
+                                      aria-label="举报评论"
                                       title="举报评论"
                                     >
                                       <Flag size={11} />
@@ -921,18 +923,19 @@ export default function DiscussionDetail() {
                           <span className="font-mono">{formatRelativeTime(a.date)}</span>
                           {!isAuthor(user?.uid, a.authorUid) && (
                             <button
-                              onClick={() => openReport("answer", a.id, `回答：${a.content.slice(0, 30)}`)}
-                              className="ml-1 text-mist-500 transition-colors hover:text-red-300"
-                              title="举报回答"
-                            >
-                              <Flag size={12} />
-                            </button>
+                            onClick={() => openReport("answer", a.id, `回答：${a.content.slice(0, 30)}`)}
+                            className="ml-1 flex h-9 w-9 items-center justify-center rounded-md text-mist-500 transition-colors hover:text-red-300"
+                            aria-label="举报回答"
+                            title="举报回答"
+                          >
+                            <Flag size={12} />
+                          </button>
                           )}
                           {isAuthor(user?.uid, a.authorUid) && (
                             <div className="ml-2 flex items-center gap-1">
                               <button
                                 onClick={() => startEditAnswer(a.id, a.content)}
-                                className="flex h-8 w-8 items-center justify-center rounded-md text-mist-500 transition-colors hover:text-tian-300"
+                                className="flex h-9 w-9 items-center justify-center rounded-md text-mist-500 transition-colors hover:text-tian-300"
                                 title="编辑回答"
                                 aria-label="编辑回答"
                               >
@@ -940,7 +943,7 @@ export default function DiscussionDetail() {
                               </button>
                               <button
                                 onClick={() => handleDeleteAnswer(a.id)}
-                                className="flex h-8 w-8 items-center justify-center rounded-md text-mist-500 transition-colors hover:text-red-300"
+                                className="flex h-9 w-9 items-center justify-center rounded-md text-mist-500 transition-colors hover:text-red-300"
                                 title="删除回答"
                                 aria-label="删除回答"
                               >
