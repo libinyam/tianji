@@ -587,10 +587,8 @@ export default function DiscussionDetail() {
               </span>
               <button
                 onClick={handleToggleFav}
-                className={`ml-auto flex items-center gap-1 rounded-lg border px-3 py-1.5 text-xs transition-all ${
-                  favState
-                    ? "border-star-400/70 bg-star-400/15 text-star-200"
-                    : "border-void-600/50 bg-void-800/40 text-mist-300 hover:border-mist-400/40"
+                className={`ml-auto flex items-center gap-1 transition-colors ${
+                  favState ? "text-star-300" : "text-mist-400 hover:text-star-300"
                 }`}
               >
                 <Bookmark size={13} className={favState ? "fill-star-400" : ""} />
@@ -599,17 +597,17 @@ export default function DiscussionDetail() {
               {!isAuthor(user?.uid, question.authorUid) && (
                 <button
                   onClick={() => openReport("post", question.id, question.title)}
-                  className="flex items-center gap-1 rounded-lg border border-void-600/50 bg-void-800/40 px-3 py-1.5 text-xs text-mist-300 transition-all hover:border-red-400/50 hover:text-red-300"
+                  className="flex items-center gap-1 text-mist-400 transition-colors hover:text-red-300"
                   title="举报帖子"
                 >
                   <Flag size={13} /> 举报
                 </button>
               )}
               {isAuthor(user?.uid, question.authorUid) && (
-                <div className="flex items-center gap-1">
+                <div className="flex items-center gap-3">
                   <button
                     onClick={startEditPost}
-                    className="flex h-9 w-9 items-center justify-center rounded-lg border border-void-600/50 bg-void-800/40 text-mist-300 transition-all hover:border-tian-400/40 hover:text-tian-300"
+                    className="text-mist-400 transition-colors hover:text-tian-300"
                     title="编辑帖子"
                     aria-label="编辑帖子"
                   >
@@ -617,7 +615,7 @@ export default function DiscussionDetail() {
                   </button>
                   <button
                     onClick={handleDeletePost}
-                    className="flex h-9 w-9 items-center justify-center rounded-lg border border-void-600/50 bg-void-800/40 text-mist-300 transition-all hover:border-red-400/40 hover:text-red-300"
+                    className="text-mist-400 transition-colors hover:text-red-300"
                     title="删除帖子"
                     aria-label="删除帖子"
                   >
@@ -628,7 +626,7 @@ export default function DiscussionDetail() {
             </div>
 
             {editingPost ? (
-              <div className="mt-6 rounded-xl border border-tian-400/30 bg-void-800/30 p-6">
+              <div className="mt-6 border-t border-void-600/40 pt-6">
                 <input
                   name="title"
                   value={editTitle}
@@ -651,7 +649,7 @@ export default function DiscussionDetail() {
                 </div>
               </div>
             ) : (
-              <div className="mt-6 rounded-xl border border-void-600/40 bg-void-800/30 p-6">
+              <div className="mt-6 border-t border-void-600/40 pt-6">
                 <LazyMathText
                   content={question.body}
                   className="text-[15px] leading-relaxed text-parchment-100"
@@ -661,15 +659,12 @@ export default function DiscussionDetail() {
           </motion.div>
 
           {/* 回答 */}
-          <div className="mt-10">
-            <div className="mb-5 flex items-center gap-2">
-              <MessageCircle size={18} className="text-star-400" />
-              <h2 className="heading-display text-xl text-parchment-50">
-                {question.answerList.length} 个回答
-              </h2>
-            </div>
+          <div className="mt-10 border-t border-void-600/40 pt-6">
+            <h2 className="heading-display text-lg text-parchment-50">
+              {question.answerList.length} 个回答
+            </h2>
 
-            <div className="space-y-4">
+            <div className="mt-2 divide-y divide-void-600/40">
               {[...question.answerList]
                 .sort((a, b) => {
                   // 采纳的回答始终排第一
@@ -678,58 +673,30 @@ export default function DiscussionDetail() {
                   // 其余按时间倒序（最新在最上面）
                   return b.date > a.date ? 1 : -1;
                 })
-                .map((a, i) => (
-                <motion.div
-                  key={a.id}
-                  initial={{ opacity: 0, y: 16 }}
-                  whileInView={{ opacity: 1, y: 0 }}
-                  viewport={{ once: true, margin: "-40px" }}
-                  transition={{ duration: 0.4, delay: i * 0.08 }}
-                  className={`rounded-xl border p-5 ${
-                    a.accepted
-                      ? "border-star-400/40 bg-star-400/[0.06]"
-                      : "border-void-600/40 bg-void-800/30"
-                  }`}
-                >
-                  <div className="flex gap-5">
-                    {/* 投票 */}
-                    <div className="flex flex-col items-center gap-1.5">
-                      <button
-                        onClick={() => toggleVote(a.id)}
-                        className={`flex h-8 w-8 items-center justify-center rounded-md border transition-all ${
-                          voted[a.id]
-                            ? "border-star-400/60 bg-star-400/15 text-star-300"
-                            : "border-void-600/50 text-mist-400 hover:border-star-400/40 hover:text-star-300"
-                        }`}
-                        aria-label="投票"
-                      >
-                        <ThumbsUp size={14} className={voted[a.id] ? "fill-star-400" : ""} />
-                      </button>
-                      <span className="text-sm font-medium text-parchment-100">
-                        {a.votes}
-                      </span>
-                      {a.accepted && (
-                        <span className="flex h-8 w-8 items-center justify-center rounded-md border border-star-400/60 bg-star-400/15 text-star-300" title="已采纳">
-                          <Check size={15} />
-                        </span>
-                      )}
-                    </div>
+                .map((a) => (
+                <div key={a.id} className="py-6">
+                  <div className="flex gap-3">
+                    <Avatar name={a.author} color={a.avatarColor} size={38} />
 
                     {/* 内容 */}
                     <div className="min-w-0 flex-1">
-                      {a.accepted && (
-                        <span className="mb-2 inline-flex items-center gap-1 rounded-md bg-star-400/15 px-2 py-0.5 text-[11px] text-star-300">
-                          <Check size={11} /> 已采纳
-                        </span>
-                      )}
+                      <div className="flex flex-wrap items-center gap-x-2 gap-y-1 text-xs text-mist-500">
+                        <span className="text-sm text-parchment-100">{a.author}</span>
+                        <span className="font-mono">{formatRelativeTime(a.date)}</span>
+                        {a.accepted && (
+                          <span className="inline-flex items-center gap-1 rounded-full bg-emerald-400/10 px-2 py-0.5 text-[11px] text-emerald-300">
+                            <Check size={11} /> 已采纳
+                          </span>
+                        )}
+                      </div>
                       {editingAnswerId === a.id ? (
-                        <div>
+                        <div className="mt-3">
                           <textarea
                             name="answer"
                             rows={5}
                             value={editAnswerText}
                             onChange={(e) => setEditAnswerText(e.target.value)}
-                            className="w-full resize-none rounded-lg border border-tian-400/30 bg-void-950/50 p-3 text-sm text-parchment-100 focus:border-star-400/50 focus:outline-none"
+                            className="w-full resize-none rounded-lg border border-void-600/50 bg-void-950/50 p-3 text-sm text-parchment-100 focus:border-star-400/50 focus:outline-none"
                             maxLength={8000}
                           />
                           <div className="mt-2 flex justify-end gap-2">
@@ -740,31 +707,97 @@ export default function DiscussionDetail() {
                       ) : (
                         <LazyMathText
                           content={a.content}
-                          className="text-sm leading-relaxed text-mist-200"
+                          className="mt-2 text-[15px] leading-relaxed text-mist-200"
                         />
                       )}
 
-                      {/* 评论列表 */}
+                      {/* 动作行 */}
+                      <div className="mt-3 flex items-center gap-4 text-xs text-mist-500">
+                        <button
+                          onClick={() => toggleVote(a.id)}
+                          className={`inline-flex items-center gap-1.5 transition-colors ${
+                            voted[a.id] ? "text-star-300" : "hover:text-star-300"
+                          }`}
+                          aria-label="投票"
+                        >
+                          <ThumbsUp size={14} className={voted[a.id] ? "fill-star-400" : ""} />
+                          {a.votes > 0 && <span>{a.votes}</span>}
+                        </button>
+                        <button
+                          onClick={() => openComment(a.id)}
+                          className="inline-flex items-center gap-1.5 transition-colors hover:text-tian-200"
+                        >
+                          <MessageCircle size={14} />
+                          {a.comments && a.comments.length > 0 ? `${a.comments.length} 条评论` : "评论"}
+                        </button>
+                        {isAuthor(user?.uid, question.authorUid) && a.authorUid !== "ai-bot-001" && !a.accepted && (
+                          <button
+                            onClick={() => handleAccept(a.id, true)}
+                            disabled={acceptingId !== null}
+                            className="inline-flex items-center gap-1 transition-colors hover:text-emerald-300 disabled:cursor-not-allowed disabled:opacity-50"
+                          >
+                            {acceptingId === a.id ? <Loader2 size={13} className="animate-spin" /> : <Check size={13} />}
+                            采纳
+                          </button>
+                        )}
+                        {isAuthor(user?.uid, question.authorUid) && a.accepted && (
+                          <button
+                            onClick={() => handleAccept(a.id, false)}
+                            disabled={acceptingId !== null}
+                            className="inline-flex items-center gap-1 transition-colors hover:text-mist-300 disabled:cursor-not-allowed disabled:opacity-50"
+                          >
+                            {acceptingId === a.id ? <Loader2 size={13} className="animate-spin" /> : <X size={13} />}
+                            取消采纳
+                          </button>
+                        )}
+                        <span className="ml-auto flex items-center gap-3">
+                          {!isAuthor(user?.uid, a.authorUid) && (
+                            <button
+                              onClick={() => openReport("answer", a.id, `回答：${a.content.slice(0, 30)}`)}
+                              className="transition-colors hover:text-red-300"
+                              title="举报回答"
+                            >
+                              <Flag size={13} />
+                            </button>
+                          )}
+                          {isAuthor(user?.uid, a.authorUid) && (
+                            <>
+                              <button
+                                onClick={() => startEditAnswer(a.id, a.content)}
+                                className="transition-colors hover:text-tian-300"
+                                title="编辑回答"
+                              >
+                                <Pencil size={13} />
+                              </button>
+                              <button
+                                onClick={() => handleDeleteAnswer(a.id)}
+                                className="transition-colors hover:text-red-300"
+                                title="删除回答"
+                              >
+                                <Trash2 size={13} />
+                              </button>
+                            </>
+                          )}
+                        </span>
+                      </div>
+
+                      {/* 评论列表（扁平） */}
                       {a.comments && a.comments.length > 0 && (
-                        <div className="mt-4 space-y-2 border-l-2 border-void-600/40 pl-4">
+                        <div className="mt-4 divide-y divide-void-600/30 border-t border-void-600/30">
                           {[...(a.comments ?? [])].sort((x, y) => (y.date > x.date ? 1 : -1)).map((c) => {
                             const repliedComment = c.replyTo
                               ? a.comments?.find((rc) => rc.id === c.replyTo)
                               : null;
                             return (
-                              <div
-                                key={c.id}
-                                className="group rounded-lg bg-void-900/40 p-3 transition-colors hover:bg-void-900/60"
-                              >
-                                <div className="mb-1 flex items-center gap-2 text-xs text-mist-500">
-                                  <Avatar name={c.author} color={c.avatarColor} size={18} />
+                              <div key={c.id} className="group py-3">
+                                <div className="flex items-center gap-2 text-xs text-mist-500">
+                                  <Avatar name={c.author} color={c.avatarColor} size={20} />
                                   <span className="text-mist-300">{c.author}</span>
                                   {repliedComment && (
                                     <span className="text-tian-300">
                                       回复 @{repliedComment.author}
                                     </span>
                                   )}
-                                  <span>·</span>
                                   <span className="font-mono">{formatRelativeTime(c.date)}</span>
                                   <button
                                     onClick={() => openReply(a.id, c)}
@@ -810,12 +843,12 @@ export default function DiscussionDetail() {
                                   )}
                                 </div>
                                 {editingCommentId === c.id ? (
-                                  <div>
+                                  <div className="mt-2 pl-7">
                                     <textarea
                                       rows={3}
                                       value={editCommentText}
                                       onChange={(e) => setEditCommentText(e.target.value)}
-                                      className="w-full resize-none rounded-lg border border-tian-400/30 bg-void-950/50 p-2 text-sm text-parchment-100 focus:border-star-400/50 focus:outline-none"
+                                      className="w-full resize-none rounded-lg border border-void-600/50 bg-void-950/50 p-2 text-sm text-parchment-100 focus:border-star-400/50 focus:outline-none"
                                       maxLength={2000}
                                     />
                                     <div className="mt-1 flex justify-end gap-2">
@@ -826,7 +859,7 @@ export default function DiscussionDetail() {
                                 ) : (
                                   <LazyMathText
                                     content={c.content}
-                                    className="text-sm text-mist-200"
+                                    className="mt-1 pl-7 text-sm text-mist-200"
                                   />
                                 )}
                               </div>
@@ -837,7 +870,7 @@ export default function DiscussionDetail() {
 
                       {/* 评论输入框 */}
                       {commentingAnswerId === a.id && (
-                        <div className="mt-3 rounded-lg border border-void-600/40 bg-void-900/40 p-3">
+                        <div className="mt-3 border-t border-void-600/30 pt-3">
                           {replyTarget && (
                             <div className="mb-2 flex items-center gap-1 text-xs text-tian-300">
                               <CornerDownRight size={11} />
@@ -883,79 +916,9 @@ export default function DiscussionDetail() {
                           </div>
                         </div>
                       )}
-
-                      <div className="mt-4 flex items-center justify-between">
-                        <div className="flex items-center gap-3">
-                          <button
-                            onClick={() => openComment(a.id)}
-                            className="inline-flex items-center gap-1 text-xs text-mist-500 transition-colors hover:text-tian-200"
-                          >
-                            <CornerDownRight size={12} />
-                            {a.comments && a.comments.length > 0
-                              ? `${a.comments.length} 条评论 · 添加评论`
-                              : "添加评论"}
-                          </button>
-                          {isAuthor(user?.uid, question.authorUid) && a.authorUid !== "ai-bot-001" && !a.accepted && (
-                            <button
-                              onClick={() => handleAccept(a.id, true)}
-                              disabled={acceptingId !== null}
-                              className="inline-flex items-center gap-1 rounded-md border border-emerald-400/40 bg-emerald-400/5 px-2.5 py-1 text-[11px] text-emerald-300 transition-all hover:border-emerald-400/70 hover:bg-emerald-400/10 disabled:cursor-not-allowed disabled:opacity-50"
-                            >
-                              {acceptingId === a.id ? <Loader2 size={11} className="animate-spin" /> : <Check size={11} />}
-                              采纳
-                            </button>
-                          )}
-                          {isAuthor(user?.uid, question.authorUid) && a.accepted && (
-                            <button
-                              onClick={() => handleAccept(a.id, false)}
-                              disabled={acceptingId !== null}
-                              className="inline-flex items-center gap-1 rounded-md border border-mist-500/30 bg-mist-500/5 px-2.5 py-1 text-[11px] text-mist-400 transition-all hover:border-mist-400/60 hover:bg-mist-500/10 disabled:cursor-not-allowed disabled:opacity-50"
-                            >
-                              {acceptingId === a.id ? <Loader2 size={11} className="animate-spin" /> : <X size={11} />}
-                              取消采纳
-                            </button>
-                          )}
-                        </div>
-                        <div className="flex items-center gap-2 text-xs text-mist-500">
-                          <Avatar name={a.author} color={a.avatarColor} size={22} />
-                          <span className="text-mist-300">{a.author}</span>
-                          <span>·</span>
-                          <span className="font-mono">{formatRelativeTime(a.date)}</span>
-                          {!isAuthor(user?.uid, a.authorUid) && (
-                            <button
-                            onClick={() => openReport("answer", a.id, `回答：${a.content.slice(0, 30)}`)}
-                            className="ml-1 flex h-9 w-9 items-center justify-center rounded-md text-mist-500 transition-colors hover:text-red-300"
-                            aria-label="举报回答"
-                            title="举报回答"
-                          >
-                            <Flag size={12} />
-                          </button>
-                          )}
-                          {isAuthor(user?.uid, a.authorUid) && (
-                            <div className="ml-2 flex items-center gap-1">
-                              <button
-                                onClick={() => startEditAnswer(a.id, a.content)}
-                                className="flex h-9 w-9 items-center justify-center rounded-md text-mist-500 transition-colors hover:text-tian-300"
-                                title="编辑回答"
-                                aria-label="编辑回答"
-                              >
-                                <Pencil size={12} />
-                              </button>
-                              <button
-                                onClick={() => handleDeleteAnswer(a.id)}
-                                className="flex h-9 w-9 items-center justify-center rounded-md text-mist-500 transition-colors hover:text-red-300"
-                                title="删除回答"
-                                aria-label="删除回答"
-                              >
-                                <Trash2 size={12} />
-                              </button>
-                            </div>
-                          )}
-                        </div>
-                      </div>
                     </div>
                   </div>
-                </motion.div>
+                </div>
               ))}
             </div>
 
