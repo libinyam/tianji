@@ -87,9 +87,10 @@ export default function NotificationBell() {
   const handleClick = async (item: NotificationItem) => {
     if (!item.read) {
       await markAsRead(item.id);
-      if (!mountedRef.current) return;
-      setUnread((n) => Math.max(0, n - 1));
-      setList((prev) => prev.map((n) => (n.id === item.id ? { ...n, read: true } : n)));
+      if (mountedRef.current) {
+        setUnread((n) => Math.max(0, n - 1));
+        setList((prev) => prev.map((n) => (n.id === item.id ? { ...n, read: true } : n)));
+      }
     }
     setOpen(false);
     navigate(item.link);
