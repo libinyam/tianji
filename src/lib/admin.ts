@@ -21,7 +21,7 @@ export function useIsAdmin(): boolean {
     }
     let cancelled = false;
     app
-      .callFunction({ name: "check-admin", data: { callerUid: uid } })
+      .callFunction({ name: "check-admin" })
       .then((res) => {
         const result = (res?.result ?? {}) as { isAdmin?: boolean };
         if (!cancelled) {
@@ -48,7 +48,7 @@ export async function assertAdmin(): Promise<void> {
     if (!adminCache.isAdmin) throw new Error("无权限");
     return;
   }
-  const res = await app.callFunction({ name: "check-admin", data: { callerUid: uid } });
+  const res = await app.callFunction({ name: "check-admin" });
   const result = (res?.result ?? {}) as { isAdmin?: boolean };
   adminCache = { uid, isAdmin: !!result.isAdmin };
   if (!result.isAdmin) throw new Error("无权限");

@@ -1,5 +1,6 @@
 import { app } from "@/lib/cloudbase";
 import { createNotification } from "@/lib/notifications";
+import { sanitizeInput, sanitizeTitle, sanitizeTag } from "@/lib/sanitize";
 import type { Question, Answer, Comment } from "@/types";
 
 const db = app.database();
@@ -138,17 +139,21 @@ export async function createPost(params: {
   category?: PostCategory;
   subCategory?: CasualSubCategory;
 }): Promise<Question | null> {
+  const cleanTitle = sanitizeTitle(params.title);
+  const cleanBody = sanitizeInput(params.body);
+  const cleanTags = params.tags.map(sanitizeTag);
+
   const uid = getCurrentUid();
   if (!uid) throw new Error("请先登录");
 
   const excerpt =
-    params.body.length > 120 ? params.body.slice(0, 120) + "…" : params.body;
+    cleanBody.length > 120 ? cleanBody.slice(0, 120) + "…" : cleanBody;
 
   const doc: Omit<PostDoc, "_id"> = {
-    title: params.title,
+    title: cleanTitle,
     excerpt,
-    body: params.body,
-    tags: params.tags,
+    body: cleanBody,
+    tags: cleanTags,
     author: getCurrentUserName(),
     authorUid: uid,
     avatarColor: AVATAR_COLORS[Math.floor(Math.random() * AVATAR_COLORS.length)],
@@ -200,6 +205,8 @@ export async function submitAnswer(
   postId: string,
   content: string
 ): Promise<Answer | null> {
+  const cleanContent = sanitizeInput(content);
+
   const uid = getCurrentUid();
   if (!uid) throw new Error("请先登录");
 
@@ -215,7 +222,7 @@ export async function submitAnswer(
     avatarColor: AVATAR_COLORS[Math.floor(Math.random() * AVATAR_COLORS.length)],
     votes: 0,
     accepted: false,
-    content,
+    content: cleanContent,
     date: new Date().toISOString(),
   };
 
@@ -243,6 +250,8 @@ export async function submitComment(
   content: string,
   replyTo?: string
 ): Promise<Comment | null> {
+  const cleanContent = sanitizeInput(content);
+
   const uid = getCurrentUid();
   if (!uid) throw new Error("请先登录");
 
@@ -260,7 +269,7 @@ export async function submitComment(
     author: getCurrentUserName(),
     authorUid: uid,
     avatarColor: AVATAR_COLORS[Math.floor(Math.random() * AVATAR_COLORS.length)],
-    content,
+    content: cleanContent,
     date: new Date().toISOString(),
     replyTo,
   };
@@ -294,6 +303,10 @@ export async function updatePost(
   postId: string,
   params: { title: string; body: string; tags: string[] }
 ): Promise<boolean> {
+  const cleanTitle = sanitizeTitle(params.title);
+  const cleanBody = sanitizeInput(params.body);
+  const cleanTags = params.tags.map(sanitizeTag);
+
   const uid = getCurrentUid();
   if (!uid) throw new Error("请先登录");
 
@@ -304,12 +317,12 @@ export async function updatePost(
   const post = data[0] as PostDoc;
   if (post.authorUid !== uid) throw new Error("无权编辑他人帖子");
 
-  const excerpt = params.body.length > 120 ? params.body.slice(0, 120) + "…" : params.body;
+  const excerpt = cleanBody.length > 120 ? cleanBody.slice(0, 120) + "…" : cleanBody;
   await docRef.update({
-    title: params.title,
-    body: params.body,
+    title: cleanTitle,
+    body: cleanBody,
     excerpt,
-    tags: params.tags,
+    tags: cleanTags,
   });
   return true;
 }
@@ -348,6 +361,8 @@ export async function updateAnswer(
   answerId: string,
   content: string
 ): Promise<boolean> {
+  const cleanContent = sanitizeInput(content);
+
   const uid = getCurrentUid();
   if (!uid) throw new Error("请先登录");
 
@@ -362,7 +377,7 @@ export async function updateAnswer(
 
   if (answerList[idx].authorUid !== uid) throw new Error("无权编辑他人回答");
 
-  answerList[idx] = { ...answerList[idx], content };
+  answerList[idx] = { ...answerList[idx], content: cleanContent };
   await docRef.update({ answerList });
   return true;
 }
@@ -436,6 +451,8 @@ export async function updateComment(
   commentId: string,
   content: string
 ): Promise<boolean> {
+  const cleanContent = sanitizeInput(content);
+
   const uid = getCurrentUid();
   if (!uid) throw new Error("请先登录");
 
@@ -454,7 +471,7 @@ export async function updateComment(
 
   if (comments[cIdx].authorUid !== uid) throw new Error("无权编辑他人评论");
 
-  comments[cIdx] = { ...comments[cIdx], content };
+  comments[cIdx] = { ...comments[cIdx], content: cleanContent };
   answerList[aIdx] = { ...answerList[aIdx], comments };
   await docRef.update({ answerList });
   return true;

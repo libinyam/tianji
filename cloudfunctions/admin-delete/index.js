@@ -6,11 +6,26 @@ const app = cloudbase.init({
 
 const db = app.database();
 
-const ADMIN_UIDS = ["2068674931977097216"];
+// 管理员 uid 列表从环境变量读取，逗号分隔；过渡期保留默认值
+const ADMIN_UIDS = (process.env.ADMIN_UIDS || "2068674931977097216")
+  .split(",")
+  .map((s) => s.trim())
+  .filter(Boolean);
+
+const ALLOWED_COLLECTIONS = ["posts", "ideas", "books", "workshops", "reports"];
+
+// CloudBase 文档 ID 通常为 24 位十六进制字符串
+const DOC_ID_PATTERN = /^[a-f0-9]{24}$/;
+
+/** 校验 docId 格式是否合法 */
+function isValidDocId(docId) {
+  return typeof docId === "string" && DOC_ID_PATTERN.test(docId);
+}
 
 exports.main = async (event, context) => {
   const { collection, docId, action } = event;
 
+  // --- 1. 身份验证（仅接受服务端身份源） ---
   let uid = "";
 
   try {
@@ -32,15 +47,24 @@ exports.main = async (event, context) => {
     return { ok: false, error: "无管理员权限" };
   }
 
-  if (!collection || !docId) {
+  // --- 2. 参数校验 ---
+  if (typeof collection !== "string" || typeof docId !== "string") {
+    return { ok: false, error: "参数类型错误" };
+  }
+
+  if (!collection || !docId || !action) {
     return { ok: false, error: "缺少参数" };
   }
 
-  const allowedCollections = ["posts", "ideas", "books", "workshops", "reports"];
-  if (!allowedCollections.includes(collection)) {
+  if (!ALLOWED_COLLECTIONS.includes(collection)) {
     return { ok: false, error: "不允许操作的集合" };
   }
 
+  if (!isValidDocId(docId)) {
+    return { ok: false, error: "文档 ID 格式不合法" };
+  }
+
+  // --- 3. 执行操作 ---
   try {
     if (action === "delete") {
       // 删除文档

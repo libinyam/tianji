@@ -277,7 +277,7 @@ export default function Admin() {
           try {
             const res = await app.callFunction({
               name: "admin-delete",
-              data: { collection: col, docId: report.targetId, action: "delete", _callerUid: user?.uid || "" },
+              data: { collection: col, docId: report.targetId, action: "delete" },
             });
             const result = res.result as { ok?: boolean; error?: string };
             if (!result?.ok) {
@@ -306,7 +306,7 @@ export default function Admin() {
     try {
       const res = await app.callFunction({
         name: "admin-delete",
-        data: { collection, docId: id, action: "delete", _callerUid: user?.uid || "" },
+        data: { collection, docId: id, action: "delete" },
       });
       const result = res.result as { ok?: boolean; error?: string };
       if (!result?.ok) {

@@ -1,5 +1,6 @@
 import { app } from "@/lib/cloudbase";
 import { createNotification } from "@/lib/notifications";
+import { sanitizeInput, sanitizeTitle, sanitizeTag } from "@/lib/sanitize";
 import { useAuthStore } from "@/stores/auth";
 import type { Idea, IdeaComment } from "@/types";
 
@@ -86,14 +87,20 @@ export async function createIdea(params: {
   const uid = getCurrentUid();
   if (!uid) throw new Error("请先登录");
 
+  // Sanitize inputs
+  const cleanTitle = sanitizeTitle(params.title);
+  const cleanSummary = sanitizeInput(params.summary);
+  const cleanTopic = sanitizeInput(params.topic, 100);
+  const cleanTags = params.tags.map(sanitizeTag);
+
   const doc: Omit<IdeaDoc, "_id"> = {
-    title: params.title,
-    summary: params.summary,
+    title: cleanTitle,
+    summary: cleanSummary,
     author: getCurrentUserName(),
     authorUid: uid,
     avatarColor: AVATAR_COLORS[Math.floor(Math.random() * AVATAR_COLORS.length)],
-    topic: params.topic,
-    tags: params.tags,
+    topic: cleanTopic,
+    tags: cleanTags,
     resonance: 0,
     replies: 0,
     createdAt: new Date().toISOString(),
@@ -165,10 +172,15 @@ export async function updateIdea(
   const idea = data[0] as IdeaDoc;
   if (idea.authorUid !== uid) throw new Error("无权编辑他人灵感");
 
+  // Sanitize inputs
+  const cleanTitle = sanitizeTitle(params.title);
+  const cleanSummary = sanitizeInput(params.summary);
+  const cleanTags = params.tags.map(sanitizeTag);
+
   await docRef.update({
-    title: params.title,
-    summary: params.summary,
-    tags: params.tags,
+    title: cleanTitle,
+    summary: cleanSummary,
+    tags: cleanTags,
   });
   return true;
 }
@@ -178,6 +190,9 @@ export async function addIdeaComment(ideaId: string, content: string): Promise<I
   const uid = getCurrentUid();
   if (!uid) throw new Error("请先登录");
   if (!content.trim()) throw new Error("评论内容不能为空");
+
+  // Sanitize input
+  const cleanContent = sanitizeInput(content.trim());
 
   const docRef = db.collection(IDEAS_COLLECTION).doc(ideaId);
   const { data } = await docRef.get();
@@ -189,7 +204,7 @@ export async function addIdeaComment(ideaId: string, content: string): Promise<I
     author: getCurrentUserName(),
     authorUid: uid,
     avatarColor: AVATAR_COLORS[Math.floor(Math.random() * AVATAR_COLORS.length)],
-    content: content.trim(),
+    content: cleanContent,
     createdAt: new Date().toISOString(),
   };
 

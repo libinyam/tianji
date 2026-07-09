@@ -1,5 +1,6 @@
 import { app } from "@/lib/cloudbase";
 import { createNotification } from "@/lib/notifications";
+import { sanitizeInput, sanitizeTitle, sanitizeTag } from "@/lib/sanitize";
 import { useAuthStore } from "@/stores/auth";
 
 const db = app.database();
@@ -140,20 +141,31 @@ export async function createWorkshop(params: {
   const uid = getCurrentUid();
   if (!uid) throw new Error("请先登录");
 
+  // Sanitize inputs
+  const cleanTitle = sanitizeTitle(params.title);
+  const cleanDescription = sanitizeInput(params.description);
+  const cleanContent = sanitizeInput(params.content ?? "");
+  const cleanTags = params.tags.map(sanitizeTag);
+  const cleanOutline = params.outline.map((ch) => ({
+    ...ch,
+    title: sanitizeInput(ch.title, 200),
+    brief: sanitizeInput(ch.brief, 1000),
+  }));
+
   const now = new Date().toISOString();
   const doc: Omit<WorkshopDoc, "_id"> = {
-    title: params.title,
+    title: cleanTitle,
     type: params.type,
-    description: params.description,
-    content: params.content ?? "",
-    outline: params.outline,
+    description: cleanDescription,
+    content: cleanContent,
+    outline: cleanOutline,
     creator: getCurrentUserName(),
     creatorUid: uid,
     avatarColor: AVATAR_COLORS[Math.floor(Math.random() * AVATAR_COLORS.length)],
     participants: [uid],
     contributions: [],
     annotations: [],
-    tags: params.tags,
+    tags: cleanTags,
     status: "open",
     createdAt: now,
     updatedAt: now,
@@ -225,6 +237,9 @@ export async function submitContribution(
   const uid = getCurrentUid();
   if (!uid) throw new Error("请先登录");
 
+  // Sanitize input
+  const cleanContent = sanitizeInput(content);
+
   const docRef = db.collection(COLLECTION).doc(workshopId);
   const { data } = await docRef.get();
   if (!data || data.length === 0) return null;
@@ -236,7 +251,7 @@ export async function submitContribution(
     author: getCurrentUserName(),
     authorUid: uid,
     avatarColor: AVATAR_COLORS[Math.floor(Math.random() * AVATAR_COLORS.length)],
-    content,
+    content: cleanContent,
     createdAt: new Date().toISOString(),
   };
 
@@ -294,9 +309,9 @@ export async function updateWorkshop(
     const updateFields: Record<string, unknown> = {
       updatedAt: new Date().toISOString(),
     };
-    if (params.title !== undefined) updateFields.title = params.title;
-    if (params.description !== undefined) updateFields.description = params.description;
-    if (params.content !== undefined) updateFields.content = params.content;
+    if (params.title !== undefined) updateFields.title = sanitizeTitle(params.title);
+    if (params.description !== undefined) updateFields.description = sanitizeInput(params.description);
+    if (params.content !== undefined) updateFields.content = sanitizeInput(params.content);
     if (params.status !== undefined) updateFields.status = params.status;
 
     await docRef.update(updateFields);
@@ -347,6 +362,9 @@ export async function addAnnotation(
   if (!uid) throw new Error("请先登录");
   if (!content.trim()) throw new Error("批注内容不能为空");
 
+  // Sanitize input
+  const cleanContent = sanitizeInput(content.trim());
+
   try {
     const docRef = db.collection(COLLECTION).doc(id);
     const { data } = await docRef.get();
@@ -356,7 +374,7 @@ export async function addAnnotation(
       id: `a_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`,
       author: getCurrentUserName(),
       authorUid: uid,
-      content: content.trim(),
+      content: cleanContent,
       resolved: false,
       createdAt: new Date().toISOString(),
     };

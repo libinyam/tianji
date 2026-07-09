@@ -1,4 +1,5 @@
 import { app, auth } from "@/lib/cloudbase";
+import { sanitizeInput, sanitizeTitle, sanitizeTag } from "@/lib/sanitize";
 import { useAuthStore } from "@/stores/auth";
 import { ensureTags } from "@/lib/tags";
 import type { Book, BookCategory } from "@/types";
@@ -79,7 +80,13 @@ export async function addReview(bookId: string, review: { author: string; author
   const book = data[0] as BookDoc;
   const reviews = book.reviews ?? [];
   const existingIdx = reviews.findIndex((r) => r.authorUid === review.authorUid);
-  const newReview = { ...review, date: new Date().toISOString() };
+
+  // Sanitize review inputs
+  const cleanAuthor = sanitizeInput(review.author, 200);
+  const cleanContent = sanitizeInput(review.content);
+  const sanitizedReview = { ...review, author: cleanAuthor, content: cleanContent };
+
+  const newReview = { ...sanitizedReview, date: new Date().toISOString() };
   const updated = existingIdx >= 0;
 
   // 基于去重后的完整数组计算 avgRating（toBook 读取时会从 reviews 实时重算，此字段仅作兼容缓存）
@@ -169,23 +176,31 @@ export async function createBook(params: {
   const uid = getCurrentUid();
   if (!uid) throw new Error("请先登录");
 
+  // Sanitize inputs
+  const cleanTitle = sanitizeTitle(params.title);
+  const cleanAuthor = sanitizeInput(params.author, 200);
+  const cleanSummary = sanitizeInput(params.summary);
+  const cleanTags = params.tags.map(sanitizeTag);
+  const cleanToc = (params.toc ?? []).map((t) => sanitizeInput(t, 500));
+  const cleanLink = params.link ? sanitizeInput(params.link, 2000) : undefined;
+
   const doc: Omit<BookDoc, "_id"> = {
-    title: params.title,
-    author: params.author,
+    title: cleanTitle,
+    author: cleanAuthor,
     category: params.category,
     difficulty: params.difficulty,
-    tags: params.tags,
+    tags: cleanTags,
     accent: ACCENT_COLORS[Math.floor(Math.random() * ACCENT_COLORS.length)],
-    summary: params.summary,
+    summary: cleanSummary,
     favorites: 0,
     downloads: 0,
     rating: 0,
     year: new Date().getFullYear(),
     pages: 0,
-    toc: params.toc ?? [],
+    toc: cleanToc,
     reviews: [],
     authorUid: uid,
-    link: params.link,
+    link: cleanLink,
     fileUrl: params.fileUrl,
     fileName: params.fileName,
     createdAt: new Date().toISOString(),
@@ -196,7 +211,7 @@ export async function createBook(params: {
   const newId = (resObj.id as string) ?? (resObj._id as string) ?? "";
 
   // 登记标签计数（需等待完成）
-  await ensureTags(params.tags);
+  await ensureTags(cleanTags);
 
   return {
     id: newId,
