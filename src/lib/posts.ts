@@ -100,6 +100,20 @@ export async function fetchPosts(
   }
 }
 
+/** 按浏览量取热门帖子（首页侧栏榜单用），失败时返回空数组不阻塞页面 */
+export async function fetchHotPosts(limit = 5): Promise<Question[]> {
+  try {
+    const { data } = await db
+      .collection(POSTS_COLLECTION)
+      .orderBy("views", "desc")
+      .limit(limit)
+      .get();
+    return ((data as PostDoc[]) ?? []).map(toQuestion);
+  } catch {
+    return [];
+  }
+}
+
 /** 获取单个帖子详情 */
 export async function fetchPostById(id: string): Promise<Question | null> {
   try {

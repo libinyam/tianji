@@ -4,6 +4,7 @@ import { Plus, GraduationCap, Coffee, Search, Megaphone, X, AlertCircle, Refresh
 import PostModal from "@/components/PostModal";
 import EmptyState from "@/components/EmptyState";
 import WelcomeBanner from "@/components/WelcomeBanner";
+import DiscussionSidebar from "@/components/DiscussionSidebar";
 import { PostCardSkeleton, ListSkeleton } from "@/components/Skeleton";
 
 import { fetchPosts, type PostCategory, type CasualSubCategory, CASUAL_SUB_CATEGORIES } from "@/lib/posts";
@@ -209,7 +210,9 @@ export default function Discussion() {
         </div>
       </div>
 
-      <section className="container-tj py-6">
+      {/* 主体：列表 + 桌面端右侧栏 */}
+      <section className="container-tj grid gap-8 py-6 lg:grid-cols-[minmax(0,1fr)_280px] lg:items-start">
+        <div className="min-w-0">
         {/* 新访客欢迎横幅 */}
         <WelcomeBanner />
 
@@ -366,6 +369,9 @@ export default function Discussion() {
             ))}
           </div>
         )}
+        </div>
+
+        <DiscussionSidebar />
       </section>
 
       <PostModal
