@@ -1,9 +1,15 @@
 import { lazy, Suspense, type ComponentType } from "react";
-import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
+import {
+  BrowserRouter as Router,
+  Routes,
+  Route,
+  Navigate,
+  useLocation,
+} from "react-router-dom";
 import Layout from "@/components/Layout";
 import ScrollToTop from "@/components/ScrollToTop";
 import ToastContainer from "@/components/ToastContainer";
-import Home from "@/pages/Home";
+import Discussion from "@/pages/Discussion";
 
 /**
  * 包装 lazy，捕获动态 import 失败（新部署后旧 chunk hash 失效）自动刷新页面。
@@ -27,10 +33,10 @@ function lazyWithReload<T extends ComponentType<unknown>>(
   );
 }
 
-// 路由级懒加载 — 首屏只加载 Home，其余按需加载
+// 路由级懒加载 — 首屏只加载讨论区（首页），其余按需加载
+const About = lazyWithReload(() => import("@/pages/About"));
 const Library = lazyWithReload(() => import("@/pages/Library"));
 const BookDetail = lazyWithReload(() => import("@/pages/BookDetail"));
-const Discussion = lazyWithReload(() => import("@/pages/Discussion"));
 const DiscussionDetail = lazyWithReload(() => import("@/pages/DiscussionDetail"));
 const Ideas = lazyWithReload(() => import("@/pages/Ideas"));
 const IdeaDetail = lazyWithReload(() => import("@/pages/IdeaDetail"));
@@ -59,21 +65,28 @@ function PageFallback() {
   );
 }
 
+/** 旧讨论区路径重定向到首页，转发 state（发帖预填等依赖 location.state）。 */
+function DiscussionRedirect() {
+  const location = useLocation();
+  return <Navigate to="/" replace state={location.state} />;
+}
+
 export default function App() {
   return (
     <Router>
       <ScrollToTop />
       <Routes>
         <Route element={<Layout />}>
-          <Route path="/" element={<Home />} />
+          <Route path="/" element={<Discussion />} />
           <Route
             path="*"
             element={
               <Suspense fallback={<PageFallback />}>
                 <Routes>
+                  <Route path="/about" element={<About />} />
                   <Route path="/library" element={<Library />} />
                   <Route path="/library/:id" element={<BookDetail />} />
-                  <Route path="/discussion" element={<Discussion />} />
+                  <Route path="/discussion" element={<DiscussionRedirect />} />
                   <Route path="/discussion/:id" element={<DiscussionDetail />} />
                   <Route path="/ideas" element={<Ideas />} />
                   <Route path="/ideas/:id" element={<IdeaDetail />} />

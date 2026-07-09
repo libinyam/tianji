@@ -10,9 +10,11 @@ import { fetchIdeas, resonanceIdea, updateIdea, deleteIdea } from "@/lib/ideas";
 import { toggleFavorite, getFavoritedIds } from "@/lib/favorites";
 import { useAuthStore } from "@/stores/auth";
 import { isAuthor } from "@/lib/utils";
+import { useDocumentTitle } from "@/hooks/useDocumentTitle";
 import type { Idea } from "@/types";
 
 export default function Ideas() {
+  useDocumentTitle("灵感广场");
   const [topic, setTopic] = useState("全部");
   const [sort, setSort] = useState<"最新" | "共鸣">("共鸣");
   const [ideaModalOpen, setIdeaModalOpen] = useState(false);

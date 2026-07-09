@@ -22,7 +22,7 @@ const MODULES: ModuleDef[] = [
   },
   {
     index: "02",
-    to: "/discussion",
+    to: "/",
     icon: MessagesSquare,
     title: "学问讨论",
     desc: "跨专业答疑与工具配置求助。从理论推导到 Codex、Claude Code、MCP 的使用，有人陪你打通每一步。",

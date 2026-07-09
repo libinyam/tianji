@@ -5,6 +5,7 @@ import { useIsAdmin } from "@/lib/admin";
 import { useAuthStore } from "@/stores/auth";
 import { toast } from "@/stores/toast";
 import { fetchReports, resolveReport, type Report } from "@/lib/reports";
+import { useDocumentTitle } from "@/hooks/useDocumentTitle";
 import {
   fetchAllAnnouncements,
   createAnnouncement,
@@ -80,6 +81,7 @@ interface WorkshopItem {
 }
 
 export default function Admin() {
+  useDocumentTitle("管理后台");
   const isAdmin = useIsAdmin();
   const { user, loading } = useAuthStore();
   const [tab, setTab] = useState<"overview" | "posts" | "ideas" | "books" | "workshops" | "reports" | "announcements">("overview");

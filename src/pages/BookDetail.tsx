@@ -27,12 +27,14 @@ import { toggleFavorite, isFavorited } from "@/lib/favorites";
 import { rateLimiters } from "@/lib/security";
 import { useAuthStore } from "@/stores/auth";
 import { toast } from "@/stores/toast";
+import { useDocumentTitle } from "@/hooks/useDocumentTitle";
 import LazyMathText from "@/components/LazyMathText";
 
 export default function BookDetail() {
   const { id } = useParams();
   const mockBook = books.find((b) => b.id === id);
   const [book, setBook] = useState(mockBook || null);
+  useDocumentTitle(book?.title);
   const [loading, setLoading] = useState(!mockBook);
   const [tocOpen, setTocOpen] = useState(true);
   const [favorited, setFavorited] = useState(false);
@@ -509,7 +511,7 @@ export default function BookDetail() {
                     return;
                   }
                   const pageStr = questionPage.trim() ? `第 ${questionPage.trim()} 页：` : "";
-                  navigate("/discussion", {
+                  navigate("/", {
                     state: {
                       prefill: {
                         title: `关于《${book.title}》${pageStr}的疑问`,

@@ -1,19 +1,36 @@
 import { useMemo, useState, useEffect } from "react";
-import { Link, useNavigate, useLocation } from "react-router-dom";
+import { Link, useNavigate, useLocation, useSearchParams } from "react-router-dom";
 import { Plus, GraduationCap, Coffee, Search, Megaphone, X, AlertCircle, RefreshCw } from "lucide-react";
 import PostModal from "@/components/PostModal";
 import EmptyState from "@/components/EmptyState";
+import WelcomeBanner from "@/components/WelcomeBanner";
 import { PostCardSkeleton, ListSkeleton } from "@/components/Skeleton";
 
 import { fetchPosts, type PostCategory, type CasualSubCategory, CASUAL_SUB_CATEGORIES } from "@/lib/posts";
 import type { PostsResult } from "@/lib/posts";
 import { fetchActiveAnnouncements, type Announcement } from "@/lib/announcements";
 import { PRESET_TAGS } from "@/lib/tags";
+import { formatRelativeTime } from "@/lib/format";
+import { useDocumentTitle } from "@/hooks/useDocumentTitle";
 import { useAuthStore } from "@/stores/auth";
 import type { Question } from "@/types";
 
 type SortKey = "最新" | "热度" | "悬赏";
 type CategoryFilter = "全部" | "学科" | "工具与部署";
+
+const SORT_KEYS: SortKey[] = ["最新", "热度", "悬赏"];
+const ACADEMIC_CATEGORIES: CategoryFilter[] = ["全部", "学科", "工具与部署"];
+
+/** 筛选参数默认值 —— 等于默认值的参数不写进 URL，保持地址干净 */
+const FILTER_DEFAULTS: Record<string, string> = {
+  section: "academic",
+  cat: "全部",
+  tag: "全部",
+  sort: "最新",
+};
+
+/** 列表内存缓存（按分区+子分类）：后退返回时立即渲染，浏览器才能恢复滚动位置 */
+const postsCache = new Map<string, Question[]>();
 
 const SECTIONS: { key: PostCategory; label: string; icon: typeof GraduationCap }[] = [
   { key: "academic", label: "学术区", icon: GraduationCap },
@@ -21,16 +38,29 @@ const SECTIONS: { key: PostCategory; label: string; icon: typeof GraduationCap }
 ];
 
 export default function Discussion() {
-  const [section, setSection] = useState<PostCategory>("academic");
-  const [activeTag, setActiveTag] = useState<string>("全部");
-  const [categoryFilter, setCategoryFilter] = useState<CategoryFilter>("全部");
-  const [subFilter, setSubFilter] = useState<CasualSubCategory | "全部">("全部");
-  const [sort, setSort] = useState<SortKey>("最新");
+  useDocumentTitle();
+  const [searchParams, setSearchParams] = useSearchParams();
+
+  // 筛选状态由 URL 承载：刷新、分享、后退都能还原
+  const section: PostCategory = searchParams.get("section") === "casual" ? "casual" : "academic";
+  const rawCat = searchParams.get("cat") ?? "全部";
+  const categoryFilter: CategoryFilter = ACADEMIC_CATEGORIES.includes(rawCat as CategoryFilter)
+    ? (rawCat as CategoryFilter)
+    : "全部";
+  const subFilter: CasualSubCategory | "全部" = (CASUAL_SUB_CATEGORIES as string[]).includes(rawCat)
+    ? (rawCat as CasualSubCategory)
+    : "全部";
+  const activeTag = searchParams.get("tag") ?? "全部";
+  const rawSort = searchParams.get("sort") ?? "最新";
+  const sort: SortKey = SORT_KEYS.includes(rawSort as SortKey) ? (rawSort as SortKey) : "最新";
+
+  const cacheKey = `${section}:${subFilter}`;
   const [postModalOpen, setPostModalOpen] = useState(false);
   const [capturedPrefill, setCapturedPrefill] = useState<{ title: string; body: string; tags: string[] } | null>(null);
-  const [realPosts, setRealPosts] = useState<Question[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [realPosts, setRealPosts] = useState<Question[]>(() => postsCache.get(cacheKey) ?? []);
+  const [loading, setLoading] = useState(() => !postsCache.has(cacheKey));
   const [error, setError] = useState<string | null>(null);
+  const [reloadKey, setReloadKey] = useState(0);
   const [announcements, setAnnouncements] = useState<Announcement[]>([]);
   const [dismissedAnn, setDismissedAnn] = useState<Set<string>>(new Set());
   const { user } = useAuthStore();
@@ -38,27 +68,47 @@ export default function Discussion() {
   const location = useLocation();
   const prefill = (location.state as { prefill?: { title: string; body: string; tags: string[] } } | null)?.prefill;
 
+  /** 更新 URL 中的筛选参数；等于默认值的参数从 URL 移除 */
+  const updateFilters = (updates: Record<string, string>) => {
+    const next = new URLSearchParams(searchParams);
+    for (const [key, value] of Object.entries(updates)) {
+      if (value === FILTER_DEFAULTS[key]) next.delete(key);
+      else next.set(key, value);
+    }
+    setSearchParams(next, { replace: true });
+  };
+
   useEffect(() => {
     let mounted = true;
-    (async () => {
+    const cached = postsCache.get(cacheKey);
+    if (cached) {
+      // 有缓存先呈现，再后台静默刷新
+      setRealPosts(cached);
+      setLoading(false);
+    } else {
       setLoading(true);
-      setError(null);
+    }
+    setError(null);
+    (async () => {
       const result: PostsResult = await fetchPosts(
         section,
         section === "casual" && subFilter !== "全部" ? subFilter : undefined
       );
-      if (mounted) {
-        if (result.error) {
+      if (!mounted) return;
+      if (result.error) {
+        // 静默刷新失败时保留已展示的缓存，只在无缓存时报错
+        if (!cached) {
           setError(result.error);
-        } else {
-          setError(null);
+          setRealPosts([]);
         }
+      } else {
+        postsCache.set(cacheKey, result.data);
         setRealPosts(result.data);
-        setLoading(false);
       }
+      setLoading(false);
     })();
     return () => { mounted = false; };
-  }, [section, subFilter]);
+  }, [section, subFilter, cacheKey, reloadKey]);
 
   useEffect(() => {
     let mounted = true;
@@ -106,7 +156,9 @@ export default function Discussion() {
 
   const handleNewPost = (post: Question) => {
     if (post.category !== section) return;
-    setRealPosts((prev) => [post, ...prev]);
+    const next = [post, ...realPosts];
+    postsCache.set(cacheKey, next);
+    setRealPosts(next);
   };
 
   const handlePostClick = () => {
@@ -119,14 +171,10 @@ export default function Discussion() {
 
   // 分类筛选选项
   const categoryOptions = section === "academic"
-    ? (["全部", "学科", "工具与部署"] as CategoryFilter[])
+    ? ACADEMIC_CATEGORIES
     : (["全部", ...CASUAL_SUB_CATEGORIES] as (CasualSubCategory | "全部")[]);
   const activeCategory = section === "academic" ? categoryFilter : subFilter;
-  const setActiveCategory = (v: string) => {
-    if (section === "academic") { setCategoryFilter(v as CategoryFilter); }
-    else { setSubFilter(v as CasualSubCategory | "全部"); }
-    setActiveTag("全部");
-  };
+  const setActiveCategory = (v: string) => updateFilters({ cat: v, tag: "全部" });
 
   return (
     <>
@@ -143,13 +191,7 @@ export default function Discussion() {
                 return (
                   <button
                     key={s.key}
-                    onClick={() => {
-                      setSection(s.key);
-                      setSubFilter("全部");
-                      setCategoryFilter("全部");
-                      setActiveTag("全部");
-                      setSort("最新");
-                    }}
+                    onClick={() => updateFilters({ section: s.key, cat: "全部", tag: "全部", sort: "最新" })}
                     className={`inline-flex items-center gap-1 rounded px-2 py-1 transition-colors ${
                       isActive ? "text-parchment-100" : "text-mist-500 hover:text-mist-300"
                     }`}
@@ -168,6 +210,9 @@ export default function Discussion() {
       </div>
 
       <section className="container-tj py-6">
+        {/* 新访客欢迎横幅 */}
+        <WelcomeBanner />
+
         {/* 公告栏 */}
         {announcements.filter((a) => !dismissedAnn.has(a.id)).length > 0 && (
           <div className="mb-4 space-y-2">
@@ -209,11 +254,11 @@ export default function Discussion() {
           {section === "academic" && categoryFilter !== "全部" && (
             <div className="flex items-center gap-0.5 text-mist-500">
               <span className="mr-1 text-mist-600">|</span>
-              <button onClick={() => setActiveTag("全部")} className={`rounded px-2 py-1 transition-colors ${activeTag === "全部" ? "text-parchment-100" : ""}`}>
+              <button onClick={() => updateFilters({ tag: "全部" })} className={`rounded px-2 py-1 transition-colors ${activeTag === "全部" ? "text-parchment-100" : ""}`}>
                 全部
               </button>
               {ALL_TAGS.map((t) => (
-                <button key={t} onClick={() => setActiveTag(t)} className={`rounded px-2 py-1 transition-colors ${activeTag === t ? "text-parchment-100" : "hover:text-mist-300"}`}>
+                <button key={t} onClick={() => updateFilters({ tag: t })} className={`rounded px-2 py-1 transition-colors ${activeTag === t ? "text-parchment-100" : "hover:text-mist-300"}`}>
                   {t}
                 </button>
               ))}
@@ -222,10 +267,10 @@ export default function Discussion() {
 
           {/* 右侧排序 */}
           <div className="ml-auto flex items-center gap-2">
-            {(["最新", "热度", "悬赏"] as SortKey[]).map((s) => (
+            {SORT_KEYS.map((s) => (
               <button
                 key={s}
-                onClick={() => setSort(s)}
+                onClick={() => updateFilters({ sort: s })}
                 className={`rounded px-2 py-1 transition-colors ${
                   sort === s ? "text-parchment-100" : "text-mist-500 hover:text-mist-300"
                 }`}
@@ -254,22 +299,7 @@ export default function Discussion() {
               {error}。请检查网络或稍后重试。
             </p>
             <button
-              onClick={() => {
-                // 通过更新 state 触发 effect 重新加载
-                setRealPosts([]);
-                setError(null);
-                setLoading(true);
-                // 手动重新触发
-                (async () => {
-                  const result = await fetchPosts(
-                    section,
-                    section === "casual" && subFilter !== "全部" ? subFilter : undefined
-                  );
-                  setError(result.error);
-                  setRealPosts(result.data);
-                  setLoading(false);
-                })();
-              }}
+              onClick={() => setReloadKey((k) => k + 1)}
               className="btn-gold mt-6 inline-flex items-center gap-2 text-sm"
             >
               <RefreshCw size={14} /> 重试
@@ -327,7 +357,7 @@ export default function Discussion() {
                     <span className="text-mist-600">&middot;</span>
                     <span>{q.author}</span>
                     <span className="text-mist-600">&middot;</span>
-                    <span>{q.createdAt}</span>
+                    <span>{formatRelativeTime(q.createdAt)}</span>
                     <span className="text-mist-600">&middot;</span>
                     <span>{q.views} 浏览</span>
                   </div>

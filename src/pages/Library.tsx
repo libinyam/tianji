@@ -6,6 +6,7 @@ import BookUploadModal from "@/components/BookUploadModal";
 
 import { fetchBooks } from "@/lib/books";
 import { useAuthStore } from "@/stores/auth";
+import { useDocumentTitle } from "@/hooks/useDocumentTitle";
 import type { Book, BookCategory } from "@/types";
 
 const CATEGORIES: ("全部" | BookCategory)[] = [
@@ -21,6 +22,7 @@ type SortKey = "热度" | "最新" | "难度";
 const SORTS: SortKey[] = ["热度", "最新", "难度"];
 
 export default function Library() {
+  useDocumentTitle("资源库");
   const [query, setQuery] = useState("");
   const [category, setCategory] = useState<"全部" | BookCategory>("全部");
   const [sort, setSort] = useState<SortKey>("热度");

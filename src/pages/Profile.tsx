@@ -18,6 +18,7 @@ import { useAuthStore } from "@/stores/auth";
 import { toast } from "@/stores/toast";
 import { fetchUserContent, type UserContent } from "@/lib/profile";
 import { fetchMyFavorites, type FavoriteItem } from "@/lib/favorites";
+import { useDocumentTitle } from "@/hooks/useDocumentTitle";
 import { app } from "@/lib/cloudbase";
 
 // 星辰风格头像，契合天玑主题
@@ -37,6 +38,7 @@ function formatDate(s: string) {
 }
 
 export default function Profile() {
+  useDocumentTitle("个人主页");
   const { user, updateProfile } = useAuthStore();
   const [content, setContent] = useState<UserContent | null>(null);
   const [favorites, setFavorites] = useState<FavoriteItem[]>([]);

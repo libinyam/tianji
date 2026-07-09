@@ -33,6 +33,7 @@ import {
 } from "@/lib/workshops";
 import { useAuthStore } from "@/stores/auth";
 import { toast } from "@/stores/toast";
+import { useDocumentTitle } from "@/hooks/useDocumentTitle";
 import Avatar from "@/components/Avatar";
 import LazyMathText from "@/components/LazyMathText";
 import RelatedContent from "@/components/RelatedContent";
@@ -56,6 +57,7 @@ export default function WorkshopDetail() {
   const navigate = useNavigate();
 
   const [project, setProject] = useState<WorkshopProject | null>(null);
+  useDocumentTitle(project?.title);
   const [loading, setLoading] = useState(true);
   const [joining, setJoining] = useState(false);
 

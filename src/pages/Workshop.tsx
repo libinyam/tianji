@@ -5,6 +5,7 @@ import WorkshopCreateModal from "@/components/WorkshopCreateModal";
 import { WorkshopCardSkeleton, ListSkeleton } from "@/components/Skeleton";
 import { fetchWorkshops, canViewContent, type WorkshopProject } from "@/lib/workshops";
 import { useAuthStore } from "@/stores/auth";
+import { useDocumentTitle } from "@/hooks/useDocumentTitle";
 
 function formatUpdatedAt(iso: string): string {
   if (!iso) return "";
@@ -20,6 +21,7 @@ function formatUpdatedAt(iso: string): string {
 }
 
 export default function Workshop() {
+  useDocumentTitle("协作工坊");
   const [createOpen, setCreateOpen] = useState(false);
   const [realProjects, setRealProjects] = useState<WorkshopProject[]>([]);
   const [loading, setLoading] = useState(true);

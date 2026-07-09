@@ -12,6 +12,7 @@ import {
 import { PostDetailSkeleton } from "@/components/Skeleton";
 import { fetchPublicUser, fetchUserContent, type UserContent, type PublicUser } from "@/lib/profile";
 import { useAuthStore } from "@/stores/auth";
+import { useDocumentTitle } from "@/hooks/useDocumentTitle";
 
 function formatDate(s: string) {
   if (!s) return "";
@@ -23,6 +24,7 @@ export default function UserProfile() {
   const { uid } = useParams();
   const { user: currentUser } = useAuthStore();
   const [profile, setProfile] = useState<PublicUser | null>(null);
+  useDocumentTitle(profile ? profile.nickname || "匿名用户" : undefined);
   const [content, setContent] = useState<UserContent | null>(null);
   const [loading, setLoading] = useState(true);
 

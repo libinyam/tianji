@@ -32,22 +32,9 @@ export default function Hero() {
               探索资源库
               <ArrowUpRight size={15} />
             </Link>
-            <Link to="/discussion" className="btn-ghost">
+            <Link to="/" className="btn-ghost">
               加入讨论
             </Link>
-          </div>
-
-          <div className="mt-10 flex items-center gap-8">
-            {[
-              { n: "8.6k+", l: "跨界学习者" },
-              { n: "1.3k+", l: "学习资源" },
-              { n: "4.7k+", l: "疑难解答" },
-            ].map((s) => (
-              <div key={s.l}>
-                <div className="heading-display text-xl text-star-300">{s.n}</div>
-                <div className="mt-0.5 text-xs text-mist-500">{s.l}</div>
-              </div>
-            ))}
           </div>
         </div>
 

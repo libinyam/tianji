@@ -4,6 +4,7 @@ import { motion } from "motion/react";
 import { ArrowLeft, Tag, MessageSquare, Lightbulb, BookOpen, Users, Wrench, GraduationCap } from "lucide-react";
 import { fetchContentByTag, fetchTagCount, inferCategory, CATEGORY_LABEL, type TagContentItem } from "@/lib/tags";
 import { PostCardSkeleton, BookCardSkeleton, IdeaCardSkeleton, WorkshopCardSkeleton } from "@/components/Skeleton";
+import { useDocumentTitle } from "@/hooks/useDocumentTitle";
 
 const TYPE_ICON = {
   post: MessageSquare,
@@ -21,6 +22,7 @@ const TYPE_LABEL = {
 
 export default function TagDetail() {
   const { name = "" } = useParams<{ name: string }>();
+  useDocumentTitle(name ? `#${name}` : undefined);
   const [loading, setLoading] = useState(true);
   const [content, setContent] = useState<{
     posts: TagContentItem[];

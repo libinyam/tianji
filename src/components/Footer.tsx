@@ -3,10 +3,11 @@ import { Sparkles, Github, Mail, BookOpen } from "lucide-react";
 import Constellation from "./Constellation";
 
 const MODULES = [
+  { to: "/", label: "讨论区" },
   { to: "/library", label: "资源库" },
-  { to: "/discussion", label: "讨论区" },
   { to: "/ideas", label: "灵感广场" },
   { to: "/workshop", label: "协作工坊" },
+  { to: "/about", label: "关于天玑" },
 ];
 
 export default function Footer() {

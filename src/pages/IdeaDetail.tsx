@@ -11,12 +11,14 @@ import { rateLimiters } from "@/lib/security";
 import { useAuthStore } from "@/stores/auth";
 import { formatRelativeTime } from "@/lib/format";
 import { isAuthor } from "@/lib/utils";
+import { useDocumentTitle } from "@/hooks/useDocumentTitle";
 import type { Idea } from "@/types";
 
 export default function IdeaDetail() {
   const { id } = useParams<{ id: string }>();
   const { user } = useAuthStore();
   const [idea, setIdea] = useState<Idea | null>(null);
+  useDocumentTitle(idea?.title);
   const [loading, setLoading] = useState(true);
   const [resonated, setResonated] = useState(false);
   const [faved, setFaved] = useState(false);

@@ -1,7 +1,4 @@
 import { app } from "@/lib/cloudbase";
-import { questions } from "@/data/questions";
-import { books } from "@/data/books";
-import { ideas } from "@/data/ideas";
 
 const db = app.database();
 const _ = db.command;
@@ -161,68 +158,6 @@ export async function searchAll(keyword: string, signal?: AbortSignal): Promise<
   } else {
     await allDone;
   }
-
-  // 合并本地 mock 数据（首页/讨论区可见的演示内容）
-  const kw = keyword.trim().toLowerCase();
-  const matches = (text: string) => text.toLowerCase().includes(kw);
-
-  // mock 帖子
-  questions.forEach((q) => {
-    if (matches(q.title) || matches(q.excerpt) || matches(q.body) || q.tags.some(matches)) {
-      // 避免和数据库结果重复（数据库可能有同 id 的真实帖子）
-      if (!results.some((r) => r.id === q.id)) {
-        results.push({
-          id: q.id,
-          title: q.title,
-          excerpt: q.excerpt,
-          type: "帖子",
-          link: `/discussion/${q.id}`,
-          hot: (q.views ?? 0) + (q.votes ?? 0) * 5 + (q.answers ?? 0) * 3,
-          tags: q.tags ?? [],
-          author: q.author ?? "",
-          createdAt: q.createdAt ?? "",
-        });
-      }
-    }
-  });
-
-  // mock 资源
-  books.forEach((b) => {
-    if (matches(b.title) || matches(b.summary) || b.tags.some(matches)) {
-      if (!results.some((r) => r.id === b.id)) {
-        results.push({
-          id: b.id,
-          title: b.title,
-          excerpt: b.summary,
-          type: "资源",
-          link: `/library/${b.id}`,
-          hot: (b.favorites ?? 0) * 3 + (b.rating ?? 0) * 10,
-          tags: b.tags ?? [],
-          author: b.author ?? "",
-          createdAt: "",
-        });
-      }
-    }
-  });
-
-  // mock 灵感
-  ideas.forEach((it) => {
-    if (matches(it.title) || matches(it.summary) || (it.tags ?? []).some(matches)) {
-      if (!results.some((r) => r.id === it.id)) {
-        results.push({
-          id: it.id,
-          title: it.title,
-          excerpt: it.summary ?? "",
-          type: "灵感",
-          link: `/ideas/${it.id}`,
-          hot: (it.resonance ?? 0) * 4 + (it.replies ?? 0) * 2,
-          tags: it.tags ?? [],
-          author: it.author ?? "",
-          createdAt: it.createdAt ?? "",
-        });
-      }
-    }
-  });
 
   // 按热度降序
   results.sort((a, b) => b.hot - a.hot);

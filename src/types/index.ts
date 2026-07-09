@@ -111,17 +111,3 @@ export interface Doc {
   updatedAt: string;
   accent: string;
 }
-
-export interface Contributor {
-  name: string;
-  role: string;
-  avatarColor: string;
-  contributions: number;
-}
-
-export interface CommunityStat {
-  label: string;
-  value: number;
-  suffix?: string;
-  icon: string;
-}

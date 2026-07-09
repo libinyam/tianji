@@ -39,6 +39,7 @@ import { rateLimiters } from "@/lib/security";
 import { app } from "@/lib/cloudbase";
 import { useAuthStore } from "@/stores/auth";
 import { formatRelativeTime } from "@/lib/format";
+import { useDocumentTitle } from "@/hooks/useDocumentTitle";
 import LazyMathText from "@/components/LazyMathText";
 import Avatar from "@/components/Avatar";
 import RelatedContent from "@/components/RelatedContent";
@@ -55,6 +56,7 @@ export default function DiscussionDetail() {
   const mockQuestion = mockQuestions.find((q) => q.id === id);
 
   const [question, setQuestion] = useState<Question | null>(mockQuestion ?? null);
+  useDocumentTitle(question?.title);
   const [loading, setLoading] = useState(!mockQuestion);
   const [voted, setVoted] = useState<Record<string, boolean>>({});
 
@@ -218,7 +220,7 @@ export default function DiscussionDetail() {
     try {
       await deletePost(question.id);
       toast.success("帖子已删除");
-      navigate("/discussion");
+      navigate("/");
     } catch (e) {
       toast.error((e as Error).message);
     }
@@ -519,7 +521,7 @@ export default function DiscussionDetail() {
     return (
       <div className="container-tj py-40 text-center">
         <p className="text-mist-400">未找到该讨论。</p>
-        <Link to="/discussion" className="btn-ghost mt-6 inline-flex">
+        <Link to="/" className="btn-ghost mt-6 inline-flex">
           <ArrowLeft size={15} /> 返回讨论区
         </Link>
       </div>
@@ -529,7 +531,7 @@ export default function DiscussionDetail() {
   return (
     <div className="container-tj py-10">
       <Link
-        to="/discussion"
+        to="/"
         className="inline-flex items-center gap-1.5 text-sm text-mist-400 transition-colors hover:text-star-300"
       >
         <ArrowLeft size={15} /> 返回讨论区
