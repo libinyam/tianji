@@ -124,7 +124,9 @@ export default function DiscussionDetail() {
             setQuestion((prev) => prev ? { ...prev, views: prev.views + 1 } : prev);
           }
           // 检查收藏状态
-          isFavorited(id).then(setFavState);
+          isFavorited(id).then((fav) => {
+            if (mounted) setFavState(fav);
+          });
           // 加载用户投票记录
           const answerIds = (post.answerList ?? []).map((a) => a.id);
           if (answerIds.length > 0) {
@@ -609,7 +611,7 @@ export default function DiscussionDetail() {
                 <div className="flex items-center gap-3">
                   <button
                     onClick={startEditPost}
-                    className="text-mist-400 transition-colors hover:text-tian-300"
+                    className="flex h-9 w-9 items-center justify-center rounded-md text-mist-400 transition-colors hover:bg-void-700/60 hover:text-tian-300"
                     title="编辑帖子"
                     aria-label="编辑帖子"
                   >
@@ -617,7 +619,7 @@ export default function DiscussionDetail() {
                   </button>
                   <button
                     onClick={handleDeletePost}
-                    className="text-mist-400 transition-colors hover:text-red-300"
+                    className="flex h-9 w-9 items-center justify-center rounded-md text-mist-400 transition-colors hover:bg-void-700/60 hover:text-red-300"
                     title="删除帖子"
                     aria-label="删除帖子"
                   >

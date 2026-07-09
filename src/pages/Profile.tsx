@@ -59,11 +59,15 @@ export default function Profile() {
     }
     setNickname(user.nickname ?? "");
     setAvatarUrl(user.avatarUrl ?? "");
-    Promise.all([fetchUserContent(user.uid), fetchMyFavorites()]).then(([c, favs]) => {
-      setContent(c);
-      setFavorites(favs);
-      setLoading(false);
-    });
+    Promise.all([fetchUserContent(user.uid), fetchMyFavorites()])
+      .then(([c, favs]) => {
+        setContent(c);
+        setFavorites(favs);
+      })
+      .catch(() => {
+        // 极端情况下（SDK 初始化失败等）也要解除加载态
+      })
+      .finally(() => setLoading(false));
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user?.uid]);
 

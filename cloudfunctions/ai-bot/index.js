@@ -146,7 +146,7 @@ exports.main = async (event, context) => {
             authorUid: BOT_UID,
             avatarColor: BOT_AVATAR_COLOR,
             content: reply,
-            date: new Date().toISOString().slice(0, 10),
+            date: new Date().toISOString(),
           };
 
           const targetAnswer = answerList[targetIdx];
@@ -157,7 +157,7 @@ exports.main = async (event, context) => {
 
           return { ok: true, reply, comment: botComment, answerId };
         } else {
-          // 发帖回复 → 追加回答
+          // 发帖回复 -> 原子追加回答（避免与用户提交回答的写操作竞态）
           const botAnswer = {
             id: `bot_${Date.now()}`,
             author: BOT_NAME,
@@ -166,13 +166,14 @@ exports.main = async (event, context) => {
             votes: 0,
             accepted: false,
             content: reply,
-            date: new Date().toISOString().slice(0, 10),
+            date: new Date().toISOString(),
           };
 
-          const newAnswerList = [...(post.answerList || []), botAnswer];
+          // 使用 db.command.push 原子追加，避免读-改-写竞态
+          const _ = db.command;
           await docRef.update({
-            answerList: newAnswerList,
-            answersCount: newAnswerList.length,
+            answerList: _.push(botAnswer),
+            answersCount: _.inc(1),
           });
 
           return { ok: true, reply, answer: botAnswer };

@@ -1,6 +1,7 @@
 import { app } from "@/lib/cloudbase";
 import { useAuthStore } from "@/stores/auth";
 import { assertAdmin } from "@/lib/admin";
+import { sanitizeInput } from "@/lib/sanitize";
 
 const db = app.database();
 
@@ -52,8 +53,8 @@ export async function createReport(params: {
     reporterName: getCurrentUserName(),
     targetType: params.targetType,
     targetId: params.targetId,
-    targetTitle: params.targetTitle,
-    reason: params.reason,
+    targetTitle: sanitizeInput(params.targetTitle, 200),
+    reason: sanitizeInput(params.reason, 500),
     status: "pending",
     createdAt: new Date().toISOString(),
   });

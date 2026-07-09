@@ -42,6 +42,11 @@ export default function NotificationBell() {
   const [list, setList] = useState<NotificationItem[]>([]);
   const [loading, setLoading] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
+  const mountedRef = useRef(true);
+
+  useEffect(() => {
+    return () => { mountedRef.current = false; };
+  }, []);
 
   // 定时拉取未读数
   useEffect(() => {
@@ -82,6 +87,7 @@ export default function NotificationBell() {
   const handleClick = async (item: NotificationItem) => {
     if (!item.read) {
       await markAsRead(item.id);
+      if (!mountedRef.current) return;
       setUnread((n) => Math.max(0, n - 1));
       setList((prev) => prev.map((n) => (n.id === item.id ? { ...n, read: true } : n)));
     }
@@ -91,6 +97,7 @@ export default function NotificationBell() {
 
   const handleMarkAll = async () => {
     await markAllRead();
+    if (!mountedRef.current) return;
     setUnread(0);
     setList((prev) => prev.map((n) => ({ ...n, read: true })));
   };

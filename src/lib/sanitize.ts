@@ -28,6 +28,7 @@ export function sanitizeInput(text: string, maxLength = 10000): string {
     // 1. 去除零宽字符
     .replace(/[\u200B-\u200F\u202A-\u202E\u2060-\u2064\uFEFF]/g, "")
     // 2. 去除 C0/C1 控制字符（保留 \n \r \t）
+    // eslint-disable-next-line no-control-regex
     .replace(/[\x00-\x08\x0B\x0C\x0E-\x1F\x7F-\x9F]/g, "")
     // 3. 去除 HTML 标签
     .replace(/<\/?[a-z][\s\S]*?>/gi, "")

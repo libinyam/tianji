@@ -1,5 +1,6 @@
 import { app } from "@/lib/cloudbase";
 import { useAuthStore } from "@/stores/auth";
+import { sanitizeInput } from "@/lib/sanitize";
 
 const db = app.database();
 const COLLECTION = "favorites";
@@ -83,8 +84,8 @@ export async function toggleFavorite(params: {
     uid,
     targetId: params.targetId,
     type: params.type,
-    title: params.title,
-    excerpt: params.excerpt,
+    title: sanitizeInput(params.title, 200),
+    excerpt: sanitizeInput(params.excerpt, 500),
     link: params.link,
     createdAt: new Date().toISOString(),
   };
