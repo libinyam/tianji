@@ -104,6 +104,9 @@ tcb fn deploy ai-bot --envId <你的云环境ID>
 
 # 部署 admin-delete 云函数（管理员删除帖子）
 tcb fn deploy admin-delete --envId <你的云环境ID>
+
+# 部署 db-backup 云函数（数据库定时备份）
+tcb fn deploy db-backup --envId <你的云环境ID>
 ```
 
 部署后需在云函数环境变量中配置：

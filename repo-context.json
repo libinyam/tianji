@@ -6,7 +6,7 @@
     "node_id": "R_kgDOTAIVKg",
     "name": "tianji",
     "full_name": "libinyam/tianji",
-    "private": true,
+    "private": false,
     "owner": {
       "login": "libinyam",
       "id": 251160820,
@@ -69,14 +69,14 @@
     "releases_url": "https://api.github.com/repos/libinyam/tianji/releases{/id}",
     "deployments_url": "https://api.github.com/repos/libinyam/tianji/deployments",
     "created_at": "2026-06-20T11:44:24Z",
-    "updated_at": "2026-07-10T10:47:40Z",
-    "pushed_at": "2026-07-10T10:46:54Z",
+    "updated_at": "2026-07-10T11:08:11Z",
+    "pushed_at": "2026-07-10T11:03:18Z",
     "git_url": "git://github.com/libinyam/tianji.git",
     "ssh_url": "git@github.com:libinyam/tianji.git",
     "clone_url": "https://github.com/libinyam/tianji.git",
     "svn_url": "https://github.com/libinyam/tianji",
     "homepage": "https://tianji-pink.vercel.app",
-    "size": 12047,
+    "size": 12231,
     "stargazers_count": 3,
     "watchers_count": 3,
     "language": "TypeScript",
@@ -86,11 +86,11 @@
     "has_wiki": false,
     "has_pages": false,
     "has_discussions": false,
-    "forks_count": 1,
+    "forks_count": 0,
     "mirror_url": null,
     "archived": false,
     "disabled": false,
-    "open_issues_count": 50,
+    "open_issues_count": 42,
     "license": {
       "key": "mit",
       "name": "MIT License",
@@ -104,9 +104,9 @@
     "has_pull_requests": true,
     "pull_request_creation_policy": "all",
     "topics": [],
-    "visibility": "private",
-    "forks": 1,
-    "open_issues": 50,
+    "visibility": "public",
+    "forks": 0,
+    "open_issues": 42,
     "watchers": 3,
     "default_branch": "main",
     "permissions": {
@@ -116,7 +116,7 @@
       "triage": true,
       "pull": true
     },
-    "temp_clone_token": "B34GR5ADEQFVNBTLKRZGIW3KKDH4C",
+    "temp_clone_token": "",
     "allow_squash_merge": true,
     "allow_merge_commit": true,
     "allow_rebase_merge": true,
@@ -128,16 +128,33 @@
     "squash_merge_commit_title": "COMMIT_OR_PR_TITLE",
     "merge_commit_message": "PR_TITLE",
     "merge_commit_title": "MERGE_MESSAGE",
-    "network_count": 1,
+    "security_and_analysis": {
+      "secret_scanning": {
+        "status": "disabled"
+      },
+      "secret_scanning_push_protection": {
+        "status": "disabled"
+      },
+      "dependabot_security_updates": {
+        "status": "disabled"
+      },
+      "secret_scanning_non_provider_patterns": {
+        "status": "disabled"
+      },
+      "secret_scanning_validity_checks": {
+        "status": "disabled"
+      }
+    },
+    "network_count": 0,
     "subscribers_count": 0
   },
-  "readme": "# 天玑 (Tianji) — 知识共创社区\n\n面向学生、研究者和开发者的知识分享平台，集讨论区、灵感广场、资源库、协作工坊于一体。打通从学习资源到项目协作的完整链路。\n\n## 技术栈\n\n- React 18 + TypeScript\n- Vite 构建工具\n- Tailwind CSS 样式\n- Zustand 状态管理\n- CloudBase（腾讯云开发）后端服务\n- React Router 路由\n- KaTeX 数学公式渲染（按需懒加载）\n- PDF.js 目录自动识别\n- Framer Motion 动画\n\n## 功能模块\n\n### 核心功能\n\n- **讨论区**：学术区与闲聊区分区运营，学术区支持标签筛选，闲聊区按子分类（灌水/动态/新闻/其他）浏览\n- **问答系统**：发帖、回答、评论、投票、采纳回答（可取消采纳）、AI 机器人自动回复\n- **灵感广场**：快速分享灵感，共鸣互动\n- **资源库**：书籍上传与下载，PDF 上传自动识别目录书签，支持在线预览与下载\n- **协作工坊**：多人协作编辑文档，批注讨论，章节大纲管理，创建者可编辑标题/简介/删除项目\n\n### 跨模块联动\n\n- **标签体系**：讨论、灵感、资源、协作共享标签，基于标签自动推荐相关内容\n- **全局搜索 + 热度榜**：跨模块搜索，热门标签导航\n- **标签详情页**：按标签聚合四个模块的内容\n\n### 社区功能\n\n- **用户认证**：邮箱注册登录、GitHub OAuth\n- **消息通知**：回答、采纳、评论等事件通知\n- **收藏功能**：收藏帖子、资源等，支持取消收藏\n- **个人主页**：展示用户发布的内容与收藏\n- **管理后台**：帖子管理、举报处理\n- **举报系统**：举报违规内容\n\n### 体验与无障碍\n\n- **深色 / 浅色主题切换**（默认浅色）\n- **无障碍弹窗**：共享 Dialog 组件，焦点陷阱、ESC 关闭、焦点恢复、滚动锁定\n- **减弱动画**：支持 `prefers-reduced-motion`，自动禁用装饰动画\n- **键盘可访问的标签选择器**：combobox 语义，↑↓ 导航，Enter 选择，Escape 关闭\n- **移动端优化**：StarField 移动端降级，路由懒加载\n\n## 本地启动\n\n```bash\nnpm install\nnpm run dev\n```\n\n需要配置环境变量。复制 `.env.example` 为 `.env` 并填入实际值（`.env` 已被 `.gitignore` 忽略，不会提交到仓库）：\n\n```bash\ncp .env.example .env\n```\n\n```env\nVITE_CLOUDBASE_ENV_ID=你的云环境ID\nVITE_CLOUDBASE_REGION=你的地域\nVITE_CLOUDBASE_ACCESS_KEY=你的访问密钥\n```\n\n## 部署\n\n### Vercel 部署\n\n项目已配置 `vercel.json`，支持 Vercel 自动部署。推送代码到 `main` 分支后 Vercel 自动构建部署。\n\n配置要点：\n- `/assets/*` 静态资源使用 immutable 长缓存\n- HTML 使用 `no-cache` 确保每次获取最新版本\n- 旧 hash 资源返回 404 而非重写到 index.html（避免 CSS MIME 类型错误）\n- 安全响应头：`X-Content-Type-Options`、`Content-Security-Policy: frame-ancestors 'none'`、`Referrer-Policy`\n\n### CloudBase 静态托管\n\n也可部署到 CloudBase 静态托管，需配置环境变量后构建：\n\n```bash\nnpm run build\n```\n\n将 `dist/` 目录上传至 CloudBase 静态托管。\n\n### 云函数部署\n\n`cloudfunctions/` 目录下的云函数需要通过 CloudBase CLI 单独部署：\n\n```bash\n# 安装 CloudBase CLI\nnpm install -g @cloudbase/cli\n\n# 登录并选择环境\ntcb login\n\n# 部署 ai-bot 云函数（AI 自动回复）\ntcb fn deploy ai-bot --envId <你的云环境ID>\n\n# 部署 admin-delete 云函数（管理员删除帖子）\ntcb fn deploy admin-delete --envId <你的云环境ID>\n```\n\n部署后需在云函数环境变量中配置：\n\n```bash\n# AI 机器人需要 DeepSeek API 密钥\ntcb fn config set DEEPSEEK_API_KEY <你的密钥> --name ai-bot --envId <你的云环境ID>\n```\n\n## 目录结构\n\n```\n.\n├── src/\n│   ├── components/   # 通用组件（Dialog、TagSelector、StarField 等）\n│   ├── pages/        # 路由页面\n│   ├── lib/          # CloudBase 封装与业务逻辑\n│   ├── stores/       # Zustand 状态管理\n│   ├── types/        # TypeScript 类型定义\n│   └── data/         # 静态数据与种子内容\n├── cloudfunctions/   # 云函数（ai-bot、admin-delete）\n├── public/           # 静态资源\n└── vercel.json       # Vercel 部署配置\n```\n\n## 性能优化\n\n- **路由懒加载**：所有页面级组件使用 `React.lazy` 动态导入\n- **KaTeX 懒加载**：数学公式渲染库按需加载，不阻塞首页\n- **PDF.js 懒加载**：仅在上传 PDF 文件时加载解析器\n- **代码分割**：React、Motion、CloudBase SDK、KaTeX 独立 chunk\n- **生产构建优化**：移除 Trae inspector 元数据，不泄露源码路径\n- **StarField 降级**：移动端减少星星数量，浅色模式不渲染\n\n## License\n\nMIT\n",
+  "readme": "# 天玑 (Tianji) — 知识共创社区\n\n面向学生、研究者和开发者的知识分享平台，集讨论区、灵感广场、资源库、协作工坊于一体。打通从学习资源到项目协作的完整链路。\n\n## 技术栈\n\n- React 18 + TypeScript\n- Vite 构建工具\n- Tailwind CSS 样式\n- Zustand 状态管理\n- CloudBase（腾讯云开发）后端服务\n- React Router 路由\n- KaTeX 数学公式渲染（按需懒加载）\n- PDF.js 目录自动识别\n- Framer Motion 动画\n\n## 功能模块\n\n### 核心功能\n\n- **讨论区**：学术区与闲聊区分区运营，学术区支持标签筛选，闲聊区按子分类（灌水/动态/新闻/其他）浏览\n- **问答系统**：发帖、回答、评论、投票、采纳回答（可取消采纳）、AI 机器人自动回复\n- **灵感广场**：快速分享灵感，共鸣互动\n- **资源库**：书籍上传与下载，PDF 上传自动识别目录书签，支持在线预览与下载\n- **协作工坊**：多人协作编辑文档，批注讨论，章节大纲管理，创建者可编辑标题/简介/删除项目\n\n### 跨模块联动\n\n- **标签体系**：讨论、灵感、资源、协作共享标签，基于标签自动推荐相关内容\n- **全局搜索 + 热度榜**：跨模块搜索，热门标签导航\n- **标签详情页**：按标签聚合四个模块的内容\n\n### 社区功能\n\n- **用户认证**：邮箱注册登录、GitHub OAuth\n- **消息通知**：回答、采纳、评论等事件通知\n- **收藏功能**：收藏帖子、资源等，支持取消收藏\n- **个人主页**：展示用户发布的内容与收藏\n- **管理后台**：帖子管理、举报处理\n- **举报系统**：举报违规内容\n\n### 体验与无障碍\n\n- **深色 / 浅色主题切换**（默认浅色）\n- **无障碍弹窗**：共享 Dialog 组件，焦点陷阱、ESC 关闭、焦点恢复、滚动锁定\n- **减弱动画**：支持 `prefers-reduced-motion`，自动禁用装饰动画\n- **键盘可访问的标签选择器**：combobox 语义，↑↓ 导航，Enter 选择，Escape 关闭\n- **移动端优化**：StarField 移动端降级，路由懒加载\n\n## 本地启动\n\n```bash\nnpm install\nnpm run dev\n```\n\n需要配置环境变量。复制 `.env.example` 为 `.env` 并填入实际值（`.env` 已被 `.gitignore` 忽略，不会提交到仓库）：\n\n```bash\ncp .env.example .env\n```\n\n```env\nVITE_CLOUDBASE_ENV_ID=你的云环境ID\nVITE_CLOUDBASE_REGION=你的地域\nVITE_CLOUDBASE_ACCESS_KEY=你的访问密钥\n```\n\n## 部署\n\n### Vercel 部署\n\n项目已配置 `vercel.json`，支持 Vercel 自动部署。推送代码到 `main` 分支后 Vercel 自动构建部署。\n\n配置要点：\n- `/assets/*` 静态资源使用 immutable 长缓存\n- HTML 使用 `no-cache` 确保每次获取最新版本\n- 旧 hash 资源返回 404 而非重写到 index.html（避免 CSS MIME 类型错误）\n- 安全响应头：`X-Content-Type-Options`、`Content-Security-Policy: frame-ancestors 'none'`、`Referrer-Policy`\n\n### CloudBase 静态托管\n\n也可部署到 CloudBase 静态托管，需配置环境变量后构建：\n\n```bash\nnpm run build\n```\n\n将 `dist/` 目录上传至 CloudBase 静态托管。\n\n### 云函数部署\n\n`cloudfunctions/` 目录下的云函数需要通过 CloudBase CLI 单独部署：\n\n```bash\n# 安装 CloudBase CLI\nnpm install -g @cloudbase/cli\n\n# 登录并选择环境\ntcb login\n\n# 部署 ai-bot 云函数（AI 自动回复）\ntcb fn deploy ai-bot --envId <你的云环境ID>\n\n# 部署 admin-delete 云函数（管理员删除帖子）\ntcb fn deploy admin-delete --envId <你的云环境ID>\n```\n\n部署后需在云函数环境变量中配置：\n\n```bash\n# AI 机器人需要 DeepSeek API 密钥\ntcb fn config set DEEPSEEK_API_KEY <你的密钥> --name ai-bot --envId <你的云环境ID>\n```\n\n### 数据库安全规则部署\n\n`cloudbase-security-rules.json` 定义了所有集合的安全规则（谁可以读/写/改/删）。修改规则后需重新部署：\n\n```bash\n# 预览将要应用的规则（不实际执行）\nnpm run deploy:rules:dry\n\n# 应用规则到 CloudBase 环境\n# 需设置 TCB_SECRET_ID 和 TCB_SECRET_KEY 环境变量（管理端密钥，非前端 accessKey）\nnpm run deploy:rules\n```\n\n验证规则已生效：\n\n```bash\n# 用未登录状态直接调用 db.collection('posts').add() 应返回 DATABASE_PERMISSION_DENIED\n# 用登录用户尝试删除他人帖子应返回权限拒绝\n```\n\n各集合规则概要：\n\n| 集合 | 权限模型 |\n|------|---------|\n| posts/ideas | 作者(authorUid)或管理员可改删 |\n| books | 上传者(uploaderUid)或管理员可改删 |\n| workshops | 创建者(creatorUid)或管理员可改删 |\n| votes/favorites | 用户只能改删自己的记录 |\n| notifications | 用户只能读改删自己的通知 |\n| reports | 用户可举报，仅管理员可处理 |\n| tags/announcements | 前端只读 |\n| sys_* | PRIVATE 禁止前端访问 |\n\n## 目录结构\n\n```\n.\n├── src/\n│   ├── components/   # 通用组件（Dialog、TagSelector、StarField 等）\n│   ├── pages/        # 路由页面\n│   ├── lib/          # CloudBase 封装与业务逻辑\n│   ├── stores/       # Zustand 状态管理\n│   ├── types/        # TypeScript 类型定义\n│   └── data/         # 静态数据与种子内容\n├── cloudfunctions/   # 云函数（ai-bot、admin-delete）\n├── public/           # 静态资源\n└── vercel.json       # Vercel 部署配置\n```\n\n## 性能优化\n\n- **路由懒加载**：所有页面级组件使用 `React.lazy` 动态导入\n- **KaTeX 懒加载**：数学公式渲染库按需加载，不阻塞首页\n- **PDF.js 懒加载**：仅在上传 PDF 文件时加载解析器\n- **代码分割**：React、Motion、CloudBase SDK、KaTeX 独立 chunk\n- **生产构建优化**：移除 Trae inspector 元数据，不泄露源码路径\n- **StarField 降级**：移动端减少星星数量，浅色模式不渲染\n\n## License\n\nMIT\n",
   "tree_summary": {
-    "file_count": 351,
+    "file_count": 391,
     "top_extensions": [
       [
         ".md",
-        230
+        245
       ],
       [
         ".tsx",
@@ -145,11 +162,15 @@
       ],
       [
         ".ts",
-        30
+        34
+      ],
+      [
+        ".py",
+        14
       ],
       [
         ".json",
-        10
+        11
       ],
       [
         ".png",
@@ -160,16 +181,20 @@
         6
       ],
       [
-        ".yaml",
-        2
+        "[none]",
+        4
       ],
       [
-        "[none]",
-        2
+        ".yaml",
+        3
+      ],
+      [
+        ".yml",
+        3
       ],
       [
         ".mjs",
-        2
+        3
       ],
       [
         ".html",
@@ -177,10 +202,6 @@
       ],
       [
         ".example",
-        1
-      ],
-      [
-        ".yml",
         1
       ],
       [
@@ -203,7 +224,7 @@
     "top_directories": [
       [
         ".trae",
-        114
+        147
       ],
       [
         ".agents",
@@ -211,7 +232,7 @@
       ],
       [
         "src",
-        82
+        86
       ],
       [
         ".tmp-e2e",
@@ -223,11 +244,15 @@
       ],
       [
         ".github",
-        4
+        5
       ],
       [
         "public",
         3
+      ],
+      [
+        "scripts",
+        2
       ],
       [
         ".env.example",
@@ -276,10 +301,6 @@
       [
         "package.json",
         1
-      ],
-      [
-        "postcss.config.js",
-        1
       ]
     ],
     "test_paths_sample": [
@@ -289,9 +310,20 @@
       ".trae/skills/cloudbase/references/ops-inspector/SKILL.md",
       ".trae/skills/cloudbase/references/spec-workflow/SKILL.md",
       ".trae/skills/cloudbase/references/web-development/browser-testing.md",
-      "src/lib/sanitize.test.ts"
+      ".trae/skills/github-project-review/roles/role-d-test-engineer.md",
+      ".trae/skills/github-project-review/tests/test_collect_repo_context.py",
+      ".trae/skills/github-project-review/tests/test_create_review_issues.py",
+      ".trae/skills/github-project-review/tests/test_team_findings.py",
+      ".trae/skills/github-project-review/tests/test_team_request.py",
+      ".trae/skills/github-project-review/tests/test_team_synthesis.py",
+      ".trae/skills/github-project-review/tests/test_team_workspace.py",
+      "src/lib/format.test.ts",
+      "src/lib/sanitize.test.ts",
+      "src/lib/security.test.ts",
+      "src/lib/utils.test.ts"
     ],
     "workflow_paths": [
+      ".github/workflows/ci.yml",
       ".github/workflows/deploy.yml"
     ]
   },
@@ -300,9 +332,15 @@
     ".env.example",
     ".github/ISSUE_TEMPLATE/bug_report.md",
     ".github/ISSUE_TEMPLATE/feature_request.md",
+    ".github/workflows/ci.yml",
     ".github/workflows/deploy.yml",
     ".gitignore",
     ".trae/skills/cloudbase/references/cloudbase-code-review/references/lint-rules/README.md",
+    ".trae/skills/github-project-review/.gitignore",
+    ".trae/skills/github-project-review/CONTRIBUTING.md",
+    ".trae/skills/github-project-review/LICENSE",
+    ".trae/skills/github-project-review/README.md",
+    ".trae/skills/github-project-review/SECURITY.md",
     "CONTRIBUTING.md",
     "LICENSE",
     "README.md",
@@ -321,22 +359,28 @@
   ],
   "file_contents": {
     ".agents/skills/cloudbase/references/cloudbase-code-review/references/lint-rules/README.md": "# cloudbase-lint: CloudBase 代码检查脚本\n\n> 安全说明：本目录不提交可执行脚本文件。下面只提供可审阅的 JavaScript 代码块；仅在用户明确同意时，将其复制到临时本地文件 `cloudbase-lint.mjs` 后运行。\n\n## 使用方法\n\n```bash\n# 可选：用户同意后，从下方代码块复制全部内容到临时 cloudbase-lint.mjs\n# 然后在项目根目录运行\nnode cloudbase-lint.mjs --project-dir .\n```\n\n## 脚本代码\n\n```javascript\n#!/usr/bin/env node\n\n/**\n * cloudbase-lint: CloudBase 项目代码检查脚本\n *\n * 检查 CloudBase 项目中的常见错误：\n * - auth 路由守卫误用（getUser 代替 getSession）\n * - 密码错误 API（signInWithEmailAndPassword 等）\n * - PG 表未创建\n * - 安全域名未配置\n * - 存储 URL 拼接\n * - 已废弃 API 使用\n *\n * 返回 0 表示无错误，返回 1 表示发现问题。\n */\n\nimport { readFileSync, existsSync, readdirSync, statSync } from 'node:fs';\nimport { join, resolve } from 'node:path';\n\nconst args = process.argv.slice(2);\nconst projectDirIdx = args.indexOf('--project-dir');\nconst projectDir = projectDirIdx >= 0 ? resolve(args[projectDirIdx + 1]) : process.cwd();\n\nif (!existsSync(projectDir)) {\n  console.error(`[cloudbase-lint] project-dir not found: ${projectDir}`);\n  process.exit(1);\n}\n\nfunction findSourceFiles(dir) {\n  const results = [];\n  const entries = readdirSync(dir, { withFileTypes: true });\n  for (const entry of entries) {\n    const fullPath = join(dir, entry.name);\n    if (entry.isDirectory() && entry.name !== 'node_modules' && entry.name !== 'dist' && entry.name !== '.git') {\n      results.push(...findSourceFiles(fullPath));\n    } else if (entry.isFile() && /\\.(ts|tsx|js|jsx|html|sql|json)$/i.test(entry.name)) {\n      results.push(fullPath);\n    }\n  }\n  return results;\n}\n\nfunction readFileSafe(filePath) {\n  try {\n    const stat = statSync(filePath);\n    if (stat.size > 1024 * 1024) return '';\n    return readFileSync(filePath, 'utf-8');\n  } catch { return ''; }\n}\n\nconst results = [];\n\nfunction record(ruleId, severity, message, filePath, line) {\n  results.push({ ruleId, severity, message, filePath, line });\n}\n\n// ─── Auth Rules ─────────────────────────────────────────────────────────────\n\nfunction checkAuthGetUser(files) {\n  const authGuardFiles = files.filter(f =>\n    /(auth|guard|ProtectedRoute|checkAuth)/i.test(f) || /auth\\.(ts|tsx|js)$/i.test(f)\n  );\n  for (const file of authGuardFiles) {\n    const content = readFileSafe(file);\n    if (!content) continue;\n    const lines = content.split('\\n');\n    for (let i = 0; i < lines.length; i++) {\n      if (/auth\\.getUser\\s*\\(\\s*\\)/.test(lines[i]) && !content.includes('getSession')) {\n        record('AUTH001', 'error',\n          `路由守卫中使用 auth.getUser()。accessKey 自动创建匿名会话，getUser() 在未登录时也返回 user 对象。应使用 auth.getSession() 并检查 data?.session。`,\n          file, i + 1);\n      }\n    }\n  }\n}\n\nfunction checkEmailPasswordApi(files) {\n  const pattern = /sign(?:In|Up)WithEmailAndPassword\\s*\\(/;\n  for (const file of files.filter(f => /auth|login|register|sign/i.test(f))) {\n    const content = readFileSafe(file);\n    if (!content) continue;\n    content.split('\\n').forEach((line, i) => {\n      if (pattern.test(line)) {\n        record('AUTH-WEB-004', 'error',\n          `用户名场景禁止使用 signInWithEmailAndPassword / signUpWithEmailAndPassword。应使用 auth.signInWithPassword({ username, password }) / auth.signUp({ username, password })`,\n          file, i + 1);\n      }\n    });\n  }\n}\n\nfunction checkLoginFormType(files) {\n  for (const file of files.filter(f => /login|register/i.test(f))) {\n    const content = readFileSafe(file);\n    if (!content) continue;\n    content.split('\\n').forEach((line, i) => {\n      if (/type\\s*=\\s*[\"']email[\"']/.test(line) && /user|account|用户名|账号/.test(content)) {\n        record('AUTH-WEB-005', 'error',\n          `登录/注册表单中 input type=\"email\" 不适用于用户名场景。应使用 type=\"text\"。`,\n          file, i + 1);\n      }\n    });\n  }\n}\n\nfunction checkPlaceholderAccessKey(files) {\n  const pattern = /accessKey\\s*:\\s*['\"]<.+>['\"]|accessKey\\s*:\\s*['\"]envId['\"]|accessKey\\s*:\\s*['\"]YOUR_/;\n  for (const file of files) {\n    const content = readFileSafe(file);\n    if (!content) continue;\n    content.split('\\n').forEach((line, i) => {\n      if (pattern.test(line)) {\n        record('AUTH-WEB-010', 'error',\n          `accessKey 被设置为占位符或 envId 字符串。必须使用真实的 publishable key。`,\n          file, i + 1);\n      }\n    });\n  }\n}\n\nfunction checkGetLoginState(files) {\n  for (const file of files) {\n    const content = readFileSafe(file);\n    if (!content) continue;\n    content.split('\\n').forEach((line, i) => {\n      if (/getLoginState\\s*\\(\\s*\\)/.test(line)) {\n        record('AUTH-WEB-012', 'error',\n          `使用了已废弃的 auth.getLoginState()。应使用 auth.getSession()。`,\n          file, i + 1);\n      }\n    });\n  }\n}\n\nfunction checkOldWebAuthApi(files) {\n  const pattern = /auth\\.(hasLoginState|getCurrentUser|toDefaultLoginPage)\\s*\\(/;\n  for (const file of files.filter(f => /auth|login|register|guard|ProtectedRoute|App\\.(tsx|jsx|ts|js)$/i.test(f))) {\n    const content = readFileSafe(file);\n    if (!content) continue;\n    content.split('\\n').forEach((line, i) => {\n      if (pattern.test(line)) {\n        record('AUTH-WEB-013', 'error',\n          `使用了旧 CloudBase Web Auth API（hasLoginState/getCurrentUser/toDefaultLoginPage）。应使用 auth.getSession()、signInWithPassword/signInWithOtp/signUp 等 Supabase-like API，并先通过 auth-tool 配置 provider。`,\n          file, i + 1);\n      }\n    });\n  }\n}\n\nfunction checkCdnRef(files) {\n  for (const file of files.filter(f => /\\.html$|index\\.html|\\.(tsx|jsx)$/i.test(f))) {\n    const content = readFileSafe(file);\n    if (!content) continue;\n    content.split('\\n').forEach((line, i) => {\n      if (/static\\.cloudbase\\.net.*(cloudbase|tcb)/i.test(line) && /script/i.test(line)) {\n        record('AUTH-WEB-017', 'warning',\n          `使用了 CDN script 引用。现代 Web 项目应使用 npm install @cloudbase/js-sdk。`,\n          file, i + 1);\n      }\n    });\n  }\n}\n\nfunction checkAnonymousSession(files) {\n  for (const file of files.filter(f => /auth|guard|ProtectedRoute/i.test(f))) {\n    const content = readFileSafe(file);\n    if (!content) continue;\n    if (content.includes('getSession') && !content.includes('is_anonymous') &&\n        /guard|ProtectedRoute|Navigate.*\\/login/i.test(content)) {\n      record('AUTH-WEB-018', 'warning',\n        `路由守卫使用了 getSession() 但未检查匿名用户（data.session.user?.is_anonymous）。`,\n        file, 0);\n    }\n  }\n}\n\nfunction checkOldLoginStrategy(files) {\n  for (const file of files) {\n    const content = readFileSafe(file);\n    if (!content) continue;\n    content.split('\\n').forEach((line, i) => {\n      if (/lowcode.*LoginStrategy|DescribeLoginStrategy|ModifyLoginStrategy/i.test(line)) {\n        record('AUTH-TOOL-009', 'error',\n          `使用了 lowcode/DescribeLoginStrategy/ModifyLoginStrategy。应使用 DescribeLoginConfig / ModifyLoginConfig。`,\n          file, i + 1);\n      }\n    });\n  }\n}\n\n// ─── NoSQL Rules ────────────────────────────────────────────────────────────\n\nfunction checkWxCloudDatabase(files) {\n  for (const file of files.filter(f => /app\\.(ts|tsx|js|jsx)$|backend\\.(ts|tsx|js)$|main\\.(ts|tsx|js)$/i.test(f))) {\n    const content = readFileSafe(file);\n    if (!content) continue;\n    content.split('\\n').forEach((line, i) => {\n      if (/wx\\.cloud\\.database\\s*\\(/.test(line) && !file.includes('miniprogram') && !file.includes('wx')) {\n        record('NOSQL-001', 'error',\n          `浏览器代码中使用 wx.cloud.database()。Web 项目必须使用 app.database()。`,\n          file, i + 1);\n      }\n    });\n  }\n}\n\nfunction checkOpenidManual(files) {\n  for (const file of files) {\n    const content = readFileSafe(file);\n    if (!content) continue;\n    content.split('\\n').forEach((line, i) => {\n      if (/['\"]_openid['\"]\\s*[:=]\\s*['\"]/.test(line) && /\\.(add|insert|update|set)\\s*\\(/.test(content)) {\n        record('NOSQL-004', 'error',\n          `手动设置了 _openid。_openid 由 SDK 自动管理，禁止手动传入。`,\n          file, i + 1);\n      }\n    });\n  }\n}\n\nfunction checkAddResultId(files) {\n  for (const file of files) {\n    const content = readFileSafe(file);\n    if (!content) continue;\n    const lines = content.split('\\n');\n    for (let i = 0; i < lines.length; i++) {\n      if (/\\.\\s*add\\s*\\(/.test(lines[i]) && !/\\.add\\s*\\(\\s*\\)/.test(lines[i])) {\n        const ctx = lines.slice(i, i + 5).join('\\n');\n        if (/result\\.id\\b/.test(ctx) && !/result\\._id\\b/.test(ctx)) {\n          record('NOSQL-006', 'warning',\n            `.add() 返回文档 ID 在 result._id，不是 result.id。`,\n            file, i + 1);\n        }\n      }\n    }\n  }\n}\n\n// ─── Storage Rules ─────────────────────────────────────────────────────────\n\nfunction checkStorageUrlConcat(files) {\n  for (const file of files) {\n    const content = readFileSafe(file);\n    if (!content) continue;\n    content.split('\\n').forEach((line, i) => {\n      if (/envId.*bucket|bucket.*envId|拼接.*URL|fileID.*\\.com\\/|tcb\\.com\\/.*\\$\\{/i.test(line)) {\n        record('STO-002', 'warning',\n          `检测到可能的 URL 拼接。上传后应使用 fileID + app.getTempFileURL() 获取可访问 URL。`,\n          file, i + 1);\n      }\n    });\n  }\n}\n\nfunction checkLocalhostDomain(files) {\n  const all = files.map(f => readFileSafe(f)).join('\\n');\n  if (!/(uploadFile|upload|cloudbase|tcb)/i.test(all)) return;\n  const pkgPath = join(projectDir, 'package.json');\n  if (existsSync(pkgPath)) {\n    const pkg = readFileSafe(pkgPath);\n    if (pkg && !all.includes('localhost:5173') && !all.includes('CreateAuthDomain') && !all.includes('authDomain')) {\n      record('STORAGE001', 'error',\n        '需要将 localhost:5173 加入安全域名，否则浏览器上传会因跨域失败。',\n        pkgPath, 0);\n    }\n  }\n}\n\nfunction checkPgStorageApiRecommendation(files) {\n  const all = files.map(f => readFileSafe(f)).join('\\n');\n  const usesPg = /app\\.rdb\\s*\\(|\\.rdb\\s*\\(|db\\s*\\.\\s*from\\s*\\(/.test(all);\n  if (!usesPg) return;\n\n  for (const file of files.filter(f => /storage|upload|backend/i.test(f))) {\n    const content = readFileSafe(file);\n    if (!content) continue;\n    const lines = content.split('\\n');\n    lines.forEach((line, i) => {\n      if (/app\\.storage\\s*\\(/.test(line)) {\n        record('PG-CR004', 'error',\n          'PG Web 文件/图片上传禁止调用 app.storage()；app.storage 是属性。推荐使用 app.storage.from(\"bucket\").upload(\"key\", file)。',\n          file, i + 1);\n      }\n      if (/app\\.uploadFile\\s*\\(/.test(line)) {\n        record('PG-CR004', 'warning',\n          'PG Web 文件/图片上传不推荐优先使用旧式 app.uploadFile(...)；推荐使用 app.storage.from(\"bucket\").upload(\"key\", file)。',\n          file, i + 1);\n      }\n      if (/\\.upload\\s*\\(\\s*\\{[^}]*cloudPath|\\.upload\\s*\\(\\s*\\{[^}]*filePath/.test(line)) {\n        record('PG-CR004', 'warning',\n          'PG Web Storage 推荐 app.storage.from(\"bucket\").upload(\"key\", file) 参数形态，不推荐 upload({ cloudPath, filePath })。',\n          file, i + 1);\n      }\n      if (/app\\.storage\\.from\\(\\s*['\"]([^'\"]+)['\"]\\s*\\)\\.upload\\(\\s*['\"]\\1\\//.test(line)) {\n        record('PG-CR004', 'warning',\n          'PG Web Storage 的 bucket 已经传给 from(\"bucket\")，upload(\"key\", file) 的 key 不要重复 bucket 前缀。',\n          file, i + 1);\n      }\n    });\n  }\n}\n\n// ─── PostgreSQL Rules ───────────────────────────────────────────────────────\n\nfunction checkCreateTable(files) {\n  const tables = new Set();\n  const fromPattern = /db\\s*\\.\\s*from\\s*\\(\\s*['\"]([^'\"]+)['\"]\\s*\\)/g;\n  for (const file of files) {\n    const c = readFileSafe(file);\n    if (!c) continue;\n    let m;\n    while ((m = fromPattern.exec(c)) !== null) tables.add(m[1]);\n  }\n  if (tables.size === 0) return;\n  let hasCreate = false;\n  for (const file of files) {\n    const c = readFileSafe(file);\n    if (!c) continue;\n    if (/CREATE\\s+TABLE|createTable|create_table|executePgSql|managePgDatabase/i.test(c)) { hasCreate = true; break; }\n    if (/\\.sql$/i.test(file) && /CREATE\\s+TABLE/i.test(readFileSafe(file))) { hasCreate = true; break; }\n  }\n  if (!hasCreate) {\n    for (const t of tables) record('PG-CR001', 'error',\n      `代码中使用 db.from(\"${t}\") 但未找到 CREATE TABLE。PG 表不会自动创建。`,\n      '', 0);\n  }\n}\n\nfunction checkUploadConfig(files) {\n  const sf = files.find(f => /storage|upload/i.test(f) || /cms-service|article/i.test(f));\n  if (!sf) return;\n  const c = readFileSafe(sf);\n  if (!c) return;\n  if (c.includes('upload') && !c.includes('STORAGE_NOT_EXIST') && !c.includes('getStorage')) {\n    const all = files.map(f => readFileSafe(f)).join('\\n');\n    if (!all.includes('localhost')) record('PG-CR003', 'warning',\n      '\n\n[truncated to 12000 characters]",
-    ".env.example": "# CloudBase 配置（复制此文件为 .env 并填入实际值）\nVITE_CLOUDBASE_ENV_ID=your-env-id\nVITE_CLOUDBASE_REGION=ap-shanghai\nVITE_CLOUDBASE_ACCESS_KEY=your-access-key\n\n# Sentry 错误监控（可选，未配置则跳过初始化）\nVITE_SENTRY_DSN=\n",
+    ".env.example": "# CloudBase 配置（复制此文件为 .env 并填入实际值）\n# 注意：VITE_ 前缀的环境变量会被打包进浏览器 bundle，所有访问者可见。\n# CloudBase accessKey 是设计上可公开的客户端 key（类似 Firebase apiKey），\n# 权限由 CloudBase Auth + 数据库安全规则控制，而非依赖此 key 保密。\n# ⚠️ 切勿在此填入服务端密钥（如 TCB_SECRET_ID / TCB_SECRET_KEY）。\nVITE_CLOUDBASE_ENV_ID=your-env-id\nVITE_CLOUDBASE_REGION=ap-shanghai\nVITE_CLOUDBASE_ACCESS_KEY=your-access-key\n\n# Sentry 错误监控（可选，未配置则跳过初始化）\nVITE_SENTRY_DSN=\n",
     ".github/ISSUE_TEMPLATE/bug_report.md": "---\nname: Bug 报告\nabout: 报告问题以帮助改进项目\ntitle: \"[BUG] \"\nlabels: bug\n---\n\n## 问题描述\n\n简要描述遇到的问题。\n\n## 复现步骤\n\n1.\n2.\n3.\n\n## 期望行为\n\n## 实际行为\n\n## 环境\n\n- 操作系统：\n- 浏览器：\n- 是否登录：\n\n## 补充信息\n\n截图、日志等。\n",
     ".github/ISSUE_TEMPLATE/feature_request.md": "---\nname: 功能建议\nabout: 提出新功能想法\ntitle: \"[FEATURE] \"\nlabels: enhancement\n---\n\n## 功能描述\n\n简要描述你希望新增的功能。\n\n## 解决的问题\n\n该功能解决了什么痛点？\n\n## 建议方案\n\n如有具体实现思路可在此说明。\n\n## 补充信息\n",
+    ".github/workflows/ci.yml": "name: CI\n\non:\n  pull_request:\n    branches: [main, master]\n\njobs:\n  check:\n    runs-on: ubuntu-latest\n\n    steps:\n      - name: Checkout code\n        uses: actions/checkout@v4\n\n      - name: Setup Node.js\n        uses: actions/setup-node@v4\n        with:\n          node-version: 22\n          cache: npm\n\n      - name: Install dependencies\n        run: npm ci\n\n      - name: Type check\n        run: npx tsc -b --noEmit\n\n      - name: Lint\n        run: npm run lint\n\n      - name: Test\n        run: npm run test\n",
     ".github/workflows/deploy.yml": "name: Build and Deploy\n\non:\n  push:\n    branches: [main, master]\n\njobs:\n  build:\n    runs-on: ubuntu-latest\n\n    steps:\n      - name: Checkout code\n        uses: actions/checkout@v4\n\n      - name: Setup Node.js\n        uses: actions/setup-node@v4\n        with:\n          node-version: 22\n          cache: npm\n\n      - name: Install dependencies\n        run: npm ci\n\n      - name: Type check\n        run: npx tsc -b --noEmit\n\n      - name: Lint\n        run: npm run lint\n\n      - name: Test\n        run: npm run test\n\n      - name: Build project\n        run: npm run build\n        env:\n          VITE_CLOUDBASE_ENV_ID: ${{ secrets.VITE_CLOUDBASE_ENV_ID }}\n          VITE_CLOUDBASE_REGION: ap-shanghai\n          VITE_CLOUDBASE_ACCESS_KEY: ${{ secrets.VITE_CLOUDBASE_ACCESS_KEY }}\n\n      - name: Install CloudBase CLI\n        run: npm install -g @cloudbase/cli\n\n      - name: Login CloudBase CLI\n        run: tcb login --apiKeyId ${{ secrets.TCB_SECRET_ID }} --apiKey ${{ secrets.TCB_SECRET_KEY }}\n\n      # 分两步上传：先传全部资源，最后单独传 index.html。\n      # 上传非原子，若 index.html 先生效而它引用的 chunk 还没传完，\n      # 访客会拿到「JS 路径 → 兜底 HTML」的 MIME 错误导致白屏。\n      # 旧文件不删除，窗口期内老 html + 老 chunk 仍可正常工作。\n      - name: Deploy assets to CloudBase Hosting\n        run: |\n          mkdir -p /tmp/dist-no-html\n          cp -r dist/. /tmp/dist-no-html/\n          rm /tmp/dist-no-html/index.html\n          tcb hosting deploy /tmp/dist-no-html -e ${{ secrets.TCB_ENV_ID }}\n\n      - name: Deploy index.html last\n        run: tcb hosting deploy dist/index.html index.html -e ${{ secrets.TCB_ENV_ID }}\n\n      - name: Fix Content-Type charset for HTML files\n        env:\n          TCB_SECRET_ID: ${{ secrets.TCB_SECRET_ID }}\n          TCB_SECRET_KEY: ${{ secrets.TCB_SECRET_KEY }}\n        run: node scripts/fix-charset.mjs\n",
-    ".gitignore": "# Logs\nlogs\n*.log\nnpm-debug.log*\nyarn-debug.log*\nyarn-error.log*\npnpm-debug.log*\nlerna-debug.log*\n\nnode_modules\ndist\ndist-ssr\n*.local\n.env\n.env.local\n\n# Local debug / scratch files\n_read_db.*\n\n# Editor directories and files\n.vscode/*\n!.vscode/extensions.json\n.idea\n.DS_Store\n*.suo\n*.ntvs*\n*.njsproj\n*.sln\n*.sw?",
+    ".gitignore": "# Logs\nlogs\n*.log\nnpm-debug.log*\nyarn-debug.log*\nyarn-error.log*\npnpm-debug.log*\nlerna-debug.log*\n\nnode_modules\ndist\ndist-ssr\n*.local\n.env\n.env.local\n\n# Local debug / scratch files\n_read_db.*\n\n# Editor directories and files\n.vscode/*\n!.vscode/extensions.json\n.idea\n.DS_Store\n*.suo\n*.ntvs*\n*.njsproj\n*.sln\n*.sw?\n# github-project-review skill artifacts\n.github-review-workspace/\n.github-review-memory/\n",
     ".trae/skills/cloudbase/references/cloudbase-code-review/references/lint-rules/README.md": "# cloudbase-lint: CloudBase 代码检查脚本\n\n> 安全说明：本目录不提交可执行脚本文件。下面只提供可审阅的 JavaScript 代码块；仅在用户明确同意时，将其复制到临时本地文件 `cloudbase-lint.mjs` 后运行。\n\n## 使用方法\n\n```bash\n# 可选：用户同意后，从下方代码块复制全部内容到临时 cloudbase-lint.mjs\n# 然后在项目根目录运行\nnode cloudbase-lint.mjs --project-dir .\n```\n\n## 脚本代码\n\n```javascript\n#!/usr/bin/env node\n\n/**\n * cloudbase-lint: CloudBase 项目代码检查脚本\n *\n * 检查 CloudBase 项目中的常见错误：\n * - auth 路由守卫误用（getUser 代替 getSession）\n * - 密码错误 API（signInWithEmailAndPassword 等）\n * - PG 表未创建\n * - 安全域名未配置\n * - 存储 URL 拼接\n * - 已废弃 API 使用\n *\n * 返回 0 表示无错误，返回 1 表示发现问题。\n */\n\nimport { readFileSync, existsSync, readdirSync, statSync } from 'node:fs';\nimport { join, resolve } from 'node:path';\n\nconst args = process.argv.slice(2);\nconst projectDirIdx = args.indexOf('--project-dir');\nconst projectDir = projectDirIdx >= 0 ? resolve(args[projectDirIdx + 1]) : process.cwd();\n\nif (!existsSync(projectDir)) {\n  console.error(`[cloudbase-lint] project-dir not found: ${projectDir}`);\n  process.exit(1);\n}\n\nfunction findSourceFiles(dir) {\n  const results = [];\n  const entries = readdirSync(dir, { withFileTypes: true });\n  for (const entry of entries) {\n    const fullPath = join(dir, entry.name);\n    if (entry.isDirectory() && entry.name !== 'node_modules' && entry.name !== 'dist' && entry.name !== '.git') {\n      results.push(...findSourceFiles(fullPath));\n    } else if (entry.isFile() && /\\.(ts|tsx|js|jsx|html|sql|json)$/i.test(entry.name)) {\n      results.push(fullPath);\n    }\n  }\n  return results;\n}\n\nfunction readFileSafe(filePath) {\n  try {\n    const stat = statSync(filePath);\n    if (stat.size > 1024 * 1024) return '';\n    return readFileSync(filePath, 'utf-8');\n  } catch { return ''; }\n}\n\nconst results = [];\n\nfunction record(ruleId, severity, message, filePath, line) {\n  results.push({ ruleId, severity, message, filePath, line });\n}\n\n// ─── Auth Rules ─────────────────────────────────────────────────────────────\n\nfunction checkAuthGetUser(files) {\n  const authGuardFiles = files.filter(f =>\n    /(auth|guard|ProtectedRoute|checkAuth)/i.test(f) || /auth\\.(ts|tsx|js)$/i.test(f)\n  );\n  for (const file of authGuardFiles) {\n    const content = readFileSafe(file);\n    if (!content) continue;\n    const lines = content.split('\\n');\n    for (let i = 0; i < lines.length; i++) {\n      if (/auth\\.getUser\\s*\\(\\s*\\)/.test(lines[i]) && !content.includes('getSession')) {\n        record('AUTH001', 'error',\n          `路由守卫中使用 auth.getUser()。accessKey 自动创建匿名会话，getUser() 在未登录时也返回 user 对象。应使用 auth.getSession() 并检查 data?.session。`,\n          file, i + 1);\n      }\n    }\n  }\n}\n\nfunction checkEmailPasswordApi(files) {\n  const pattern = /sign(?:In|Up)WithEmailAndPassword\\s*\\(/;\n  for (const file of files.filter(f => /auth|login|register|sign/i.test(f))) {\n    const content = readFileSafe(file);\n    if (!content) continue;\n    content.split('\\n').forEach((line, i) => {\n      if (pattern.test(line)) {\n        record('AUTH-WEB-004', 'error',\n          `用户名场景禁止使用 signInWithEmailAndPassword / signUpWithEmailAndPassword。应使用 auth.signInWithPassword({ username, password }) / auth.signUp({ username, password })`,\n          file, i + 1);\n      }\n    });\n  }\n}\n\nfunction checkLoginFormType(files) {\n  for (const file of files.filter(f => /login|register/i.test(f))) {\n    const content = readFileSafe(file);\n    if (!content) continue;\n    content.split('\\n').forEach((line, i) => {\n      if (/type\\s*=\\s*[\"']email[\"']/.test(line) && /user|account|用户名|账号/.test(content)) {\n        record('AUTH-WEB-005', 'error',\n          `登录/注册表单中 input type=\"email\" 不适用于用户名场景。应使用 type=\"text\"。`,\n          file, i + 1);\n      }\n    });\n  }\n}\n\nfunction checkPlaceholderAccessKey(files) {\n  const pattern = /accessKey\\s*:\\s*['\"]<.+>['\"]|accessKey\\s*:\\s*['\"]envId['\"]|accessKey\\s*:\\s*['\"]YOUR_/;\n  for (const file of files) {\n    const content = readFileSafe(file);\n    if (!content) continue;\n    content.split('\\n').forEach((line, i) => {\n      if (pattern.test(line)) {\n        record('AUTH-WEB-010', 'error',\n          `accessKey 被设置为占位符或 envId 字符串。必须使用真实的 publishable key。`,\n          file, i + 1);\n      }\n    });\n  }\n}\n\nfunction checkGetLoginState(files) {\n  for (const file of files) {\n    const content = readFileSafe(file);\n    if (!content) continue;\n    content.split('\\n').forEach((line, i) => {\n      if (/getLoginState\\s*\\(\\s*\\)/.test(line)) {\n        record('AUTH-WEB-012', 'error',\n          `使用了已废弃的 auth.getLoginState()。应使用 auth.getSession()。`,\n          file, i + 1);\n      }\n    });\n  }\n}\n\nfunction checkOldWebAuthApi(files) {\n  const pattern = /auth\\.(hasLoginState|getCurrentUser|toDefaultLoginPage)\\s*\\(/;\n  for (const file of files.filter(f => /auth|login|register|guard|ProtectedRoute|App\\.(tsx|jsx|ts|js)$/i.test(f))) {\n    const content = readFileSafe(file);\n    if (!content) continue;\n    content.split('\\n').forEach((line, i) => {\n      if (pattern.test(line)) {\n        record('AUTH-WEB-013', 'error',\n          `使用了旧 CloudBase Web Auth API（hasLoginState/getCurrentUser/toDefaultLoginPage）。应使用 auth.getSession()、signInWithPassword/signInWithOtp/signUp 等 Supabase-like API，并先通过 auth-tool 配置 provider。`,\n          file, i + 1);\n      }\n    });\n  }\n}\n\nfunction checkCdnRef(files) {\n  for (const file of files.filter(f => /\\.html$|index\\.html|\\.(tsx|jsx)$/i.test(f))) {\n    const content = readFileSafe(file);\n    if (!content) continue;\n    content.split('\\n').forEach((line, i) => {\n      if (/static\\.cloudbase\\.net.*(cloudbase|tcb)/i.test(line) && /script/i.test(line)) {\n        record('AUTH-WEB-017', 'warning',\n          `使用了 CDN script 引用。现代 Web 项目应使用 npm install @cloudbase/js-sdk。`,\n          file, i + 1);\n      }\n    });\n  }\n}\n\nfunction checkAnonymousSession(files) {\n  for (const file of files.filter(f => /auth|guard|ProtectedRoute/i.test(f))) {\n    const content = readFileSafe(file);\n    if (!content) continue;\n    if (content.includes('getSession') && !content.includes('is_anonymous') &&\n        /guard|ProtectedRoute|Navigate.*\\/login/i.test(content)) {\n      record('AUTH-WEB-018', 'warning',\n        `路由守卫使用了 getSession() 但未检查匿名用户（data.session.user?.is_anonymous）。`,\n        file, 0);\n    }\n  }\n}\n\nfunction checkOldLoginStrategy(files) {\n  for (const file of files) {\n    const content = readFileSafe(file);\n    if (!content) continue;\n    content.split('\\n').forEach((line, i) => {\n      if (/lowcode.*LoginStrategy|DescribeLoginStrategy|ModifyLoginStrategy/i.test(line)) {\n        record('AUTH-TOOL-009', 'error',\n          `使用了 lowcode/DescribeLoginStrategy/ModifyLoginStrategy。应使用 DescribeLoginConfig / ModifyLoginConfig。`,\n          file, i + 1);\n      }\n    });\n  }\n}\n\n// ─── NoSQL Rules ────────────────────────────────────────────────────────────\n\nfunction checkWxCloudDatabase(files) {\n  for (const file of files.filter(f => /app\\.(ts|tsx|js|jsx)$|backend\\.(ts|tsx|js)$|main\\.(ts|tsx|js)$/i.test(f))) {\n    const content = readFileSafe(file);\n    if (!content) continue;\n    content.split('\\n').forEach((line, i) => {\n      if (/wx\\.cloud\\.database\\s*\\(/.test(line) && !file.includes('miniprogram') && !file.includes('wx')) {\n        record('NOSQL-001', 'error',\n          `浏览器代码中使用 wx.cloud.database()。Web 项目必须使用 app.database()。`,\n          file, i + 1);\n      }\n    });\n  }\n}\n\nfunction checkOpenidManual(files) {\n  for (const file of files) {\n    const content = readFileSafe(file);\n    if (!content) continue;\n    content.split('\\n').forEach((line, i) => {\n      if (/['\"]_openid['\"]\\s*[:=]\\s*['\"]/.test(line) && /\\.(add|insert|update|set)\\s*\\(/.test(content)) {\n        record('NOSQL-004', 'error',\n          `手动设置了 _openid。_openid 由 SDK 自动管理，禁止手动传入。`,\n          file, i + 1);\n      }\n    });\n  }\n}\n\nfunction checkAddResultId(files) {\n  for (const file of files) {\n    const content = readFileSafe(file);\n    if (!content) continue;\n    const lines = content.split('\\n');\n    for (let i = 0; i < lines.length; i++) {\n      if (/\\.\\s*add\\s*\\(/.test(lines[i]) && !/\\.add\\s*\\(\\s*\\)/.test(lines[i])) {\n        const ctx = lines.slice(i, i + 5).join('\\n');\n        if (/result\\.id\\b/.test(ctx) && !/result\\._id\\b/.test(ctx)) {\n          record('NOSQL-006', 'warning',\n            `.add() 返回文档 ID 在 result._id，不是 result.id。`,\n            file, i + 1);\n        }\n      }\n    }\n  }\n}\n\n// ─── Storage Rules ─────────────────────────────────────────────────────────\n\nfunction checkStorageUrlConcat(files) {\n  for (const file of files) {\n    const content = readFileSafe(file);\n    if (!content) continue;\n    content.split('\\n').forEach((line, i) => {\n      if (/envId.*bucket|bucket.*envId|拼接.*URL|fileID.*\\.com\\/|tcb\\.com\\/.*\\$\\{/i.test(line)) {\n        record('STO-002', 'warning',\n          `检测到可能的 URL 拼接。上传后应使用 fileID + app.getTempFileURL() 获取可访问 URL。`,\n          file, i + 1);\n      }\n    });\n  }\n}\n\nfunction checkLocalhostDomain(files) {\n  const all = files.map(f => readFileSafe(f)).join('\\n');\n  if (!/(uploadFile|upload|cloudbase|tcb)/i.test(all)) return;\n  const pkgPath = join(projectDir, 'package.json');\n  if (existsSync(pkgPath)) {\n    const pkg = readFileSafe(pkgPath);\n    if (pkg && !all.includes('localhost:5173') && !all.includes('CreateAuthDomain') && !all.includes('authDomain')) {\n      record('STORAGE001', 'error',\n        '需要将 localhost:5173 加入安全域名，否则浏览器上传会因跨域失败。',\n        pkgPath, 0);\n    }\n  }\n}\n\nfunction checkPgStorageApiRecommendation(files) {\n  const all = files.map(f => readFileSafe(f)).join('\\n');\n  const usesPg = /app\\.rdb\\s*\\(|\\.rdb\\s*\\(|db\\s*\\.\\s*from\\s*\\(/.test(all);\n  if (!usesPg) return;\n\n  for (const file of files.filter(f => /storage|upload|backend/i.test(f))) {\n    const content = readFileSafe(file);\n    if (!content) continue;\n    const lines = content.split('\\n');\n    lines.forEach((line, i) => {\n      if (/app\\.storage\\s*\\(/.test(line)) {\n        record('PG-CR004', 'error',\n          'PG Web 文件/图片上传禁止调用 app.storage()；app.storage 是属性。推荐使用 app.storage.from(\"bucket\").upload(\"key\", file)。',\n          file, i + 1);\n      }\n      if (/app\\.uploadFile\\s*\\(/.test(line)) {\n        record('PG-CR004', 'warning',\n          'PG Web 文件/图片上传不推荐优先使用旧式 app.uploadFile(...)；推荐使用 app.storage.from(\"bucket\").upload(\"key\", file)。',\n          file, i + 1);\n      }\n      if (/\\.upload\\s*\\(\\s*\\{[^}]*cloudPath|\\.upload\\s*\\(\\s*\\{[^}]*filePath/.test(line)) {\n        record('PG-CR004', 'warning',\n          'PG Web Storage 推荐 app.storage.from(\"bucket\").upload(\"key\", file) 参数形态，不推荐 upload({ cloudPath, filePath })。',\n          file, i + 1);\n      }\n      if (/app\\.storage\\.from\\(\\s*['\"]([^'\"]+)['\"]\\s*\\)\\.upload\\(\\s*['\"]\\1\\//.test(line)) {\n        record('PG-CR004', 'warning',\n          'PG Web Storage 的 bucket 已经传给 from(\"bucket\")，upload(\"key\", file) 的 key 不要重复 bucket 前缀。',\n          file, i + 1);\n      }\n    });\n  }\n}\n\n// ─── PostgreSQL Rules ───────────────────────────────────────────────────────\n\nfunction checkCreateTable(files) {\n  const tables = new Set();\n  const fromPattern = /db\\s*\\.\\s*from\\s*\\(\\s*['\"]([^'\"]+)['\"]\\s*\\)/g;\n  for (const file of files) {\n    const c = readFileSafe(file);\n    if (!c) continue;\n    let m;\n    while ((m = fromPattern.exec(c)) !== null) tables.add(m[1]);\n  }\n  if (tables.size === 0) return;\n  let hasCreate = false;\n  for (const file of files) {\n    const c = readFileSafe(file);\n    if (!c) continue;\n    if (/CREATE\\s+TABLE|createTable|create_table|executePgSql|managePgDatabase/i.test(c)) { hasCreate = true; break; }\n    if (/\\.sql$/i.test(file) && /CREATE\\s+TABLE/i.test(readFileSafe(file))) { hasCreate = true; break; }\n  }\n  if (!hasCreate) {\n    for (const t of tables) record('PG-CR001', 'error',\n      `代码中使用 db.from(\"${t}\") 但未找到 CREATE TABLE。PG 表不会自动创建。`,\n      '', 0);\n  }\n}\n\nfunction checkUploadConfig(files) {\n  const sf = files.find(f => /storage|upload/i.test(f) || /cms-service|article/i.test(f));\n  if (!sf) return;\n  const c = readFileSafe(sf);\n  if (!c) return;\n  if (c.includes('upload') && !c.includes('STORAGE_NOT_EXIST') && !c.includes('getStorage')) {\n    const all = files.map(f => readFileSafe(f)).join('\\n');\n    if (!all.includes('localhost')) record('PG-CR003', 'warning',\n      '\n\n[truncated to 12000 characters]",
+    ".trae/skills/github-project-review/.gitignore": "__pycache__/\n*.pyc\n.pytest_cache/\n.github-review-workspace/\n.github-review-memory/\n",
+    ".trae/skills/github-project-review/CONTRIBUTING.md": "# Contributing to GitHub Project Review Skill\n\nThank you for your interest in contributing! This guide covers the basics.\n\n## Getting Started\n\n1. Fork the repository.\n2. Clone your fork: `git clone https://github.com/<your-username>/github-project-review-skill.git`\n3. Create a feature branch: `git checkout -b feat/your-feature`\n\n## Development Setup\n\nNo external dependencies are required for the core collector script. For testing:\n\n```bash\n# Run tests\npython -m pytest tests/ -v\n\n# Smoke-test the collector\npython scripts/collect_repo_context.py owner/repo --output test-context.json\n```\n\n## Code Style\n\n- Python: follow PEP 8. Use type annotations as in the existing codebase.\n- Keep functions focused and testable - pure functions (parsers, summarizers) should have unit tests.\n- No external dependencies for `collect_repo_context.py` - stdlib only.\n\n## Pull Request Checklist\n\nBefore submitting a PR, ensure:\n\n- [ ] Code passes `python -m py_compile scripts/collect_repo_context.py`\n- [ ] Tests pass: `python -m pytest tests/ -v`\n- [ ] New pure functions have unit tests\n- [ ] No secrets or tokens are committed\n- [ ] Documentation is updated if behavior changes\n\n## Commit Messages\n\nUse conventional commit format:\n\n```\nfeat: add language stats collection\nfix: handle empty tree in summarize_tree\ndocs: update README with token fallback\ntest: add tests for parse_repo_from_text\n```\n\n## Reporting Issues\n\nUse GitHub Issues. Include:\n\n- Description of the problem or feature request\n- Steps to reproduce (for bugs)\n- Expected vs actual behavior\n- Environment (OS, Python version, gh CLI version)\n\n## License\n\nBy contributing, you agree that your contributions will be licensed under the MIT License.\n",
+    ".trae/skills/github-project-review/LICENSE": "MIT License\n\nCopyright (c) 2026 libinyam\n\nPermission is hereby granted, free of charge, to any person obtaining a copy\nof this software and associated documentation files (the \"Software\"), to deal\nin the Software without restriction, including without limitation the rights\nto use, copy, modify, merge, publish, distribute, sublicense, and/or sell\ncopies of the Software, and to permit persons to whom the Software is\nfurnished to do so, subject to the following conditions:\n\nThe above copyright notice and this permission notice shall be included in all\ncopies or substantial portions of the Software.\n\nTHE SOFTWARE IS PROVIDED \"AS IS\", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR\nIMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,\nFITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE\nAUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER\nLIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,\nOUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE\nSOFTWARE.\n",
+    ".trae/skills/github-project-review/README.md": "# GitHub 项目评审 Skill\n\n> TRAE / Codex / Qoder AI agent 技能，用于对 GitHub 项目进行结构化的多智能体推广就绪评审。\n\n在推广、发布、社区运营或投入更多工程/营销精力**之前**，使用本技能对 GitHub 项目进行结构化的多智能体可行性评审。\n\n## 它能做什么\n\n给定一个 GitHub 仓库（`owner/repo`、URL 或本地克隆路径），本技能会运行一个 **7 角色协作团队评审**，具备共享内存、角色间升级机制，并产出统一的 go/no-go 报告。\n\n1. **采集**仓库上下文 — 元数据、README、文件树、依赖/配置文件、最近提交、issues、贡献者、语言分布、CI/安全文件。\n2. **初始化团队工作区**，建立共享内存结构（session、mailbox、synthesis）。\n3. **派发七个评审角色**，各自写入结构化发现，并根据发现的内容向其他角色发起升级。\n4. **处理升级** — P0 升级必须在综合阶段前解决。\n5. **综合**发现为一份简洁的 go/no-go 报告，附带有证据支撑的评分（1-10 评分标准）和推广结论：\n   - **可以推广** — 无 P0 阻碍项，核心故事清晰，安装/演示路径可用或可信。\n   - **小范围试推广** — 有潜力，但存在 P1 质量/文档/运维缺口。\n   - **暂不建议推广** — 存在 P0 阻碍项，核心价值不清，或安全/可靠性风险较高。\n6. **（可选）创建 GitHub Issue**，针对测试工程师发现的可操作测试缺口。\n\n## 七个评审角色\n\n| 角色 | 关注点 | 关键产出 |\n|---|---|---|\n| A — 计划分析师 (Planning Analyst) | 路线图、里程碑、执行追踪 | 计划评分、计划缺口 |\n| B — 前端工程师 (Frontend Engineer) | 前端架构、组件、构建 | 前端评分、阻碍项 |\n| C — 后端工程师 (Backend Engineer) | API 设计、数据模型、错误处理 | 后端评分、阻碍项 |\n| D — 测试工程师 (Test Engineer) | 测试覆盖、测试策略、CI 门禁 | 测试评分、待提交 Issue |\n| E — 代码评审员 (Code Reviewer) | 代码质量、规范、技术债务 | 代码质量评分、发现项 |\n| F — 产品与市场 (Product & Market) | 定位、差异化、社区 | 产品评分、推广叙事 |\n| G — 安全与运维 (Security & DevOps) | CI/CD、安全、依赖、合规 | 安全评分、P0/P1 风险 |\n\n角色之间可以互相升级发现。例如，后端工程师发现 SQL 字符串拼接，会升级给安全角色（P0）。完整的路由矩阵见 [`references/collaboration-protocol.md`](references/collaboration-protocol.md)。\n\n## 仓库结构\n\n```\n.\n├── SKILL.md                              # 技能定义（6 阶段工作流 + 7 角色规范 + 升级触发器）\n├── agents/\n│   └── openai.yaml                       # Agent 接口元数据（跨平台）\n├── references/\n│   ├── evaluation-rubric.md              # 1-10 评分定义 + P0/P1 示例（7 角色）\n│   ├── report-template.md                # 最终报告模板（7 维度 + 升级记录）\n│   └── collaboration-protocol.md         # 升级路由矩阵 + 完整示例\n├── scripts/\n│   ├── collect_repo_context.py           # 数据采集器（gh CLI + GITHUB_TOKEN 降级）\n│   ├── create_review_issues.py           # Issue 创建器（测试工程师用）\n│   ├── team_workspace.py                 # 团队工作区 init/status/clean\n│   ├── team_findings.py                  # 角色发现读写 + mark-na\n│   ├── team_request.py                   # 角色间请求与升级\n│   ├── team_status.py                    # 团队看板 + 完成度检查\n│   └── team_synthesis.py                # 评分聚合 + 报告数据\n└── tests/\n    ├── test_collect_repo_context.py      # 采集器单元测试\n    ├── test_create_review_issues.py      # Issue 创建器单元测试\n    ├── test_team_workspace.py            # 工作区单元测试\n    ├── test_team_findings.py             # 发现读写单元测试\n    ├── test_team_request.py             # 请求/升级单元测试\n    └── test_team_synthesis.py           # 综合单元测试\n```\n\n## 前置条件\n\n### 方式 A：GitHub CLI（推荐）\n\n```bash\n# 安装：https://cli.github.com/\ngh auth login\n```\n\n### 方式 B：个人访问令牌\n\n如果没有 `gh` CLI，设置 `GITHUB_TOKEN` 环境变量：\n\n```bash\nexport GITHUB_TOKEN=\"ghp_xxxxxxxxxxxxxxxxxxxx\"\n```\n\n采集器和 Issue 创建器会自动降级为通过 `urllib` 调用 GitHub REST API。\n\n## 安装\n\n### 用于 TRAE / Codex / Qoder\n\n将本仓库克隆或复制到你的技能目录：\n\n```bash\ngit clone https://github.com/libinyam/github-project-review-skill.git\n```\n\n在 agent 配置中按名称引用该技能：\n\n```yaml\nskills:\n  - name: github-project-review\n```\n\n## 用法\n\n### 作为 AI Agent 技能（推荐）\n\n向你的 agent 提问：\n\n> 用 $github-project-review 评估 owner/repo 的推广就绪度。\n\nagent 会遵循 `SKILL.md` 中的 6 阶段工作流：初始化工作区 → 派发 7 角色 → 处理升级 → 跨角色审查 → 综合报告 → （可选）创建 Issue。\n\n### 独立团队工作流（手动）\n\n```bash\n# 1. 采集仓库上下文\npython scripts/collect_repo_context.py owner/repo --output repo-context.json\n\n# 2. 初始化团队工作区（会自动把上下文复制进工作区）\npython scripts/team_workspace.py init --repo owner/repo --context repo-context.json\n\n# 3.（可选）标记不适用的角色，例如 CLI 项目无前端\npython scripts/team_findings.py mark-na --role B\n\n# 4. 每个角色写入发现（由 LLM 生成 findings JSON）\npython scripts/team_findings.py write --role G --findings-file role-g-findings.json\n\n# 5. 角色之间互相发送升级\npython scripts/team_request.py send --from A --to G --type escalation --priority P0 \\\n  --subject \"深度安全审查：无分支保护\" --context '{\"finding_id\": \"A-002\"}'\n\n# 6. 解决升级\npython scripts/team_request.py resolve --id ESC-001 \\\n  --resolution-summary \"确认：无分支保护\" --resolution-finding-id G-005\n\n# 7. 检查就绪度（退出码 0 = 可进入综合）\npython scripts/team_status.py --check-complete\n\n# 8. 聚合评分并生成报告数据\npython scripts/team_synthesis.py aggregate\npython scripts/team_synthesis.py report-data\n\n# 9. 完成后清理工作区\npython scripts/team_workspace.py clean --force\n```\n\n### 独立采集器\n\n```bash\n# 公开仓库\npython scripts/collect_repo_context.py owner/repo --output repo-context.json\n\n# 私有仓库（需 gh auth 或 GITHUB_TOKEN）\npython scripts/collect_repo_context.py owner/private-repo --output repo-context.json\n\n# 本地克隆\npython scripts/collect_repo_context.py /path/to/local/project --output repo-context.json\n```\n\n### Issue 创建器（测试工程师）\n\n```bash\n# 预演（不实际创建 Issue）\npython scripts/create_review_issues.py owner/repo --issues-file review-issues.json --dry-run\n\n# 创建 Issue（交互式 — 需要 TTY）\npython scripts/create_review_issues.py owner/repo --issues-file review-issues.json\n\n# 创建 Issue（非交互式 — 适用于 AI agent / CI，跳过确认提示）\npython scripts/create_review_issues.py owner/repo --issues-file review-issues.json --yes\n```\n\n> **AI agent 和 CI 注意**：请传入 `--yes` 跳过交互式确认提示。\n> 在无 TTY 的环境（如 agent 或 CI 流水线）中，除非设置 `--yes`，否则脚本会拒绝运行。\n\n`review-issues.json` 格式：\n\n```json\n[\n  {\n    \"title\": \"为 auth 模块补充单元测试\",\n    \"body\": \"`src/auth/login.ts` 的 auth 模块无测试覆盖...\",\n    \"labels\": [\"review-finding\", \"testing\"]\n  }\n]\n```\n\n## 团队协作协议\n\n7 个角色共享一个工作区目录（`.github-review-workspace/`），包含：\n\n- `_session.json` — 会话状态与角色状态\n- `_context/` — 共享采集数据（初始化后只读）\n- `_mailbox/` — 角色间请求与升级\n- `_synthesis/` — 聚合评分与跨角色发现\n- `role-*/` — 各角色的发现与笔记\n\n**升级类型**：`task`（具体动作）、`escalation`（必须在报告前解决）、`info`（轻量查询）。\n\nP0 升级会阻塞综合阶段。只有当所有适用角色完成、且无待处理升级时，`team_status.py --check-complete` 才返回退出码 0。\n\n完整的路由矩阵和工作示例见 [`references/collaboration-protocol.md`](references/collaboration-protocol.md)。\n\n## 评分标准\n\n完整的 1-10 分数段定义及 P0/P1 示例见 [`references/evaluation-rubric.md`](references/evaluation-rubric.md)。\n\n## 报告模板\n\n最终报告结构（7 维度 + 升级记录 + 跨角色发现）见 [`references/report-template.md`](references/report-template.md)。\n\n## 测试\n\n```bash\npython -m pytest tests/ -v\n```\n\n## CI\n\n本仓库包含一个 GitHub Actions 工作流（`.github/workflows/ci.yml`），在每次 push 和 pull request 时运行：\n\n- 对所有脚本做编译检查（`py_compile`）\n- 运行单元测试（`pytest`）\n- 校验必需文件存在\n- 校验 YAML 语法\n\n## 许可证\n\n[MIT](LICENSE)\n",
+    ".trae/skills/github-project-review/SECURITY.md": "# Security Policy\n\n## Supported Versions\n\n| Version | Supported |\n|---------|-----------|\n| latest on `main` | Yes |\n\n## Reporting a Vulnerability\n\nIf you discover a security vulnerability in this project, please report it responsibly:\n\n1. **Do NOT open a public GitHub issue.**\n2. Email: `3478925144@qq.com`\n3. Include:\n   - Description of the vulnerability\n   - Steps to reproduce\n   - Potential impact\n   - Suggested fix (if any)\n\nYou will receive a response within 72 hours. Please do not disclose the vulnerability publicly until a fix has been released.\n\n## Security Considerations\n\nThis skill collects and analyzes GitHub repository data. Be aware of the following:\n\n- **Private repositories**: The collector accesses private repos via `gh` CLI or `GITHUB_TOKEN`. Ensure tokens are stored securely and never committed.\n- **Secret detection**: The collector reads config files (`.env.example`, `docker-compose.yml`, etc.) but truncates content. Reviewers should avoid including secrets in reports.\n- **Report output**: For private repositories, the skill explicitly instructs agents to avoid exposing secrets or proprietary code snippets in the final report.\n- **Token scope**: The collector requires `repo` scope for private repositories and `public_repo` (read-only) for public repositories.\n\n## Best Practices for Users\n\n- Use `gh auth login` with the minimum necessary scopes.\n- If using `GITHUB_TOKEN`, set it via environment variable, not in config files.\n- Review the collector output before sharing it externally.\n- Rotate tokens regularly.\n",
     "CONTRIBUTING.md": "# 贡献指南\n\n感谢你对天玑项目的关注！本文档说明如何参与贡献。\n\n## 分支命名规范\n\n- `feature/xxx` — 新功能\n- `fix/xxx` — Bug 修复\n- `docs/xxx` — 文档更新\n\n## 提交信息规范\n\n格式：`type: description`\n\n- `feat` — 新功能\n- `fix` — Bug 修复\n- `docs` — 文档\n- `refactor` — 重构\n- `chore` — 构建 / 工具 / 杂项\n\n示例：`feat: 讨论区支持按标签筛选`\n\n## 代码规范\n\n- TypeScript strict mode\n- 遵循 ESLint 配置，提交前运行 `npm run lint`\n- 使用函数式组件与 React Hooks\n- 提交前确保 `npm run build` 通过\n\n## 评审流程\n\n1. Fork 本仓库\n2. 从 `main` 创建特性分支\n3. 完成开发并自测\n4. 提交 Pull Request\n5. 等待 Review 通过后 Merge\n\n## 本地开发注意事项\n\n- 安装依赖后需配置 `.env.local` 所需环境变量（详见 README）\n- 云函数位于 `cloudfunctions/`，修改后需重新部署\n- 涉及 CloudBase 数据库操作时注意安全规则配置\n",
     "LICENSE": "MIT License\n\nCopyright (c) 2026 libinyam\n\nPermission is hereby granted, free of charge, to any person obtaining a copy\nof this software and associated documentation files (the \"Software\"), to deal\nin the Software without restriction, including without limitation the rights\nto use, copy, modify, merge, publish, distribute, sublicense, and/or sell\ncopies of the Software, and to permit persons to whom the Software is\nfurnished to do so, subject to the following conditions:\n\nThe above copyright notice and this permission notice shall be included in all\ncopies or substantial portions of the Software.\n\nTHE SOFTWARE IS PROVIDED \"AS IS\", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR\nIMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,\nFITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE\nAUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER\nLIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,\nOUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE\nSOFTWARE.\n",
-    "README.md": "# 天玑 (Tianji) — 知识共创社区\n\n面向学生、研究者和开发者的知识分享平台，集讨论区、灵感广场、资源库、协作工坊于一体。打通从学习资源到项目协作的完整链路。\n\n## 技术栈\n\n- React 18 + TypeScript\n- Vite 构建工具\n- Tailwind CSS 样式\n- Zustand 状态管理\n- CloudBase（腾讯云开发）后端服务\n- React Router 路由\n- KaTeX 数学公式渲染（按需懒加载）\n- PDF.js 目录自动识别\n- Framer Motion 动画\n\n## 功能模块\n\n### 核心功能\n\n- **讨论区**：学术区与闲聊区分区运营，学术区支持标签筛选，闲聊区按子分类（灌水/动态/新闻/其他）浏览\n- **问答系统**：发帖、回答、评论、投票、采纳回答（可取消采纳）、AI 机器人自动回复\n- **灵感广场**：快速分享灵感，共鸣互动\n- **资源库**：书籍上传与下载，PDF 上传自动识别目录书签，支持在线预览与下载\n- **协作工坊**：多人协作编辑文档，批注讨论，章节大纲管理，创建者可编辑标题/简介/删除项目\n\n### 跨模块联动\n\n- **标签体系**：讨论、灵感、资源、协作共享标签，基于标签自动推荐相关内容\n- **全局搜索 + 热度榜**：跨模块搜索，热门标签导航\n- **标签详情页**：按标签聚合四个模块的内容\n\n### 社区功能\n\n- **用户认证**：邮箱注册登录、GitHub OAuth\n- **消息通知**：回答、采纳、评论等事件通知\n- **收藏功能**：收藏帖子、资源等，支持取消收藏\n- **个人主页**：展示用户发布的内容与收藏\n- **管理后台**：帖子管理、举报处理\n- **举报系统**：举报违规内容\n\n### 体验与无障碍\n\n- **深色 / 浅色主题切换**（默认浅色）\n- **无障碍弹窗**：共享 Dialog 组件，焦点陷阱、ESC 关闭、焦点恢复、滚动锁定\n- **减弱动画**：支持 `prefers-reduced-motion`，自动禁用装饰动画\n- **键盘可访问的标签选择器**：combobox 语义，↑↓ 导航，Enter 选择，Escape 关闭\n- **移动端优化**：StarField 移动端降级，路由懒加载\n\n## 本地启动\n\n```bash\nnpm install\nnpm run dev\n```\n\n需要配置环境变量。复制 `.env.example` 为 `.env` 并填入实际值（`.env` 已被 `.gitignore` 忽略，不会提交到仓库）：\n\n```bash\ncp .env.example .env\n```\n\n```env\nVITE_CLOUDBASE_ENV_ID=你的云环境ID\nVITE_CLOUDBASE_REGION=你的地域\nVITE_CLOUDBASE_ACCESS_KEY=你的访问密钥\n```\n\n## 部署\n\n### Vercel 部署\n\n项目已配置 `vercel.json`，支持 Vercel 自动部署。推送代码到 `main` 分支后 Vercel 自动构建部署。\n\n配置要点：\n- `/assets/*` 静态资源使用 immutable 长缓存\n- HTML 使用 `no-cache` 确保每次获取最新版本\n- 旧 hash 资源返回 404 而非重写到 index.html（避免 CSS MIME 类型错误）\n- 安全响应头：`X-Content-Type-Options`、`Content-Security-Policy: frame-ancestors 'none'`、`Referrer-Policy`\n\n### CloudBase 静态托管\n\n也可部署到 CloudBase 静态托管，需配置环境变量后构建：\n\n```bash\nnpm run build\n```\n\n将 `dist/` 目录上传至 CloudBase 静态托管。\n\n### 云函数部署\n\n`cloudfunctions/` 目录下的云函数需要通过 CloudBase CLI 单独部署：\n\n```bash\n# 安装 CloudBase CLI\nnpm install -g @cloudbase/cli\n\n# 登录并选择环境\ntcb login\n\n# 部署 ai-bot 云函数（AI 自动回复）\ntcb fn deploy ai-bot --envId <你的云环境ID>\n\n# 部署 admin-delete 云函数（管理员删除帖子）\ntcb fn deploy admin-delete --envId <你的云环境ID>\n```\n\n部署后需在云函数环境变量中配置：\n\n```bash\n# AI 机器人需要 DeepSeek API 密钥\ntcb fn config set DEEPSEEK_API_KEY <你的密钥> --name ai-bot --envId <你的云环境ID>\n```\n\n## 目录结构\n\n```\n.\n├── src/\n│   ├── components/   # 通用组件（Dialog、TagSelector、StarField 等）\n│   ├── pages/        # 路由页面\n│   ├── lib/          # CloudBase 封装与业务逻辑\n│   ├── stores/       # Zustand 状态管理\n│   ├── types/        # TypeScript 类型定义\n│   └── data/         # 静态数据与种子内容\n├── cloudfunctions/   # 云函数（ai-bot、admin-delete）\n├── public/           # 静态资源\n└── vercel.json       # Vercel 部署配置\n```\n\n## 性能优化\n\n- **路由懒加载**：所有页面级组件使用 `React.lazy` 动态导入\n- **KaTeX 懒加载**：数学公式渲染库按需加载，不阻塞首页\n- **PDF.js 懒加载**：仅在上传 PDF 文件时加载解析器\n- **代码分割**：React、Motion、CloudBase SDK、KaTeX 独立 chunk\n- **生产构建优化**：移除 Trae inspector 元数据，不泄露源码路径\n- **StarField 降级**：移动端减少星星数量，浅色模式不渲染\n\n## License\n\nMIT\n",
+    "README.md": "# 天玑 (Tianji) — 知识共创社区\n\n面向学生、研究者和开发者的知识分享平台，集讨论区、灵感广场、资源库、协作工坊于一体。打通从学习资源到项目协作的完整链路。\n\n## 技术栈\n\n- React 18 + TypeScript\n- Vite 构建工具\n- Tailwind CSS 样式\n- Zustand 状态管理\n- CloudBase（腾讯云开发）后端服务\n- React Router 路由\n- KaTeX 数学公式渲染（按需懒加载）\n- PDF.js 目录自动识别\n- Framer Motion 动画\n\n## 功能模块\n\n### 核心功能\n\n- **讨论区**：学术区与闲聊区分区运营，学术区支持标签筛选，闲聊区按子分类（灌水/动态/新闻/其他）浏览\n- **问答系统**：发帖、回答、评论、投票、采纳回答（可取消采纳）、AI 机器人自动回复\n- **灵感广场**：快速分享灵感，共鸣互动\n- **资源库**：书籍上传与下载，PDF 上传自动识别目录书签，支持在线预览与下载\n- **协作工坊**：多人协作编辑文档，批注讨论，章节大纲管理，创建者可编辑标题/简介/删除项目\n\n### 跨模块联动\n\n- **标签体系**：讨论、灵感、资源、协作共享标签，基于标签自动推荐相关内容\n- **全局搜索 + 热度榜**：跨模块搜索，热门标签导航\n- **标签详情页**：按标签聚合四个模块的内容\n\n### 社区功能\n\n- **用户认证**：邮箱注册登录、GitHub OAuth\n- **消息通知**：回答、采纳、评论等事件通知\n- **收藏功能**：收藏帖子、资源等，支持取消收藏\n- **个人主页**：展示用户发布的内容与收藏\n- **管理后台**：帖子管理、举报处理\n- **举报系统**：举报违规内容\n\n### 体验与无障碍\n\n- **深色 / 浅色主题切换**（默认浅色）\n- **无障碍弹窗**：共享 Dialog 组件，焦点陷阱、ESC 关闭、焦点恢复、滚动锁定\n- **减弱动画**：支持 `prefers-reduced-motion`，自动禁用装饰动画\n- **键盘可访问的标签选择器**：combobox 语义，↑↓ 导航，Enter 选择，Escape 关闭\n- **移动端优化**：StarField 移动端降级，路由懒加载\n\n## 本地启动\n\n```bash\nnpm install\nnpm run dev\n```\n\n需要配置环境变量。复制 `.env.example` 为 `.env` 并填入实际值（`.env` 已被 `.gitignore` 忽略，不会提交到仓库）：\n\n```bash\ncp .env.example .env\n```\n\n```env\nVITE_CLOUDBASE_ENV_ID=你的云环境ID\nVITE_CLOUDBASE_REGION=你的地域\nVITE_CLOUDBASE_ACCESS_KEY=你的访问密钥\n```\n\n## 部署\n\n### Vercel 部署\n\n项目已配置 `vercel.json`，支持 Vercel 自动部署。推送代码到 `main` 分支后 Vercel 自动构建部署。\n\n配置要点：\n- `/assets/*` 静态资源使用 immutable 长缓存\n- HTML 使用 `no-cache` 确保每次获取最新版本\n- 旧 hash 资源返回 404 而非重写到 index.html（避免 CSS MIME 类型错误）\n- 安全响应头：`X-Content-Type-Options`、`Content-Security-Policy: frame-ancestors 'none'`、`Referrer-Policy`\n\n### CloudBase 静态托管\n\n也可部署到 CloudBase 静态托管，需配置环境变量后构建：\n\n```bash\nnpm run build\n```\n\n将 `dist/` 目录上传至 CloudBase 静态托管。\n\n### 云函数部署\n\n`cloudfunctions/` 目录下的云函数需要通过 CloudBase CLI 单独部署：\n\n```bash\n# 安装 CloudBase CLI\nnpm install -g @cloudbase/cli\n\n# 登录并选择环境\ntcb login\n\n# 部署 ai-bot 云函数（AI 自动回复）\ntcb fn deploy ai-bot --envId <你的云环境ID>\n\n# 部署 admin-delete 云函数（管理员删除帖子）\ntcb fn deploy admin-delete --envId <你的云环境ID>\n```\n\n部署后需在云函数环境变量中配置：\n\n```bash\n# AI 机器人需要 DeepSeek API 密钥\ntcb fn config set DEEPSEEK_API_KEY <你的密钥> --name ai-bot --envId <你的云环境ID>\n```\n\n### 数据库安全规则部署\n\n`cloudbase-security-rules.json` 定义了所有集合的安全规则（谁可以读/写/改/删）。修改规则后需重新部署：\n\n```bash\n# 预览将要应用的规则（不实际执行）\nnpm run deploy:rules:dry\n\n# 应用规则到 CloudBase 环境\n# 需设置 TCB_SECRET_ID 和 TCB_SECRET_KEY 环境变量（管理端密钥，非前端 accessKey）\nnpm run deploy:rules\n```\n\n验证规则已生效：\n\n```bash\n# 用未登录状态直接调用 db.collection('posts').add() 应返回 DATABASE_PERMISSION_DENIED\n# 用登录用户尝试删除他人帖子应返回权限拒绝\n```\n\n各集合规则概要：\n\n| 集合 | 权限模型 |\n|------|---------|\n| posts/ideas | 作者(authorUid)或管理员可改删 |\n| books | 上传者(uploaderUid)或管理员可改删 |\n| workshops | 创建者(creatorUid)或管理员可改删 |\n| votes/favorites | 用户只能改删自己的记录 |\n| notifications | 用户只能读改删自己的通知 |\n| reports | 用户可举报，仅管理员可处理 |\n| tags/announcements | 前端只读 |\n| sys_* | PRIVATE 禁止前端访问 |\n\n## 目录结构\n\n```\n.\n├── src/\n│   ├── components/   # 通用组件（Dialog、TagSelector、StarField 等）\n│   ├── pages/        # 路由页面\n│   ├── lib/          # CloudBase 封装与业务逻辑\n│   ├── stores/       # Zustand 状态管理\n│   ├── types/        # TypeScript 类型定义\n│   └── data/         # 静态数据与种子内容\n├── cloudfunctions/   # 云函数（ai-bot、admin-delete）\n├── public/           # 静态资源\n└── vercel.json       # Vercel 部署配置\n```\n\n## 性能优化\n\n- **路由懒加载**：所有页面级组件使用 `React.lazy` 动态导入\n- **KaTeX 懒加载**：数学公式渲染库按需加载，不阻塞首页\n- **PDF.js 懒加载**：仅在上传 PDF 文件时加载解析器\n- **代码分割**：React、Motion、CloudBase SDK、KaTeX 独立 chunk\n- **生产构建优化**：移除 Trae inspector 元数据，不泄露源码路径\n- **StarField 降级**：移动端减少星星数量，浅色模式不渲染\n\n## License\n\nMIT\n",
     "SECURITY.md": "# 安全策略\n\n## 报告漏洞\n\n如果你发现了安全漏洞，请**不要**通过公开 Issue 报告。\n\n请通过以下私有渠道报告：\n\n- 邮箱：contact@tianjihub.cn\n- 或使用 GitHub Security Advisory（仓库 Security 标签页 -> Report a vulnerability）\n\n报告时请尽量包含：\n- 漏洞的清晰描述和影响范围\n- 复现步骤（如适用）\n- 你认为的修复建议\n\n## 响应时间\n\n| 阶段 | 时间 |\n|------|------|\n| 确认收到报告 | 48 小时内 |\n| 初步评估 | 7 天内 |\n| 修复发布 | 视严重程度，P0 7 天内，P1 30 天内 |\n| 公开披露 | 修复发布后 30 天，或与报告者协商 |\n\n## 支持版本\n\n当前仅支持 `main` 分支的最新版本。历史版本不提供安全更新。\n\n## 不在范围内\n\n以下情况请勿通过安全渠道报告，改用普通 Issue：\n\n- 第三方依赖的已知漏洞（请通过 Dependabot alerts 报告）\n- 仅在已弃用浏览器中可复现的问题\n- 拒绝服务攻击（除非利用了特定代码漏洞）\n- 社会工程攻击\n\n## 安全措施\n\n本项目已实施的安全措施：\n\n- 用户写操作通过 CloudBase 数据库安全规则做服务端授权校验\n- 管理员操作通过云函数服务端鉴权（`check-admin` / `admin-delete`）\n- AI Bot 输入有长度限制和 prompt injection 防御\n- 所有用户输入经过 `sanitize.ts` 统一清理\n- 前端错误通过 Sentry 上报\n- 密钥通过环境变量管理，不硬编码\n",
     "cloudfunctions/admin-delete/package.json": "{\n  \"name\": \"admin-delete\",\n  \"version\": \"1.0.0\",\n  \"description\": \"管理员删除内容云函数\",\n  \"main\": \"index.js\",\n  \"dependencies\": {\n    \"@cloudbase/node-sdk\": \"^4.0.0\"\n  }\n}\n",
     "cloudfunctions/ai-bot/package.json": "{\n  \"name\": \"ai-bot\",\n  \"version\": \"1.0.0\",\n  \"description\": \"AI 机器人自动回复\",\n  \"main\": \"index.js\",\n  \"dependencies\": {\n    \"@cloudbase/node-sdk\": \"^4.0.0\"\n  }\n}\n",
     "cloudfunctions/check-admin/package.json": "{\n  \"name\": \"check-admin\",\n  \"version\": \"1.0.0\",\n  \"description\": \"判断调用者是否为管理员（服务端持有 UID 列表）\",\n  \"main\": \"index.js\",\n  \"dependencies\": {\n    \"@cloudbase/node-sdk\": \"^4.0.0\"\n  }\n}\n",
     "eslint.config.js": "import js from '@eslint/js'\nimport globals from 'globals'\nimport reactHooks from 'eslint-plugin-react-hooks'\nimport reactRefresh from 'eslint-plugin-react-refresh'\nimport tseslint from 'typescript-eslint'\n\nexport default tseslint.config(\n  { ignores: ['dist'] },\n  {\n    extends: [js.configs.recommended, ...tseslint.configs.recommended],\n    files: ['**/*.{ts,tsx}'],\n    languageOptions: {\n      ecmaVersion: 2020,\n      globals: globals.browser,\n    },\n    plugins: {\n      'react-hooks': reactHooks,\n      'react-refresh': reactRefresh,\n    },\n    rules: {\n      ...reactHooks.configs.recommended.rules,\n      'react-refresh/only-export-components': [\n        'warn',\n        { allowConstantExport: true },\n      ],\n    },\n  },\n)\n",
     "package-lock.json": "{\n  \"name\": \"tianji\",\n  \"version\": \"1.0.0\",\n  \"lockfileVersion\": 3,\n  \"requires\": true,\n  \"packages\": {\n    \"\": {\n      \"name\": \"tianji\",\n      \"version\": \"1.0.0\",\n      \"license\": \"MIT\",\n      \"dependencies\": {\n        \"@cloudbase/js-sdk\": \"^2.28.8\",\n        \"@sentry/react\": \"^10.65.0\",\n        \"clsx\": \"^2.1.1\",\n        \"cos-nodejs-sdk-v5\": \"^2.14.4\",\n        \"katex\": \"^0.16.22\",\n        \"lucide-react\": \"^0.511.0\",\n        \"motion\": \"^11.18.2\",\n        \"pdfjs-dist\": \"^6.1.200\",\n        \"react\": \"^18.3.1\",\n        \"react-dom\": \"^18.3.1\",\n        \"react-router-dom\": \"^7.3.0\",\n        \"tailwind-merge\": \"^3.0.2\",\n        \"zustand\": \"^5.0.3\"\n      },\n      \"devDependencies\": {\n        \"@eslint/js\": \"^9.25.0\",\n        \"@types/node\": \"^22.15.30\",\n        \"@types/react\": \"^18.3.12\",\n        \"@types/react-dom\": \"^18.3.1\",\n        \"@vitejs/plugin-react\": \"^4.4.1\",\n        \"@vitest/coverage-v8\": \"^4.1.10\",\n        \"autoprefixer\": \"^10.4.21\",\n        \"babel-plugin-react-dev-locator\": \"^1.0.0\",\n        \"eslint\": \"^9.25.0\",\n        \"eslint-plugin-react-hooks\": \"^5.2.0\",\n        \"eslint-plugin-react-refresh\": \"^0.4.19\",\n        \"globals\": \"^16.0.0\",\n        \"postcss\": \"^8.5.3\",\n        \"tailwindcss\": \"^3.4.17\",\n        \"typescript\": \"~5.8.3\",\n        \"typescript-eslint\": \"^8.30.1\",\n        \"vite\": \"^6.3.5\",\n        \"vite-plugin-trae-solo-badge\": \"^1.0.0\",\n        \"vite-tsconfig-paths\": \"^5.1.4\",\n        \"vitest\": \"^4.1.10\"\n      }\n    },\n    \"node_modules/@alloc/quick-lru\": {\n      \"version\": \"5.2.0\",\n      \"resolved\": \"https://registry.npmmirror.com/@alloc/quick-lru/-/quick-lru-5.2.0.tgz\",\n      \"integrity\": \"sha512-UrcABB+4bUrFABwbluTIBErXwvbsU/V7TZWfmbgJfbkwiBuziS9gxdODUyuiecfdGQ85jglMW6juS3+z5TsKLw==\",\n      \"dev\": true,\n      \"license\": \"MIT\",\n      \"engines\": {\n        \"node\": \">=10\"\n      },\n      \"funding\": {\n        \"url\": \"https://github.com/sponsors/sindresorhus\"\n      }\n    },\n    \"node_modules/@babel/code-frame\": {\n      \"version\": \"7.29.7\",\n      \"resolved\": \"https://registry.npmmirror.com/@babel/code-frame/-/code-frame-7.29.7.tgz\",\n      \"integrity\": \"sha512-Aup7aUOfpbAUg2ROOJN6Iw5f9DMBlzu0mIkm/malLQFN/YQgO48wCj0Kxa3sEHJvPVFg7siR+qRInwXd2qhQKw==\",\n      \"dev\": true,\n      \"license\": \"MIT\",\n      \"dependencies\": {\n        \"@babel/helper-validator-identifier\": \"^7.29.7\",\n        \"js-tokens\": \"^4.0.0\",\n        \"picocolors\": \"^1.1.1\"\n      },\n      \"engines\": {\n        \"node\": \">=6.9.0\"\n      }\n    },\n    \"node_modules/@babel/compat-data\": {\n      \"version\": \"7.29.7\",\n      \"resolved\": \"https://registry.npmmirror.com/@babel/compat-data/-/compat-data-7.29.7.tgz\",\n      \"integrity\": \"sha512-locTkQyKvwIEgBzVrn8693ebc97F2U8ZHjbXwDXJ5Fn2TCpNwTlKcaKLkdHop5c/icOFE7qt7Q9JC5hnKNa6Gg==\",\n      \"dev\": true,\n      \"license\": \"MIT\",\n      \"engines\": {\n        \"node\": \">=6.9.0\"\n      }\n    },\n    \"node_modules/@babel/core\": {\n      \"version\": \"7.29.7\",\n      \"resolved\": \"https://registry.npmmirror.com/@babel/core/-/core-7.29.7.tgz\",\n      \"integrity\": \"sha512-RgHBCvtjbOK2gXSNBNIkNoEc9qoVEtau3hj8gEqKQuL3HZAibKarWFEI3Lfm6EYKkLalOh8eSrj9b+ch9H/VBA==\",\n      \"dev\": true,\n      \"license\": \"MIT\",\n      \"dependencies\": {\n        \"@babel/code-frame\": \"^7.29.7\",\n        \"@babel/generator\": \"^7.29.7\",\n        \"@babel/helper-compilation-targets\": \"^7.29.7\",\n        \"@babel/helper-module-transforms\": \"^7.29.7\",\n        \"@babel/helpers\": \"^7.29.7\",\n        \"@babel/parser\": \"^7.29.7\",\n        \"@babel/template\": \"^7.29.7\",\n        \"@babel/traverse\": \"^7.29.7\",\n        \"@babel/types\": \"^7.29.7\",\n        \"@jridgewell/remapping\": \"^2.3.5\",\n        \"convert-source-map\": \"^2.0.0\",\n        \"debug\": \"^4.1.0\",\n        \"gensync\": \"^1.0.0-beta.2\",\n        \"json5\": \"^2.2.3\",\n        \"semver\": \"^6.3.1\"\n      },\n      \"engines\": {\n        \"node\": \">=6.9.0\"\n      },\n      \"funding\": {\n        \"type\": \"opencollective\",\n        \"url\": \"https://opencollective.com/babel\"\n      }\n    },\n    \"node_modules/@babel/generator\": {\n      \"version\": \"7.29.7\",\n      \"resolved\": \"https://registry.npmmirror.com/@babel/generator/-/generator-7.29.7.tgz\",\n      \"integrity\": \"sha512-DkXD5OJQaAQIdZ1bt3UZdEnHAn9Imd3IVBdX03UFe+ony9Ojw5pzr9YVKGDY1jt+Gcn/FnGkNf8r+Vj5NOJWtQ==\",\n      \"dev\": true,\n      \"license\": \"MIT\",\n      \"dependencies\": {\n        \"@babel/parser\": \"^7.29.7\",\n        \"@babel/types\": \"^7.29.7\",\n        \"@jridgewell/gen-mapping\": \"^0.3.12\",\n        \"@jridgewell/trace-mapping\": \"^0.3.28\",\n        \"jsesc\": \"^3.0.2\"\n      },\n      \"engines\": {\n        \"node\": \">=6.9.0\"\n      }\n    },\n    \"node_modules/@babel/helper-compilation-targets\": {\n      \"version\": \"7.29.7\",\n      \"resolved\": \"https://registry.npmmirror.com/@babel/helper-compilation-targets/-/helper-compilation-targets-7.29.7.tgz\",\n      \"integrity\": \"sha512-wem6WaBj4NaVYVdNhLPPVacES6ZJ+KBBfSkTMD3YZxbP3rm3Di85tJU5ljaUNhaOynt+Aj0xruhYuzQBt8n71g==\",\n      \"dev\": true,\n      \"license\": \"MIT\",\n      \"dependencies\": {\n        \"@babel/compat-data\": \"^7.29.7\",\n        \"@babel/helper-validator-option\": \"^7.29.7\",\n        \"browserslist\": \"^4.24.0\",\n        \"lru-cache\": \"^5.1.1\",\n        \"semver\": \"^6.3.1\"\n      },\n      \"engines\": {\n        \"node\": \">=6.9.0\"\n      }\n    },\n    \"node_modules/@babel/helper-globals\": {\n      \"version\": \"7.29.7\",\n      \"resolved\": \"https://registry.npmmirror.com/@babel/helper-globals/-/helper-globals-7.29.7.tgz\",\n      \"integrity\": \"sha512-3nQVUAtvkKH9zahfWgw96Jc/uFOmjACE1kQz82E2lqWmHBgjzbNlsC22nuQTfahmWeQtTq5nQ/4Nnd2A1wj4zA==\",\n      \"dev\": true,\n      \"license\": \"MIT\",\n      \"engines\": {\n        \"node\": \">=6.9.0\"\n      }\n    },\n    \"node_modules/@babel/helper-module-imports\": {\n      \"version\": \"7.29.7\",\n      \"resolved\": \"https://registry.npmmirror.com/@babel/helper-module-imports/-/helper-module-imports-7.29.7.tgz\",\n      \"integrity\": \"sha512-ejHwrQQYcm9xnTivShn2IDOlIzInN34AXskvq9QicvCtEzq1Vzclu/tKF8Jq1Cg8JG2GL6/EmjgsCT7lXepE3g==\",\n      \"dev\": true,\n      \"license\": \"MIT\",\n      \"dependencies\": {\n        \"@babel/traverse\": \"^7.29.7\",\n        \"@babel/types\": \"^7.29.7\"\n      },\n      \"engines\": {\n        \"node\": \">=6.9.0\"\n      }\n    },\n    \"node_modules/@babel/helper-module-transforms\": {\n      \"version\": \"7.29.7\",\n      \"resolved\": \"https://registry.npmmirror.com/@babel/helper-module-transforms/-/helper-module-transforms-7.29.7.tgz\",\n      \"integrity\": \"sha512-UPUVSyXbOh627KiCIGQSgwWzGeBKLkaJ9PJEdrngIwMSzxLR4jS4+f1f1jb7VzBbg8nFLaYotvVPFCTqdrmTAg==\",\n      \"dev\": true,\n      \"license\": \"MIT\",\n      \"dependencies\": {\n        \"@babel/helper-module-imports\": \"^7.29.7\",\n        \"@babel/helper-validator-identifier\": \"^7.29.7\",\n        \"@babel/traverse\": \"^7.29.7\"\n      },\n      \"engines\": {\n        \"node\": \">=6.9.0\"\n      },\n      \"peerDependencies\": {\n        \"@babel/core\": \"^7.0.0\"\n      }\n    },\n    \"node_modules/@babel/helper-plugin-utils\": {\n      \"version\": \"7.29.7\",\n      \"resolved\": \"https://registry.npmmirror.com/@babel/helper-plugin-utils/-/helper-plugin-utils-7.29.7.tgz\",\n      \"integrity\": \"sha512-G7sHYigPY17oO5SYWnfD/0MTBwVR781S/JI643e/JhUYgVgWE/61SoW3NH9KWUKyKq5LVh3npif99Wkt6j86Jw==\",\n      \"dev\": true,\n      \"license\": \"MIT\",\n      \"engines\": {\n        \"node\": \">=6.9.0\"\n      }\n    },\n    \"node_modules/@babel/helper-string-parser\": {\n      \"version\": \"7.29.7\",\n      \"resolved\": \"https://registry.npmmirror.com/@babel/helper-string-parser/-/helper-string-parser-7.29.7.tgz\",\n      \"integrity\": \"sha512-Pb5ijPrZ89GDH8223L4UP8i6QApWxs04RbPQJTeWDV0/keR2E36MeKnyr6LYmUUvqRRI+Iv87SuF1W6ErINzYw==\",\n      \"dev\": true,\n      \"license\": \"MIT\",\n      \"engines\": {\n        \"node\": \">=6.9.0\"\n      }\n    },\n    \"node_modules/@babel/helper-validator-identifier\": {\n      \"version\": \"7.29.7\",\n      \"resolved\": \"https://registry.npmmirror.com/@babel/helper-validator-identifier/-/helper-validator-identifier-7.29.7.tgz\",\n      \"integrity\": \"sha512-qehxGkRj55h/ff8EMaJ+cYhyaKlHIxqYDn682wQD7RNp9UujOQsHog2uS0r2vzr4pW+sXf90NeeayjcNaX3fFg==\",\n      \"dev\": true,\n      \"license\": \"MIT\",\n      \"engines\": {\n        \"node\": \">=6.9.0\"\n      }\n    },\n    \"node_modules/@babel/helper-validator-option\": {\n      \"version\": \"7.29.7\",\n      \"resolved\": \"https://registry.npmmirror.com/@babel/helper-validator-option/-/helper-validator-option-7.29.7.tgz\",\n      \"integrity\": \"sha512-N9ZErrD+yW5geCDtBqnOoxmR8+tNKiGuxKlDpuJxfsqpa2dFcexaziGAE/qoHLiDDreVNMupxGmSoNlyvsA3gw==\",\n      \"dev\": true,\n      \"license\": \"MIT\",\n      \"engines\": {\n        \"node\": \">=6.9.0\"\n      }\n    },\n    \"node_modules/@babel/helpers\": {\n      \"version\": \"7.29.7\",\n      \"resolved\": \"https://registry.npmmirror.com/@babel/helpers/-/helpers-7.29.7.tgz\",\n      \"integrity\": \"sha512-1k2lAGRMfHTcwuNYcCNUmaUffmQv8KWMfh2iJUUeRlwlwH4FdNG7mfPI10NPfLHJFThE4Tyr4mv7kTNZOiPuBg==\",\n      \"dev\": true,\n      \"license\": \"MIT\",\n      \"dependencies\": {\n        \"@babel/template\": \"^7.29.7\",\n        \"@babel/types\": \"^7.29.7\"\n      },\n      \"engines\": {\n        \"node\": \">=6.9.0\"\n      }\n    },\n    \"node_modules/@babel/parser\": {\n      \"version\": \"7.29.7\",\n      \"resolved\": \"https://registry.npmmirror.com/@babel/parser/-/parser-7.29.7.tgz\",\n      \"integrity\": \"sha512-hnORnjP/1P/zFEndoeX+n+t1RwWRJiJpM/jO7FW32Kn9r5+sJB2JWOdYo4L6k78j15eCwY3Gm/7364B1EMwtNg==\",\n      \"dev\": true,\n      \"license\": \"MIT\",\n      \"dependencies\": {\n        \"@babel/types\": \"^7.29.7\"\n      },\n      \"bin\": {\n        \"parser\": \"bin/babel-parser.js\"\n      },\n      \"engines\": {\n        \"node\": \">=6.0.0\"\n      }\n    },\n    \"node_modules/@babel/plugin-transform-react-jsx-self\": {\n      \"version\": \"7.29.7\",\n      \"resolved\": \"https://registry.npmmirror.com/@babel/plugin-transform-react-jsx-self/-/plugin-transform-react-jsx-self-7.29.7.tgz\",\n      \"integrity\": \"sha512-TL0hMc9xzy86VD31nUiwzd5otRAcyEPcsegCxolO0PvcXuH1v0kECe/UIznYFihpkvU5wg/jk4v0TTEFfm53fw==\",\n      \"dev\": true,\n      \"license\": \"MIT\",\n      \"dependencies\": {\n        \"@babel/helper-plugin-utils\": \"^7.29.7\"\n      },\n      \"engines\": {\n        \"node\": \">=6.9.0\"\n      },\n      \"peerDependencies\": {\n        \"@babel/core\": \"^7.0.0-0\"\n      }\n    },\n    \"node_modules/@babel/plugin-transform-react-jsx-source\": {\n      \"version\": \"7.29.7\",\n      \"resolved\": \"https://registry.npmmirror.com/@babel/plugin-transform-react-jsx-source/-/plugin-transform-react-jsx-source-7.29.7.tgz\",\n      \"integrity\": \"sha512-06IyK09H3wi4cGbhDBwp5gUGo0IKtnYa8tyTiephirPCK6fbobVGiXMMI5zLQ4aKEYP3wZ3ArU44o+8KMrSG/Q==\",\n      \"dev\": true,\n      \"license\": \"MIT\",\n      \"dependencies\": {\n        \"@babel/helper-plugin-utils\": \"^7.29.7\"\n      },\n      \"engines\": {\n        \"node\": \">=6.9.0\"\n      },\n      \"peerDependencies\": {\n        \"@babel/core\": \"^7.0.0-0\"\n      }\n    },\n    \"node_modules/@babel/template\": {\n      \"version\": \"7.29.7\",\n      \"resolved\": \"https://registry.npmmirror.com/@babel/template/-/template-7.29.7.tgz\",\n      \"integrity\": \"sha512-puq+Gf35oI24FeN11LkoUQFqv9uwNeWpxXZi/Ji3rRIoKAzKnxRaZ+Gkj0vKS9ZCiTESfng1N9LyOyXvo+m+Gg==\",\n      \"dev\": true,\n      \"license\": \"MIT\",\n      \"dependencies\": {\n        \"@babel/code-frame\": \"^7.29.7\",\n        \"@babel/parser\": \"^7.29.7\",\n        \"@babel/types\": \"^7.29.7\"\n      },\n      \"engines\": {\n        \"node\": \">=6.9.0\"\n      }\n    },\n    \"node_modules/@babel/traverse\": {\n      \"version\": \"7.29.7\",\n      \"resolved\": \"https://registry.npmmirror.com/@babel/traverse/-/traverse-7.29.7.tgz\",\n      \"integrity\": \"sha512-EhlfNQtZ+NK22w5BM61ciuiq1m58ed33Wr1Xan//ZRTy6hgjnwyCffRYwzsGXdASJSUJ1guZILsErh1eQcl+zw==\",\n      \"dev\": true,\n      \"license\": \"MIT\",\n      \"dependencies\": {\n        \"@babel/code-frame\": \"^7.29.7\",\n        \"@babel/generator\": \"^7.29.7\",\n        \"@babel/helper-globals\": \"^7.29.7\",\n        \"@babel/parser\": \"^7.29.7\",\n        \"@babel/template\": \"^7.29.7\",\n        \"@babel/types\": \"^7.29.7\",\n        \"debug\": \"^4.3.1\"\n      },\n      \"engines\": {\n        \"node\": \">=6.9.0\"\n      }\n    },\n    \"node_modules/@babel/types\": {\n      \"version\": \"7.29.7\",\n      \"resolved\": \"https://registry.npmmirror.com/@babel/types/-/types-7.29.7.tgz\",\n      \"integrity\": \"sha512-4zBIxpPzowiZpusoFkyGVwakdRJUyuH5PxQ/Prqg\n\n[truncated to 12000 characters]",
-    "package.json": "{\n  \"name\": \"tianji\",\n  \"private\": true,\n  \"version\": \"1.0.0\",\n  \"license\": \"MIT\",\n  \"type\": \"module\",\n  \"scripts\": {\n    \"dev\": \"vite\",\n    \"build\": \"tsc -b && vite build\",\n    \"lint\": \"eslint .\",\n    \"preview\": \"vite preview\",\n    \"check\": \"tsc -b --noEmit\",\n    \"test\": \"vitest run\",\n    \"test:watch\": \"vitest\",\n    \"test:coverage\": \"vitest run --coverage\"\n  },\n  \"dependencies\": {\n    \"@cloudbase/js-sdk\": \"^2.28.8\",\n    \"@sentry/react\": \"^10.65.0\",\n    \"clsx\": \"^2.1.1\",\n    \"cos-nodejs-sdk-v5\": \"^2.14.4\",\n    \"katex\": \"^0.16.22\",\n    \"lucide-react\": \"^0.511.0\",\n    \"motion\": \"^11.18.2\",\n    \"pdfjs-dist\": \"^6.1.200\",\n    \"react\": \"^18.3.1\",\n    \"react-dom\": \"^18.3.1\",\n    \"react-router-dom\": \"^7.3.0\",\n    \"tailwind-merge\": \"^3.0.2\",\n    \"zustand\": \"^5.0.3\"\n  },\n  \"devDependencies\": {\n    \"@eslint/js\": \"^9.25.0\",\n    \"@types/node\": \"^22.15.30\",\n    \"@types/react\": \"^18.3.12\",\n    \"@types/react-dom\": \"^18.3.1\",\n    \"@vitejs/plugin-react\": \"^4.4.1\",\n    \"@vitest/coverage-v8\": \"^4.1.10\",\n    \"autoprefixer\": \"^10.4.21\",\n    \"babel-plugin-react-dev-locator\": \"^1.0.0\",\n    \"eslint\": \"^9.25.0\",\n    \"eslint-plugin-react-hooks\": \"^5.2.0\",\n    \"eslint-plugin-react-refresh\": \"^0.4.19\",\n    \"globals\": \"^16.0.0\",\n    \"postcss\": \"^8.5.3\",\n    \"tailwindcss\": \"^3.4.17\",\n    \"typescript\": \"~5.8.3\",\n    \"typescript-eslint\": \"^8.30.1\",\n    \"vite\": \"^6.3.5\",\n    \"vite-plugin-trae-solo-badge\": \"^1.0.0\",\n    \"vite-tsconfig-paths\": \"^5.1.4\",\n    \"vitest\": \"^4.1.10\"\n  }\n}\n",
+    "package.json": "{\n  \"name\": \"tianji\",\n  \"private\": true,\n  \"version\": \"1.0.0\",\n  \"license\": \"MIT\",\n  \"type\": \"module\",\n  \"scripts\": {\n    \"dev\": \"vite\",\n    \"build\": \"tsc -b && vite build\",\n    \"lint\": \"eslint .\",\n    \"preview\": \"vite preview\",\n    \"check\": \"tsc -b --noEmit\",\n    \"test\": \"vitest run\",\n    \"test:watch\": \"vitest\",\n    \"test:coverage\": \"vitest run --coverage\",\n    \"deploy:rules\": \"node scripts/deploy-security-rules.mjs\",\n    \"deploy:rules:dry\": \"node scripts/deploy-security-rules.mjs --dry-run\"\n  },\n  \"dependencies\": {\n    \"@cloudbase/js-sdk\": \"^2.28.8\",\n    \"@sentry/react\": \"^10.65.0\",\n    \"clsx\": \"^2.1.1\",\n    \"cos-nodejs-sdk-v5\": \"^2.14.4\",\n    \"katex\": \"^0.16.22\",\n    \"lucide-react\": \"^0.511.0\",\n    \"motion\": \"^11.18.2\",\n    \"pdfjs-dist\": \"^6.1.200\",\n    \"react\": \"^18.3.1\",\n    \"react-dom\": \"^18.3.1\",\n    \"react-router-dom\": \"^7.3.0\",\n    \"tailwind-merge\": \"^3.0.2\",\n    \"zustand\": \"^5.0.3\"\n  },\n  \"devDependencies\": {\n    \"@eslint/js\": \"^9.25.0\",\n    \"@types/node\": \"^22.15.30\",\n    \"@types/react\": \"^18.3.12\",\n    \"@types/react-dom\": \"^18.3.1\",\n    \"@vitejs/plugin-react\": \"^4.4.1\",\n    \"@vitest/coverage-v8\": \"^4.1.10\",\n    \"autoprefixer\": \"^10.4.21\",\n    \"babel-plugin-react-dev-locator\": \"^1.0.0\",\n    \"eslint\": \"^9.25.0\",\n    \"eslint-plugin-react-hooks\": \"^5.2.0\",\n    \"eslint-plugin-react-refresh\": \"^0.4.19\",\n    \"globals\": \"^16.0.0\",\n    \"postcss\": \"^8.5.3\",\n    \"tailwindcss\": \"^3.4.17\",\n    \"typescript\": \"~5.8.3\",\n    \"typescript-eslint\": \"^8.30.1\",\n    \"vite\": \"^6.3.5\",\n    \"vite-plugin-trae-solo-badge\": \"^1.0.0\",\n    \"vite-tsconfig-paths\": \"^5.1.4\",\n    \"vitest\": \"^4.1.10\"\n  }\n}\n",
     "src/App.tsx": "import { lazy, Suspense, type ComponentType } from \"react\";\nimport {\n  BrowserRouter as Router,\n  Routes,\n  Route,\n  Navigate,\n  useLocation,\n} from \"react-router-dom\";\nimport Layout from \"@/components/Layout\";\nimport ScrollToTop from \"@/components/ScrollToTop\";\nimport ToastContainer from \"@/components/ToastContainer\";\nimport Discussion from \"@/pages/Discussion\";\n\n/**\n * 包装 lazy，捕获动态 import 失败（新部署后旧 chunk hash 失效）自动刷新页面。\n * 刷新后浏览器获取最新 index.html，引用正确的 chunk 文件名。\n */\nfunction lazyWithReload<T extends ComponentType<unknown>>(\n  factory: () => Promise<{ default: T }>\n) {\n  return lazy(() =>\n    factory().catch((err: unknown) => {\n      const msg = err instanceof Error ? err.message : String(err);\n      if (\n        msg.includes(\"Failed to fetch dynamically imported module\") ||\n        msg.includes(\"Importing a module script failed\") ||\n        msg.includes(\"error loading dynamically imported module\")\n      ) {\n        window.location.reload();\n      }\n      throw err;\n    })\n  );\n}\n\n// 路由级懒加载 — 首屏只加载讨论区（首页），其余按需加载\nconst About = lazyWithReload(() => import(\"@/pages/About\"));\nconst Library = lazyWithReload(() => import(\"@/pages/Library\"));\nconst BookDetail = lazyWithReload(() => import(\"@/pages/BookDetail\"));\nconst DiscussionDetail = lazyWithReload(() => import(\"@/pages/DiscussionDetail\"));\nconst Ideas = lazyWithReload(() => import(\"@/pages/Ideas\"));\nconst IdeaDetail = lazyWithReload(() => import(\"@/pages/IdeaDetail\"));\nconst Workshop = lazyWithReload(() => import(\"@/pages/Workshop\"));\nconst WorkshopDetail = lazyWithReload(() => import(\"@/pages/WorkshopDetail\"));\nconst Profile = lazyWithReload(() => import(\"@/pages/Profile\"));\nconst UserProfile = lazyWithReload(() => import(\"@/pages/UserProfile\"));\nconst TagDetail = lazyWithReload(() => import(\"@/pages/TagDetail\"));\nconst Admin = lazyWithReload(() => import(\"@/pages/Admin\"));\n\n// 页面加载骨架\nfunction PageFallback() {\n  return (\n    <div className=\"container-tj py-8\">\n      <div className=\"space-y-4\">\n        <div className=\"animate-pulse rounded bg-void-700/50 h-8 w-64\" />\n        <div className=\"animate-pulse rounded bg-void-700/50 h-4 w-full\" />\n        <div className=\"animate-pulse rounded bg-void-700/50 h-4 w-5/6\" />\n        <div className=\"mt-6 space-y-3\">\n          <div className=\"animate-pulse rounded-xl bg-void-700/50 h-28 w-full\" />\n          <div className=\"animate-pulse rounded-xl bg-void-700/50 h-28 w-full\" />\n          <div className=\"animate-pulse rounded-xl bg-void-700/50 h-28 w-full\" />\n        </div>\n      </div>\n    </div>\n  );\n}\n\n/** 旧讨论区路径重定向到首页，转发 state（发帖预填等依赖 location.state）。 */\nfunction DiscussionRedirect() {\n  const location = useLocation();\n  return <Navigate to=\"/\" replace state={location.state} />;\n}\n\nexport default function App() {\n  return (\n    <Router>\n      <ScrollToTop />\n      <Routes>\n        <Route element={<Layout />}>\n          <Route path=\"/\" element={<Discussion />} />\n          <Route\n            path=\"*\"\n            element={\n              <Suspense fallback={<PageFallback />}>\n                <Routes>\n                  <Route path=\"/about\" element={<About />} />\n                  <Route path=\"/library\" element={<Library />} />\n                  <Route path=\"/library/:id\" element={<BookDetail />} />\n                  <Route path=\"/discussion\" element={<DiscussionRedirect />} />\n                  <Route path=\"/discussion/:id\" element={<DiscussionDetail />} />\n                  <Route path=\"/ideas\" element={<Ideas />} />\n                  <Route path=\"/ideas/:id\" element={<IdeaDetail />} />\n                  <Route path=\"/workshop\" element={<Workshop />} />\n                  <Route path=\"/workshop/:id\" element={<WorkshopDetail />} />\n                  <Route path=\"/profile\" element={<Profile />} />\n                  <Route path=\"/user/:uid\" element={<UserProfile />} />\n                  <Route path=\"/tags/:name\" element={<TagDetail />} />\n                  <Route path=\"/admin\" element={<Admin />} />\n                  <Route\n                    path=\"*\"\n                    element={\n                      <div className=\"container-tj py-40 text-center\">\n                        <h1 className=\"heading-display text-3xl text-parchment-50\">迷失在星海</h1>\n                        <p className=\"mt-3 text-mist-400\">你访问的页面不存在，或许它还在被某个星辰书写。</p>\n                      </div>\n                    }\n                  />\n                </Routes>\n              </Suspense>\n            }\n          />\n        </Route>\n      </Routes>\n      <ToastContainer />\n    </Router>\n  );\n}\n",
     "src/main.tsx": "import { StrictMode } from 'react'\nimport { createRoot } from 'react-dom/client'\nimport App from './App'\nimport ErrorBoundary from './components/ErrorBoundary'\nimport { initSentry } from './lib/sentry'\nimport './index.css'\n\ninitSentry()\n\ncreateRoot(document.getElementById('root')!).render(\n  <StrictMode>\n    <ErrorBoundary>\n      <App />\n    </ErrorBoundary>\n  </StrictMode>,\n)\n",
     "tailwind.config.js": "/** @type {import('tailwindcss').Config} */\n\nexport default {\n  darkMode: \"class\",\n  content: [\"./index.html\", \"./src/**/*.{js,ts,jsx,tsx}\"],\n  theme: {\n    container: {\n      center: true,\n      padding: {\n        DEFAULT: \"1.5rem\",\n        lg: \"2.5rem\",\n        xl: \"3.5rem\",\n      },\n    },\n    extend: {\n      colors: {\n        // 底色（通过 CSS 变量实现深/浅切换）\n        void: {\n          950: \"var(--c-void-950)\",\n          900: \"var(--c-void-900)\",\n          800: \"var(--c-void-800)\",\n          700: \"var(--c-void-700)\",\n          600: \"var(--c-void-600)\",\n        },\n        // 星芒暖金\n        star: {\n          50: \"var(--c-star-50)\",\n          100: \"var(--c-star-100)\",\n          200: \"var(--c-star-200)\",\n          300: \"var(--c-star-300)\",\n          400: \"var(--c-star-400)\",\n          500: \"var(--c-star-500)\",\n          600: \"var(--c-star-600)\",\n          700: \"var(--c-star-700)\",\n        },\n        // 天玑冷蓝\n        tian: {\n          50: \"var(--c-tian-50)\",\n          100: \"var(--c-tian-100)\",\n          200: \"var(--c-tian-200)\",\n          300: \"var(--c-tian-300)\",\n          400: \"var(--c-tian-400)\",\n          500: \"var(--c-tian-500)\",\n          600: \"var(--c-tian-600)\",\n        },\n        // 文字主色\n        parchment: {\n          50: \"var(--c-parchment-50)\",\n          100: \"var(--c-parchment-100)\",\n          200: \"var(--c-parchment-200)\",\n          300: \"var(--c-parchment-300)\",\n        },\n        // 次要文字\n        mist: {\n          300: \"var(--c-mist-300)\",\n          400: \"var(--c-mist-400)\",\n          500: \"var(--c-mist-500)\",\n        },\n      },\n      fontFamily: {\n        display: ['Fraunces', '\"Noto Serif SC\"', 'serif'],\n        sans: ['\"Spline Sans\"', '\"Noto Sans SC\"', 'sans-serif'],\n        mono: ['\"Space Mono\"', 'monospace'],\n      },\n      backgroundImage: {\n        'void-radial': 'var(--bg-void-radial)',\n        'gold-sheen':\n          'linear-gradient(135deg, #f3c969 0%, #e9b865 50%, #d29f3f 100%)',\n        'star-glow':\n          'radial-gradient(circle, rgba(243,201,105,0.45) 0%, rgba(243,201,105,0) 70%)',\n      },\n      boxShadow: {\n        glow: '0 0 24px -4px rgba(243,201,105,0.35)',\n        'glow-blue': '0 0 28px -6px rgba(124,196,255,0.4)',\n        card: 'var(--shadow-card)',\n      },\n      keyframes: {\n        twinkle: {\n          '0%, 100%': { opacity: '0.2' },\n          '50%': { opacity: '1' },\n        },\n        drift: {\n          '0%': { transform: 'translateY(0px)' },\n          '50%': { transform: 'translateY(-8px)' },\n          '100%': { transform: 'translateY(0px)' },\n        },\n        'draw-line': {\n          '0%': { strokeDashoffset: '320' },\n          '100%': { strokeDashoffset: '0' },\n        },\n        'pulse-glow': {\n          '0%, 100%': { opacity: '0.6', transform: 'scale(1)' },\n          '50%': { opacity: '1', transform: 'scale(1.15)' },\n        },\n      },\n      animation: {\n        twinkle: 'twinkle 4s ease-in-out infinite',\n        drift: 'drift 6s ease-in-out infinite',\n        'draw-line': 'draw-line 3s ease forwards',\n        'pulse-glow': 'pulse-glow 3s ease-in-out infinite',\n      },\n    },\n  },\n  plugins: [],\n};\n",
@@ -344,6 +388,252 @@
     "vercel.json": "{\n  \"rewrites\": [{ \"source\": \"/(.*)\", \"destination\": \"/index.html\" }],\n  \"headers\": [\n    {\n      \"source\": \"/assets/(.*)\",\n      \"headers\": [\n        { \"key\": \"Cache-Control\", \"value\": \"public, max-age=31536000, immutable\" },\n        { \"key\": \"X-Content-Type-Options\", \"value\": \"nosniff\" }\n      ]\n    },\n    {\n      \"source\": \"/index.html\",\n      \"headers\": [\n        { \"key\": \"Content-Type\", \"value\": \"text/html; charset=utf-8\" },\n        { \"key\": \"Cache-Control\", \"value\": \"no-cache\" },\n        { \"key\": \"X-Content-Type-Options\", \"value\": \"nosniff\" },\n        { \"key\": \"Content-Security-Policy\", \"value\": \"frame-ancestors 'none'\" },\n        { \"key\": \"Referrer-Policy\", \"value\": \"strict-origin-when-cross-origin\" }\n      ]\n    },\n    {\n      \"source\": \"/(.*)\",\n      \"has\": [{ \"type\": \"header\", \"key\": \"Accept\", \"value\": \"text/html\" }],\n      \"headers\": [\n        { \"key\": \"Content-Type\", \"value\": \"text/html; charset=utf-8\" }\n      ]\n    }\n  ]\n}\n"
   },
   "recent_commits": [
+    {
+      "sha": "b470f882a73ccc8da4bf6b7238fe1cf41fc37b6b",
+      "node_id": "C_kwDOTAIVKtoAKGI0NzBmODgyYTczY2NjOGRhNGJmNmI3MjM4ZmUxY2Y0MWZjMzdiNmI",
+      "commit": {
+        "author": {
+          "name": "libinyam",
+          "email": "3478925144@qq.com",
+          "date": "2026-07-10T11:02:54Z"
+        },
+        "committer": {
+          "name": "libinyam",
+          "email": "3478925144@qq.com",
+          "date": "2026-07-10T11:03:16Z"
+        },
+        "message": "test+refactor: 添加纯函数测试 + 统一 API 错误契约 (#186 #187 #185)\n\n#186: security.ts 单元测试\n- escapeHtml: 正常文本/引号/&/XSS攻击/空字符串/代码泛型（7 个）\n- RateLimiter: 首次检查/冷却拒绝/冷却过期/不同key/record更新/秒级（6 个）\n- mock localStorage 适配 node 环境\n\n#187: utils.ts + format.ts 单元测试\n- isAuthor: 作者/非作者/null/undefined/空串/#107回归（10 个）\n- formatRelativeTime: 刚刚/分钟/小时/天/30天/无效日期/ISO（8 个）\n\n#185: 统一 API 错误处理契约\n- 新增 src/lib/result.ts 定义 Result<T> 类型 + ok()/err() 工具函数\n- fetchHotPosts: Question[] -> Result<Question[]>\n- fetchPostById: Question|null -> Result<Question>\n- DiscussionDetail.tsx 和 DiscussionSidebar.tsx 适配新签名\n- 示范改造，其余函数（fetchIdeas/fetchBookById等）后续逐步迁移\n\n测试总数: 18 -> 49（+31）\n\nCloses #186 #187 #185",
+        "tree": {
+          "sha": "098d5efe6ee7d9aadfe1d8a58293ffc4b560e749",
+          "url": "https://api.github.com/repos/libinyam/tianji/git/trees/098d5efe6ee7d9aadfe1d8a58293ffc4b560e749"
+        },
+        "url": "https://api.github.com/repos/libinyam/tianji/git/commits/b470f882a73ccc8da4bf6b7238fe1cf41fc37b6b",
+        "comment_count": 0,
+        "verification": {
+          "verified": false,
+          "reason": "unsigned",
+          "signature": null,
+          "payload": null,
+          "verified_at": null
+        }
+      },
+      "url": "https://api.github.com/repos/libinyam/tianji/commits/b470f882a73ccc8da4bf6b7238fe1cf41fc37b6b",
+      "html_url": "https://github.com/libinyam/tianji/commit/b470f882a73ccc8da4bf6b7238fe1cf41fc37b6b",
+      "comments_url": "https://api.github.com/repos/libinyam/tianji/commits/b470f882a73ccc8da4bf6b7238fe1cf41fc37b6b/comments",
+      "author": {
+        "login": "libinyam",
+        "id": 251160820,
+        "node_id": "U_kgDODvho9A",
+        "avatar_url": "https://avatars.githubusercontent.com/u/251160820?v=4",
+        "gravatar_id": "",
+        "url": "https://api.github.com/users/libinyam",
+        "html_url": "https://github.com/libinyam",
+        "followers_url": "https://api.github.com/users/libinyam/followers",
+        "following_url": "https://api.github.com/users/libinyam/following{/other_user}",
+        "gists_url": "https://api.github.com/users/libinyam/gists{/gist_id}",
+        "starred_url": "https://api.github.com/users/libinyam/starred{/owner}{/repo}",
+        "subscriptions_url": "https://api.github.com/users/libinyam/subscriptions",
+        "organizations_url": "https://api.github.com/users/libinyam/orgs",
+        "repos_url": "https://api.github.com/users/libinyam/repos",
+        "events_url": "https://api.github.com/users/libinyam/events{/privacy}",
+        "received_events_url": "https://api.github.com/users/libinyam/received_events",
+        "type": "User",
+        "user_view_type": "public",
+        "site_admin": false
+      },
+      "committer": {
+        "login": "libinyam",
+        "id": 251160820,
+        "node_id": "U_kgDODvho9A",
+        "avatar_url": "https://avatars.githubusercontent.com/u/251160820?v=4",
+        "gravatar_id": "",
+        "url": "https://api.github.com/users/libinyam",
+        "html_url": "https://github.com/libinyam",
+        "followers_url": "https://api.github.com/users/libinyam/followers",
+        "following_url": "https://api.github.com/users/libinyam/following{/other_user}",
+        "gists_url": "https://api.github.com/users/libinyam/gists{/gist_id}",
+        "starred_url": "https://api.github.com/users/libinyam/starred{/owner}{/repo}",
+        "subscriptions_url": "https://api.github.com/users/libinyam/subscriptions",
+        "organizations_url": "https://api.github.com/users/libinyam/orgs",
+        "repos_url": "https://api.github.com/users/libinyam/repos",
+        "events_url": "https://api.github.com/users/libinyam/events{/privacy}",
+        "received_events_url": "https://api.github.com/users/libinyam/received_events",
+        "type": "User",
+        "user_view_type": "public",
+        "site_admin": false
+      },
+      "parents": [
+        {
+          "sha": "4ca38137be42d91a3eaf267ebf050454a2458e4d",
+          "url": "https://api.github.com/repos/libinyam/tianji/commits/4ca38137be42d91a3eaf267ebf050454a2458e4d",
+          "html_url": "https://github.com/libinyam/tianji/commit/4ca38137be42d91a3eaf267ebf050454a2458e4d"
+        }
+      ]
+    },
+    {
+      "sha": "4ca38137be42d91a3eaf267ebf050454a2458e4d",
+      "node_id": "C_kwDOTAIVKtoAKDRjYTM4MTM3YmU0MmQ5MWEzZWFmMjY3ZWJmMDUwNDU0YTI0NThlNGQ",
+      "commit": {
+        "author": {
+          "name": "libinyam",
+          "email": "3478925144@qq.com",
+          "date": "2026-07-10T11:00:26Z"
+        },
+        "committer": {
+          "name": "libinyam",
+          "email": "3478925144@qq.com",
+          "date": "2026-07-10T11:00:26Z"
+        },
+        "message": "ci: add PR-triggered CI workflow (#190)\n\nAdd separate ci.yml that runs type check, lint, and test on every\npull request to main/master. The existing deploy.yml remains unchanged\nfor push-triggered builds and deployments.\n\nThis ensures PRs are validated before merge without triggering a deploy.",
+        "tree": {
+          "sha": "69bc4a217455145b95bd1a24f617e2ab1cadfa64",
+          "url": "https://api.github.com/repos/libinyam/tianji/git/trees/69bc4a217455145b95bd1a24f617e2ab1cadfa64"
+        },
+        "url": "https://api.github.com/repos/libinyam/tianji/git/commits/4ca38137be42d91a3eaf267ebf050454a2458e4d",
+        "comment_count": 0,
+        "verification": {
+          "verified": false,
+          "reason": "unsigned",
+          "signature": null,
+          "payload": null,
+          "verified_at": null
+        }
+      },
+      "url": "https://api.github.com/repos/libinyam/tianji/commits/4ca38137be42d91a3eaf267ebf050454a2458e4d",
+      "html_url": "https://github.com/libinyam/tianji/commit/4ca38137be42d91a3eaf267ebf050454a2458e4d",
+      "comments_url": "https://api.github.com/repos/libinyam/tianji/commits/4ca38137be42d91a3eaf267ebf050454a2458e4d/comments",
+      "author": {
+        "login": "libinyam",
+        "id": 251160820,
+        "node_id": "U_kgDODvho9A",
+        "avatar_url": "https://avatars.githubusercontent.com/u/251160820?v=4",
+        "gravatar_id": "",
+        "url": "https://api.github.com/users/libinyam",
+        "html_url": "https://github.com/libinyam",
+        "followers_url": "https://api.github.com/users/libinyam/followers",
+        "following_url": "https://api.github.com/users/libinyam/following{/other_user}",
+        "gists_url": "https://api.github.com/users/libinyam/gists{/gist_id}",
+        "starred_url": "https://api.github.com/users/libinyam/starred{/owner}{/repo}",
+        "subscriptions_url": "https://api.github.com/users/libinyam/subscriptions",
+        "organizations_url": "https://api.github.com/users/libinyam/orgs",
+        "repos_url": "https://api.github.com/users/libinyam/repos",
+        "events_url": "https://api.github.com/users/libinyam/events{/privacy}",
+        "received_events_url": "https://api.github.com/users/libinyam/received_events",
+        "type": "User",
+        "user_view_type": "public",
+        "site_admin": false
+      },
+      "committer": {
+        "login": "libinyam",
+        "id": 251160820,
+        "node_id": "U_kgDODvho9A",
+        "avatar_url": "https://avatars.githubusercontent.com/u/251160820?v=4",
+        "gravatar_id": "",
+        "url": "https://api.github.com/users/libinyam",
+        "html_url": "https://github.com/libinyam",
+        "followers_url": "https://api.github.com/users/libinyam/followers",
+        "following_url": "https://api.github.com/users/libinyam/following{/other_user}",
+        "gists_url": "https://api.github.com/users/libinyam/gists{/gist_id}",
+        "starred_url": "https://api.github.com/users/libinyam/starred{/owner}{/repo}",
+        "subscriptions_url": "https://api.github.com/users/libinyam/subscriptions",
+        "organizations_url": "https://api.github.com/users/libinyam/orgs",
+        "repos_url": "https://api.github.com/users/libinyam/repos",
+        "events_url": "https://api.github.com/users/libinyam/events{/privacy}",
+        "received_events_url": "https://api.github.com/users/libinyam/received_events",
+        "type": "User",
+        "user_view_type": "public",
+        "site_admin": false
+      },
+      "parents": [
+        {
+          "sha": "d9749653b5d621d52ca42bccf9bf36d624d44258",
+          "url": "https://api.github.com/repos/libinyam/tianji/commits/d9749653b5d621d52ca42bccf9bf36d624d44258",
+          "html_url": "https://github.com/libinyam/tianji/commit/d9749653b5d621d52ca42bccf9bf36d624d44258"
+        }
+      ]
+    },
+    {
+      "sha": "d9749653b5d621d52ca42bccf9bf36d624d44258",
+      "node_id": "C_kwDOTAIVKtoAKGQ5NzQ5NjUzYjVkNjIxZDUyY2E0MmJjY2Y5YmYzNmQ2MjRkNDQyNTg",
+      "commit": {
+        "author": {
+          "name": "libinyam",
+          "email": "3478925144@qq.com",
+          "date": "2026-07-10T10:56:44Z"
+        },
+        "committer": {
+          "name": "libinyam",
+          "email": "3478925144@qq.com",
+          "date": "2026-07-10T10:56:44Z"
+        },
+        "message": "fix: 修复 notification 安全规则字段 + 澄清 accessKey 安全模型 + 安全规则部署脚本 (#195 #194 #193)\n\n#195: 修复 notification 安全规则 targetUid -> uid\n- 线上 CloudBase 规则已更新\n- cloudbase-security-rules.json 同步修正\n- 代码全程用 uid 字段，规则匹配\n\n#194: 澄清 VITE_CLOUDBASE_ACCESS_KEY 安全模型\n- .env.example 添加说明：accessKey 是可公开的客户端 key\n- cloudbase.ts 添加注释：切勿填入服务端密钥\n- 明确权限由 CloudBase Auth + 安全规则控制\n\n#193: 补齐安全规则部署闭环\n- 新增 scripts/deploy-security-rules.mjs 部署脚本\n- 支持 --dry-run 预览模式和 --envId 参数\n- package.json 新增 deploy:rules / deploy:rules:dry 脚本\n- README 补充安全规则部署章节 + 验证步骤 + 集合权限概要表\n\nCloses #195 #194 #193",
+        "tree": {
+          "sha": "2951394c7b655820a1677b7c084560981bd3ffe2",
+          "url": "https://api.github.com/repos/libinyam/tianji/git/trees/2951394c7b655820a1677b7c084560981bd3ffe2"
+        },
+        "url": "https://api.github.com/repos/libinyam/tianji/git/commits/d9749653b5d621d52ca42bccf9bf36d624d44258",
+        "comment_count": 0,
+        "verification": {
+          "verified": false,
+          "reason": "unsigned",
+          "signature": null,
+          "payload": null,
+          "verified_at": null
+        }
+      },
+      "url": "https://api.github.com/repos/libinyam/tianji/commits/d9749653b5d621d52ca42bccf9bf36d624d44258",
+      "html_url": "https://github.com/libinyam/tianji/commit/d9749653b5d621d52ca42bccf9bf36d624d44258",
+      "comments_url": "https://api.github.com/repos/libinyam/tianji/commits/d9749653b5d621d52ca42bccf9bf36d624d44258/comments",
+      "author": {
+        "login": "libinyam",
+        "id": 251160820,
+        "node_id": "U_kgDODvho9A",
+        "avatar_url": "https://avatars.githubusercontent.com/u/251160820?v=4",
+        "gravatar_id": "",
+        "url": "https://api.github.com/users/libinyam",
+        "html_url": "https://github.com/libinyam",
+        "followers_url": "https://api.github.com/users/libinyam/followers",
+        "following_url": "https://api.github.com/users/libinyam/following{/other_user}",
+        "gists_url": "https://api.github.com/users/libinyam/gists{/gist_id}",
+        "starred_url": "https://api.github.com/users/libinyam/starred{/owner}{/repo}",
+        "subscriptions_url": "https://api.github.com/users/libinyam/subscriptions",
+        "organizations_url": "https://api.github.com/users/libinyam/orgs",
+        "repos_url": "https://api.github.com/users/libinyam/repos",
+        "events_url": "https://api.github.com/users/libinyam/events{/privacy}",
+        "received_events_url": "https://api.github.com/users/libinyam/received_events",
+        "type": "User",
+        "user_view_type": "public",
+        "site_admin": false
+      },
+      "committer": {
+        "login": "libinyam",
+        "id": 251160820,
+        "node_id": "U_kgDODvho9A",
+        "avatar_url": "https://avatars.githubusercontent.com/u/251160820?v=4",
+        "gravatar_id": "",
+        "url": "https://api.github.com/users/libinyam",
+        "html_url": "https://github.com/libinyam",
+        "followers_url": "https://api.github.com/users/libinyam/followers",
+        "following_url": "https://api.github.com/users/libinyam/following{/other_user}",
+        "gists_url": "https://api.github.com/users/libinyam/gists{/gist_id}",
+        "starred_url": "https://api.github.com/users/libinyam/starred{/owner}{/repo}",
+        "subscriptions_url": "https://api.github.com/users/libinyam/subscriptions",
+        "organizations_url": "https://api.github.com/users/libinyam/orgs",
+        "repos_url": "https://api.github.com/users/libinyam/repos",
+        "events_url": "https://api.github.com/users/libinyam/events{/privacy}",
+        "received_events_url": "https://api.github.com/users/libinyam/received_events",
+        "type": "User",
+        "user_view_type": "public",
+        "site_admin": false
+      },
+      "parents": [
+        {
+          "sha": "c2c15f2e1c24649bcec71e89456012003b2ea219",
+          "url": "https://api.github.com/repos/libinyam/tianji/commits/c2c15f2e1c24649bcec71e89456012003b2ea219",
+          "html_url": "https://github.com/libinyam/tianji/commit/c2c15f2e1c24649bcec71e89456012003b2ea219"
+        }
+      ]
+    },
     {
       "sha": "c2c15f2e1c24649bcec71e89456012003b2ea219",
       "node_id": "C_kwDOTAIVKtoAKGMyYzE1ZjJlMWMyNDY0OWJjZWM3MWU4OTQ1NjAxMjAwM2IyZWEyMTk",
@@ -917,579 +1207,9 @@
           "html_url": "https://github.com/libinyam/tianji/commit/23bab479459aae07d64e98a24bf22bec78c5eb07"
         }
       ]
-    },
-    {
-      "sha": "23bab479459aae07d64e98a24bf22bec78c5eb07",
-      "node_id": "C_kwDOTAIVKtoAKDIzYmFiNDc5NDU5YWFlMDdkNjRlOThhMjRiZjIyYmVjNzhjNWViMDc",
-      "commit": {
-        "author": {
-          "name": "libinyam",
-          "email": "3478925144@qq.com",
-          "date": "2026-07-10T00:34:10Z"
-        },
-        "committer": {
-          "name": "libinyam",
-          "email": "3478925144@qq.com",
-          "date": "2026-07-10T00:34:10Z"
-        },
-        "message": "feat: 修复 5 个快速 issue (#143 #144 #141 #142 #151)\n\n#143 SEO 基础设施：\n- 新增 public/robots.txt\n- 新增 public/sitemap.xml（5 个核心路由）\n- index.html 添加 Open Graph 标签（og:title/description/type/url/site_name/locale）\n- index.html 添加 Twitter Card 标签\n- index.html 添加 theme-color 和 canonical URL\n\n#144 版本号：package.json 0.0.0 -> 1.0.0\n\n#141 Footer 邮箱：tianji@example.com -> contact@tianjihub.cn\n\n#142 登录表单无障碍：\n- 所有 input 补 autoComplete（email/current-password/new-password/tel/one-time-code）\n- label 补 htmlFor，input 补 id，实现显式关联\n- 覆盖邮箱登录/注册、手机号登录/注册全部 6 个输入框\n\n#151 社交分享按钮：\n- 新增 ShareButton 组件（复制链接 / Twitter / 微博）\n- DiscussionDetail 帖子操作栏添加分享按钮（作者和非作者均可见）\n\nCloses #143 #144 #141 #142 #151",
-        "tree": {
-          "sha": "c1925f86c06ff3760b75b18ce1fb1e2845e90c75",
-          "url": "https://api.github.com/repos/libinyam/tianji/git/trees/c1925f86c06ff3760b75b18ce1fb1e2845e90c75"
-        },
-        "url": "https://api.github.com/repos/libinyam/tianji/git/commits/23bab479459aae07d64e98a24bf22bec78c5eb07",
-        "comment_count": 0,
-        "verification": {
-          "verified": false,
-          "reason": "unsigned",
-          "signature": null,
-          "payload": null,
-          "verified_at": null
-        }
-      },
-      "url": "https://api.github.com/repos/libinyam/tianji/commits/23bab479459aae07d64e98a24bf22bec78c5eb07",
-      "html_url": "https://github.com/libinyam/tianji/commit/23bab479459aae07d64e98a24bf22bec78c5eb07",
-      "comments_url": "https://api.github.com/repos/libinyam/tianji/commits/23bab479459aae07d64e98a24bf22bec78c5eb07/comments",
-      "author": {
-        "login": "libinyam",
-        "id": 251160820,
-        "node_id": "U_kgDODvho9A",
-        "avatar_url": "https://avatars.githubusercontent.com/u/251160820?v=4",
-        "gravatar_id": "",
-        "url": "https://api.github.com/users/libinyam",
-        "html_url": "https://github.com/libinyam",
-        "followers_url": "https://api.github.com/users/libinyam/followers",
-        "following_url": "https://api.github.com/users/libinyam/following{/other_user}",
-        "gists_url": "https://api.github.com/users/libinyam/gists{/gist_id}",
-        "starred_url": "https://api.github.com/users/libinyam/starred{/owner}{/repo}",
-        "subscriptions_url": "https://api.github.com/users/libinyam/subscriptions",
-        "organizations_url": "https://api.github.com/users/libinyam/orgs",
-        "repos_url": "https://api.github.com/users/libinyam/repos",
-        "events_url": "https://api.github.com/users/libinyam/events{/privacy}",
-        "received_events_url": "https://api.github.com/users/libinyam/received_events",
-        "type": "User",
-        "user_view_type": "public",
-        "site_admin": false
-      },
-      "committer": {
-        "login": "libinyam",
-        "id": 251160820,
-        "node_id": "U_kgDODvho9A",
-        "avatar_url": "https://avatars.githubusercontent.com/u/251160820?v=4",
-        "gravatar_id": "",
-        "url": "https://api.github.com/users/libinyam",
-        "html_url": "https://github.com/libinyam",
-        "followers_url": "https://api.github.com/users/libinyam/followers",
-        "following_url": "https://api.github.com/users/libinyam/following{/other_user}",
-        "gists_url": "https://api.github.com/users/libinyam/gists{/gist_id}",
-        "starred_url": "https://api.github.com/users/libinyam/starred{/owner}{/repo}",
-        "subscriptions_url": "https://api.github.com/users/libinyam/subscriptions",
-        "organizations_url": "https://api.github.com/users/libinyam/orgs",
-        "repos_url": "https://api.github.com/users/libinyam/repos",
-        "events_url": "https://api.github.com/users/libinyam/events{/privacy}",
-        "received_events_url": "https://api.github.com/users/libinyam/received_events",
-        "type": "User",
-        "user_view_type": "public",
-        "site_admin": false
-      },
-      "parents": [
-        {
-          "sha": "e558ff546b9ab77cf730103ccbff0d98d8d947e4",
-          "url": "https://api.github.com/repos/libinyam/tianji/commits/e558ff546b9ab77cf730103ccbff0d98d8d947e4",
-          "html_url": "https://github.com/libinyam/tianji/commit/e558ff546b9ab77cf730103ccbff0d98d8d947e4"
-        }
-      ]
-    },
-    {
-      "sha": "e558ff546b9ab77cf730103ccbff0d98d8d947e4",
-      "node_id": "C_kwDOTAIVKtoAKGU1NThmZjU0NmI5YWI3N2NmNzMwMTAzY2NiZmYwZDk4ZDhkOTQ3ZTQ",
-      "commit": {
-        "author": {
-          "name": "libinyam",
-          "email": "3478925144@qq.com",
-          "date": "2026-07-09T16:44:27Z"
-        },
-        "committer": {
-          "name": "libinyam",
-          "email": "3478925144@qq.com",
-          "date": "2026-07-09T16:44:27Z"
-        },
-        "message": "fix: NotificationBell handleClick 改用 if 包裹替代 early return\n\n避免组件卸载后 navigate(item.link) 被跳过，确保导航始终执行。",
-        "tree": {
-          "sha": "da74fe7af41e7000a2592313c7d9dda7a8a786f3",
-          "url": "https://api.github.com/repos/libinyam/tianji/git/trees/da74fe7af41e7000a2592313c7d9dda7a8a786f3"
-        },
-        "url": "https://api.github.com/repos/libinyam/tianji/git/commits/e558ff546b9ab77cf730103ccbff0d98d8d947e4",
-        "comment_count": 0,
-        "verification": {
-          "verified": false,
-          "reason": "unsigned",
-          "signature": null,
-          "payload": null,
-          "verified_at": null
-        }
-      },
-      "url": "https://api.github.com/repos/libinyam/tianji/commits/e558ff546b9ab77cf730103ccbff0d98d8d947e4",
-      "html_url": "https://github.com/libinyam/tianji/commit/e558ff546b9ab77cf730103ccbff0d98d8d947e4",
-      "comments_url": "https://api.github.com/repos/libinyam/tianji/commits/e558ff546b9ab77cf730103ccbff0d98d8d947e4/comments",
-      "author": {
-        "login": "libinyam",
-        "id": 251160820,
-        "node_id": "U_kgDODvho9A",
-        "avatar_url": "https://avatars.githubusercontent.com/u/251160820?v=4",
-        "gravatar_id": "",
-        "url": "https://api.github.com/users/libinyam",
-        "html_url": "https://github.com/libinyam",
-        "followers_url": "https://api.github.com/users/libinyam/followers",
-        "following_url": "https://api.github.com/users/libinyam/following{/other_user}",
-        "gists_url": "https://api.github.com/users/libinyam/gists{/gist_id}",
-        "starred_url": "https://api.github.com/users/libinyam/starred{/owner}{/repo}",
-        "subscriptions_url": "https://api.github.com/users/libinyam/subscriptions",
-        "organizations_url": "https://api.github.com/users/libinyam/orgs",
-        "repos_url": "https://api.github.com/users/libinyam/repos",
-        "events_url": "https://api.github.com/users/libinyam/events{/privacy}",
-        "received_events_url": "https://api.github.com/users/libinyam/received_events",
-        "type": "User",
-        "user_view_type": "public",
-        "site_admin": false
-      },
-      "committer": {
-        "login": "libinyam",
-        "id": 251160820,
-        "node_id": "U_kgDODvho9A",
-        "avatar_url": "https://avatars.githubusercontent.com/u/251160820?v=4",
-        "gravatar_id": "",
-        "url": "https://api.github.com/users/libinyam",
-        "html_url": "https://github.com/libinyam",
-        "followers_url": "https://api.github.com/users/libinyam/followers",
-        "following_url": "https://api.github.com/users/libinyam/following{/other_user}",
-        "gists_url": "https://api.github.com/users/libinyam/gists{/gist_id}",
-        "starred_url": "https://api.github.com/users/libinyam/starred{/owner}{/repo}",
-        "subscriptions_url": "https://api.github.com/users/libinyam/subscriptions",
-        "organizations_url": "https://api.github.com/users/libinyam/orgs",
-        "repos_url": "https://api.github.com/users/libinyam/repos",
-        "events_url": "https://api.github.com/users/libinyam/events{/privacy}",
-        "received_events_url": "https://api.github.com/users/libinyam/received_events",
-        "type": "User",
-        "user_view_type": "public",
-        "site_admin": false
-      },
-      "parents": [
-        {
-          "sha": "d804c1f4198431f6f9aa8da43145b3df874b4e9c",
-          "url": "https://api.github.com/repos/libinyam/tianji/commits/d804c1f4198431f6f9aa8da43145b3df874b4e9c",
-          "html_url": "https://github.com/libinyam/tianji/commit/d804c1f4198431f6f9aa8da43145b3df874b4e9c"
-        }
-      ]
-    },
-    {
-      "sha": "d804c1f4198431f6f9aa8da43145b3df874b4e9c",
-      "node_id": "C_kwDOTAIVKtoAKGQ4MDRjMWY0MTk4NDMxZjZmOWFhOGRhNDMxNDViM2RmODc0YjRlOWM",
-      "commit": {
-        "author": {
-          "name": "libinyam",
-          "email": "3478925144@qq.com",
-          "date": "2026-07-09T16:38:41Z"
-        },
-        "committer": {
-          "name": "libinyam",
-          "email": "3478925144@qq.com",
-          "date": "2026-07-09T16:38:41Z"
-        },
-        "message": "fix: 代码审查发现的 5 个问题修复\n\n1. #108 帖子编辑/删除按钮补齐触摸区域\n   - DiscussionDetail.tsx 帖子级按钮仍为裸 13px 图标\n   - 补齐 h-9 w-9 容器 + rounded-md + hover 背景\n\n2. #125 NotificationBell 事件回调补 mounted 检查\n   - handleClick/handleMarkAll 的 await 后 setState 缺 mounted 检查\n   - 新增 mountedRef，异步回调前检查\n   - DiscussionDetail.tsx isFavorited 回调补 mounted 检查\n\n3. sanitize 覆盖遗漏的写操作入口\n   - reports.ts createReport: targetTitle/reason 调用 sanitizeInput\n   - favorites.ts toggleFavorite: title/excerpt 调用 sanitizeInput\n   - sanitize.ts C0 控制字符正则添加 eslint-disable（安全用途）\n\n4. ai-bot 云函数 answerList 改用原子操作\n   - 发帖回复：读-改-写 -> db.command.push + inc(1)\n   - 避免与用户 submitAnswer 的原子 push 竞态导致数据丢失\n   - date 格式统一为完整 ISO（与 posts.ts 一致）\n\n5. Profile.tsx Promise.all 添加 catch + finally\n   - 极端情况下 SDK 初始化失败不会永远卡在加载中",
-        "tree": {
-          "sha": "02b6a35746dfb78ebca7a7dff8883b7bcbda1680",
-          "url": "https://api.github.com/repos/libinyam/tianji/git/trees/02b6a35746dfb78ebca7a7dff8883b7bcbda1680"
-        },
-        "url": "https://api.github.com/repos/libinyam/tianji/git/commits/d804c1f4198431f6f9aa8da43145b3df874b4e9c",
-        "comment_count": 0,
-        "verification": {
-          "verified": false,
-          "reason": "unsigned",
-          "signature": null,
-          "payload": null,
-          "verified_at": null
-        }
-      },
-      "url": "https://api.github.com/repos/libinyam/tianji/commits/d804c1f4198431f6f9aa8da43145b3df874b4e9c",
-      "html_url": "https://github.com/libinyam/tianji/commit/d804c1f4198431f6f9aa8da43145b3df874b4e9c",
-      "comments_url": "https://api.github.com/repos/libinyam/tianji/commits/d804c1f4198431f6f9aa8da43145b3df874b4e9c/comments",
-      "author": {
-        "login": "libinyam",
-        "id": 251160820,
-        "node_id": "U_kgDODvho9A",
-        "avatar_url": "https://avatars.githubusercontent.com/u/251160820?v=4",
-        "gravatar_id": "",
-        "url": "https://api.github.com/users/libinyam",
-        "html_url": "https://github.com/libinyam",
-        "followers_url": "https://api.github.com/users/libinyam/followers",
-        "following_url": "https://api.github.com/users/libinyam/following{/other_user}",
-        "gists_url": "https://api.github.com/users/libinyam/gists{/gist_id}",
-        "starred_url": "https://api.github.com/users/libinyam/starred{/owner}{/repo}",
-        "subscriptions_url": "https://api.github.com/users/libinyam/subscriptions",
-        "organizations_url": "https://api.github.com/users/libinyam/orgs",
-        "repos_url": "https://api.github.com/users/libinyam/repos",
-        "events_url": "https://api.github.com/users/libinyam/events{/privacy}",
-        "received_events_url": "https://api.github.com/users/libinyam/received_events",
-        "type": "User",
-        "user_view_type": "public",
-        "site_admin": false
-      },
-      "committer": {
-        "login": "libinyam",
-        "id": 251160820,
-        "node_id": "U_kgDODvho9A",
-        "avatar_url": "https://avatars.githubusercontent.com/u/251160820?v=4",
-        "gravatar_id": "",
-        "url": "https://api.github.com/users/libinyam",
-        "html_url": "https://github.com/libinyam",
-        "followers_url": "https://api.github.com/users/libinyam/followers",
-        "following_url": "https://api.github.com/users/libinyam/following{/other_user}",
-        "gists_url": "https://api.github.com/users/libinyam/gists{/gist_id}",
-        "starred_url": "https://api.github.com/users/libinyam/starred{/owner}{/repo}",
-        "subscriptions_url": "https://api.github.com/users/libinyam/subscriptions",
-        "organizations_url": "https://api.github.com/users/libinyam/orgs",
-        "repos_url": "https://api.github.com/users/libinyam/repos",
-        "events_url": "https://api.github.com/users/libinyam/events{/privacy}",
-        "received_events_url": "https://api.github.com/users/libinyam/received_events",
-        "type": "User",
-        "user_view_type": "public",
-        "site_admin": false
-      },
-      "parents": [
-        {
-          "sha": "69e90e69e79db1937c9e215c32a94bfa94c1dd17",
-          "url": "https://api.github.com/repos/libinyam/tianji/commits/69e90e69e79db1937c9e215c32a94bfa94c1dd17",
-          "html_url": "https://github.com/libinyam/tianji/commit/69e90e69e79db1937c9e215c32a94bfa94c1dd17"
-        }
-      ]
     }
   ],
   "open_issues": [
-    {
-      "url": "https://api.github.com/repos/libinyam/tianji/issues/195",
-      "repository_url": "https://api.github.com/repos/libinyam/tianji",
-      "labels_url": "https://api.github.com/repos/libinyam/tianji/issues/195/labels{/name}",
-      "comments_url": "https://api.github.com/repos/libinyam/tianji/issues/195/comments",
-      "events_url": "https://api.github.com/repos/libinyam/tianji/issues/195/events",
-      "html_url": "https://github.com/libinyam/tianji/issues/195",
-      "id": 4854285480,
-      "node_id": "I_kwDOTAIVKs8AAAABIVaEqA",
-      "number": 195,
-      "title": "[P1] Notification security rules use targetUid but code still reads and writes uid",
-      "user": {
-        "login": "libinyam",
-        "id": 251160820,
-        "node_id": "U_kgDODvho9A",
-        "avatar_url": "https://avatars.githubusercontent.com/u/251160820?v=4",
-        "gravatar_id": "",
-        "url": "https://api.github.com/users/libinyam",
-        "html_url": "https://github.com/libinyam",
-        "followers_url": "https://api.github.com/users/libinyam/followers",
-        "following_url": "https://api.github.com/users/libinyam/following{/other_user}",
-        "gists_url": "https://api.github.com/users/libinyam/gists{/gist_id}",
-        "starred_url": "https://api.github.com/users/libinyam/starred{/owner}{/repo}",
-        "subscriptions_url": "https://api.github.com/users/libinyam/subscriptions",
-        "organizations_url": "https://api.github.com/users/libinyam/orgs",
-        "repos_url": "https://api.github.com/users/libinyam/repos",
-        "events_url": "https://api.github.com/users/libinyam/events{/privacy}",
-        "received_events_url": "https://api.github.com/users/libinyam/received_events",
-        "type": "User",
-        "user_view_type": "public",
-        "site_admin": false
-      },
-      "labels": [
-        {
-          "id": 11287956681,
-          "node_id": "LA_kwDOTAIVKs8AAAACoNCMyQ",
-          "url": "https://api.github.com/repos/libinyam/tianji/labels/bug",
-          "name": "bug",
-          "color": "d73a4a",
-          "default": true,
-          "description": "Something isn't working"
-        },
-        {
-          "id": 11368523153,
-          "node_id": "LA_kwDOTAIVKs8AAAACpZ3lkQ",
-          "url": "https://api.github.com/repos/libinyam/tianji/labels/P1",
-          "name": "P1",
-          "color": "D93F0B",
-          "default": false,
-          "description": "High priority: important user-facing bug or major UX/perf issue"
-        },
-        {
-          "id": 11479502593,
-          "node_id": "LA_kwDOTAIVKs8AAAACrDtPAQ",
-          "url": "https://api.github.com/repos/libinyam/tianji/labels/security",
-          "name": "security",
-          "color": "ededed",
-          "default": false,
-          "description": null
-        },
-        {
-          "id": 11482928486,
-          "node_id": "LA_kwDOTAIVKs8AAAACrG-VZg",
-          "url": "https://api.github.com/repos/libinyam/tianji/labels/backend",
-          "name": "backend",
-          "color": "1d76db",
-          "default": false,
-          "description": "Backend and cloud functions"
-        }
-      ],
-      "state": "open",
-      "locked": false,
-      "assignees": [],
-      "milestone": null,
-      "comments": 0,
-      "created_at": "2026-07-10T10:41:50Z",
-      "updated_at": "2026-07-10T10:41:50Z",
-      "closed_at": null,
-      "assignee": null,
-      "author_association": "OWNER",
-      "active_lock_reason": null,
-      "sub_issues_summary": {
-        "total": 0,
-        "completed": 0,
-        "percent_completed": 0
-      },
-      "issue_dependencies_summary": {
-        "blocked_by": 0,
-        "total_blocked_by": 0,
-        "blocking": 0,
-        "total_blocking": 0
-      },
-      "body": "﻿## 问题描述\n\n`cloudbase-security-rules.json` 中 `notifications` 集合的安全规则使用 `targetUid` 字段作为通知接收者字段，但当前前端通知代码仍使用 `uid` 字段。\n\n这会导致规则一旦真正上线，通知相关读写很可能全部失败，且部分失败会被静默吞掉。\n\n## 证据\n\n安全规则中 notifications 使用：\n\n```json\n{\n  \"read\": \"auth.uid != null && doc.targetUid == auth.uid\",\n  \"create\": \"false\",\n  \"update\": \"auth.uid != null && doc.targetUid == auth.uid\",\n  \"delete\": \"auth.uid != null && doc.targetUid == auth.uid\"\n}\n```\n\n代码现状：\n\n- `src/lib/notifications.ts` 的 `NotificationDoc` 使用 `uid` 作为接收者字段。\n- `createNotification()` 写入 `{ uid: params.uid, ... }`。\n- `fetchNotifications()` 查询 `.where({ uid })`。\n- `fetchUnreadCount()` 查询 `.where({ uid, read: false })`。\n- `markAsRead()` 更新 `.where({ _id: id, uid })`。\n- `markAllRead()` 更新 `.where({ uid, read: false })`。\n\n同时规则里 `create: \"false\"`，但 `createNotification()` 仍在前端直接 `db.collection(\"notifications\").add(doc)`，catch 后静默失败。\n\n## 用户影响\n\n- 通知可能无法创建。\n- 通知铃铛可能一直显示 0。\n- 标记已读可能失败。\n- 由于部分 catch 静默处理，开发者和用户都不容易发现真实错误。\n\n## 建议修复\n\n二选一：\n\n### 方案 A：沿用 `uid`\n\n- 将安全规则中的 `targetUid` 改为 `uid`。\n- `ownerField` 改为 `uid`。\n- 明确哪些通知创建路径允许前端写入，或继续迁移到云函数。\n\n### 方案 B：迁移到 `targetUid`\n\n- 修改 `NotificationDoc`、`createNotification()`、查询和更新逻辑全部使用 `targetUid`。\n- 提供数据迁移脚本，把旧通知文档 `uid` 迁移到 `targetUid`。\n- 如果 `create: false` 保留，则必须把通知创建迁移到云函数。\n\n## 验收标准\n\n- [ ] 安全规则字段和通知文档字段一致。\n- [ ] 通知创建、读取、未读计数、标记已读、全部已读均能在规则启用后正常工作。\n- [ ] 前端不再静默吞掉规则拒绝导致的关键通知错误，至少开发环境有可见日志。\n- [ ] 如有字段迁移，旧通知数据不会丢失。\r\n",
-      "closed_by": null,
-      "reactions": {
-        "url": "https://api.github.com/repos/libinyam/tianji/issues/195/reactions",
-        "total_count": 0,
-        "+1": 0,
-        "-1": 0,
-        "laugh": 0,
-        "hooray": 0,
-        "confused": 0,
-        "heart": 0,
-        "rocket": 0,
-        "eyes": 0
-      },
-      "timeline_url": "https://api.github.com/repos/libinyam/tianji/issues/195/timeline",
-      "performed_via_github_app": null,
-      "state_reason": null,
-      "pinned_comment": null
-    },
-    {
-      "url": "https://api.github.com/repos/libinyam/tianji/issues/194",
-      "repository_url": "https://api.github.com/repos/libinyam/tianji",
-      "labels_url": "https://api.github.com/repos/libinyam/tianji/issues/194/labels{/name}",
-      "comments_url": "https://api.github.com/repos/libinyam/tianji/issues/194/comments",
-      "events_url": "https://api.github.com/repos/libinyam/tianji/issues/194/events",
-      "html_url": "https://github.com/libinyam/tianji/issues/194",
-      "id": 4854280931,
-      "node_id": "I_kwDOTAIVKs8AAAABIVZy4w",
-      "number": 194,
-      "title": "[P1] Clarify or remove browser-exposed VITE_CLOUDBASE_ACCESS_KEY",
-      "user": {
-        "login": "libinyam",
-        "id": 251160820,
-        "node_id": "U_kgDODvho9A",
-        "avatar_url": "https://avatars.githubusercontent.com/u/251160820?v=4",
-        "gravatar_id": "",
-        "url": "https://api.github.com/users/libinyam",
-        "html_url": "https://github.com/libinyam",
-        "followers_url": "https://api.github.com/users/libinyam/followers",
-        "following_url": "https://api.github.com/users/libinyam/following{/other_user}",
-        "gists_url": "https://api.github.com/users/libinyam/gists{/gist_id}",
-        "starred_url": "https://api.github.com/users/libinyam/starred{/owner}{/repo}",
-        "subscriptions_url": "https://api.github.com/users/libinyam/subscriptions",
-        "organizations_url": "https://api.github.com/users/libinyam/orgs",
-        "repos_url": "https://api.github.com/users/libinyam/repos",
-        "events_url": "https://api.github.com/users/libinyam/events{/privacy}",
-        "received_events_url": "https://api.github.com/users/libinyam/received_events",
-        "type": "User",
-        "user_view_type": "public",
-        "site_admin": false
-      },
-      "labels": [
-        {
-          "id": 11287956692,
-          "node_id": "LA_kwDOTAIVKs8AAAACoNCM1A",
-          "url": "https://api.github.com/repos/libinyam/tianji/labels/documentation",
-          "name": "documentation",
-          "color": "0075ca",
-          "default": true,
-          "description": "Improvements or additions to documentation"
-        },
-        {
-          "id": 11368523153,
-          "node_id": "LA_kwDOTAIVKs8AAAACpZ3lkQ",
-          "url": "https://api.github.com/repos/libinyam/tianji/labels/P1",
-          "name": "P1",
-          "color": "D93F0B",
-          "default": false,
-          "description": "High priority: important user-facing bug or major UX/perf issue"
-        },
-        {
-          "id": 11479502593,
-          "node_id": "LA_kwDOTAIVKs8AAAACrDtPAQ",
-          "url": "https://api.github.com/repos/libinyam/tianji/labels/security",
-          "name": "security",
-          "color": "ededed",
-          "default": false,
-          "description": null
-        }
-      ],
-      "state": "open",
-      "locked": false,
-      "assignees": [],
-      "milestone": null,
-      "comments": 0,
-      "created_at": "2026-07-10T10:41:04Z",
-      "updated_at": "2026-07-10T10:41:04Z",
-      "closed_at": null,
-      "assignee": null,
-      "author_association": "OWNER",
-      "active_lock_reason": null,
-      "sub_issues_summary": {
-        "total": 0,
-        "completed": 0,
-        "percent_completed": 0
-      },
-      "issue_dependencies_summary": {
-        "blocked_by": 0,
-        "total_blocked_by": 0,
-        "blocking": 0,
-        "total_blocking": 0
-      },
-      "body": "## 问题描述\n\n当前前端仍通过 `VITE_CLOUDBASE_ACCESS_KEY` 读取并注入 CloudBase access key：\n\n- `src/lib/cloudbase.ts` 读取 `import.meta.env.VITE_CLOUDBASE_ACCESS_KEY`\n- `cloudbase.init({ accessKey: ACCESS_KEY })`\n- GitHub Actions build 步骤通过 `secrets.VITE_CLOUDBASE_ACCESS_KEY` 注入\n\n由于 Vite 会把 `VITE_*` 环境变量打进浏览器 bundle，这个值会被公开给所有访问者。\n\n## 需要澄清的问题\n\n如果该 key 是 CloudBase 设计上允许公开的 publishable / client key，并且权限完全由 CloudBase Auth + Security Rules 控制，那么应当明确文档化。\n\n如果该 key 具备任何不应公开的权限，那么当前实现仍然是发布阻塞风险，需要轮换 key 并移出前端 bundle。\n\n## 证据\n\n`src/lib/cloudbase.ts`：\n\n```ts\nconst ACCESS_KEY = import.meta.env.VITE_CLOUDBASE_ACCESS_KEY as string;\n\nconst app = cloudbase.init({\n  env: ENV_ID,\n  region: REGION,\n  accessKey: ACCESS_KEY,\n  auth: { detectSessionInUrl: true },\n});\n```\n\n`.github/workflows/deploy.yml`：\n\n```yaml\nenv:\n  VITE_CLOUDBASE_ACCESS_KEY: ${{ secrets.VITE_CLOUDBASE_ACCESS_KEY }}\n```\n\n`.env.example` 也要求配置 `VITE_CLOUDBASE_ACCESS_KEY`。\n\n## 风险\n\n- 如果该 key 不是 publishable key，可能导致 CloudBase 环境权限暴露。\n- 即使 key 可公开，当前命名和文档也会让维护者误以为它是 secret，但实际上已经公开。\n- 后续开发者可能把更高权限 key 填入 `VITE_CLOUDBASE_ACCESS_KEY`，造成真实泄漏。\n\n## 建议修复\n\n1. 明确 CloudBase 前端初始化所需 key 的安全模型。\n2. 如果可公开：\n   - 改名为更清晰的 `VITE_CLOUDBASE_PUBLIC_KEY` 或文档注明“public-safe”。\n   - 在 README / `.env.example` 说明该值会暴露到浏览器，不得填入服务端密钥。\n3. 如果不可公开：\n   - 轮换当前 key。\n   - 从前端 `VITE_*` 中移除。\n   - 将需要 key 的特权操作迁移到云函数。\n\n## 验收标准\n\n- [ ] 文档明确说明该 access key 是否允许公开。\n- [ ] `.env.example` 对浏览器暴露风险有明确提示。\n- [ ] 不会把服务端密钥通过 `VITE_*` 注入前端 bundle。\n- [ ] 如当前 key 具备敏感权限，已完成轮换并重新部署。",
-      "closed_by": null,
-      "reactions": {
-        "url": "https://api.github.com/repos/libinyam/tianji/issues/194/reactions",
-        "total_count": 0,
-        "+1": 0,
-        "-1": 0,
-        "laugh": 0,
-        "hooray": 0,
-        "confused": 0,
-        "heart": 0,
-        "rocket": 0,
-        "eyes": 0
-      },
-      "timeline_url": "https://api.github.com/repos/libinyam/tianji/issues/194/timeline",
-      "performed_via_github_app": null,
-      "state_reason": null,
-      "pinned_comment": null
-    },
-    {
-      "url": "https://api.github.com/repos/libinyam/tianji/issues/193",
-      "repository_url": "https://api.github.com/repos/libinyam/tianji",
-      "labels_url": "https://api.github.com/repos/libinyam/tianji/issues/193/labels{/name}",
-      "comments_url": "https://api.github.com/repos/libinyam/tianji/issues/193/comments",
-      "events_url": "https://api.github.com/repos/libinyam/tianji/issues/193/events",
-      "html_url": "https://github.com/libinyam/tianji/issues/193",
-      "id": 4854280910,
-      "node_id": "I_kwDOTAIVKs8AAAABIVZyzg",
-      "number": 193,
-      "title": "[P1] CloudBase security rules are versioned but not deployed or verified",
-      "user": {
-        "login": "libinyam",
-        "id": 251160820,
-        "node_id": "U_kgDODvho9A",
-        "avatar_url": "https://avatars.githubusercontent.com/u/251160820?v=4",
-        "gravatar_id": "",
-        "url": "https://api.github.com/users/libinyam",
-        "html_url": "https://github.com/libinyam",
-        "followers_url": "https://api.github.com/users/libinyam/followers",
-        "following_url": "https://api.github.com/users/libinyam/following{/other_user}",
-        "gists_url": "https://api.github.com/users/libinyam/gists{/gist_id}",
-        "starred_url": "https://api.github.com/users/libinyam/starred{/owner}{/repo}",
-        "subscriptions_url": "https://api.github.com/users/libinyam/subscriptions",
-        "organizations_url": "https://api.github.com/users/libinyam/orgs",
-        "repos_url": "https://api.github.com/users/libinyam/repos",
-        "events_url": "https://api.github.com/users/libinyam/events{/privacy}",
-        "received_events_url": "https://api.github.com/users/libinyam/received_events",
-        "type": "User",
-        "user_view_type": "public",
-        "site_admin": false
-      },
-      "labels": [
-        {
-          "id": 11287956681,
-          "node_id": "LA_kwDOTAIVKs8AAAACoNCMyQ",
-          "url": "https://api.github.com/repos/libinyam/tianji/labels/bug",
-          "name": "bug",
-          "color": "d73a4a",
-          "default": true,
-          "description": "Something isn't working"
-        },
-        {
-          "id": 11368523153,
-          "node_id": "LA_kwDOTAIVKs8AAAACpZ3lkQ",
-          "url": "https://api.github.com/repos/libinyam/tianji/labels/P1",
-          "name": "P1",
-          "color": "D93F0B",
-          "default": false,
-          "description": "High priority: important user-facing bug or major UX/perf issue"
-        },
-        {
-          "id": 11475161670,
-          "node_id": "LA_kwDOTAIVKs8AAAACq_kSRg",
-          "url": "https://api.github.com/repos/libinyam/tianji/labels/infrastructure",
-          "name": "infrastructure",
-          "color": "5319e7",
-          "default": false,
-          "description": "基础设施/工程化"
-        },
-        {
-          "id": 11479502593,
-          "node_id": "LA_kwDOTAIVKs8AAAACrDtPAQ",
-          "url": "https://api.github.com/repos/libinyam/tianji/labels/security",
-          "name": "security",
-          "color": "ededed",
-          "default": false,
-          "description": null
-        }
-      ],
-      "state": "open",
-      "locked": false,
-      "assignees": [],
-      "milestone": null,
-      "comments": 0,
-      "created_at": "2026-07-10T10:41:04Z",
-      "updated_at": "2026-07-10T10:41:04Z",
-      "closed_at": null,
-      "assignee": null,
-      "author_association": "OWNER",
-      "active_lock_reason": null,
-      "sub_issues_summary": {
-        "total": 0,
-        "completed": 0,
-        "percent_completed": 0
-      },
-      "issue_dependencies_summary": {
-        "blocked_by": 0,
-        "total_blocked_by": 0,
-        "blocking": 0,
-        "total_blocking": 0
-      },
-      "body": "## 问题描述\n\n最近新增了 `cloudbase-security-rules.json`，把 posts / ideas / books / workshops / votes / favorites / notifications / reports 等集合的安全规则纳入了版本控制。这是很好的方向，但目前代码仓库里还看不到这些规则被实际应用到 CloudBase 环境的部署闭环。\n\n## 证据\n\n- `cloudbase-security-rules.json` 已存在，定义了集合级 `permission` / `securityRule`。\n- `.github/workflows/deploy.yml` 当前只执行：\n  - `npm ci`\n  - `npm run lint`\n  - `npm run test`\n  - `npm run build`\n  - `tcb hosting deploy ...`\n  - `node scripts/fix-charset.mjs`\n- `cloudbaserc.json` 当前只配置了 hosting rewrites / headers。\n- 没有看到脚本或 CI 步骤把 `cloudbase-security-rules.json` 应用到线上数据库。\n- README 里也没有明确的手动应用安全规则步骤或验收 checklist。\n\n## 风险\n\n这会造成一种危险的“已修复错觉”：\n\n- 代码里有安全规则文件，但线上 CloudBase 环境可能仍未应用。\n- #178 这类问题可能被关闭，但实际生产权限边界没有变化。\n- 后续字段变更时，规则和数据库真实配置可能再次漂移。\n\n## 建议修复\n\n至少补齐一种闭环：\n\n1. 添加脚本，例如 `scripts/deploy-security-rules.*`，将 `cloudbase-security-rules.json` 应用到 CloudBase。\n2. 或在 README / docs 中明确控制台手动应用步骤、目标环境、验证方法。\n3. 在 GitHub Actions 中增加可控的规则部署或校验步骤。\n4. 增加一个检查项：线上规则版本与仓库 `cloudbase-security-rules.json.version` 一致。\n\n## 验收标准\n\n- [ ] 仓库中有明确的安全规则应用方式（自动脚本或手动文档）。\n- [ ] CI/CD 或发布 checklist 会阻止“规则文件更新但线上未应用”的情况。\n- [ ] README 或运维文档说明如何验证 posts / ideas / books / votes / notifications / reports 的规则已经生效。\n- [ ] #178 类安全修复不只停留在仓库文件，而能确认线上 CloudBase 环境已应用。",
-      "closed_by": null,
-      "reactions": {
-        "url": "https://api.github.com/repos/libinyam/tianji/issues/193/reactions",
-        "total_count": 0,
-        "+1": 0,
-        "-1": 0,
-        "laugh": 0,
-        "hooray": 0,
-        "confused": 0,
-        "heart": 0,
-        "rocket": 0,
-        "eyes": 0
-      },
-      "timeline_url": "https://api.github.com/repos/libinyam/tianji/issues/193/timeline",
-      "performed_via_github_app": null,
-      "state_reason": null,
-      "pinned_comment": null
-    },
     {
       "url": "https://api.github.com/repos/libinyam/tianji/issues/192",
       "repository_url": "https://api.github.com/repos/libinyam/tianji",
@@ -1695,108 +1415,6 @@
       "pinned_comment": null
     },
     {
-      "url": "https://api.github.com/repos/libinyam/tianji/issues/190",
-      "repository_url": "https://api.github.com/repos/libinyam/tianji",
-      "labels_url": "https://api.github.com/repos/libinyam/tianji/issues/190/labels{/name}",
-      "comments_url": "https://api.github.com/repos/libinyam/tianji/issues/190/comments",
-      "events_url": "https://api.github.com/repos/libinyam/tianji/issues/190/events",
-      "html_url": "https://github.com/libinyam/tianji/issues/190",
-      "id": 4854246389,
-      "node_id": "I_kwDOTAIVKs8AAAABIVXr9Q",
-      "number": 190,
-      "title": "[CI] 添加 PR 触发 CI + 测试覆盖率阈值",
-      "user": {
-        "login": "libinyam",
-        "id": 251160820,
-        "node_id": "U_kgDODvho9A",
-        "avatar_url": "https://avatars.githubusercontent.com/u/251160820?v=4",
-        "gravatar_id": "",
-        "url": "https://api.github.com/users/libinyam",
-        "html_url": "https://github.com/libinyam",
-        "followers_url": "https://api.github.com/users/libinyam/followers",
-        "following_url": "https://api.github.com/users/libinyam/following{/other_user}",
-        "gists_url": "https://api.github.com/users/libinyam/gists{/gist_id}",
-        "starred_url": "https://api.github.com/users/libinyam/starred{/owner}{/repo}",
-        "subscriptions_url": "https://api.github.com/users/libinyam/subscriptions",
-        "organizations_url": "https://api.github.com/users/libinyam/orgs",
-        "repos_url": "https://api.github.com/users/libinyam/repos",
-        "events_url": "https://api.github.com/users/libinyam/events{/privacy}",
-        "received_events_url": "https://api.github.com/users/libinyam/received_events",
-        "type": "User",
-        "user_view_type": "public",
-        "site_admin": false
-      },
-      "labels": [
-        {
-          "id": 11368523153,
-          "node_id": "LA_kwDOTAIVKs8AAAACpZ3lkQ",
-          "url": "https://api.github.com/repos/libinyam/tianji/labels/P1",
-          "name": "P1",
-          "color": "D93F0B",
-          "default": false,
-          "description": "High priority: important user-facing bug or major UX/perf issue"
-        },
-        {
-          "id": 11482927920,
-          "node_id": "LA_kwDOTAIVKs8AAAACrG-TMA",
-          "url": "https://api.github.com/repos/libinyam/tianji/labels/test",
-          "name": "test",
-          "color": "0e8a16",
-          "default": false,
-          "description": "Testing and test coverage"
-        },
-        {
-          "id": 11482928146,
-          "node_id": "LA_kwDOTAIVKs8AAAACrG-UEg",
-          "url": "https://api.github.com/repos/libinyam/tianji/labels/ci",
-          "name": "ci",
-          "color": "ededed",
-          "default": false,
-          "description": "CI/CD pipeline"
-        }
-      ],
-      "state": "open",
-      "locked": false,
-      "assignees": [],
-      "milestone": null,
-      "comments": 0,
-      "created_at": "2026-07-10T10:35:36Z",
-      "updated_at": "2026-07-10T10:35:36Z",
-      "closed_at": null,
-      "assignee": null,
-      "author_association": "OWNER",
-      "active_lock_reason": null,
-      "sub_issues_summary": {
-        "total": 0,
-        "completed": 0,
-        "percent_completed": 0
-      },
-      "issue_dependencies_summary": {
-        "blocked_by": 0,
-        "total_blocked_by": 0,
-        "blocking": 0,
-        "total_blocking": 0
-      },
-      "body": "## 背景\n\n当前 `deploy.yml` 仅在 `push` 到 main/master 时触发。PR 可以在不运行任何测试的情况下被合并。无分支保护要求测试通过。\n\n## 建议\n\n1. 在 deploy.yml 中添加 `pull_request` 触发：\n```yaml\non:\n  push:\n    branches: [main, master]\n  pull_request:\n    branches: [main, master]\n```\n\n2. 在 vitest 配置中添加覆盖率阈值：\n```ts\n// vitest.config.ts\ncoverage: {\n  thresholds: {\n    lines: 30,  // 逐步提高\n    branches: 25,\n    functions: 30,\n  }\n}\n```\n\n3. 添加分支保护规则要求 CI 检查通过\n\n---\n*Generated by github-project-review skill, Role D (Test Engineer)*",
-      "closed_by": null,
-      "reactions": {
-        "url": "https://api.github.com/repos/libinyam/tianji/issues/190/reactions",
-        "total_count": 0,
-        "+1": 0,
-        "-1": 0,
-        "laugh": 0,
-        "hooray": 0,
-        "confused": 0,
-        "heart": 0,
-        "rocket": 0,
-        "eyes": 0
-      },
-      "timeline_url": "https://api.github.com/repos/libinyam/tianji/issues/190/timeline",
-      "performed_via_github_app": null,
-      "state_reason": null,
-      "pinned_comment": null
-    },
-    {
       "url": "https://api.github.com/repos/libinyam/tianji/issues/189",
       "repository_url": "https://api.github.com/repos/libinyam/tianji",
       "labels_url": "https://api.github.com/repos/libinyam/tianji/issues/189/labels{/name}",
@@ -1987,387 +1605,6 @@
         "eyes": 0
       },
       "timeline_url": "https://api.github.com/repos/libinyam/tianji/issues/188/timeline",
-      "performed_via_github_app": null,
-      "state_reason": null,
-      "pinned_comment": null
-    },
-    {
-      "url": "https://api.github.com/repos/libinyam/tianji/issues/187",
-      "repository_url": "https://api.github.com/repos/libinyam/tianji",
-      "labels_url": "https://api.github.com/repos/libinyam/tianji/issues/187/labels{/name}",
-      "comments_url": "https://api.github.com/repos/libinyam/tianji/issues/187/comments",
-      "events_url": "https://api.github.com/repos/libinyam/tianji/issues/187/events",
-      "html_url": "https://github.com/libinyam/tianji/issues/187",
-      "id": 4854245168,
-      "node_id": "I_kwDOTAIVKs8AAAABIVXnMA",
-      "number": 187,
-      "title": "[TEST] 为 src/lib/utils.ts (isAuthor) 和 src/lib/format.ts (formatRelativeTime) 添加单元测试",
-      "user": {
-        "login": "libinyam",
-        "id": 251160820,
-        "node_id": "U_kgDODvho9A",
-        "avatar_url": "https://avatars.githubusercontent.com/u/251160820?v=4",
-        "gravatar_id": "",
-        "url": "https://api.github.com/users/libinyam",
-        "html_url": "https://github.com/libinyam",
-        "followers_url": "https://api.github.com/users/libinyam/followers",
-        "following_url": "https://api.github.com/users/libinyam/following{/other_user}",
-        "gists_url": "https://api.github.com/users/libinyam/gists{/gist_id}",
-        "starred_url": "https://api.github.com/users/libinyam/starred{/owner}{/repo}",
-        "subscriptions_url": "https://api.github.com/users/libinyam/subscriptions",
-        "organizations_url": "https://api.github.com/users/libinyam/orgs",
-        "repos_url": "https://api.github.com/users/libinyam/repos",
-        "events_url": "https://api.github.com/users/libinyam/events{/privacy}",
-        "received_events_url": "https://api.github.com/users/libinyam/received_events",
-        "type": "User",
-        "user_view_type": "public",
-        "site_admin": false
-      },
-      "labels": [
-        {
-          "id": 11368523128,
-          "node_id": "LA_kwDOTAIVKs8AAAACpZ3leA",
-          "url": "https://api.github.com/repos/libinyam/tianji/labels/P2",
-          "name": "P2",
-          "color": "FBCA04",
-          "default": false,
-          "description": "Medium priority: improvement, polish, maintainability"
-        },
-        {
-          "id": 11482927920,
-          "node_id": "LA_kwDOTAIVKs8AAAACrG-TMA",
-          "url": "https://api.github.com/repos/libinyam/tianji/labels/test",
-          "name": "test",
-          "color": "0e8a16",
-          "default": false,
-          "description": "Testing and test coverage"
-        }
-      ],
-      "state": "open",
-      "locked": false,
-      "assignees": [],
-      "milestone": null,
-      "comments": 0,
-      "created_at": "2026-07-10T10:35:24Z",
-      "updated_at": "2026-07-10T10:35:24Z",
-      "closed_at": null,
-      "assignee": null,
-      "author_association": "OWNER",
-      "active_lock_reason": null,
-      "sub_issues_summary": {
-        "total": 0,
-        "completed": 0,
-        "percent_completed": 0
-      },
-      "issue_dependencies_summary": {
-        "blocked_by": 0,
-        "total_blocked_by": 0,
-        "blocking": 0,
-        "total_blocking": 0
-      },
-      "body": "## 背景\n\n- `isAuthor` 函数用于权限校验，历史上曾有 bug（#107）但无回归测试\n- `formatRelativeTime` 被所有页面使用，负责时间显示的格式化\n\n这两个都是纯函数，无需 mock，测试成本极低。\n\n## 建议测试用例\n\n### isAuthor\n- 当前用户是作者时返回 true\n- 当前用户不是作者时返回 false\n- null/undefined uid 处理\n- 回归 #107 的场景\n\n### formatRelativeTime\n- 刚刚（秒级）\n- 几分钟前\n- 几小时前\n- 几天前\n- 超过 30 天显示完整日期\n\n---\n*Generated by github-project-review skill, Role D (Test Engineer)*",
-      "closed_by": null,
-      "reactions": {
-        "url": "https://api.github.com/repos/libinyam/tianji/issues/187/reactions",
-        "total_count": 0,
-        "+1": 0,
-        "-1": 0,
-        "laugh": 0,
-        "hooray": 0,
-        "confused": 0,
-        "heart": 0,
-        "rocket": 0,
-        "eyes": 0
-      },
-      "timeline_url": "https://api.github.com/repos/libinyam/tianji/issues/187/timeline",
-      "performed_via_github_app": null,
-      "state_reason": null,
-      "pinned_comment": null
-    },
-    {
-      "url": "https://api.github.com/repos/libinyam/tianji/issues/186",
-      "repository_url": "https://api.github.com/repos/libinyam/tianji",
-      "labels_url": "https://api.github.com/repos/libinyam/tianji/issues/186/labels{/name}",
-      "comments_url": "https://api.github.com/repos/libinyam/tianji/issues/186/comments",
-      "events_url": "https://api.github.com/repos/libinyam/tianji/issues/186/events",
-      "html_url": "https://github.com/libinyam/tianji/issues/186",
-      "id": 4854244805,
-      "node_id": "I_kwDOTAIVKs8AAAABIVXlxQ",
-      "number": 186,
-      "title": "[TEST] 为 src/lib/security.ts 添加单元测试（escapeHtml + RateLimiter）",
-      "user": {
-        "login": "libinyam",
-        "id": 251160820,
-        "node_id": "U_kgDODvho9A",
-        "avatar_url": "https://avatars.githubusercontent.com/u/251160820?v=4",
-        "gravatar_id": "",
-        "url": "https://api.github.com/users/libinyam",
-        "html_url": "https://github.com/libinyam",
-        "followers_url": "https://api.github.com/users/libinyam/followers",
-        "following_url": "https://api.github.com/users/libinyam/following{/other_user}",
-        "gists_url": "https://api.github.com/users/libinyam/gists{/gist_id}",
-        "starred_url": "https://api.github.com/users/libinyam/starred{/owner}{/repo}",
-        "subscriptions_url": "https://api.github.com/users/libinyam/subscriptions",
-        "organizations_url": "https://api.github.com/users/libinyam/orgs",
-        "repos_url": "https://api.github.com/users/libinyam/repos",
-        "events_url": "https://api.github.com/users/libinyam/events{/privacy}",
-        "received_events_url": "https://api.github.com/users/libinyam/received_events",
-        "type": "User",
-        "user_view_type": "public",
-        "site_admin": false
-      },
-      "labels": [
-        {
-          "id": 11368523153,
-          "node_id": "LA_kwDOTAIVKs8AAAACpZ3lkQ",
-          "url": "https://api.github.com/repos/libinyam/tianji/labels/P1",
-          "name": "P1",
-          "color": "D93F0B",
-          "default": false,
-          "description": "High priority: important user-facing bug or major UX/perf issue"
-        },
-        {
-          "id": 11479502593,
-          "node_id": "LA_kwDOTAIVKs8AAAACrDtPAQ",
-          "url": "https://api.github.com/repos/libinyam/tianji/labels/security",
-          "name": "security",
-          "color": "ededed",
-          "default": false,
-          "description": null
-        },
-        {
-          "id": 11482927920,
-          "node_id": "LA_kwDOTAIVKs8AAAACrG-TMA",
-          "url": "https://api.github.com/repos/libinyam/tianji/labels/test",
-          "name": "test",
-          "color": "0e8a16",
-          "default": false,
-          "description": "Testing and test coverage"
-        }
-      ],
-      "state": "open",
-      "locked": false,
-      "assignees": [],
-      "milestone": null,
-      "comments": 0,
-      "created_at": "2026-07-10T10:35:20Z",
-      "updated_at": "2026-07-10T10:35:20Z",
-      "closed_at": null,
-      "assignee": null,
-      "author_association": "OWNER",
-      "active_lock_reason": null,
-      "sub_issues_summary": {
-        "total": 0,
-        "completed": 0,
-        "percent_completed": 0
-      },
-      "issue_dependencies_summary": {
-        "blocked_by": 0,
-        "total_blocked_by": 0,
-        "blocking": 0,
-        "total_blocking": 0
-      },
-      "body": "## 背景\n\n`src/lib/security.ts` 包含项目最关键的纯函数：`escapeHtml`（XSS 防御）和 `RateLimiter`（唯一的防滥用控制）。这两个函数目前零测试覆盖。\n\n## 建议测试用例\n\n### escapeHtml\n- 正常文本不被修改\n- `<script>` 标签被转义\n- 属性注入 `onerror=` 被转义\n- 空字符串、null、undefined 处理\n- Unicode 和 emoji 不被误转义\n\n### RateLimiter\n- 首次调用通过\n- 超过阈值后被限流\n- 时间窗口过后自动恢复\n- 不同 key 独立计数\n- 边界条件（恰好等于阈值）\n\n## 优先级\n\nP1 — 这两个函数是项目唯一的 XSS 防御和防滥用层，无回归测试保护。\n\n---\n*Generated by github-project-review skill, Role D (Test Engineer)*",
-      "closed_by": null,
-      "reactions": {
-        "url": "https://api.github.com/repos/libinyam/tianji/issues/186/reactions",
-        "total_count": 0,
-        "+1": 0,
-        "-1": 0,
-        "laugh": 0,
-        "hooray": 0,
-        "confused": 0,
-        "heart": 0,
-        "rocket": 0,
-        "eyes": 0
-      },
-      "timeline_url": "https://api.github.com/repos/libinyam/tianji/issues/186/timeline",
-      "performed_via_github_app": null,
-      "state_reason": null,
-      "pinned_comment": null
-    },
-    {
-      "url": "https://api.github.com/repos/libinyam/tianji/issues/185",
-      "repository_url": "https://api.github.com/repos/libinyam/tianji",
-      "labels_url": "https://api.github.com/repos/libinyam/tianji/issues/185/labels{/name}",
-      "comments_url": "https://api.github.com/repos/libinyam/tianji/issues/185/comments",
-      "events_url": "https://api.github.com/repos/libinyam/tianji/issues/185/events",
-      "html_url": "https://github.com/libinyam/tianji/issues/185",
-      "id": 4851763150,
-      "node_id": "I_kwDOTAIVKs8AAAABITAHzg",
-      "number": 185,
-      "title": "[P1] API 错误处理契约不一致，部分函数静默吞错",
-      "user": {
-        "login": "libinyam",
-        "id": 251160820,
-        "node_id": "U_kgDODvho9A",
-        "avatar_url": "https://avatars.githubusercontent.com/u/251160820?v=4",
-        "gravatar_id": "",
-        "url": "https://api.github.com/users/libinyam",
-        "html_url": "https://github.com/libinyam",
-        "followers_url": "https://api.github.com/users/libinyam/followers",
-        "following_url": "https://api.github.com/users/libinyam/following{/other_user}",
-        "gists_url": "https://api.github.com/users/libinyam/gists{/gist_id}",
-        "starred_url": "https://api.github.com/users/libinyam/starred{/owner}{/repo}",
-        "subscriptions_url": "https://api.github.com/users/libinyam/subscriptions",
-        "organizations_url": "https://api.github.com/users/libinyam/orgs",
-        "repos_url": "https://api.github.com/users/libinyam/repos",
-        "events_url": "https://api.github.com/users/libinyam/events{/privacy}",
-        "received_events_url": "https://api.github.com/users/libinyam/received_events",
-        "type": "User",
-        "user_view_type": "public",
-        "site_admin": false
-      },
-      "labels": [
-        {
-          "id": 11287956681,
-          "node_id": "LA_kwDOTAIVKs8AAAACoNCMyQ",
-          "url": "https://api.github.com/repos/libinyam/tianji/labels/bug",
-          "name": "bug",
-          "color": "d73a4a",
-          "default": true,
-          "description": "Something isn't working"
-        },
-        {
-          "id": 11287956710,
-          "node_id": "LA_kwDOTAIVKs8AAAACoNCM5g",
-          "url": "https://api.github.com/repos/libinyam/tianji/labels/enhancement",
-          "name": "enhancement",
-          "color": "a2eeef",
-          "default": true,
-          "description": "New feature or request"
-        }
-      ],
-      "state": "open",
-      "locked": false,
-      "assignees": [],
-      "milestone": null,
-      "comments": 0,
-      "created_at": "2026-07-10T03:34:40Z",
-      "updated_at": "2026-07-10T03:34:40Z",
-      "closed_at": null,
-      "assignee": null,
-      "author_association": "OWNER",
-      "active_lock_reason": null,
-      "sub_issues_summary": {
-        "total": 0,
-        "completed": 0,
-        "percent_completed": 0
-      },
-      "issue_dependencies_summary": {
-        "blocked_by": 0,
-        "total_blocked_by": 0,
-        "blocking": 0,
-        "total_blocking": 0
-      },
-      "body": "## 问题描述\n\n前端 API 函数的错误处理契约不统一，UI 无法区分「无数据」「加载失败」「网络错误」。部分函数失败返回 `null`/`[]` 静默吞错，部分返回 `{data, error}`，部分完全静默。\n\n## 现状\n\n| 函数 | 失败返回 | 问题 |\n|------|---------|------|\n| `fetchPosts` | `{data, error}` | ✅ 正确 |\n| `fetchBooks` | `{data, error}` | ✅ 正确 |\n| `fetchHotPosts` | `[]` | ❌ 无法区分空数据与失败 |\n| `fetchPostById` | `null` | ❌ 无法区分不存在与失败 |\n| `fetchBookById` | `null` | ❌ 同上 |\n| `fetchIdeas` | `[]` | ❌ 静默吞错 |\n| `fetchUserContent` | 空结构 | ❌ 静默吞错 |\n| `incrementViews` | 静默 | ⚠️ 可接受（非关键） |\n| `incrementBookDownloads` | 静默 | ⚠️ 可接受（非关键） |\n| `deletePost` 级联 | 各自 try-catch 忽略 | ❌ 孤儿数据风险 |\n\n## 影响分析\n\n- UI 无法统一渲染「加载失败 + 重试」状态\n- token 过期静默显示空列表（#100/#106 根因）\n- 级联删除失败留孤儿数据（favorites/reports/votes）\n- 无错误码体系，无重试，无幂等\n\n## 建议修复\n\n1. **统一定义 `Result<T>` 类型**：\n   ```ts\n   type Result<T> = { data: T | null; error: string | null };\n   ```\n2. 所有业务读函数返回 `Result<T>`，UI 渲染失败重试态\n3. 静默场景（浏览量/下载数）显式标注并保留\n4. `deletePost` 级联失败记录错误并通知 UI，或改软删除\n5. `admin-delete` 级联失败应记录并回滚或标记\n\n## 验收标准\n\n- [ ] 所有业务读函数返回统一的 `Result<T>` 结构\n- [ ] UI 能区分「无数据」与「加载失败」\n- [ ] 失败时有重试 UI\n- [ ] 级联删除失败不静默忽略\n\n## 关联\n\n- 来源：GitHub Project Review 评审（角色 B 前端工程师 + 角色 C 后端工程师）\n- 关联：#100（token 过期静默空白）、#106\n- 评审发现：B-002 / C-004",
-      "closed_by": null,
-      "reactions": {
-        "url": "https://api.github.com/repos/libinyam/tianji/issues/185/reactions",
-        "total_count": 0,
-        "+1": 0,
-        "-1": 0,
-        "laugh": 0,
-        "hooray": 0,
-        "confused": 0,
-        "heart": 0,
-        "rocket": 0,
-        "eyes": 0
-      },
-      "timeline_url": "https://api.github.com/repos/libinyam/tianji/issues/185/timeline",
-      "performed_via_github_app": null,
-      "state_reason": null,
-      "pinned_comment": null
-    },
-    {
-      "url": "https://api.github.com/repos/libinyam/tianji/issues/179",
-      "repository_url": "https://api.github.com/repos/libinyam/tianji",
-      "labels_url": "https://api.github.com/repos/libinyam/tianji/issues/179/labels{/name}",
-      "comments_url": "https://api.github.com/repos/libinyam/tianji/issues/179/comments",
-      "events_url": "https://api.github.com/repos/libinyam/tianji/issues/179/events",
-      "html_url": "https://github.com/libinyam/tianji/issues/179",
-      "id": 4851758700,
-      "node_id": "I_kwDOTAIVKs8AAAABIS_2bA",
-      "number": 179,
-      "title": "[P0] main 分支未启用分支保护，直接 push 触发生产部署",
-      "user": {
-        "login": "libinyam",
-        "id": 251160820,
-        "node_id": "U_kgDODvho9A",
-        "avatar_url": "https://avatars.githubusercontent.com/u/251160820?v=4",
-        "gravatar_id": "",
-        "url": "https://api.github.com/users/libinyam",
-        "html_url": "https://github.com/libinyam",
-        "followers_url": "https://api.github.com/users/libinyam/followers",
-        "following_url": "https://api.github.com/users/libinyam/following{/other_user}",
-        "gists_url": "https://api.github.com/users/libinyam/gists{/gist_id}",
-        "starred_url": "https://api.github.com/users/libinyam/starred{/owner}{/repo}",
-        "subscriptions_url": "https://api.github.com/users/libinyam/subscriptions",
-        "organizations_url": "https://api.github.com/users/libinyam/orgs",
-        "repos_url": "https://api.github.com/users/libinyam/repos",
-        "events_url": "https://api.github.com/users/libinyam/events{/privacy}",
-        "received_events_url": "https://api.github.com/users/libinyam/received_events",
-        "type": "User",
-        "user_view_type": "public",
-        "site_admin": false
-      },
-      "labels": [
-        {
-          "id": 11287956681,
-          "node_id": "LA_kwDOTAIVKs8AAAACoNCMyQ",
-          "url": "https://api.github.com/repos/libinyam/tianji/labels/bug",
-          "name": "bug",
-          "color": "d73a4a",
-          "default": true,
-          "description": "Something isn't working"
-        },
-        {
-          "id": 11479502593,
-          "node_id": "LA_kwDOTAIVKs8AAAACrDtPAQ",
-          "url": "https://api.github.com/repos/libinyam/tianji/labels/security",
-          "name": "security",
-          "color": "ededed",
-          "default": false,
-          "description": null
-        }
-      ],
-      "state": "open",
-      "locked": false,
-      "assignees": [],
-      "milestone": null,
-      "comments": 0,
-      "created_at": "2026-07-10T03:33:27Z",
-      "updated_at": "2026-07-10T03:33:27Z",
-      "closed_at": null,
-      "assignee": null,
-      "author_association": "OWNER",
-      "active_lock_reason": null,
-      "sub_issues_summary": {
-        "total": 0,
-        "completed": 0,
-        "percent_completed": 0
-      },
-      "issue_dependencies_summary": {
-        "blocked_by": 0,
-        "total_blocked_by": 0,
-        "blocking": 0,
-        "total_blocking": 0
-      },
-      "body": "## 问题描述\n\n`main` 分支未启用分支保护（`protected: false`），`deploy.yml` 在 push 到 main/master 时即触发完整构建+部署到 CloudBase Hosting 生产环境。任何有 write 权限的协作者可直接 push 未审查代码到 main，CI 通过后即自动部署到生产，绕过 PR 审查。\n\n## 现状\n\n- `.github/workflows/deploy.yml` 第 4-5 行：`on: push: branches: [main, master]` 触发构建+部署\n- GitHub API 确认 `main` 分支 `protected: false`\n- 无 required status checks\n- 无 PR 审批强制\n- 无 staging 环境或人工审批门禁\n\n## 影响分析\n\n- 未审查代码可直接进入生产环境\n- 5 名协作者（1 admin + 4 write）均有权限直接 push\n- 一旦推送含 bug 或安全漏洞的代码，立即影响线上用户\n- 无法保证代码经过第二人审查\n\n## 建议修复\n\n在 GitHub 仓库 Settings -> Branches 中为 `main` 启用分支保护：\n\n1. **Require pull request reviews before merging**：至少 1 名审查者\n2. **Require status checks to pass**：TypeCheck / Lint / Build 全部通过\n3. **Require branches to be up to date** before merging\n4. **Dismiss stale pull request approvals** when new commits are pushed\n5. 将直接 push 改为 PR 合并工作流\n\n## 验收标准\n\n- [ ] main 分支已启用分支保护\n- [ ] 无法直接 push 到 main（必须走 PR）\n- [ ] PR 合并要求 ≥1 review\n- [ ] PR 合并要求 tsc/lint/build 状态检查通过\n\n## 关联\n\n- 来源：GitHub Project Review 评审（角色 A 计划分析师 -> 角色 G 安全与运维确认）\n- 评审发现：G-001 / A-001",
-      "closed_by": null,
-      "reactions": {
-        "url": "https://api.github.com/repos/libinyam/tianji/issues/179/reactions",
-        "total_count": 0,
-        "+1": 0,
-        "-1": 0,
-        "laugh": 0,
-        "hooray": 0,
-        "confused": 0,
-        "heart": 0,
-        "rocket": 0,
-        "eyes": 0
-      },
-      "timeline_url": "https://api.github.com/repos/libinyam/tianji/issues/179/timeline",
       "performed_via_github_app": null,
       "state_reason": null,
       "pinned_comment": null
@@ -5937,7 +5174,7 @@
       "type": "User",
       "user_view_type": "public",
       "site_admin": false,
-      "contributions": 174
+      "contributions": 177
     }
   ],
   "latest_release": {
@@ -5946,9 +5183,10 @@
     "_path": "repos/libinyam/tianji/releases/latest"
   },
   "languages": {
-    "TypeScript": 542126,
+    "TypeScript": 549412,
+    "Python": 187790,
     "HTML": 28392,
-    "JavaScript": 19306,
+    "JavaScript": 23312,
     "CSS": 8995
   },
   "recent_prs": [
@@ -6032,7 +5270,7 @@
           "node_id": "R_kgDOTAIVKg",
           "name": "tianji",
           "full_name": "libinyam/tianji",
-          "private": true,
+          "private": false,
           "owner": {
             "login": "libinyam",
             "id": 251160820,
@@ -6095,14 +5333,14 @@
           "releases_url": "https://api.github.com/repos/libinyam/tianji/releases{/id}",
           "deployments_url": "https://api.github.com/repos/libinyam/tianji/deployments",
           "created_at": "2026-06-20T11:44:24Z",
-          "updated_at": "2026-07-10T10:47:40Z",
-          "pushed_at": "2026-07-10T10:46:54Z",
+          "updated_at": "2026-07-10T11:08:11Z",
+          "pushed_at": "2026-07-10T11:03:18Z",
           "git_url": "git://github.com/libinyam/tianji.git",
           "ssh_url": "git@github.com:libinyam/tianji.git",
           "clone_url": "https://github.com/libinyam/tianji.git",
           "svn_url": "https://github.com/libinyam/tianji",
           "homepage": "https://tianji-pink.vercel.app",
-          "size": 12047,
+          "size": 12231,
           "stargazers_count": 3,
           "watchers_count": 3,
           "language": "TypeScript",
@@ -6112,11 +5350,11 @@
           "has_wiki": false,
           "has_pages": false,
           "has_discussions": false,
-          "forks_count": 1,
+          "forks_count": 0,
           "mirror_url": null,
           "archived": false,
           "disabled": false,
-          "open_issues_count": 50,
+          "open_issues_count": 42,
           "license": {
             "key": "mit",
             "name": "MIT License",
@@ -6130,9 +5368,9 @@
           "has_pull_requests": true,
           "pull_request_creation_policy": "all",
           "topics": [],
-          "visibility": "private",
-          "forks": 1,
-          "open_issues": 50,
+          "visibility": "public",
+          "forks": 0,
+          "open_issues": 42,
           "watchers": 3,
           "default_branch": "main"
         }
@@ -6167,7 +5405,7 @@
           "node_id": "R_kgDOTAIVKg",
           "name": "tianji",
           "full_name": "libinyam/tianji",
-          "private": true,
+          "private": false,
           "owner": {
             "login": "libinyam",
             "id": 251160820,
@@ -6230,14 +5468,14 @@
           "releases_url": "https://api.github.com/repos/libinyam/tianji/releases{/id}",
           "deployments_url": "https://api.github.com/repos/libinyam/tianji/deployments",
           "created_at": "2026-06-20T11:44:24Z",
-          "updated_at": "2026-07-10T10:47:40Z",
-          "pushed_at": "2026-07-10T10:46:54Z",
+          "updated_at": "2026-07-10T11:08:11Z",
+          "pushed_at": "2026-07-10T11:03:18Z",
           "git_url": "git://github.com/libinyam/tianji.git",
           "ssh_url": "git@github.com:libinyam/tianji.git",
           "clone_url": "https://github.com/libinyam/tianji.git",
           "svn_url": "https://github.com/libinyam/tianji",
           "homepage": "https://tianji-pink.vercel.app",
-          "size": 12047,
+          "size": 12231,
           "stargazers_count": 3,
           "watchers_count": 3,
           "language": "TypeScript",
@@ -6247,11 +5485,11 @@
           "has_wiki": false,
           "has_pages": false,
           "has_discussions": false,
-          "forks_count": 1,
+          "forks_count": 0,
           "mirror_url": null,
           "archived": false,
           "disabled": false,
-          "open_issues_count": 50,
+          "open_issues_count": 42,
           "license": {
             "key": "mit",
             "name": "MIT License",
@@ -6265,9 +5503,9 @@
           "has_pull_requests": true,
           "pull_request_creation_policy": "all",
           "topics": [],
-          "visibility": "private",
-          "forks": 1,
-          "open_issues": 50,
+          "visibility": "public",
+          "forks": 0,
+          "open_issues": 42,
           "watchers": 3,
           "default_branch": "main"
         }
@@ -6383,7 +5621,7 @@
           "node_id": "R_kgDOTAIVKg",
           "name": "tianji",
           "full_name": "libinyam/tianji",
-          "private": true,
+          "private": false,
           "owner": {
             "login": "libinyam",
             "id": 251160820,
@@ -6446,14 +5684,14 @@
           "releases_url": "https://api.github.com/repos/libinyam/tianji/releases{/id}",
           "deployments_url": "https://api.github.com/repos/libinyam/tianji/deployments",
           "created_at": "2026-06-20T11:44:24Z",
-          "updated_at": "2026-07-10T10:47:40Z",
-          "pushed_at": "2026-07-10T10:46:54Z",
+          "updated_at": "2026-07-10T11:08:11Z",
+          "pushed_at": "2026-07-10T11:03:18Z",
           "git_url": "git://github.com/libinyam/tianji.git",
           "ssh_url": "git@github.com:libinyam/tianji.git",
           "clone_url": "https://github.com/libinyam/tianji.git",
           "svn_url": "https://github.com/libinyam/tianji",
           "homepage": "https://tianji-pink.vercel.app",
-          "size": 12047,
+          "size": 12231,
           "stargazers_count": 3,
           "watchers_count": 3,
           "language": "TypeScript",
@@ -6463,11 +5701,11 @@
           "has_wiki": false,
           "has_pages": false,
           "has_discussions": false,
-          "forks_count": 1,
+          "forks_count": 0,
           "mirror_url": null,
           "archived": false,
           "disabled": false,
-          "open_issues_count": 50,
+          "open_issues_count": 42,
           "license": {
             "key": "mit",
             "name": "MIT License",
@@ -6481,9 +5719,9 @@
           "has_pull_requests": true,
           "pull_request_creation_policy": "all",
           "topics": [],
-          "visibility": "private",
-          "forks": 1,
-          "open_issues": 50,
+          "visibility": "public",
+          "forks": 0,
+          "open_issues": 42,
           "watchers": 3,
           "default_branch": "main"
         }
@@ -6518,7 +5756,7 @@
           "node_id": "R_kgDOTAIVKg",
           "name": "tianji",
           "full_name": "libinyam/tianji",
-          "private": true,
+          "private": false,
           "owner": {
             "login": "libinyam",
             "id": 251160820,
@@ -6581,14 +5819,14 @@
           "releases_url": "https://api.github.com/repos/libinyam/tianji/releases{/id}",
           "deployments_url": "https://api.github.com/repos/libinyam/tianji/deployments",
           "created_at": "2026-06-20T11:44:24Z",
-          "updated_at": "2026-07-10T10:47:40Z",
-          "pushed_at": "2026-07-10T10:46:54Z",
+          "updated_at": "2026-07-10T11:08:11Z",
+          "pushed_at": "2026-07-10T11:03:18Z",
           "git_url": "git://github.com/libinyam/tianji.git",
           "ssh_url": "git@github.com:libinyam/tianji.git",
           "clone_url": "https://github.com/libinyam/tianji.git",
           "svn_url": "https://github.com/libinyam/tianji",
           "homepage": "https://tianji-pink.vercel.app",
-          "size": 12047,
+          "size": 12231,
           "stargazers_count": 3,
           "watchers_count": 3,
           "language": "TypeScript",
@@ -6598,11 +5836,11 @@
           "has_wiki": false,
           "has_pages": false,
           "has_discussions": false,
-          "forks_count": 1,
+          "forks_count": 0,
           "mirror_url": null,
           "archived": false,
           "disabled": false,
-          "open_issues_count": 50,
+          "open_issues_count": 42,
           "license": {
             "key": "mit",
             "name": "MIT License",
@@ -6616,9 +5854,9 @@
           "has_pull_requests": true,
           "pull_request_creation_policy": "all",
           "topics": [],
-          "visibility": "private",
-          "forks": 1,
-          "open_issues": 50,
+          "visibility": "public",
+          "forks": 0,
+          "open_issues": 42,
           "watchers": 3,
           "default_branch": "main"
         }
@@ -6734,7 +5972,7 @@
           "node_id": "R_kgDOTAIVKg",
           "name": "tianji",
           "full_name": "libinyam/tianji",
-          "private": true,
+          "private": false,
           "owner": {
             "login": "libinyam",
             "id": 251160820,
@@ -6797,14 +6035,14 @@
           "releases_url": "https://api.github.com/repos/libinyam/tianji/releases{/id}",
           "deployments_url": "https://api.github.com/repos/libinyam/tianji/deployments",
           "created_at": "2026-06-20T11:44:24Z",
-          "updated_at": "2026-07-10T10:47:40Z",
-          "pushed_at": "2026-07-10T10:46:54Z",
+          "updated_at": "2026-07-10T11:08:11Z",
+          "pushed_at": "2026-07-10T11:03:18Z",
           "git_url": "git://github.com/libinyam/tianji.git",
           "ssh_url": "git@github.com:libinyam/tianji.git",
           "clone_url": "https://github.com/libinyam/tianji.git",
           "svn_url": "https://github.com/libinyam/tianji",
           "homepage": "https://tianji-pink.vercel.app",
-          "size": 12047,
+          "size": 12231,
           "stargazers_count": 3,
           "watchers_count": 3,
           "language": "TypeScript",
@@ -6814,11 +6052,11 @@
           "has_wiki": false,
           "has_pages": false,
           "has_discussions": false,
-          "forks_count": 1,
+          "forks_count": 0,
           "mirror_url": null,
           "archived": false,
           "disabled": false,
-          "open_issues_count": 50,
+          "open_issues_count": 42,
           "license": {
             "key": "mit",
             "name": "MIT License",
@@ -6832,9 +6070,9 @@
           "has_pull_requests": true,
           "pull_request_creation_policy": "all",
           "topics": [],
-          "visibility": "private",
-          "forks": 1,
-          "open_issues": 50,
+          "visibility": "public",
+          "forks": 0,
+          "open_issues": 42,
           "watchers": 3,
           "default_branch": "main"
         }
@@ -6869,7 +6107,7 @@
           "node_id": "R_kgDOTAIVKg",
           "name": "tianji",
           "full_name": "libinyam/tianji",
-          "private": true,
+          "private": false,
           "owner": {
             "login": "libinyam",
             "id": 251160820,
@@ -6932,14 +6170,14 @@
           "releases_url": "https://api.github.com/repos/libinyam/tianji/releases{/id}",
           "deployments_url": "https://api.github.com/repos/libinyam/tianji/deployments",
           "created_at": "2026-06-20T11:44:24Z",
-          "updated_at": "2026-07-10T10:47:40Z",
-          "pushed_at": "2026-07-10T10:46:54Z",
+          "updated_at": "2026-07-10T11:08:11Z",
+          "pushed_at": "2026-07-10T11:03:18Z",
           "git_url": "git://github.com/libinyam/tianji.git",
           "ssh_url": "git@github.com:libinyam/tianji.git",
           "clone_url": "https://github.com/libinyam/tianji.git",
           "svn_url": "https://github.com/libinyam/tianji",
           "homepage": "https://tianji-pink.vercel.app",
-          "size": 12047,
+          "size": 12231,
           "stargazers_count": 3,
           "watchers_count": 3,
           "language": "TypeScript",
@@ -6949,11 +6187,11 @@
           "has_wiki": false,
           "has_pages": false,
           "has_discussions": false,
-          "forks_count": 1,
+          "forks_count": 0,
           "mirror_url": null,
           "archived": false,
           "disabled": false,
-          "open_issues_count": 50,
+          "open_issues_count": 42,
           "license": {
             "key": "mit",
             "name": "MIT License",
@@ -6967,9 +6205,9 @@
           "has_pull_requests": true,
           "pull_request_creation_policy": "all",
           "topics": [],
-          "visibility": "private",
-          "forks": 1,
-          "open_issues": 50,
+          "visibility": "public",
+          "forks": 0,
+          "open_issues": 42,
           "watchers": 3,
           "default_branch": "main"
         }

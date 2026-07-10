@@ -3,6 +3,8 @@ name: Build and Deploy
 on:
   push:
     branches: [main, master]
+  pull_request:
+    branches: [main, master]
 
 jobs:
   build:
@@ -38,16 +40,19 @@ jobs:
           VITE_CLOUDBASE_ACCESS_KEY: ${{ secrets.VITE_CLOUDBASE_ACCESS_KEY }}
 
       - name: Install CloudBase CLI
+        if: github.event_name == 'push'
         run: npm install -g @cloudbase/cli
 
       - name: Login CloudBase CLI
+        if: github.event_name == 'push'
         run: tcb login --apiKeyId ${{ secrets.TCB_SECRET_ID }} --apiKey ${{ secrets.TCB_SECRET_KEY }}
 
       # 分两步上传：先传全部资源，最后单独传 index.html。
       # 上传非原子，若 index.html 先生效而它引用的 chunk 还没传完，
-      # 访客会拿到「JS 路径 → 兜底 HTML」的 MIME 错误导致白屏。
+      # 访客会拿到「JS 路径 -> 兜底 HTML」的 MIME 错误导致白屏。
       # 旧文件不删除，窗口期内老 html + 老 chunk 仍可正常工作。
       - name: Deploy assets to CloudBase Hosting
+        if: github.event_name == 'push'
         run: |
           mkdir -p /tmp/dist-no-html
           cp -r dist/. /tmp/dist-no-html/
@@ -55,9 +60,11 @@ jobs:
           tcb hosting deploy /tmp/dist-no-html -e ${{ secrets.TCB_ENV_ID }}
 
       - name: Deploy index.html last
+        if: github.event_name == 'push'
         run: tcb hosting deploy dist/index.html index.html -e ${{ secrets.TCB_ENV_ID }}
 
       - name: Fix Content-Type charset for HTML files
+        if: github.event_name == 'push'
         env:
           TCB_SECRET_ID: ${{ secrets.TCB_SECRET_ID }}
           TCB_SECRET_KEY: ${{ secrets.TCB_SECRET_KEY }}
