@@ -5,6 +5,7 @@ import WorkshopCreateModal from "@/components/WorkshopCreateModal";
 import { WorkshopCardSkeleton, ListSkeleton } from "@/components/Skeleton";
 import { fetchWorkshops, canViewContent, type WorkshopProject } from "@/lib/workshops";
 import { useAuthStore } from "@/stores/auth";
+import { dispatchAuthWithIntent } from "@/lib/pending-action";
 import { useDocumentTitle } from "@/hooks/useDocumentTitle";
 
 function formatUpdatedAt(iso: string): string {
@@ -44,7 +45,7 @@ export default function Workshop() {
 
   const handleCreateClick = () => {
     if (!user) {
-      window.dispatchEvent(new CustomEvent("tianji:open-auth"));
+      dispatchAuthWithIntent("create-workshop");
       return;
     }
     setCreateOpen(true);

@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
-import { Sparkles, BookOpen, Lightbulb, PenLine, ArrowUpRight, Flame } from "lucide-react";
+import { Sparkles, BookOpen, Lightbulb, PenLine, ArrowUpRight, Flame, Compass } from "lucide-react";
 import { fetchHotPosts } from "@/lib/posts";
 import type { Question } from "@/types";
 
@@ -10,10 +10,15 @@ const MODULES = [
   { to: "/workshop", icon: PenLine, label: "协作工坊", desc: "多人协同的项目创作空间" },
 ];
 
-// 模块级缓存：后退返回首页时不重复请求榜单
+const ONBOARDING_STEPS = [
+  { step: 1, text: "去资源库找学习资料", link: "/library" },
+  { step: 2, text: "在讨论区提问或回答", link: "/" },
+  { step: 3, text: "把想法沉淀到灵感广场", link: "/ideas" },
+  { step: 4, text: "到协作工坊发起或参与项目", link: "/workshop" },
+];
+
 let hotCache: Question[] | null = null;
 
-/** 首页右侧栏：品牌简介 + 模块入口 + 热门讨论。仅桌面端显示。 */
 export default function DiscussionSidebar() {
   const [hot, setHot] = useState<Question[]>(hotCache ?? []);
 
@@ -33,7 +38,6 @@ export default function DiscussionSidebar() {
 
   return (
     <aside className="hidden space-y-4 lg:sticky lg:top-20 lg:block">
-      {/* 品牌简介 */}
       <div className="card-surface p-5">
         <div className="flex items-center gap-2">
           <Sparkles className="h-4 w-4 text-star-400" strokeWidth={1.5} />
@@ -43,7 +47,7 @@ export default function DiscussionSidebar() {
           <span className="text-xs text-mist-500">跨专业共创社区</span>
         </div>
         <p className="mt-3 text-xs leading-relaxed text-mist-400">
-          无论你来自数学、物理、金融还是计算机，都能在这里求解疑难、交流灵感、协同创作，把专业积累变成真实可用的作品。
+          天玑帮助跨专业学习者从学习资料、问题答疑、灵感沉淀，到协作项目落地。无论你来自数学、物理、金融还是计算机，都能在这里把专业积累变成真实作品。
         </p>
         <Link
           to="/about"
@@ -53,7 +57,27 @@ export default function DiscussionSidebar() {
         </Link>
       </div>
 
-      {/* 模块入口 */}
+      <div className="card-surface p-4">
+        <div className="flex items-center gap-1.5 text-xs font-medium text-parchment-100">
+          <Compass size={13} className="text-star-400" /> 第一次来天玑？
+        </div>
+        <ol className="mt-3 space-y-2">
+          {ONBOARDING_STEPS.map((s) => (
+            <li key={s.step}>
+              <Link
+                to={s.link}
+                className="group flex items-center gap-2 text-xs text-mist-400 transition-colors hover:text-star-200"
+              >
+                <span className="flex h-4 w-4 shrink-0 items-center justify-center rounded-full bg-void-700/50 text-[10px] text-star-400">
+                  {s.step}
+                </span>
+                {s.text}
+              </Link>
+            </li>
+          ))}
+        </ol>
+      </div>
+
       <div className="card-surface p-2">
         {MODULES.map((m) => {
           const Icon = m.icon;
@@ -77,7 +101,6 @@ export default function DiscussionSidebar() {
         })}
       </div>
 
-      {/* 热门讨论 */}
       {hot.length > 0 && (
         <div className="card-surface p-4">
           <div className="flex items-center gap-1.5 text-xs font-medium text-parchment-100">

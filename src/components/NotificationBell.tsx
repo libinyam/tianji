@@ -11,6 +11,10 @@ import {
   type NotificationItem,
   type NotificationType,
 } from "@/lib/notifications";
+import { app } from "@/lib/cloudbase";
+import { useAuthStore } from "@/stores/auth";
+
+const db = app.database();
 
 const TYPE_ICON: Record<NotificationType, typeof Bell> = {
   answer: MessageSquare,
@@ -49,16 +53,39 @@ export default function NotificationBell() {
     return () => { mountedRef.current = false; };
   }, []);
 
-  // 定时拉取未读数
+  const uid = useAuthStore((s) => s.user?.uid);
+
   useEffect(() => {
     let mounted = true;
     const safeSetUnread = (n: number) => { if (mounted) setUnread(n); };
     fetchUnreadCount().then(safeSetUnread);
+
     const timer = setInterval(() => {
       fetchUnreadCount().then(safeSetUnread);
-    }, 60000); // 每分钟刷新
-    return () => { mounted = false; clearInterval(timer); };
-  }, []);
+    }, 60000);
+
+    let unsubscribe: (() => void) | null = null;
+    if (uid) {
+      try {
+        const watcher = db
+          .collection("notifications")
+          .where({ uid })
+          .watch({
+            onChange: () => { fetchUnreadCount().then(safeSetUnread); },
+            onError: () => {},
+          });
+        unsubscribe = () => { watcher.close(); };
+      } catch {
+        // watch not available, polling is fallback
+      }
+    }
+
+    return () => {
+      mounted = false;
+      clearInterval(timer);
+      if (unsubscribe) unsubscribe();
+    };
+  }, [uid]);
 
   // 打开时加载列表
   useEffect(() => {

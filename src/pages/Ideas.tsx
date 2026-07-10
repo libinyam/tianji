@@ -10,6 +10,7 @@ import EmptyState from "@/components/EmptyState";
 import { fetchIdeas, resonanceIdea, updateIdea, deleteIdea } from "@/lib/ideas";
 import { toggleFavorite, getFavoritedIds } from "@/lib/favorites";
 import { useAuthStore } from "@/stores/auth";
+import { dispatchAuthWithIntent } from "@/lib/pending-action";
 import { isAuthor } from "@/lib/utils";
 import { useDocumentTitle } from "@/hooks/useDocumentTitle";
 import type { Idea } from "@/types";
@@ -84,7 +85,7 @@ export default function Ideas() {
 
   const handleIdeaClick = () => {
     if (!user) {
-      window.dispatchEvent(new CustomEvent("tianji:open-auth"));
+      dispatchAuthWithIntent("share-idea");
       return;
     }
     setIdeaModalOpen(true);

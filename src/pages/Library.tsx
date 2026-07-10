@@ -6,6 +6,7 @@ import BookUploadModal from "@/components/BookUploadModal";
 
 import { fetchBooks } from "@/lib/books";
 import { useAuthStore } from "@/stores/auth";
+import { dispatchAuthWithIntent } from "@/lib/pending-action";
 import { useDocumentTitle } from "@/hooks/useDocumentTitle";
 import type { Book, BookCategory } from "@/types";
 
@@ -85,7 +86,7 @@ export default function Library() {
 
   const handleUploadClick = () => {
     if (!user) {
-      window.dispatchEvent(new CustomEvent("tianji:open-auth"));
+      dispatchAuthWithIntent("upload-resource");
       return;
     }
     setUploadOpen(true);

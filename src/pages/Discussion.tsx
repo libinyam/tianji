@@ -14,6 +14,7 @@ import { PRESET_TAGS } from "@/lib/tags";
 import { formatRelativeTime } from "@/lib/format";
 import { useDocumentTitle } from "@/hooks/useDocumentTitle";
 import { useAuthStore } from "@/stores/auth";
+import { dispatchAuthWithIntent } from "@/lib/pending-action";
 import type { Question } from "@/types";
 
 type SortKey = "最新" | "热度" | "悬赏";
@@ -164,7 +165,7 @@ export default function Discussion() {
 
   const handlePostClick = () => {
     if (!user) {
-      window.dispatchEvent(new CustomEvent("tianji:open-auth"));
+      dispatchAuthWithIntent("create-post");
       return;
     }
     setPostModalOpen(true);

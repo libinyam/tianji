@@ -9,6 +9,7 @@ export const books: Book[] = [
     difficulty: 2,
     tags: ["Claude Code", "Codex", "Trae", "MCP"],
     accent: "#7cc4ff",
+    link: "https://github.com/libinyam/tianji",
     summary:
       "从零配置到高效使用 AI 编程助手，覆盖 Codex、Claude Code、Trae 的安装、上下文管理与 MCP 协议接入，让跨专业学习者也能借力 AI 写出第一行可用代码。",
     favorites: 2104,
@@ -48,6 +49,7 @@ export const books: Book[] = [
     difficulty: 1,
     tags: ["Git", "GitHub", "版本管理", "协作"],
     accent: "#5aa6f0",
+    link: "https://docs.github.com/zh/get-started",
     summary:
       "写给完全没接触过版本管理的同学。从安装 Git、创建仓库、提交代码，到分支、Pull Request 与团队协作，一步步把作业和项目放上 GitHub，建立你的作品集。",
     favorites: 1890,
@@ -81,6 +83,7 @@ export const books: Book[] = [
     difficulty: 2,
     tags: ["部署", "Vercel", "云平台", "上线"],
     accent: "#eccd6b",
+    link: "https://vercel.com/docs/getting-started",
     summary:
       "做完了项目却不会上线？本手册覆盖前端部署（Vercel / Netlify）、后端与 API 部署、域名绑定与环境变量，帮你把本地 Demo 变成可分享的真实链接。",
     favorites: 1576,
@@ -146,6 +149,7 @@ export const books: Book[] = [
     difficulty: 1,
     tags: ["Python", "NumPy", "入门", "数据处理"],
     accent: "#7cc4ff",
+    link: "https://docs.python.org/zh-cn/3/tutorial/",
     summary:
       "为零基础或只会推公式的同学设计。从变量、函数到 NumPy、Pandas 与绘图，用数学思维理解编程，为做 AI 项目打下最基础的代码能力。",
     favorites: 1760,
@@ -178,6 +182,7 @@ export const books: Book[] = [
     difficulty: 2,
     tags: ["项目拆解", "作品集", "Demo", "文档"],
     accent: "#f3c969",
+    link: "https://github.com/libinyam/tianji",
     summary:
       "解决「会学不会做」的痛点。系统讲解如何把一个模糊想法拆解成可执行任务、写需求文档、用 AI 辅助开发、做出 Demo 并写进作品集，适合所有跨专业转型者。",
     favorites: 2310,
@@ -216,6 +221,7 @@ export const books: Book[] = [
     difficulty: 3,
     tags: ["大模型", "API", "RAG", "智能体"],
     accent: "#5aa6f0",
+    link: "https://platform.openai.com/docs/overview",
     summary:
       "面向想用大模型做实际应用的学习者。从调用 API、Prompt 工程到 RAG 检索增强与智能体搭建，结合真实案例带你做出第一个能用的 AI 应用。",
     favorites: 1640,
