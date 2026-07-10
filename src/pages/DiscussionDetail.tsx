@@ -112,34 +112,36 @@ export default function DiscussionDetail() {
 
     let mounted = true;
     (async () => {
-      const post = await fetchPostById(id);
-      if (mounted) {
-        setQuestion(post);
+      const { data: post, error } = await fetchPostById(id);
+      if (!mounted) return;
+      if (error || !post) {
         setLoading(false);
-        if (post) {
-          // 增加浏览量（同一会话内不重复计数）
-          const viewedKey = `tianji:viewed:${id}`;
-          if (!sessionStorage.getItem(viewedKey)) {
-            sessionStorage.setItem(viewedKey, "1");
-            incrementViews(id);
-            setQuestion((prev) => prev ? { ...prev, views: prev.views + 1 } : prev);
+        setQuestion(null);
+        return;
+      }
+      setQuestion(post);
+      setLoading(false);
+      // 增加浏览量（同一会话内不重复计数）
+      const viewedKey = `tianji:viewed:${id}`;
+      if (!sessionStorage.getItem(viewedKey)) {
+        sessionStorage.setItem(viewedKey, "1");
+        incrementViews(id);
+        setQuestion((prev) => prev ? { ...prev, views: prev.views + 1 } : prev);
+      }
+      // 检查收藏状态
+      isFavorited(id).then((fav) => {
+        if (mounted) setFavState(fav);
+      });
+      // 加载用户投票记录
+      const answerIds = (post.answerList ?? []).map((a) => a.id);
+      if (answerIds.length > 0) {
+        getVotedAnswerIds(answerIds).then((votedSet) => {
+          if (mounted) {
+            const votedMap: Record<string, boolean> = {};
+            votedSet.forEach((aid) => { votedMap[aid] = true; });
+            setVoted(votedMap);
           }
-          // 检查收藏状态
-          isFavorited(id).then((fav) => {
-            if (mounted) setFavState(fav);
-          });
-          // 加载用户投票记录
-          const answerIds = (post.answerList ?? []).map((a) => a.id);
-          if (answerIds.length > 0) {
-            getVotedAnswerIds(answerIds).then((votedSet) => {
-              if (mounted) {
-                const votedMap: Record<string, boolean> = {};
-                votedSet.forEach((aid) => { votedMap[aid] = true; });
-                setVoted(votedMap);
-              }
-            });
-          }
-        }
+        });
       }
     })();
     return () => {

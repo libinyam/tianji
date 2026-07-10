@@ -20,9 +20,10 @@ export default function DiscussionSidebar() {
   useEffect(() => {
     if (hotCache) return;
     let mounted = true;
-    void fetchHotPosts(5).then((list) => {
-      hotCache = list;
-      if (mounted) setHot(list);
+    void fetchHotPosts(5).then(({ data, error }) => {
+      if (error || !data) return;
+      hotCache = data;
+      if (mounted) setHot(data);
     });
     return () => { mounted = false; };
   }, []);

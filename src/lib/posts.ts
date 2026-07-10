@@ -1,6 +1,7 @@
 import { app } from "@/lib/cloudbase";
 import { createNotification } from "@/lib/notifications";
 import { sanitizeInput, sanitizeTitle, sanitizeTag } from "@/lib/sanitize";
+import { ok, err, type Result } from "@/lib/result";
 import type { Question, Answer, Comment } from "@/types";
 
 const db = app.database();
@@ -102,31 +103,31 @@ export async function fetchPosts(
 }
 
 /** 按浏览量取热门帖子（首页侧栏榜单用），失败时返回空数组不阻塞页面 */
-export async function fetchHotPosts(limit = 5): Promise<Question[]> {
+export async function fetchHotPosts(limit = 5): Promise<Result<Question[]>> {
   try {
     const { data } = await db
       .collection(POSTS_COLLECTION)
       .orderBy("views", "desc")
       .limit(limit)
       .get();
-    return ((data as PostDoc[]) ?? []).map(toQuestion);
-  } catch {
-    return [];
+    return ok(((data as PostDoc[]) ?? []).map(toQuestion));
+  } catch (e) {
+    return err<Question[]>(`加载热门帖子失败: ${e instanceof Error ? e.message : String(e)}`);
   }
 }
 
 /** 获取单个帖子详情 */
-export async function fetchPostById(id: string): Promise<Question | null> {
+export async function fetchPostById(id: string): Promise<Result<Question>> {
   try {
     const { data } = await db
       .collection(POSTS_COLLECTION)
       .doc(id)
       .get();
 
-    if (!data || data.length === 0) return null;
-    return toQuestion(data[0] as PostDoc);
-  } catch {
-    return null;
+    if (!data || data.length === 0) return err("帖子不存在");
+    return ok(toQuestion(data[0] as PostDoc));
+  } catch (e) {
+    return err(`加载帖子失败: ${e instanceof Error ? e.message : String(e)}`);
   }
 }
 
