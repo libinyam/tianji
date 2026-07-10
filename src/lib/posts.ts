@@ -570,24 +570,31 @@ export async function voteAnswer(
   const votesCol = db.collection("votes");
   const _ = db.command;
 
-  // 用 uid+answerId 作为文档 _id 做 upsert，文档 ID 本身是唯一约束，天然防重复投票
   const voteDocId = `${uid}_${answerId}`;
 
+  let shouldInc: boolean;
+
   if (isUpvote) {
-    // upsert：已存在则更新 createdAt（幂等），不存在则创建
-    await votesCol
+    const result = await votesCol
       .doc(voteDocId)
       .set({ answerId, uid, postId, createdAt: Date.now() });
+    const resultObj = result as unknown as Record<string, unknown>;
+    const upserted = (resultObj.upserted as number) ?? 0;
+    const replaced = (resultObj.replaced as number) ?? 0;
+    shouldInc = upserted > 0 && replaced === 0;
   } else {
-    // 取消投票 - 直接按唯一 docId 删除
     try {
-      await votesCol.doc(voteDocId).remove();
+      const result = await votesCol.doc(voteDocId).remove();
+      const resultObj = result as unknown as Record<string, unknown>;
+      const deleted = (resultObj.deleted as number) ?? 1;
+      shouldInc = deleted > 0;
     } catch {
-      return false; // 没投过票
+      return false;
     }
   }
 
-  // 更新回答票数：用原子 inc 直接操作嵌套字段，避免读-改-写 answerList
+  if (!shouldInc) return true;
+
   const docRef = db.collection(POSTS_COLLECTION).doc(postId);
   const { data } = await docRef.get();
   if (!data || data.length === 0) return false;
@@ -597,7 +604,6 @@ export async function voteAnswer(
   const idx = answerList.findIndex((a) => a.id === answerId);
   if (idx === -1) return false;
 
-  // 用点号路径原子更新 answerList[idx].votes，避免并发互相覆盖
   await docRef.update({
     [`answerList.${idx}.votes`]: _.inc(isUpvote ? 1 : -1),
   });

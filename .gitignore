@@ -18,6 +18,11 @@ coverage
 # Local debug / scratch files
 _read_db.*
 
+# Review artifacts (should never be committed)
+repo-context.json
+.trae/skills/
+.tmp-e2e/
+
 # Editor directories and files
 .vscode/*
 !.vscode/extensions.json
