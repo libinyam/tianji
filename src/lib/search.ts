@@ -40,6 +40,8 @@ export interface PaginatedSearchResult {
   results: SearchResult[];
   hasMore: boolean;
   totalCount: number;
+  /** 查询失败的集合名称列表，非空时表示结果为部分数据 */
+  errors?: string[];
 }
 
 /** 搜索过滤选项 */
@@ -69,6 +71,7 @@ export async function searchAll(
   const sortBy = filters?.sortBy ?? "hot";
   const activeTypes = filters?.types ?? ["帖子", "灵感", "资源", "协作"];
   const filterTags = filters?.tags ?? [];
+  const errors: string[] = [];
 
   const regex = buildRegex(keyword.trim());
   const results: SearchResult[] = [];
@@ -102,7 +105,7 @@ export async function searchAll(
             });
           });
         })
-        .catch(() => {})
+        .catch(() => { errors.push("posts"); })
     );
   }
 
@@ -132,7 +135,7 @@ export async function searchAll(
             });
           });
         })
-        .catch(() => {})
+        .catch(() => { errors.push("ideas"); })
     );
   }
 
@@ -162,7 +165,7 @@ export async function searchAll(
             });
           });
         })
-        .catch(() => {})
+        .catch(() => { errors.push("books"); })
     );
   }
 
@@ -192,7 +195,7 @@ export async function searchAll(
             });
           });
         })
-        .catch(() => {})
+        .catch(() => { errors.push("workshops"); })
     );
   }
 
@@ -220,7 +223,7 @@ export async function searchAll(
   const pagedResults = results.slice(startIndex, startIndex + pageSize);
   const hasMore = startIndex + pageSize < totalCount;
 
-  return { results: pagedResults, hasMore, totalCount };
+  return { results: pagedResults, hasMore, totalCount, errors: errors.length > 0 ? errors : undefined };
 }
 
 /** 获取全站热门内容榜单（按热度排序，取前 10） */
@@ -244,7 +247,7 @@ export async function fetchHotList(): Promise<HotItem[]> {
           });
         });
       })
-      .catch(() => {}),
+      .catch((e) => console.warn("fetchHotList error:", e)),
 
     db
       .collection("ideas")
@@ -262,7 +265,7 @@ export async function fetchHotList(): Promise<HotItem[]> {
           });
         });
       })
-      .catch(() => {}),
+      .catch((e) => console.warn("fetchHotList error:", e)),
 
     db
       .collection("books")
@@ -280,7 +283,7 @@ export async function fetchHotList(): Promise<HotItem[]> {
           });
         });
       })
-      .catch(() => {}),
+      .catch((e) => console.warn("fetchHotList error:", e)),
 
     db
       .collection("workshops")
@@ -300,7 +303,7 @@ export async function fetchHotList(): Promise<HotItem[]> {
           });
         });
       })
-      .catch(() => {}),
+      .catch((e) => console.warn("fetchHotList error:", e)),
   ];
 
   await Promise.all(tasks);

@@ -35,6 +35,8 @@ export async function fetchPaginated<T>(
   }
 
   if (cursor) {
+    // CloudBase _id 是字符串，但 SDK 类型定义 gt() 仅接受 number。
+    // 实际运行时 db.command.gt() 支持字符串字典序比较。
     query = query.where({ _id: db.command.gt(cursor as unknown as number) }) as typeof query;
   }
 
