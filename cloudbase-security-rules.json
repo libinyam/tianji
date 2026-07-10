@@ -1,0 +1,136 @@
+{
+  "version": "1.0.0",
+  "description": "CloudBase NoSQL 数据库安全规则 - 防止客户端越权访问",
+  "lastUpdated": "2026-07-10",
+  "collections": {
+    "posts": {
+      "permission": "CUSTOM",
+      "securityRule": {
+        "read": "auth.uid != null",
+        "create": "auth.uid != null && auth.loginType != 'ANONYMOUS'",
+        "update": "auth.uid != null && (doc.authorUid == auth.uid || get('database.user_roles.' + auth.uid).role == 'admin')",
+        "delete": "auth.uid != null && (doc.authorUid == auth.uid || get('database.user_roles.' + auth.uid).role == 'admin')"
+      },
+      "ownerField": "authorUid",
+      "note": "作者可改删自己的帖子；管理员可通过 user_roles 集合 override"
+    },
+    "ideas": {
+      "permission": "CUSTOM",
+      "securityRule": {
+        "read": "auth.uid != null",
+        "create": "auth.uid != null && auth.loginType != 'ANONYMOUS'",
+        "update": "auth.uid != null && (doc.authorUid == auth.uid || get('database.user_roles.' + auth.uid).role == 'admin')",
+        "delete": "auth.uid != null && (doc.authorUid == auth.uid || get('database.user_roles.' + auth.uid).role == 'admin')"
+      },
+      "ownerField": "authorUid"
+    },
+    "books": {
+      "permission": "CUSTOM",
+      "securityRule": {
+        "read": "auth.uid != null",
+        "create": "auth.uid != null && auth.loginType != 'ANONYMOUS'",
+        "update": "auth.uid != null && (doc.uploaderUid == auth.uid || get('database.user_roles.' + auth.uid).role == 'admin')",
+        "delete": "auth.uid != null && (doc.uploaderUid == auth.uid || get('database.user_roles.' + auth.uid).role == 'admin')"
+      },
+      "ownerField": "uploaderUid"
+    },
+    "workshops": {
+      "permission": "CUSTOM",
+      "securityRule": {
+        "read": "auth.uid != null",
+        "create": "auth.uid != null && auth.loginType != 'ANONYMOUS'",
+        "update": "auth.uid != null && (doc.creatorUid == auth.uid || get('database.user_roles.' + auth.uid).role == 'admin')",
+        "delete": "auth.uid != null && (doc.creatorUid == auth.uid || get('database.user_roles.' + auth.uid).role == 'admin')"
+      },
+      "ownerField": "creatorUid"
+    },
+    "votes": {
+      "permission": "CUSTOM",
+      "securityRule": {
+        "read": "auth.uid != null",
+        "create": "auth.uid != null && auth.loginType != 'ANONYMOUS'",
+        "update": "auth.uid != null && doc.uid == auth.uid",
+        "delete": "auth.uid != null && doc.uid == auth.uid"
+      },
+      "ownerField": "uid",
+      "note": "用户只能改删自己的投票记录"
+    },
+    "favorites": {
+      "permission": "CUSTOM",
+      "securityRule": {
+        "read": "auth.uid != null",
+        "create": "auth.uid != null && auth.loginType != 'ANONYMOUS'",
+        "update": "auth.uid != null && doc.uid == auth.uid",
+        "delete": "auth.uid != null && doc.uid == auth.uid"
+      },
+      "ownerField": "uid"
+    },
+    "notifications": {
+      "permission": "CUSTOM",
+      "securityRule": {
+        "read": "auth.uid != null && doc.targetUid == auth.uid",
+        "create": "false",
+        "update": "auth.uid != null && doc.targetUid == auth.uid",
+        "delete": "auth.uid != null && doc.targetUid == auth.uid"
+      },
+      "ownerField": "targetUid",
+      "note": "通知由服务端创建，用户只能读/改/删自己的通知"
+    },
+    "reports": {
+      "permission": "CUSTOM",
+      "securityRule": {
+        "read": "auth.uid != null && (get('database.user_roles.' + auth.uid).role == 'admin' || doc.reporterUid == auth.uid)",
+        "create": "auth.uid != null && auth.loginType != 'ANONYMOUS'",
+        "update": "auth.uid != null && get('database.user_roles.' + auth.uid).role == 'admin'",
+        "delete": "auth.uid != null && get('database.user_roles.' + auth.uid).role == 'admin'"
+      },
+      "ownerField": "reporterUid",
+      "note": "用户可举报；仅管理员可处理/删除举报"
+    },
+    "tags": {
+      "permission": "CUSTOM",
+      "securityRule": {
+        "read": "auth.uid != null",
+        "create": "false",
+        "update": "false",
+        "delete": "false"
+      },
+      "note": "标签由云函数维护，前端只读"
+    },
+    "announcements": {
+      "permission": "CUSTOM",
+      "securityRule": {
+        "read": "auth.uid != null",
+        "create": "false",
+        "update": "false",
+        "delete": "false"
+      },
+      "note": "公告由服务端维护，前端只读"
+    },
+    "user_roles": {
+      "permission": "CUSTOM",
+      "securityRule": {
+        "read": "auth.uid != null && doc._id == auth.uid",
+        "create": "false",
+        "update": "false",
+        "delete": "false"
+      },
+      "note": "角色集合，用户只能读自己的角色；写入由服务端管理"
+    },
+    "sys_user": {
+      "permission": "PRIVATE",
+      "securityRule": null,
+      "note": "系统集合，禁止前端访问"
+    },
+    "sys_department": {
+      "permission": "PRIVATE",
+      "securityRule": null,
+      "note": "系统集合，禁止前端访问"
+    },
+    "relation_data_depart": {
+      "permission": "PRIVATE",
+      "securityRule": null,
+      "note": "系统集合，禁止前端访问"
+    }
+  }
+}

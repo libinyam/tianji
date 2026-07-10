@@ -6,8 +6,8 @@ const app = cloudbase.init({
 
 const db = app.database();
 
-// 管理员 uid 列表从环境变量读取，逗号分隔；过渡期保留默认值
-const ADMIN_UIDS = (process.env.ADMIN_UIDS || "2068674931977097216")
+// 管理员 uid 列表从环境变量读取，逗号分隔；未配置时为空数组（fail-safe：无人是管理员）
+const ADMIN_UIDS = (process.env.ADMIN_UIDS || "")
   .split(",")
   .map((s) => s.trim())
   .filter(Boolean);
