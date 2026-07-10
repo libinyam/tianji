@@ -35,117 +35,167 @@ function buildRegex(keyword: string) {
   return db.RegExp({ regexp: escapeRegex(keyword), options: "i" });
 }
 
-/** 跨四个集合搜索，返回统一结构并按热度排序 */
-export async function searchAll(keyword: string, signal?: AbortSignal): Promise<SearchResult[]> {
-  if (!keyword.trim()) return [];
+/** 搜索结果分页结构 */
+export interface PaginatedSearchResult {
+  results: SearchResult[];
+  hasMore: boolean;
+  totalCount: number;
+}
+
+/** 搜索过滤选项 */
+export interface SearchFilters {
+  types?: Array<"帖子" | "灵感" | "资源" | "协作">;
+  tags?: string[];
+  sortBy?: "hot" | "new" | "relevance";
+}
+
+/** 搜索分页参数 */
+export interface SearchPagination {
+  page: number;
+  pageSize: number;
+}
+
+/** 跨四个集合搜索，支持分页和高级过滤 */
+export async function searchAll(
+  keyword: string,
+  signal?: AbortSignal,
+  filters?: SearchFilters,
+  pagination?: SearchPagination
+): Promise<PaginatedSearchResult> {
+  if (!keyword.trim()) return { results: [], hasMore: false, totalCount: 0 };
+
+  const page = pagination?.page ?? 1;
+  const pageSize = pagination?.pageSize ?? 20;
+  const sortBy = filters?.sortBy ?? "hot";
+  const activeTypes = filters?.types ?? ["帖子", "灵感", "资源", "协作"];
+  const filterTags = filters?.tags ?? [];
+
   const regex = buildRegex(keyword.trim());
   const results: SearchResult[] = [];
 
-  const tasks: Promise<void>[] = [
-    // 帖子
-    db
-      .collection("posts")
-      .where(_.or([{ title: regex }, { excerpt: regex }, { body: regex }]))
-      .limit(20)
-      .get()
-      .then(({ data }) => {
-        (data as Record<string, unknown>[]).forEach((d) => {
-          const views = Number(d.views ?? 0);
-          const votes = Number(d.votes ?? 0);
-          const answers = Number(d.answersCount ?? 0);
-          results.push({
-            id: String(d._id ?? ""),
-            title: String(d.title ?? ""),
-            excerpt: String(d.excerpt ?? ""),
-            type: "帖子",
-            link: `/discussion/${d._id}`,
-            hot: views + votes * 5 + answers * 3,
-            tags: (d.tags as string[]) ?? [],
-            author: String(d.author ?? ""),
-            createdAt: String(d.createdAt ?? ""),
-          });
-        });
-      })
-      .catch(() => {}),
+  const tasks: Promise<void>[] = [];
 
-    // 灵感
-    db
-      .collection("ideas")
-      .where(_.or([{ title: regex }, { summary: regex }]))
-      .limit(20)
-      .get()
-      .then(({ data }) => {
-        (data as Record<string, unknown>[]).forEach((d) => {
-          const resonance = Number(d.resonance ?? 0);
-          const replies = Number(d.replies ?? 0);
-          results.push({
-            id: String(d._id ?? ""),
-            title: String(d.title ?? ""),
-            excerpt: String(d.summary ?? ""),
-            type: "灵感",
-            link: `/ideas/${d._id}`,
-            hot: resonance * 4 + replies * 2,
-            tags: (d.tags as string[]) ?? [],
-            author: String(d.author ?? ""),
-            createdAt: String(d.createdAt ?? ""),
+  if (activeTypes.includes("帖子")) {
+    tasks.push(
+      db
+        .collection("posts")
+        .where(_.or([{ title: regex }, { excerpt: regex }, { body: regex }]))
+        .limit(100)
+        .get()
+        .then(({ data }) => {
+          (data as Record<string, unknown>[]).forEach((d) => {
+            const itemTags = (d.tags as string[]) ?? [];
+            if (filterTags.length > 0 && !filterTags.some(t => itemTags.includes(t))) return;
+            const views = Number(d.views ?? 0);
+            const votes = Number(d.votes ?? 0);
+            const answers = Number(d.answersCount ?? 0);
+            results.push({
+              id: String(d._id ?? ""),
+              title: String(d.title ?? ""),
+              excerpt: String(d.excerpt ?? ""),
+              type: "帖子",
+              link: `/discussion/${d._id}`,
+              hot: views + votes * 5 + answers * 3,
+              tags: itemTags,
+              author: String(d.author ?? ""),
+              createdAt: String(d.createdAt ?? ""),
+            });
           });
-        });
-      })
-      .catch(() => {}),
+        })
+        .catch(() => {})
+    );
+  }
 
-    // 书籍
-    db
-      .collection("books")
-      .where(_.or([{ title: regex }, { summary: regex }]))
-      .limit(20)
-      .get()
-      .then(({ data }) => {
-        (data as Record<string, unknown>[]).forEach((d) => {
-          const favorites = Number(d.favorites ?? 0);
-          const rating = Number(d.rating ?? 0);
-          results.push({
-            id: String(d._id ?? ""),
-            title: String(d.title ?? ""),
-            excerpt: String(d.summary ?? ""),
-            type: "资源",
-            link: `/library/${d._id}`,
-            hot: favorites * 3 + rating * 10,
-            tags: (d.tags as string[]) ?? [],
-            author: String(d.author ?? ""),
-            createdAt: String(d.createdAt ?? ""),
+  if (activeTypes.includes("灵感")) {
+    tasks.push(
+      db
+        .collection("ideas")
+        .where(_.or([{ title: regex }, { summary: regex }]))
+        .limit(100)
+        .get()
+        .then(({ data }) => {
+          (data as Record<string, unknown>[]).forEach((d) => {
+            const itemTags = (d.tags as string[]) ?? [];
+            if (filterTags.length > 0 && !filterTags.some(t => itemTags.includes(t))) return;
+            const resonance = Number(d.resonance ?? 0);
+            const replies = Number(d.replies ?? 0);
+            results.push({
+              id: String(d._id ?? ""),
+              title: String(d.title ?? ""),
+              excerpt: String(d.summary ?? ""),
+              type: "灵感",
+              link: `/ideas/${d._id}`,
+              hot: resonance * 4 + replies * 2,
+              tags: itemTags,
+              author: String(d.author ?? ""),
+              createdAt: String(d.createdAt ?? ""),
+            });
           });
-        });
-      })
-      .catch(() => {}),
+        })
+        .catch(() => {})
+    );
+  }
 
-    // 协作工坊
-    db
-      .collection("workshops")
-      .where(_.or([{ title: regex }, { description: regex }]))
-      .limit(20)
-      .get()
-      .then(({ data }) => {
-        (data as Record<string, unknown>[]).forEach((d) => {
-          const participants = (d.participants as string[]) ?? [];
-          const contributions = (d.contributions as unknown[]) ?? [];
-          results.push({
-            id: String(d._id ?? ""),
-            title: String(d.title ?? ""),
-            excerpt: String(d.description ?? ""),
-            type: "协作",
-            link: `/workshop/${d._id}`,
-            hot: participants.length * 5 + contributions.length * 3,
-            tags: (d.tags as string[]) ?? [],
-            author: String(d.creator ?? ""),
-            createdAt: String(d.createdAt ?? ""),
+  if (activeTypes.includes("资源")) {
+    tasks.push(
+      db
+        .collection("books")
+        .where(_.or([{ title: regex }, { summary: regex }]))
+        .limit(100)
+        .get()
+        .then(({ data }) => {
+          (data as Record<string, unknown>[]).forEach((d) => {
+            const itemTags = (d.tags as string[]) ?? [];
+            if (filterTags.length > 0 && !filterTags.some(t => itemTags.includes(t))) return;
+            const favorites = Number(d.favorites ?? 0);
+            const rating = Number(d.rating ?? 0);
+            results.push({
+              id: String(d._id ?? ""),
+              title: String(d.title ?? ""),
+              excerpt: String(d.summary ?? ""),
+              type: "资源",
+              link: `/library/${d._id}`,
+              hot: favorites * 3 + rating * 10,
+              tags: itemTags,
+              author: String(d.author ?? ""),
+              createdAt: String(d.createdAt ?? ""),
+            });
           });
-        });
-      })
-      .catch(() => {}),
-  ];
+        })
+        .catch(() => {})
+    );
+  }
 
-  // 中止时立即 reject，不等待所有查询完成（CloudBase SDK 不支持取消单个查询，
-  // 但 race 可避免调用方等待过期结果）
+  if (activeTypes.includes("协作")) {
+    tasks.push(
+      db
+        .collection("workshops")
+        .where(_.or([{ title: regex }, { description: regex }]))
+        .limit(100)
+        .get()
+        .then(({ data }) => {
+          (data as Record<string, unknown>[]).forEach((d) => {
+            const itemTags = (d.tags as string[]) ?? [];
+            if (filterTags.length > 0 && !filterTags.some(t => itemTags.includes(t))) return;
+            const participants = (d.participants as string[]) ?? [];
+            const contributions = (d.contributions as unknown[]) ?? [];
+            results.push({
+              id: String(d._id ?? ""),
+              title: String(d.title ?? ""),
+              excerpt: String(d.description ?? ""),
+              type: "协作",
+              link: `/workshop/${d._id}`,
+              hot: participants.length * 5 + contributions.length * 3,
+              tags: itemTags,
+              author: String(d.creator ?? ""),
+              createdAt: String(d.createdAt ?? ""),
+            });
+          });
+        })
+        .catch(() => {})
+    );
+  }
+
   const allDone = Promise.all(tasks);
   if (signal) {
     await Promise.race([
@@ -159,9 +209,18 @@ export async function searchAll(keyword: string, signal?: AbortSignal): Promise<
     await allDone;
   }
 
-  // 按热度降序
-  results.sort((a, b) => b.hot - a.hot);
-  return results;
+  if (sortBy === "new") {
+    results.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+  } else {
+    results.sort((a, b) => b.hot - a.hot);
+  }
+
+  const totalCount = results.length;
+  const startIndex = (page - 1) * pageSize;
+  const pagedResults = results.slice(startIndex, startIndex + pageSize);
+  const hasMore = startIndex + pageSize < totalCount;
+
+  return { results: pagedResults, hasMore, totalCount };
 }
 
 /** 获取全站热门内容榜单（按热度排序，取前 10） */

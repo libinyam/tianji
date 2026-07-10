@@ -67,7 +67,7 @@ export default function SearchModal({ open, onClose }: SearchModalProps) {
     setSearched(true);
     searchAll(kw, ac.signal)
       .then((res) => {
-        if (!ac.signal.aborted) setResults(res);
+        if (!ac.signal.aborted) setResults(res.results);
       })
       .catch(() => {
         if (!ac.signal.aborted) setResults([]);
