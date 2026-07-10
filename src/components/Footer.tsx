@@ -37,7 +37,7 @@ export default function Footer() {
                 <Github size={16} />
               </a>
               <a
-                href="mailto:tianji@example.com"
+                href="mailto:contact@tianjihub.cn"
                 className="flex h-9 w-9 items-center justify-center rounded-lg border border-void-600/60 text-mist-400 transition-colors hover:border-star-400/50 hover:text-star-300"
                 aria-label="邮箱"
               >

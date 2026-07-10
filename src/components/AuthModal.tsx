@@ -275,7 +275,7 @@ export default function AuthModal({ open, onClose }: AuthModalProps) {
               {loginMethod === "email" ? (
                 <>
                   <div>
-                    <label className="mb-1.5 block text-xs text-mist-400">邮箱</label>
+                    <label htmlFor="auth-email" className="mb-1.5 block text-xs text-mist-400">邮箱</label>
                     <div className="flex gap-2">
                       <div className="relative flex-1">
                         <Mail
@@ -283,8 +283,10 @@ export default function AuthModal({ open, onClose }: AuthModalProps) {
                           className="absolute left-3 top-1/2 -translate-y-1/2 text-mist-500"
                         />
                         <input
+                          id="auth-email"
                           name="email"
                           type="email"
+                          autoComplete="email"
                           required
                           disabled={waitingForCode}
                           value={email}
@@ -308,15 +310,17 @@ export default function AuthModal({ open, onClose }: AuthModalProps) {
 
                   {!waitingForCode && (
                     <div>
-                    <label className="mb-1.5 block text-xs text-mist-400">密码</label>
+                    <label htmlFor="auth-password" className="mb-1.5 block text-xs text-mist-400">密码</label>
                     <div className="relative">
                       <Lock
                         size={15}
                         className="absolute left-3 top-1/2 -translate-y-1/2 text-mist-500"
                       />
                       <input
+                        id="auth-password"
                         name="password"
                         type="password"
+                        autoComplete={mode === "login" ? "current-password" : "new-password"}
                         required
                         minLength={6}
                         value={password}
@@ -339,15 +343,17 @@ export default function AuthModal({ open, onClose }: AuthModalProps) {
                   {/* 注册时始终显示验证码输入框 */}
                   {mode === "register" && (
                     <div>
-                      <label className="mb-1.5 block text-xs text-mist-400">邮箱验证码</label>
+                      <label htmlFor="auth-code" className="mb-1.5 block text-xs text-mist-400">邮箱验证码</label>
                       <div className="relative">
                         <ShieldCheck
                           size={15}
                           className="absolute left-3 top-1/2 -translate-y-1/2 text-mist-500"
                         />
                         <input
+                          id="auth-code"
                           name="code"
                           type="text"
+                          autoComplete="one-time-code"
                           required={waitingForCode}
                           inputMode="numeric"
                           value={code}
@@ -381,7 +387,7 @@ export default function AuthModal({ open, onClose }: AuthModalProps) {
                 <>
                   {/* 手机号 */}
                   <div>
-                    <label className="mb-1.5 block text-xs text-mist-400">手机号</label>
+                    <label htmlFor="auth-phone" className="mb-1.5 block text-xs text-mist-400">手机号</label>
                     <div className="flex gap-2">
                       <div className="relative flex-1">
                         <Phone
@@ -392,8 +398,10 @@ export default function AuthModal({ open, onClose }: AuthModalProps) {
                           +86
                         </span>
                         <input
+                          id="auth-phone"
                           name="phone"
                           type="tel"
+                          autoComplete="tel"
                           required
                           inputMode="numeric"
                           maxLength={11}
@@ -448,15 +456,17 @@ export default function AuthModal({ open, onClose }: AuthModalProps) {
                   {/* 密码：注册时必填，登录密码模式时显示 */}
                   {(mode === "register" || (mode === "login" && phoneLoginType === "password")) && (
                     <div>
-                      <label className="mb-1.5 block text-xs text-mist-400">密码</label>
+                      <label htmlFor="auth-phone-password" className="mb-1.5 block text-xs text-mist-400">密码</label>
                       <div className="relative">
                         <Lock
                           size={15}
                           className="absolute left-3 top-1/2 -translate-y-1/2 text-mist-500"
                         />
                         <input
+                          id="auth-phone-password"
                           name="password"
                           type="password"
+                          autoComplete={mode === "login" ? "current-password" : "new-password"}
                           required
                           minLength={6}
                           value={phonePassword}
@@ -479,7 +489,7 @@ export default function AuthModal({ open, onClose }: AuthModalProps) {
                   {/* 短信验证码：注册时 + 验证码登录时显示 */}
                   {(mode === "register" || (mode === "login" && phoneLoginType === "code")) && (
                     <div>
-                      <label className="mb-1.5 block text-xs text-mist-400">短信验证码</label>
+                      <label htmlFor="auth-sms-code" className="mb-1.5 block text-xs text-mist-400">短信验证码</label>
                       {mode === "login" && (
                         <div className="flex gap-2">
                           <div className="relative flex-1">
@@ -488,8 +498,10 @@ export default function AuthModal({ open, onClose }: AuthModalProps) {
                               className="absolute left-3 top-1/2 -translate-y-1/2 text-mist-500"
                             />
                             <input
+                              id="auth-sms-code"
                               name="code"
                               type="text"
+                              autoComplete="one-time-code"
                               required
                               inputMode="numeric"
                               maxLength={6}

@@ -17,6 +17,7 @@ import {
   Trash2,
   Flag,
 } from "lucide-react";
+import ShareButton from "@/components/ShareButton";
 import { PostDetailSkeleton } from "@/components/Skeleton";
 import { questions as mockQuestions } from "@/data/questions";
 import {
@@ -599,16 +600,20 @@ export default function DiscussionDetail() {
                 {favState ? "已收藏" : "收藏"}
               </button>
               {!isAuthor(user?.uid, question.authorUid) && (
-                <button
-                  onClick={() => openReport("post", question.id, question.title)}
-                  className="flex items-center gap-1 text-mist-400 transition-colors hover:text-red-300"
-                  title="举报帖子"
-                >
-                  <Flag size={13} /> 举报
-                </button>
+                <>
+                  <ShareButton title={question.title} path={`/discussion/${id}`} />
+                  <button
+                    onClick={() => openReport("post", question.id, question.title)}
+                    className="flex items-center gap-1 text-mist-400 transition-colors hover:text-red-300"
+                    title="举报帖子"
+                  >
+                    <Flag size={13} /> 举报
+                  </button>
+                </>
               )}
               {isAuthor(user?.uid, question.authorUid) && (
                 <div className="flex items-center gap-3">
+                  <ShareButton title={question.title} path={`/discussion/${id}`} />
                   <button
                     onClick={startEditPost}
                     className="flex h-9 w-9 items-center justify-center rounded-md text-mist-400 transition-colors hover:bg-void-700/60 hover:text-tian-300"
