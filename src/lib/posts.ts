@@ -550,28 +550,26 @@ export async function voteAnswer(
   if (!uid) throw new Error("请先登录");
 
   const votesCol = db.collection("votes");
+  const _ = db.command;
+
+  // 用 uid+answerId 作为文档 _id 做 upsert，文档 ID 本身是唯一约束，天然防重复投票
+  const voteDocId = `${uid}_${answerId}`;
 
   if (isUpvote) {
-    // 检查是否已投票
-    const { data: existing } = await votesCol
-      .where({ answerId, uid })
-      .get();
-    if ((existing ?? []).length > 0) return false; // 已投过票
-
-    // 记录投票
-    await votesCol.add({ answerId, uid, postId, createdAt: Date.now() });
+    // upsert：已存在则更新 createdAt（幂等），不存在则创建
+    await votesCol
+      .doc(voteDocId)
+      .set({ answerId, uid, postId, createdAt: Date.now() });
   } else {
-    // 取消投票 — 用 doc(id).remove() 避免安全规则拦截 where().remove()
-    const { data: existing } = await votesCol
-      .where({ answerId, uid })
-      .get();
-    const list = existing ?? [];
-    if (list.length === 0) return false; // 没投过票
-    const voteDocId = (list[0] as { _id: string })._id;
-    await votesCol.doc(voteDocId).remove();
+    // 取消投票 - 直接按唯一 docId 删除
+    try {
+      await votesCol.doc(voteDocId).remove();
+    } catch {
+      return false; // 没投过票
+    }
   }
 
-  // 更新回答票数（使用原子操作 inc）
+  // 更新回答票数：用原子 inc 直接操作嵌套字段，避免读-改-写 answerList
   const docRef = db.collection(POSTS_COLLECTION).doc(postId);
   const { data } = await docRef.get();
   if (!data || data.length === 0) return false;
@@ -581,11 +579,9 @@ export async function voteAnswer(
   const idx = answerList.findIndex((a) => a.id === answerId);
   if (idx === -1) return false;
 
-  const currentVotes = answerList[idx].votes ?? 0;
-  answerList[idx] = {
-    ...answerList[idx],
-    votes: Math.max(0, currentVotes + (isUpvote ? 1 : -1)),
-  };
-  await docRef.update({ answerList });
+  // 用点号路径原子更新 answerList[idx].votes，避免并发互相覆盖
+  await docRef.update({
+    [`answerList.${idx}.votes`]: _.inc(isUpvote ? 1 : -1),
+  });
   return true;
 }
