@@ -6,6 +6,7 @@ import { useAuthStore } from "@/stores/auth";
 import { toast } from "@/stores/toast";
 import { fetchReports, resolveReport, type Report } from "@/lib/reports";
 import { useDocumentTitle } from "@/hooks/useDocumentTitle";
+import { togglePin, toggleLock, toggleFeature } from "@/lib/post-moderation";
 import {
   fetchAllAnnouncements,
   createAnnouncement,
@@ -31,6 +32,9 @@ import {
   Megaphone,
   Plus,
   Power,
+  Pin,
+  Lock,
+  Star,
 } from "lucide-react";
 
 interface Stats {
@@ -50,6 +54,9 @@ interface PostItem {
   createdAt: string;
   views: number;
   tags: string[];
+  pinned?: boolean;
+  locked?: boolean;
+  featured?: boolean;
 }
 
 interface IdeaItem {
@@ -323,6 +330,36 @@ export default function Admin() {
     }
   };
 
+  const handleTogglePin = async (postId: string) => {
+    try {
+      await togglePin(postId);
+      toast.success("置顶状态已更新");
+      fetchPosts();
+    } catch (err) {
+      toast.error((err as Error).message || "操作失败");
+    }
+  };
+
+  const handleToggleLock = async (postId: string) => {
+    try {
+      await toggleLock(postId);
+      toast.success("锁定状态已更新");
+      fetchPosts();
+    } catch (err) {
+      toast.error((err as Error).message || "操作失败");
+    }
+  };
+
+  const handleToggleFeature = async (postId: string) => {
+    try {
+      await toggleFeature(postId);
+      toast.success("加精状态已更新");
+      fetchPosts();
+    } catch (err) {
+      toast.error((err as Error).message || "操作失败");
+    }
+  };
+
   if (loading) {
     return (
       <div className="flex min-h-[60vh] items-center justify-center">
@@ -457,13 +494,48 @@ export default function Admin() {
                   ))}
                 </div>
               </div>
-              <button
-                onClick={() => handleDelete("posts", p._id)}
-                className="ml-3 flex-shrink-0 rounded-lg border border-red-500/30 bg-red-500/10 p-2 text-red-400 transition-all hover:bg-red-500/20"
-                title="删除"
-              >
-                <Trash2 size={16} />
-              </button>
+              <div className="ml-3 flex flex-shrink-0 items-center gap-1.5">
+                <button
+                  onClick={() => handleTogglePin(p._id)}
+                  className={`flex-shrink-0 rounded-lg border p-2 transition-all ${
+                    p.pinned
+                      ? "border-blue-400/50 bg-blue-400/20 text-blue-300 hover:bg-blue-400/30"
+                      : "border-void-600/50 bg-void-800/40 text-mist-400 hover:border-blue-400/40 hover:text-blue-300"
+                  }`}
+                  title={p.pinned ? "取消置顶" : "置顶"}
+                >
+                  <Pin size={16} />
+                </button>
+                <button
+                  onClick={() => handleToggleLock(p._id)}
+                  className={`flex-shrink-0 rounded-lg border p-2 transition-all ${
+                    p.locked
+                      ? "border-red-400/50 bg-red-400/20 text-red-300 hover:bg-red-400/30"
+                      : "border-void-600/50 bg-void-800/40 text-mist-400 hover:border-red-400/40 hover:text-red-300"
+                  }`}
+                  title={p.locked ? "取消锁定" : "锁定"}
+                >
+                  <Lock size={16} />
+                </button>
+                <button
+                  onClick={() => handleToggleFeature(p._id)}
+                  className={`flex-shrink-0 rounded-lg border p-2 transition-all ${
+                    p.featured
+                      ? "border-yellow-400/50 bg-yellow-400/20 text-yellow-300 hover:bg-yellow-400/30"
+                      : "border-void-600/50 bg-void-800/40 text-mist-400 hover:border-yellow-400/40 hover:text-yellow-300"
+                  }`}
+                  title={p.featured ? "取消加精" : "加精"}
+                >
+                  <Star size={16} />
+                </button>
+                <button
+                  onClick={() => handleDelete("posts", p._id)}
+                  className="flex-shrink-0 rounded-lg border border-red-500/30 bg-red-500/10 p-2 text-red-400 transition-all hover:bg-red-500/20"
+                  title="删除"
+                >
+                  <Trash2 size={16} />
+                </button>
+              </div>
             </div>
           ))}
         </div>

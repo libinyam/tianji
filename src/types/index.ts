@@ -72,6 +72,9 @@ export interface Question {
   createdAt: string;
   body: string; // 含 LaTeX 行间公式占位
   answerList: Answer[];
+  pinned?: boolean; // 置顶
+  locked?: boolean; // 锁定
+  featured?: boolean; // 加精
 }
 
 export interface IdeaComment {

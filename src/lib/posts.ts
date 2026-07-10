@@ -1,6 +1,9 @@
 import { app } from "@/lib/cloudbase";
 import { createNotification } from "@/lib/notifications";
+import { awardReputation, REPUTATION_RULES } from "@/lib/reputation";
 import { sanitizeInput, sanitizeTitle, sanitizeTag } from "@/lib/sanitize";
+import { checkCurrentUserBanned } from "@/lib/ban";
+import { containsSensitiveWord } from "@/lib/sensitive-words";
 import type { Question, Answer, Comment } from "@/types";
 
 const db = app.database();
@@ -32,6 +35,9 @@ export interface PostDoc {
   answerList: Answer[];
   createdAt: string;
   isMock?: boolean; // 标记 Mock 帖子
+  pinned?: boolean; // 置顶
+  locked?: boolean; // 锁定
+  featured?: boolean; // 加精
 }
 
 /** 把 PostDoc 转成前端 Question 类型 */
@@ -53,6 +59,9 @@ function toQuestion(doc: PostDoc): Question {
     answerList: doc.answerList ?? [],
     category: doc.category ?? "academic",
     subCategory: doc.subCategory,
+    pinned: doc.pinned,
+    locked: doc.locked,
+    featured: doc.featured,
   };
 }
 
@@ -89,8 +98,8 @@ export async function fetchPosts(
     if (category) whereCond.category = category;
     if (subCategory) whereCond.subCategory = subCategory;
     const { data } = Object.keys(whereCond).length
-      ? await col.where(whereCond).orderBy("createdAt", "desc").limit(100).get()
-      : await col.orderBy("createdAt", "desc").limit(100).get();
+      ? await col.where(whereCond).orderBy("pinned", "desc").orderBy("createdAt", "desc").limit(100).get()
+      : await col.orderBy("pinned", "desc").orderBy("createdAt", "desc").limit(100).get();
 
     const realPosts = ((data as PostDoc[]) ?? []).map(toQuestion);
     return { data: realPosts, error: null };
@@ -146,6 +155,14 @@ export async function createPost(params: {
   const uid = getCurrentUid();
   if (!uid) throw new Error("请先登录");
 
+  const banStatus = await checkCurrentUserBanned();
+  if (banStatus) throw new Error("您的账号已被封禁");
+
+  const sensitiveCheck = containsSensitiveWord(cleanTitle + cleanBody);
+  if (sensitiveCheck.found) {
+    throw new Error(`内容包含敏感词: ${sensitiveCheck.words.join(", ")}`);
+  }
+
   const excerpt =
     cleanBody.length > 120 ? cleanBody.slice(0, 120) + "…" : cleanBody;
 
@@ -170,6 +187,7 @@ export async function createPost(params: {
   const res = await db.collection(POSTS_COLLECTION).add(doc);
   const resObj = res as unknown as Record<string, unknown>;
   const newId = (resObj.id as string) ?? (resObj._id as string) ?? "";
+  await awardReputation(uid, REPUTATION_RULES.createPost);
   return {
     id: newId,
     title: doc.title,
