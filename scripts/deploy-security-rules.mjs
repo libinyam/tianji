@@ -6,15 +6,18 @@
  *   node scripts/deploy-security-rules.mjs                    # 读取 .env 中的 ENV_ID
  *   node scripts/deploy-security-rules.mjs --envId xxx        # 指定环境 ID
  *   node scripts/deploy-security-rules.mjs --dry-run          # 只打印不执行
+ *   node scripts/deploy-security-rules.mjs --envId xxx --dry-run
  *
  * 前置条件：
- *   - 安装 @cloudbase/manager-node（npm i -g @cloudbase/manager-node 或本地安装）
- *   - 设置环境变量 TCB_SECRET_ID 和 TCB_SECRET_KEY（管理端密钥，非前端 accessKey）
+ *   - CloudBase CLI 已全局安装（npm i -g @cloudbase/cli）
+ *   - 已通过 tcb login 登录
+ *   - 或设置环境变量 TCB_SECRET_ID 和 TCB_SECRET_KEY
  */
 
 import { readFileSync } from "fs";
 import { resolve, dirname } from "path";
 import { fileURLToPath } from "url";
+import { execSync } from "child_process";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const RULES_FILE = resolve(__dirname, "../cloudbase-security-rules.json");
@@ -35,20 +38,12 @@ loadEnv();
 
 const args = process.argv.slice(2);
 const dryRun = args.includes("--dry-run");
-const envIdArg = args[args.indexOf("--envId") + 1];
+const envIdIndex = args.indexOf("--envId");
+const envIdArg = envIdIndex !== -1 && envIdIndex + 1 < args.length ? args[envIdIndex + 1] : null;
 const envId = envIdArg || process.env.CLOUDBASE_ENV_ID || process.env.VITE_CLOUDBASE_ENV_ID;
 
 if (!envId) {
   console.error("错误：未指定环境 ID。用 --envId 参数或在 .env 中设置 VITE_CLOUDBASE_ENV_ID");
-  process.exit(1);
-}
-
-const secretId = process.env.TCB_SECRET_ID;
-const secretKey = process.env.TCB_SECRET_KEY;
-
-if (!dryRun && (!secretId || !secretKey)) {
-  console.error("错误：未设置 TCB_SECRET_ID / TCB_SECRET_KEY 环境变量");
-  console.error("这是管理端密钥（非前端 accessKey），用于调用 CloudBase 管理端 API");
   process.exit(1);
 }
 
@@ -86,25 +81,28 @@ if (dryRun) {
   process.exit(0);
 }
 
-const { CloudBase } = await import("@cloudbase/manager-node");
-const tcb = new CloudBase({ envId, secretId, secretKey });
-
 let success = 0;
 let failed = 0;
 
 for (const [collectionName, config] of Object.entries(collections)) {
   try {
     if (config.permission === "PRIVATE") {
-      await tcb.updateDatabaseCollectionACL(collectionName, false);
+      execSync(
+        `tcb fn config modify db_acl ${collectionName} PRIVATE -e ${envId}`,
+        { stdio: "pipe", encoding: "utf-8" }
+      );
     } else {
-      await tcb.updateDatabaseCollectionSecurityRules(collectionName, [
-        {
-          read: config.securityRule.read,
-          write: config.securityRule.create,
-          update: config.securityRule.update,
-          delete: config.securityRule.delete,
-        },
-      ]);
+      const ruleJson = JSON.stringify({
+        read: config.securityRule.read,
+        write: config.securityRule.create,
+        update: config.securityRule.update,
+        delete: config.securityRule.delete,
+      });
+      const escapedRule = ruleJson.replace(/"/g, '\\"');
+      execSync(
+        `tcb fn config modify db_rule ${collectionName} "${escapedRule}" -e ${envId}`,
+        { stdio: "pipe", encoding: "utf-8" }
+      );
     }
     console.log(`✅ ${collectionName} - 规则已应用`);
     success++;

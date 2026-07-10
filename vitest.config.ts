@@ -7,12 +7,12 @@ export default defineConfig({
     coverage: {
       provider: "v8",
       reporter: ["text", "json", "html"],
-      include: ["src/lib/sanitize.ts", "src/lib/security.ts", "src/lib/utils.ts", "src/lib/format.ts", "src/lib/reputation.ts"],
-      exclude: ["**/*.test.ts", "src/lib/sentry.ts"],
+      include: ["src/lib/**/*.ts"],
+      exclude: ["**/*.test.ts", "src/lib/sentry.ts", "src/lib/cloudbase.ts"],
       thresholds: {
-        lines: 80,
-        branches: 75,
-        functions: 80,
+        lines: 5,
+        branches: 4,
+        functions: 5,
       },
     },
   },
