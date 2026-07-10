@@ -2,6 +2,7 @@ import { useMemo, useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { toast } from "@/stores/toast";
 import { Lightbulb, ThumbsUp, MessageCircle, Plus, Loader2, Bookmark, Pencil, Trash2, Flag } from "lucide-react";
+import Dialog from "@/components/Dialog";
 import IdeaModal from "@/components/IdeaModal";
 import ReportModal from "@/components/ReportModal";
 import EmptyState from "@/components/EmptyState";
@@ -241,10 +242,10 @@ export default function Ideas() {
                 {/* 作者操作 */}
                 {isAuthor(user?.uid, idea.authorUid) && (
                   <div className="absolute right-3 top-3 flex gap-1 opacity-0 transition-opacity group-hover:opacity-100">
-                    <button onClick={() => startEditIdea(idea)} className="rounded p-1 text-mist-500 hover:text-mist-300" title="编辑">
+                    <button onClick={() => startEditIdea(idea)} className="flex h-8 w-8 items-center justify-center rounded-md text-mist-500 transition-colors hover:bg-void-700/60 hover:text-mist-300" title="编辑" aria-label="编辑灵感">
                       <Pencil size={12} />
                     </button>
-                    <button onClick={() => handleDeleteIdea(idea)} className="rounded p-1 text-mist-500 hover:text-red-300" title="删除">
+                    <button onClick={() => handleDeleteIdea(idea)} className="flex h-8 w-8 items-center justify-center rounded-md text-mist-500 transition-colors hover:bg-void-700/60 hover:text-red-300" title="删除" aria-label="删除灵感">
                       <Trash2 size={12} />
                     </button>
                   </div>
@@ -270,19 +271,21 @@ export default function Ideas() {
                       <span className="text-mist-600">&middot;</span>
                       <button
                         onClick={() => handleResonance(idea)}
-                        className={`inline-flex items-center gap-0.5 transition-colors hover:text-star-300 ${resonated[idea.id] ? "text-star-300" : ""}`}
+                        className={`inline-flex items-center gap-0.5 rounded-md px-1 py-0.5 transition-colors hover:text-star-300 ${resonated[idea.id] ? "text-star-300" : ""}`}
+                        aria-label="共鸣"
                       >
                         <ThumbsUp size={11} className={resonated[idea.id] ? "fill-star-400" : ""} />
                         共鸣
                       </button>
                       <button
                         onClick={() => handleFav(idea)}
-                        className={`transition-colors hover:text-star-300 ${favedIdeas.has(idea.id) ? "text-star-300" : ""}`}
+                        className={`flex h-7 w-7 items-center justify-center rounded-md transition-colors hover:bg-void-700/60 hover:text-star-300 ${favedIdeas.has(idea.id) ? "text-star-300" : ""}`}
+                        aria-label="收藏"
                       >
                         <Bookmark size={11} className={favedIdeas.has(idea.id) ? "fill-star-400" : ""} />
                       </button>
                       {!isAuthor(user?.uid, idea.authorUid) && (
-                        <button onClick={() => openReport(idea)} className="transition-colors hover:text-red-300">
+                        <button onClick={() => openReport(idea)} className="flex h-7 w-7 items-center justify-center rounded-md transition-colors hover:bg-void-700/60 hover:text-red-300" aria-label="举报">
                           <Flag size={11} />
                         </button>
                       )}
@@ -305,10 +308,8 @@ export default function Ideas() {
       />
 
       {/* 编辑灵感弹窗 */}
-      {editingIdea && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-void-950/70 backdrop-blur-sm" onClick={() => setEditingIdea(null)}>
-          <div className="w-full max-w-lg rounded-2xl border border-void-600/50 bg-void-900/90 p-6" onClick={(e) => e.stopPropagation()}>
-            <h3 className="mb-4 heading-display text-lg text-parchment-50">编辑灵感</h3>
+      <Dialog open={!!editingIdea} onClose={() => setEditingIdea(null)} maxWidthClass="max-w-lg">
+            <h3 id="edit-idea-title" className="mb-4 heading-display text-lg text-parchment-50">编辑灵感</h3>
             <input
               name="title"
               value={editTitle}
@@ -330,9 +331,7 @@ export default function Ideas() {
               <button onClick={() => setEditingIdea(null)} className="btn-ghost text-sm">取消</button>
               <button onClick={handleSaveIdea} className="btn-gold text-sm">保存</button>
             </div>
-          </div>
-        </div>
-      )}
+      </Dialog>
 
       <ReportModal
         open={!!reportTarget}
