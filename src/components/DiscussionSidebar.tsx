@@ -20,10 +20,13 @@ export default function DiscussionSidebar() {
   useEffect(() => {
     if (hotCache) return;
     let mounted = true;
-    void fetchHotPosts(5).then(({ data, error }) => {
-      if (error || !data) return;
-      hotCache = data;
-      if (mounted) setHot(data);
+    void fetchHotPosts(5).then((list) => {
+      if (list.length === 0) {
+        console.warn("[DiscussionSidebar] 热门帖子加载失败或为空");
+        return;
+      }
+      hotCache = list;
+      if (mounted) setHot(list);
     });
     return () => { mounted = false; };
   }, []);

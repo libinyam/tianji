@@ -59,6 +59,7 @@ export default function DiscussionDetail() {
   const [question, setQuestion] = useState<Question | null>(mockQuestion ?? null);
   useDocumentTitle(question?.title);
   const [loading, setLoading] = useState(!mockQuestion);
+  const [loadError, setLoadError] = useState<string | null>(null);
   const [voted, setVoted] = useState<Record<string, boolean>>({});
 
   // 回答框
@@ -109,18 +110,19 @@ export default function DiscussionDetail() {
     // 导航到新帖子时立即清空旧内容，避免短暂显示旧数据
     setQuestion(null);
     setLoading(true);
+    setLoadError(null);
 
     let mounted = true;
     (async () => {
-      const { data: post, error } = await fetchPostById(id);
+      const post = await fetchPostById(id);
       if (!mounted) return;
-      if (error || !post) {
-        setLoading(false);
+      setLoading(false);
+      if (!post) {
         setQuestion(null);
+        setLoadError("帖子不存在或已被删除");
         return;
       }
       setQuestion(post);
-      setLoading(false);
       // 增加浏览量（同一会话内不重复计数）
       const viewedKey = `tianji:viewed:${id}`;
       if (!sessionStorage.getItem(viewedKey)) {
@@ -521,12 +523,20 @@ export default function DiscussionDetail() {
     return <PostDetailSkeleton />;
   }
 
-  // 未找到
+  // 加载失败或帖子不存在
   if (!question) {
     return (
       <div className="container-tj py-40 text-center">
-        <p className="text-mist-400">未找到该讨论。</p>
-        <Link to="/" className="btn-ghost mt-6 inline-flex">
+        <p className="text-mist-400">
+          {loadError ?? "未找到该讨论。"}
+        </p>
+        <button
+          onClick={() => window.location.reload()}
+          className="btn-ghost mt-6 inline-flex"
+        >
+          重试
+        </button>
+        <Link to="/" className="btn-ghost ml-2 inline-flex">
           <ArrowLeft size={15} /> 返回讨论区
         </Link>
       </div>

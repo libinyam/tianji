@@ -36,15 +36,21 @@ def init_workspace(
     repo: str,
     mode: str = "parallel",
     context_file: str | None = None,
+    force: bool = False,
 ) -> Path:
-    """Create the workspace directory structure and session metadata."""
+    """Create the workspace directory structure and session metadata.
+
+    When force is True, an existing workspace is removed first.
+    """
     base = Path(base_dir)
     ws = base / WORKSPACE_NAME
 
     if ws.exists():
-        print(f"Error: workspace already exists at {ws}", file=sys.stderr)
-        print("Run 'clean' first or use --force to overwrite.", file=sys.stderr)
-        sys.exit(1)
+        if not force:
+            print(f"Error: workspace already exists at {ws}", file=sys.stderr)
+            print("Run 'clean' first or use --force to overwrite.", file=sys.stderr)
+            sys.exit(1)
+        shutil.rmtree(ws)
 
     # Create directory structure
     dirs = [
@@ -95,6 +101,19 @@ def init_workspace(
             shutil.copy2(src, ws / "_context" / "repo-context.json")
         else:
             print(f"Warning: context file not found: {context_file}", file=sys.stderr)
+
+    # Verify critical files were actually written
+    critical_files = [
+        ws / "_session.json",
+        ws / "_mailbox" / "requests.json",
+        ws / "_mailbox" / "escalations.json",
+        ws / "_synthesis" / "scores.json",
+        ws / "_synthesis" / "cross-findings.json",
+    ]
+    missing = [str(f.relative_to(ws)) for f in critical_files if not f.exists()]
+    if missing:
+        print(f"Error: init failed to create required files: {', '.join(missing)}", file=sys.stderr)
+        sys.exit(1)
 
     return ws
 
@@ -148,7 +167,12 @@ def clean_workspace(base_dir: str | Path, force: bool = False) -> bool:
         return False
 
     if not force:
-        response = input(f"Remove workspace at {ws}? (y/N): ").strip().lower()
+        try:
+            response = input(f"Remove workspace at {ws}? (y/N): ").strip().lower()
+        except EOFError:
+            print("\nError: non-interactive environment detected (EOF on stdin).\n"
+                  "Pass --force to skip confirmation.", file=sys.stderr)
+            return False
         if response not in ("y", "yes"):
             print("Aborted.", file=sys.stderr)
             return False
@@ -187,6 +211,7 @@ def main() -> int:
     p_init.add_argument("--mode", choices=["parallel", "sequential"], default="parallel")
     p_init.add_argument("--dir", default=".", help="Base directory for workspace")
     p_init.add_argument("--context", help="Path to repo-context.json to copy")
+    p_init.add_argument("--force", "-f", action="store_true", help="Overwrite existing workspace")
 
     # status
     p_status = sub.add_parser("status", help="Print workspace status")
@@ -201,7 +226,7 @@ def main() -> int:
     args = parser.parse_args()
 
     if args.command == "init":
-        ws = init_workspace(args.dir, args.repo, args.mode, args.context)
+        ws = init_workspace(args.dir, args.repo, args.mode, args.context, force=args.force)
         print(f"Workspace created: {ws}", file=sys.stderr)
         print(json.dumps({"workspace": str(ws), "repo": args.repo, "mode": args.mode}))
         return 0
