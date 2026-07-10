@@ -604,7 +604,7 @@ export default function DiscussionDetail() {
                   <ShareButton title={question.title} path={`/discussion/${id}`} />
                   <button
                     onClick={() => openReport("post", question.id, question.title)}
-                    className="flex items-center gap-1 text-mist-400 transition-colors hover:text-red-300"
+                    className="flex items-center gap-1 rounded-md px-2.5 py-1.5 min-h-[36px] text-mist-400 transition-colors hover:bg-void-700/60 hover:text-red-300"
                     title="举报帖子"
                   >
                     <Flag size={13} /> 举报

@@ -1,5 +1,6 @@
 import { create } from "zustand";
 import { auth } from "@/lib/cloudbase";
+import { sanitizeInput } from "@/lib/sanitize";
 
 export interface TianjiUser {
   uid: string;
@@ -295,7 +296,7 @@ export const useAuthStore = create<AuthState>((set) => ({
     set({ loading: true, error: null });
     try {
       const params: Record<string, string> = {};
-      if (data.nickname !== undefined) params.nickname = data.nickname;
+      if (data.nickname !== undefined) params.nickname = sanitizeInput(data.nickname, 50);
       if (data.avatarUrl !== undefined) params.avatar_url = data.avatarUrl;
 
       await auth.updateUser(params);

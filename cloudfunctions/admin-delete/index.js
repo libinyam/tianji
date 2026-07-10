@@ -14,8 +14,9 @@ const ADMIN_UIDS = (process.env.ADMIN_UIDS || "2068674931977097216")
 
 const ALLOWED_COLLECTIONS = ["posts", "ideas", "books", "workshops", "reports"];
 
-// CloudBase 文档 ID 通常为 24 位十六进制字符串
-const DOC_ID_PATTERN = /^[a-f0-9]{24}$/;
+// CloudBase 文档 ID 格式不固定（可能是 24 位 hex 或其他格式），
+// 用宽松正则拒绝明显非法输入（空字符串、特殊字符等）
+const DOC_ID_PATTERN = /^[a-zA-Z0-9_-]{8,64}$/;
 
 /** 校验 docId 格式是否合法 */
 function isValidDocId(docId) {
