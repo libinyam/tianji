@@ -113,6 +113,39 @@ tcb fn deploy admin-delete --envId <你的云环境ID>
 tcb fn config set DEEPSEEK_API_KEY <你的密钥> --name ai-bot --envId <你的云环境ID>
 ```
 
+### 数据库安全规则部署
+
+`cloudbase-security-rules.json` 定义了所有集合的安全规则（谁可以读/写/改/删）。修改规则后需重新部署：
+
+```bash
+# 预览将要应用的规则（不实际执行）
+npm run deploy:rules:dry
+
+# 应用规则到 CloudBase 环境
+# 需设置 TCB_SECRET_ID 和 TCB_SECRET_KEY 环境变量（管理端密钥，非前端 accessKey）
+npm run deploy:rules
+```
+
+验证规则已生效：
+
+```bash
+# 用未登录状态直接调用 db.collection('posts').add() 应返回 DATABASE_PERMISSION_DENIED
+# 用登录用户尝试删除他人帖子应返回权限拒绝
+```
+
+各集合规则概要：
+
+| 集合 | 权限模型 |
+|------|---------|
+| posts/ideas | 作者(authorUid)或管理员可改删 |
+| books | 上传者(uploaderUid)或管理员可改删 |
+| workshops | 创建者(creatorUid)或管理员可改删 |
+| votes/favorites | 用户只能改删自己的记录 |
+| notifications | 用户只能读改删自己的通知 |
+| reports | 用户可举报，仅管理员可处理 |
+| tags/announcements | 前端只读 |
+| sys_* | PRIVATE 禁止前端访问 |
+
 ## 目录结构
 
 ```

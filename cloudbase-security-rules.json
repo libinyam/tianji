@@ -68,12 +68,12 @@
     "notifications": {
       "permission": "CUSTOM",
       "securityRule": {
-        "read": "auth.uid != null && doc.targetUid == auth.uid",
+        "read": "auth.uid != null && doc.uid == auth.uid",
         "create": "false",
-        "update": "auth.uid != null && doc.targetUid == auth.uid",
-        "delete": "auth.uid != null && doc.targetUid == auth.uid"
+        "update": "auth.uid != null && doc.uid == auth.uid",
+        "delete": "auth.uid != null && doc.uid == auth.uid"
       },
-      "ownerField": "targetUid",
+      "ownerField": "uid",
       "note": "通知由服务端创建，用户只能读/改/删自己的通知"
     },
     "reports": {

@@ -12,7 +12,9 @@
     "check": "tsc -b --noEmit",
     "test": "vitest run",
     "test:watch": "vitest",
-    "test:coverage": "vitest run --coverage"
+    "test:coverage": "vitest run --coverage",
+    "deploy:rules": "node scripts/deploy-security-rules.mjs",
+    "deploy:rules:dry": "node scripts/deploy-security-rules.mjs --dry-run"
   },
   "dependencies": {
     "@cloudbase/js-sdk": "^2.28.8",

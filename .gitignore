@@ -27,3 +27,6 @@ _read_db.*
 *.njsproj
 *.sln
 *.sw?
+# github-project-review skill artifacts
+.github-review-workspace/
+.github-review-memory/

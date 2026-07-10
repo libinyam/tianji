@@ -1,0 +1,72 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: ["3.10", "3.11", "3.12"]
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+
+      - name: Install test dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install pytest
+
+      - name: Lint - compile check
+        run: |
+          python -m py_compile scripts/collect_repo_context.py
+          python -m py_compile scripts/create_review_issues.py
+          python -m py_compile scripts/team_workspace.py
+          python -m py_compile scripts/team_findings.py
+          python -m py_compile scripts/team_request.py
+          python -m py_compile scripts/team_status.py
+          python -m py_compile scripts/team_synthesis.py
+          python -m py_compile scripts/team_memory.py
+          echo "Compile check passed."
+
+      - name: Run unit tests
+        run: |
+          python -m pytest tests/ -v
+
+  validate-structure:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Validate required files
+        run: |
+          set -e
+          echo "Checking required files..."
+          for f in SKILL.md references/evaluation-rubric.md references/report-template.md references/collaboration-protocol.md roles/role-a-planning-analyst.md roles/role-b-frontend-engineer.md roles/role-c-backend-engineer.md roles/role-d-test-engineer.md roles/role-e-code-reviewer.md roles/role-f-product-market.md roles/role-g-security-devops.md scripts/collect_repo_context.py scripts/create_review_issues.py scripts/team_workspace.py scripts/team_findings.py scripts/team_request.py scripts/team_status.py scripts/team_synthesis.py scripts/team_memory.py; do
+            if [ ! -f "$f" ]; then
+              echo "ERROR: Required file missing: $f"
+              exit 1
+            fi
+            echo "  OK: $f"
+          done
+          echo "All required files present."
+
+      - name: Validate YAML syntax
+        run: |
+          python -c "
+          import yaml, sys
+          with open('agents/openai.yaml') as f:
+              yaml.safe_load(f)
+          print('YAML syntax valid.')
+          "
