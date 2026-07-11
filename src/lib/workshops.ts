@@ -1,6 +1,9 @@
 import { app } from "@/lib/cloudbase";
 import { createNotification } from "@/lib/notifications";
 import { sanitizeInput, sanitizeTitle, sanitizeTag } from "@/lib/sanitize";
+import { checkCurrentUserBanned } from "@/lib/ban";
+import { containsSensitiveWord } from "@/lib/sensitive-words";
+import { awardReputation, REPUTATION_RULES } from "@/lib/reputation";
 import { useAuthStore } from "@/stores/auth";
 
 const db = app.database();
@@ -141,6 +144,9 @@ export async function createWorkshop(params: {
   const uid = getCurrentUid();
   if (!uid) throw new Error("请先登录");
 
+  const banStatus = await checkCurrentUserBanned();
+  if (banStatus) throw new Error("您的账号已被封禁");
+
   // Sanitize inputs
   const cleanTitle = sanitizeTitle(params.title);
   const cleanDescription = sanitizeInput(params.description);
@@ -151,6 +157,11 @@ export async function createWorkshop(params: {
     title: sanitizeInput(ch.title, 200),
     brief: sanitizeInput(ch.brief, 1000),
   }));
+
+  const sensitiveCheck = containsSensitiveWord(cleanTitle + cleanDescription);
+  if (sensitiveCheck.found) {
+    throw new Error(`内容包含敏感词: ${sensitiveCheck.words.join(", ")}`);
+  }
 
   const now = new Date().toISOString();
   const doc: Omit<WorkshopDoc, "_id"> = {
@@ -174,6 +185,8 @@ export async function createWorkshop(params: {
   const res = await db.collection(COLLECTION).add(doc);
   const resObj = res as unknown as Record<string, unknown>;
   const newId = (resObj.id as string) ?? (resObj._id as string) ?? "";
+
+  await awardReputation(uid, REPUTATION_RULES.createPost);
 
   return {
     id: newId,

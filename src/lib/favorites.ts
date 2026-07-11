@@ -1,6 +1,7 @@
 import { app } from "@/lib/cloudbase";
 import { useAuthStore } from "@/stores/auth";
 import { sanitizeInput } from "@/lib/sanitize";
+import { checkCurrentUserBanned } from "@/lib/ban";
 
 const db = app.database();
 const COLLECTION = "favorites";
@@ -54,6 +55,9 @@ export async function toggleFavorite(params: {
 }): Promise<boolean> {
   const uid = getCurrentUid();
   if (!uid) throw new Error("请先登录");
+
+  const banStatus = await checkCurrentUserBanned();
+  if (banStatus) throw new Error("您的账号已被封禁");
 
   const favCol = db.collection(COLLECTION);
 

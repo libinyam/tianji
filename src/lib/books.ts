@@ -1,5 +1,8 @@
 import { app, auth } from "@/lib/cloudbase";
 import { sanitizeInput, sanitizeTitle, sanitizeTag } from "@/lib/sanitize";
+import { checkCurrentUserBanned } from "@/lib/ban";
+import { containsSensitiveWord } from "@/lib/sensitive-words";
+import { awardReputation, REPUTATION_RULES } from "@/lib/reputation";
 import { useAuthStore } from "@/stores/auth";
 import { ensureTags } from "@/lib/tags";
 import type { Book, BookCategory } from "@/types";
@@ -176,6 +179,9 @@ export async function createBook(params: {
   const uid = getCurrentUid();
   if (!uid) throw new Error("请先登录");
 
+  const banStatus = await checkCurrentUserBanned();
+  if (banStatus) throw new Error("您的账号已被封禁");
+
   // Sanitize inputs
   const cleanTitle = sanitizeTitle(params.title);
   const cleanAuthor = sanitizeInput(params.author, 200);
@@ -183,6 +189,11 @@ export async function createBook(params: {
   const cleanTags = params.tags.map(sanitizeTag);
   const cleanToc = (params.toc ?? []).map((t) => sanitizeInput(t, 500));
   const cleanLink = params.link ? sanitizeInput(params.link, 2000) : undefined;
+
+  const sensitiveCheck = containsSensitiveWord(cleanTitle + cleanSummary);
+  if (sensitiveCheck.found) {
+    throw new Error(`内容包含敏感词: ${sensitiveCheck.words.join(", ")}`);
+  }
 
   const doc: Omit<BookDoc, "_id"> = {
     title: cleanTitle,
@@ -212,6 +223,8 @@ export async function createBook(params: {
 
   // 登记标签计数（需等待完成）
   await ensureTags(cleanTags);
+
+  await awardReputation(uid, REPUTATION_RULES.createPost);
 
   return {
     id: newId,

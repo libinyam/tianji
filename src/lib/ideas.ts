@@ -1,6 +1,9 @@
 import { app } from "@/lib/cloudbase";
 import { createNotification } from "@/lib/notifications";
 import { sanitizeInput, sanitizeTitle, sanitizeTag } from "@/lib/sanitize";
+import { checkCurrentUserBanned } from "@/lib/ban";
+import { containsSensitiveWord } from "@/lib/sensitive-words";
+import { awardReputation, REPUTATION_RULES } from "@/lib/reputation";
 import { useAuthStore } from "@/stores/auth";
 import type { Idea, IdeaComment } from "@/types";
 
@@ -87,11 +90,19 @@ export async function createIdea(params: {
   const uid = getCurrentUid();
   if (!uid) throw new Error("请先登录");
 
+  const banStatus = await checkCurrentUserBanned();
+  if (banStatus) throw new Error("您的账号已被封禁");
+
   // Sanitize inputs
   const cleanTitle = sanitizeTitle(params.title);
   const cleanSummary = sanitizeInput(params.summary);
   const cleanTopic = sanitizeInput(params.topic, 100);
   const cleanTags = params.tags.map(sanitizeTag);
+
+  const sensitiveCheck = containsSensitiveWord(cleanTitle + cleanSummary);
+  if (sensitiveCheck.found) {
+    throw new Error(`内容包含敏感词: ${sensitiveCheck.words.join(", ")}`);
+  }
 
   const doc: Omit<IdeaDoc, "_id"> = {
     title: cleanTitle,
@@ -109,6 +120,8 @@ export async function createIdea(params: {
   const res = await db.collection(IDEAS_COLLECTION).add(doc);
   const resObj = res as unknown as Record<string, unknown>;
   const newId = (resObj.id as string) ?? (resObj._id as string) ?? "";
+
+  await awardReputation(uid, REPUTATION_RULES.createPost);
 
   return {
     id: newId,
@@ -145,6 +158,8 @@ export async function resonanceIdea(id: string): Promise<boolean> {
     resonance: db.command.inc(1),
     resonatedBy: db.command.addToSet(uid),
   });
+
+  await awardReputation(doc.authorUid, REPUTATION_RULES.ideaResonated);
 
   // 通知灵感作者（通知失败不影响共鸣结果）
   await createNotification({

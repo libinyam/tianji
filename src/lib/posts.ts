@@ -228,11 +228,22 @@ export async function submitAnswer(
   const uid = getCurrentUid();
   if (!uid) throw new Error("请先登录");
 
+  const banStatus = await checkCurrentUserBanned();
+  if (banStatus) throw new Error("您的账号已被封禁");
+
+  const sensitiveCheck = containsSensitiveWord(cleanContent);
+  if (sensitiveCheck.found) {
+    throw new Error(`内容包含敏感词: ${sensitiveCheck.words.join(", ")}`);
+  }
+
   const docRef = db.collection(POSTS_COLLECTION).doc(postId);
   const { data } = await docRef.get();
   if (!data || data.length === 0) return null;
 
   const post = data[0] as PostDoc;
+
+  if (post.locked) throw new Error("该帖子已被锁定，无法回答");
+
   const answer: Answer = {
     id: `a_${crypto.randomUUID()}`,
     author: getCurrentUserName(),
@@ -249,6 +260,8 @@ export async function submitAnswer(
     answerList: db.command.push([answer]),
     answersCount: db.command.inc(1),
   });
+
+  await awardReputation(uid, REPUTATION_RULES.createAnswer);
 
   // 通知帖子作者
   await createNotification({
@@ -273,11 +286,22 @@ export async function submitComment(
   const uid = getCurrentUid();
   if (!uid) throw new Error("请先登录");
 
+  const banStatus = await checkCurrentUserBanned();
+  if (banStatus) throw new Error("您的账号已被封禁");
+
+  const sensitiveCheck = containsSensitiveWord(cleanContent);
+  if (sensitiveCheck.found) {
+    throw new Error(`内容包含敏感词: ${sensitiveCheck.words.join(", ")}`);
+  }
+
   const docRef = db.collection(POSTS_COLLECTION).doc(postId);
   const { data } = await docRef.get();
   if (!data || data.length === 0) return null;
 
   const post = data[0] as PostDoc;
+
+  if (post.locked) throw new Error("该帖子已被锁定，无法评论");
+
   const answerList = post.answerList ?? [];
   const answerIndex = answerList.findIndex((a) => a.id === answerId);
   if (answerIndex === -1) return null;
@@ -522,6 +546,8 @@ export async function acceptAnswer(
   if (accept) {
     newAnswerList[idx] = { ...newAnswerList[idx], accepted: true };
 
+    await awardReputation(answerList[idx].authorUid ?? "", REPUTATION_RULES.answerAccepted);
+
     // 通知回答作者（createNotification 内部会跳过自己）
     await createNotification({
       uid: answerList[idx].authorUid ?? "",
@@ -607,5 +633,13 @@ export async function voteAnswer(
   await docRef.update({
     [`answerList.${idx}.votes`]: _.inc(isUpvote ? 1 : -1),
   });
+
+  if (isUpvote && shouldInc) {
+    const answerAuthor = answerList[idx]?.authorUid;
+    if (answerAuthor) {
+      await awardReputation(answerAuthor, REPUTATION_RULES.answerVoted);
+    }
+  }
+
   return true;
 }
