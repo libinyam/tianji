@@ -112,9 +112,10 @@
       "permission": "CUSTOM",
       "securityRule": {
         "read": "auth.uid != null && doc._id == auth.uid",
+        "create": "auth.uid != null && doc._id == auth.uid",
         "write": "auth.uid == null"
       },
-      "note": "用户只能读自己的资料；所有写入通过 user-admin 云函数执行"
+      "note": "用户可创建和读自己的资料；所有更新（banned/reputation/badges）通过 user-admin 云函数执行"
     },
     "_backups": {
       "permission": "ADMINONLY",
