@@ -27,6 +27,12 @@ interface RulesFile {
 
 const rules: RulesFile = JSON.parse(readFileSync(RULES_FILE, "utf-8"));
 
+const DANGEROUS_UPDATE_PATTERNS = [
+  "auth.uid != null",
+];
+
+const CONTENT_COLLECTIONS = ["posts", "ideas", "books", "workshops"];
+
 describe("安全规则 × 客户端写路径一致性 (#207)", () => {
   it("安全规则文件存在且可解析", () => {
     expect(rules).toBeDefined();
@@ -58,21 +64,26 @@ describe("安全规则 × 客户端写路径一致性 (#207)", () => {
     expect(backupConfig.permission, "_backups 必须设为 PRIVATE").toBe("PRIVATE");
   });
 
-  it("notifications 的 create 规则允许客户端创建", () => {
-    const notifConfig = rules.collections.notifications;
-    expect(notifConfig, "notifications 不在规则中").toBeDefined();
-    if (notifConfig.securityRule) {
-      const createRule = notifConfig.securityRule.create;
-      expect(createRule).not.toBe(false);
+  it("users_v2 的 update 规则禁止客户端修改敏感字段 (#208)", () => {
+    const config = rules.collections.users_v2;
+    expect(config, "users_v2 不在规则中").toBeDefined();
+    if (config.securityRule) {
+      expect(config.securityRule.update, "users_v2 update 不应为客户端开放").toBe(false);
     }
   });
 
-  it("posts 的 update 规则允许非作者写（回答/评论/投票/浏览量）", () => {
-    const postsConfig = rules.collections.posts;
-    expect(postsConfig, "posts 不在规则中").toBeDefined();
-    if (postsConfig.securityRule) {
-      const updateRule = postsConfig.securityRule.update;
-      expect(updateRule).not.toBe("doc.authorUid == auth.uid");
+  it("内容集合的 update 规则不能是裸 auth.uid != null (#209)", () => {
+    for (const name of CONTENT_COLLECTIONS) {
+      const config = rules.collections[name];
+      expect(config, `${name} 不在规则中`).toBeDefined();
+      if (config.securityRule) {
+        const updateRule = config.securityRule.update;
+        if (typeof updateRule === "string") {
+          for (const pattern of DANGEROUS_UPDATE_PATTERNS) {
+            expect(updateRule, `${name}.update 是危险的宽权限: ${pattern}`).not.toBe(pattern);
+          }
+        }
+      }
     }
   });
 });

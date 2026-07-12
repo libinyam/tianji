@@ -36,3 +36,4 @@ repo-context.json
 # github-project-review skill artifacts
 .github-review-workspace/
 .github-review-memory/
+.tmp-branch-protection.json

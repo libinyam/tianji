@@ -37,20 +37,15 @@ export async function checkCurrentUserBanned(): Promise<boolean> {
 }
 
 export async function banUser(uid: string, reason: string, days?: number): Promise<void> {
-  const bannedUntil = days
-    ? new Date(Date.now() + days * 86400000).toISOString()
-    : undefined;
-  await db.collection("users_v2").doc(uid).update({
-    banned: true,
-    bannedReason: reason,
-    bannedUntil,
+  await app.callFunction({
+    name: "user-admin",
+    data: { action: "banUser", uid, reason, days },
   });
 }
 
 export async function unbanUser(uid: string): Promise<void> {
-  await db.collection("users_v2").doc(uid).update({
-    banned: false,
-    bannedReason: "",
-    bannedUntil: "",
+  await app.callFunction({
+    name: "user-admin",
+    data: { action: "unbanUser", uid },
   });
 }

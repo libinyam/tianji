@@ -65,12 +65,12 @@ function toBook(doc: BookDoc): Book {
 /** 资源被下载时，下载数 +1 */
 export async function incrementBookDownloads(id: string): Promise<void> {
   try {
-    await db
-      .collection(BOOKS_COLLECTION)
-      .doc(id)
-      .update({ downloads: db.command.inc(1) });
+    await app.callFunction({
+      name: "content-actions",
+      data: { action: "incrementBookDownloads", bookId: id },
+    });
   } catch {
-    // 静默
+    void 0;
   }
 }
 

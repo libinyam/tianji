@@ -1,51 +1,51 @@
 {
-  "version": "1.1.0",
+  "version": "1.2.0",
   "description": "CloudBase NoSQL 数据库安全规则 - 防止客户端越权访问",
-  "lastUpdated": "2026-07-10",
+  "lastUpdated": "2026-07-12",
   "collections": {
     "posts": {
       "permission": "CUSTOM",
       "securityRule": {
         "read": "auth.uid != null",
         "create": "auth.uid != null && auth.loginType != 'ANONYMOUS'",
-        "update": "auth.uid != null",
+        "update": "auth.uid != null && doc.authorUid == auth.uid",
         "delete": "auth.uid != null && (doc.authorUid == auth.uid || get('database.user_roles.' + auth.uid).role == 'admin')"
       },
       "ownerField": "authorUid",
-      "note": "update 放宽为登录即可（回答/评论/投票/浏览量需要非作者写）；删除仍限作者或管理员"
+      "note": "update 收紧为作者限定；非作者写操作（回答/评论/投票/浏览量）通过 content-actions 云函数执行"
     },
     "ideas": {
       "permission": "CUSTOM",
       "securityRule": {
         "read": "auth.uid != null",
         "create": "auth.uid != null && auth.loginType != 'ANONYMOUS'",
-        "update": "auth.uid != null",
+        "update": "auth.uid != null && doc.authorUid == auth.uid",
         "delete": "auth.uid != null && (doc.authorUid == auth.uid || get('database.user_roles.' + auth.uid).role == 'admin')"
       },
       "ownerField": "authorUid",
-      "note": "update 放宽（共鸣计数需非作者写）；删除仍限作者或管理员"
+      "note": "update 收紧为作者限定；共鸣通过 content-actions 云函数执行"
     },
     "books": {
       "permission": "CUSTOM",
       "securityRule": {
         "read": "auth.uid != null",
         "create": "auth.uid != null && auth.loginType != 'ANONYMOUS'",
-        "update": "auth.uid != null",
+        "update": "auth.uid != null && doc.uploaderUid == auth.uid",
         "delete": "auth.uid != null && (doc.uploaderUid == auth.uid || get('database.user_roles.' + auth.uid).role == 'admin')"
       },
       "ownerField": "uploaderUid",
-      "note": "update 放宽（下载计数需非作者写）；删除仍限作者或管理员"
+      "note": "update 收紧为作者限定；下载计数/收藏通过 content-actions 云函数执行"
     },
     "workshops": {
       "permission": "CUSTOM",
       "securityRule": {
         "read": "auth.uid != null",
         "create": "auth.uid != null && auth.loginType != 'ANONYMOUS'",
-        "update": "auth.uid != null",
+        "update": "auth.uid != null && doc.creatorUid == auth.uid",
         "delete": "auth.uid != null && (doc.creatorUid == auth.uid || get('database.user_roles.' + auth.uid).role == 'admin')"
       },
       "ownerField": "creatorUid",
-      "note": "update 放宽（参与者加入/批注需非作者写）；删除仍限作者或管理员"
+      "note": "update 收紧为作者限定；参与者加入/批注通过 content-actions 云函数执行"
     },
     "votes": {
       "permission": "CUSTOM",
@@ -125,10 +125,10 @@
       "securityRule": {
         "read": "auth.uid != null && doc._id == auth.uid",
         "create": "false",
-        "update": "auth.uid != null && doc._id == auth.uid",
+        "update": false,
         "delete": "false"
       },
-      "note": "用户只能读/更新自己的资料；banned/reputation 字段应由云函数管理（当前客户端可写，后续收紧）"
+      "note": "用户只能读自己的资料；所有写入（banned/reputation/badges/displayName）通过 user-admin 云函数执行"
     },
     "_backups": {
       "permission": "PRIVATE",

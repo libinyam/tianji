@@ -1,5 +1,4 @@
 import { app } from "@/lib/cloudbase";
-import { createNotification } from "@/lib/notifications";
 import { awardReputation, REPUTATION_RULES } from "@/lib/reputation";
 import { sanitizeInput, sanitizeTitle, sanitizeTag } from "@/lib/sanitize";
 import { checkCurrentUserBanned } from "@/lib/ban";
@@ -236,42 +235,13 @@ export async function submitAnswer(
     throw new Error(`内容包含敏感词: ${sensitiveCheck.words.join(", ")}`);
   }
 
-  const docRef = db.collection(POSTS_COLLECTION).doc(postId);
-  const { data } = await docRef.get();
-  if (!data || data.length === 0) return null;
-
-  const post = data[0] as PostDoc;
-
-  if (post.locked) throw new Error("该帖子已被锁定，无法回答");
-
-  const answer: Answer = {
-    id: `a_${crypto.randomUUID()}`,
-    author: getCurrentUserName(),
-    authorUid: uid,
-    avatarColor: AVATAR_COLORS[Math.floor(Math.random() * AVATAR_COLORS.length)],
-    votes: 0,
-    accepted: false,
-    content: cleanContent,
-    date: new Date().toISOString(),
-  };
-
-  // 使用原子操作追加回答，避免读-改-写竞态导致并发回答丢失
-  await docRef.update({
-    answerList: db.command.push([answer]),
-    answersCount: db.command.inc(1),
+  const res = await app.callFunction({
+    name: "content-actions",
+    data: { action: "submitAnswer", postId, content: cleanContent },
   });
-
-  await awardReputation(uid, REPUTATION_RULES.createAnswer);
-
-  // 通知帖子作者
-  await createNotification({
-    uid: post.authorUid,
-    type: "answer",
-    title: post.title,
-    link: `/discussion/${postId}`,
-  });
-
-  return answer;
+  const result = (res?.result ?? {}) as { ok?: boolean; data?: Answer; error?: string };
+  if (!result.ok) throw new Error(result.error || "操作失败");
+  return result.data ?? null;
 }
 
 /** 对某个回答添加评论/回复 */
@@ -294,50 +264,13 @@ export async function submitComment(
     throw new Error(`内容包含敏感词: ${sensitiveCheck.words.join(", ")}`);
   }
 
-  const docRef = db.collection(POSTS_COLLECTION).doc(postId);
-  const { data } = await docRef.get();
-  if (!data || data.length === 0) return null;
-
-  const post = data[0] as PostDoc;
-
-  if (post.locked) throw new Error("该帖子已被锁定，无法评论");
-
-  const answerList = post.answerList ?? [];
-  const answerIndex = answerList.findIndex((a) => a.id === answerId);
-  if (answerIndex === -1) return null;
-
-  const comment: Comment = {
-    id: `c_${crypto.randomUUID()}`,
-    author: getCurrentUserName(),
-    authorUid: uid,
-    avatarColor: AVATAR_COLORS[Math.floor(Math.random() * AVATAR_COLORS.length)],
-    content: cleanContent,
-    date: new Date().toISOString(),
-    replyTo,
-  };
-
-  const targetAnswer = answerList[answerIndex];
-  const updatedAnswer: Answer = {
-    ...targetAnswer,
-    comments: [comment, ...(targetAnswer.comments ?? [])],
-  };
-
-  const newAnswerList = [...answerList];
-  newAnswerList[answerIndex] = updatedAnswer;
-
-  await docRef.update({ answerList: newAnswerList });
-
-  // 通知回答作者（createNotification 内部会跳过自己）
-  if (targetAnswer.authorUid) {
-    await createNotification({
-      uid: targetAnswer.authorUid,
-      type: "comment",
-      title: post.title,
-      link: `/discussion/${postId}`,
-    });
-  }
-
-  return comment;
+  const res = await app.callFunction({
+    name: "content-actions",
+    data: { action: "submitComment", postId, answerId, content: cleanContent, replyTo },
+  });
+  const result = (res?.result ?? {}) as { ok?: boolean; data?: Comment; error?: string };
+  if (!result.ok) throw new Error(result.error || "操作失败");
+  return result.data ?? null;
 }
 
 /** 编辑帖子（仅作者） */
@@ -528,36 +461,12 @@ export async function acceptAnswer(
   const uid = getCurrentUid();
   if (!uid) throw new Error("请先登录");
 
-  const docRef = db.collection(POSTS_COLLECTION).doc(postId);
-  const { data } = await docRef.get();
-  if (!data || data.length === 0) return false;
-
-  const post = data[0] as PostDoc;
-
-  // 只有帖子作者可以采纳回答
-  if (post.authorUid !== uid) throw new Error("只有提问者可以采纳回答");
-
-  const answerList = post.answerList ?? [];
-  const idx = answerList.findIndex((a) => a.id === answerId);
-  if (idx === -1) return false;
-
-  // 将所有回答的 accepted 设为 false，再将目标回答设为指定状态
-  const newAnswerList = answerList.map((a) => ({ ...a, accepted: false }));
-  if (accept) {
-    newAnswerList[idx] = { ...newAnswerList[idx], accepted: true };
-
-    await awardReputation(answerList[idx].authorUid ?? "", REPUTATION_RULES.answerAccepted);
-
-    // 通知回答作者（createNotification 内部会跳过自己）
-    await createNotification({
-      uid: answerList[idx].authorUid ?? "",
-      type: "accept",
-      title: post.title,
-      link: `/discussion/${postId}`,
-    });
-  }
-
-  await docRef.update({ answerList: newAnswerList });
+  const res = await app.callFunction({
+    name: "content-actions",
+    data: { action: "acceptAnswer", postId, answerId, accept },
+  });
+  const result = (res?.result ?? {}) as { ok?: boolean; error?: string };
+  if (!result.ok) throw new Error(result.error || "操作失败");
   return true;
 }
 
@@ -593,53 +502,11 @@ export async function voteAnswer(
   const uid = getCurrentUid();
   if (!uid) throw new Error("请先登录");
 
-  const votesCol = db.collection("votes");
-  const _ = db.command;
-
-  const voteDocId = `${uid}_${answerId}`;
-
-  let shouldInc: boolean;
-
-  if (isUpvote) {
-    const result = await votesCol
-      .doc(voteDocId)
-      .set({ answerId, uid, postId, createdAt: Date.now() });
-    const resultObj = result as unknown as Record<string, unknown>;
-    const upserted = (resultObj.upserted as number) ?? 0;
-    const replaced = (resultObj.replaced as number) ?? 0;
-    shouldInc = upserted > 0 && replaced === 0;
-  } else {
-    try {
-      const result = await votesCol.doc(voteDocId).remove();
-      const resultObj = result as unknown as Record<string, unknown>;
-      const deleted = (resultObj.deleted as number) ?? 1;
-      shouldInc = deleted > 0;
-    } catch {
-      return false;
-    }
-  }
-
-  if (!shouldInc) return true;
-
-  const docRef = db.collection(POSTS_COLLECTION).doc(postId);
-  const { data } = await docRef.get();
-  if (!data || data.length === 0) return false;
-
-  const post = data[0] as PostDoc;
-  const answerList = post.answerList ?? [];
-  const idx = answerList.findIndex((a) => a.id === answerId);
-  if (idx === -1) return false;
-
-  await docRef.update({
-    [`answerList.${idx}.votes`]: _.inc(isUpvote ? 1 : -1),
+  const res = await app.callFunction({
+    name: "content-actions",
+    data: { action: "voteAnswer", postId, answerId, isUpvote },
   });
-
-  if (isUpvote && shouldInc) {
-    const answerAuthor = answerList[idx]?.authorUid;
-    if (answerAuthor) {
-      await awardReputation(answerAuthor, REPUTATION_RULES.answerVoted);
-    }
-  }
-
+  const result = (res?.result ?? {}) as { ok?: boolean; error?: string };
+  if (!result.ok) throw new Error(result.error || "操作失败");
   return true;
 }

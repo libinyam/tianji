@@ -51,14 +51,10 @@ export async function fetchReputation(uid: string): Promise<ReputationInfo> {
 
 /** 原子化增加声望值，避免并发读写丢失更新 */
 export async function awardReputation(uid: string, points: number): Promise<void> {
-  const _ = db.command;
-  try {
-    await db.collection("users_v2").doc(uid).update({
-      reputation: _.inc(points),
-    });
-  } catch {
-    // 用户文档不存在时静默忽略（新用户首次操作前可能尚未创建 users_v2 文档）
-  }
+  await app.callFunction({
+    name: "user-admin",
+    data: { action: "awardReputation", uid, points },
+  }).catch(() => {});
 }
 
 export async function checkReputationThreshold(uid: string, minLevel: number): Promise<boolean> {

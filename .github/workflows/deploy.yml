@@ -28,7 +28,7 @@ jobs:
         run: npm run lint
 
       - name: Test
-        run: npm run test
+        run: npm run test:coverage
 
       - name: Build project
         run: npm run build
@@ -67,3 +67,7 @@ jobs:
           TCB_SECRET_ID: ${{ secrets.TCB_SECRET_ID }}
           TCB_SECRET_KEY: ${{ secrets.TCB_SECRET_KEY }}
         run: node scripts/fix-charset.mjs
+
+      - name: Deploy security rules
+        if: github.event_name == 'push'
+        run: node scripts/deploy-security-rules.mjs --envId ${{ secrets.TCB_ENV_ID }}

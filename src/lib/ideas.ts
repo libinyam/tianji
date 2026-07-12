@@ -142,33 +142,15 @@ export async function resonanceIdea(id: string): Promise<boolean> {
   const uid = getCurrentUid();
   if (!uid) throw new Error("请先登录");
 
-  const docRef = db.collection(IDEAS_COLLECTION).doc(id);
-  const { data } = await docRef.get();
-  if (!data || data.length === 0) throw new Error("灵感不存在");
+  const banStatus = await checkCurrentUserBanned();
+  if (banStatus) throw new Error("您的账号已被封禁");
 
-  const doc = data[0] as IdeaDoc;
-  const resonatedBy = doc.resonatedBy ?? [];
-
-  // 防重复共鸣
-  if (resonatedBy.includes(uid)) {
-    throw new Error("已共鸣过此灵感");
-  }
-
-  await docRef.update({
-    resonance: db.command.inc(1),
-    resonatedBy: db.command.addToSet(uid),
+  const res = await app.callFunction({
+    name: "content-actions",
+    data: { action: "resonanceIdea", id },
   });
-
-  await awardReputation(doc.authorUid, REPUTATION_RULES.ideaResonated);
-
-  // 通知灵感作者（通知失败不影响共鸣结果）
-  await createNotification({
-    uid: doc.authorUid,
-    type: "resonance",
-    title: doc.title,
-    link: `/ideas/${id}`,
-  }).catch(() => {});
-
+  const result = (res?.result ?? {}) as { ok?: boolean; error?: string };
+  if (!result.ok) throw new Error(result.error || "操作失败");
   return true;
 }
 
