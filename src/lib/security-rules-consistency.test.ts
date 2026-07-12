@@ -64,11 +64,11 @@ describe("安全规则 × 客户端写路径一致性 (#207)", () => {
     expect(backupConfig.permission, "_backups 必须设为 ADMINONLY").toBe("ADMINONLY");
   });
 
-  it("users_v2 的 update 规则禁止客户端修改敏感字段 (#208)", () => {
+  it("users_v2 的 write 规则禁止客户端写入 (#208)", () => {
     const config = rules.collections.users_v2;
     expect(config, "users_v2 不在规则中").toBeDefined();
     if (config.securityRule) {
-      expect(config.securityRule.update, "users_v2 update 不应为客户端开放").toBe("false");
+      expect(config.securityRule.write, "users_v2 write 必须禁止客户端写入").toBe("auth.uid == null");
     }
   });
 
