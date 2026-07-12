@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from "react";
-import { X, Mail, Lock, Sparkles, Loader2, Github, ShieldCheck, Phone } from "lucide-react";
+import { X, Mail, Lock, Sparkles, Loader2, GitBranch, ShieldCheck, Phone } from "lucide-react";
 import Dialog from "@/components/Dialog";
 import { useAuthStore } from "@/stores/auth";
 import CanvasCaptcha, { type CanvasCaptchaHandle } from "@/components/CanvasCaptcha";
@@ -586,7 +586,7 @@ export default function AuthModal({ open, onClose }: AuthModalProps) {
                 {loading ? (
                   <Loader2 size={15} className="animate-spin" />
                 ) : (
-                  <Github size={16} />
+                  <GitBranch size={16} />
                 )}
                 使用 GitHub 登录
               </button>

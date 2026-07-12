@@ -1,5 +1,5 @@
 import { Link } from "react-router-dom";
-import { Sparkles, Github, Mail, BookOpen } from "lucide-react";
+import { Sparkles, GitBranch, Mail, BookOpen } from "lucide-react";
 import Constellation from "./Constellation";
 
 const MODULES = [
@@ -34,7 +34,7 @@ export default function Footer() {
                 className="flex h-9 w-9 items-center justify-center rounded-lg border border-void-600/60 text-mist-400 transition-colors hover:border-star-400/50 hover:text-star-300"
                 aria-label="GitHub"
               >
-                <Github size={16} />
+                <GitBranch size={16} />
               </a>
               <a
                 href="mailto:contact@tianjihub.cn"

@@ -8,6 +8,7 @@ const RULES_FILE = resolve(__dirname, "../../cloudbase-security-rules.json");
 
 interface SecurityRule {
   read?: string | boolean;
+  write?: string | boolean;
   create?: string | boolean;
   update?: string | boolean;
   delete?: string | boolean;

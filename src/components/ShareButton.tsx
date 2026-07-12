@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Share2, Copy, Check, Twitter } from "lucide-react";
+import { Share2, Copy, Check, MessageCircle } from "lucide-react";
 
 interface ShareButtonProps {
   title: string;
@@ -65,7 +65,7 @@ export default function ShareButton({ title, path }: ShareButtonProps) {
               rel="noopener noreferrer"
               className="flex w-full items-center gap-2 px-3 py-2 text-sm text-mist-300 transition-colors hover:bg-void-700/60"
             >
-              <Twitter size={14} /> Twitter
+              <MessageCircle size={14} /> Twitter
             </a>
             <a
               href={`https://service.weibo.com/share/share.php?title=${encodedTitle}&url=${encodedUrl}`}
