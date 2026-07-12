@@ -1,11 +1,26 @@
 const cloudbase = require("@cloudbase/node-sdk");
 
-const app = cloudbase.init({
-  env: cloudbase.SYMBOL_CURRENT_ENV,
-});
+// 延迟初始化：真实运行时首次使用才连接 CloudBase；测试可通过
+// __setTestDb 注入假数据库，避免加载真实 SDK（缺凭据会失败）。
+let app;
+let db;
+let _;
 
-const db = app.database();
-const _ = db.command;
+function ensureApp() {
+  // 测试注入 db 后跳过真实初始化
+  if (!app && !db) {
+    app = cloudbase.init({ env: cloudbase.SYMBOL_CURRENT_ENV });
+    db = app.database();
+    _ = db.command;
+  }
+  return app;
+}
+
+// 仅供测试注入假数据库，生产代码不应调用
+exports.__setTestDb = (fakeDb) => {
+  db = fakeDb;
+  _ = fakeDb.command;
+};
 
 const SENSITIVE_WORDS = [
   "垃圾", "广告", "色情", "赌博", "毒品", "诈骗",
@@ -47,6 +62,41 @@ function fail(error) {
   return { ok: false, error };
 }
 
+// 幂等加分：以 eventId 为唯一键先登记事件，仅首次登记成功时才加分。
+// 重试、取消后重投、重复采纳等重放请求不会重复加分。
+// 沿用本文件 voteAnswer 中的 set().upserted 检测模式，保持一致。
+async function awardReputationOnce(uid, points, eventId, reason) {
+  if (!uid || !points || !eventId) return false;
+
+  let isNewEvent = false;
+  try {
+    const result = await db.collection("reputation_events").doc(eventId).set({
+      eventId,
+      uid,
+      points,
+      reason: reason || "",
+      createdAt: Date.now(),
+    });
+    const r = result || {};
+    // 首次写入为 upsert；重放请求命中已存在文档会是 replaced/updated
+    isNewEvent =
+      (r.upserted || 0) > 0 && (r.replaced || 0) === 0 && (r.updated || 0) === 0;
+  } catch {
+    // 事件登记失败时不加分，避免无记录的加分
+    return false;
+  }
+
+  if (!isNewEvent) return false;
+
+  try {
+    await db.collection("users_v2").doc(uid).update({
+      reputation: _.inc(points),
+    });
+  } catch {}
+
+  return true;
+}
+
 async function submitAnswer(event, uid) {
   const { postId, content } = event;
   if (!postId || !content) return fail("缺少参数");
@@ -78,9 +128,7 @@ async function submitAnswer(event, uid) {
     answersCount: _.inc(1),
   });
 
-  await db.collection("users_v2").doc(uid).update({
-    reputation: _.inc(5),
-  });
+  await awardReputationOnce(uid, 5, `answer:create:${answer.id}`, "createAnswer");
 
   if (post.authorUid && post.authorUid !== uid) {
     try {
@@ -181,12 +229,14 @@ async function voteAnswer(event, uid) {
 
   if (isUpvote) {
     const answerAuthor = answerList[idx]?.authorUid;
-    if (answerAuthor) {
-      try {
-        await db.collection("users_v2").doc(answerAuthor).update({
-          reputation: _.inc(10),
-        });
-      } catch {}
+    // eventId 以「投票者+回答」为唯一键：取消后重新投票不会重复加分
+    if (answerAuthor && answerAuthor !== uid) {
+      await awardReputationOnce(
+        answerAuthor,
+        10,
+        `vote:answer:${answerId}:${uid}:up`,
+        "answerVoted"
+      );
     }
   }
 
@@ -212,12 +262,14 @@ async function acceptAnswer(event, uid) {
   if (accept) {
     newAnswerList[idx] = { ...newAnswerList[idx], accepted: true };
     const answerAuthor = answerList[idx]?.authorUid;
+    // eventId 以「帖子+回答」为唯一键：重复采纳同一回答不会重复加分
     if (answerAuthor) {
-      try {
-        await db.collection("users_v2").doc(answerAuthor).update({
-          reputation: _.inc(15),
-        });
-      } catch {}
+      await awardReputationOnce(
+        answerAuthor,
+        15,
+        `accept:answer:${postId}:${answerId}`,
+        "answerAccepted"
+      );
     }
   }
 
@@ -288,12 +340,14 @@ async function resonanceIdea(event, uid) {
     resonatedBy: _.addToSet(uid),
   });
 
-  if (doc.authorUid) {
-    try {
-      await db.collection("users_v2").doc(doc.authorUid).update({
-        reputation: _.inc(1),
-      });
-    } catch {}
+  // eventId 以「灵感+共鸣者」为唯一键，与上方 resonatedBy 去重双重保险
+  if (doc.authorUid && doc.authorUid !== uid) {
+    await awardReputationOnce(
+      doc.authorUid,
+      1,
+      `resonate:idea:${id}:${uid}`,
+      "ideaResonated"
+    );
   }
 
   return ok({ resonated: true });
@@ -309,11 +363,23 @@ const REPUTATION_RULES = {
 };
 
 async function awardCreateReputation(event, uid) {
-  const { reason } = event;
+  const { reason, entityId } = event;
   if (!reason) return fail("缺少 reason 参数");
 
   const points = REPUTATION_RULES[reason];
   if (typeof points !== "number") return fail("无效的 reason");
+
+  // 传入 entityId 时按「reason+实体」做幂等，重复提交同一创建事件只加分一次；
+  // 未传时退回到直接加分（兼容旧客户端）
+  if (entityId) {
+    const awarded = await awardReputationOnce(
+      uid,
+      points,
+      `create:${reason}:${entityId}`,
+      reason
+    );
+    return ok({ awarded });
+  }
 
   try {
     await db.collection("users_v2").doc(uid).update({
@@ -328,11 +394,16 @@ exports.main = async (event, context) => {
   const { action } = event;
   if (!action) return fail("缺少 action 参数");
 
+  const appInst = ensureApp();
+
   let uid = "";
-  try {
-    const info = await app.auth().getEndUserInfo(context);
-    uid = info?.userInfo?.uid || info?.uid || "";
-  } catch {}
+  // 测试注入 db 时 appInst 为空，直接走 context.userInfo 回退
+  if (appInst) {
+    try {
+      const info = await appInst.auth().getEndUserInfo(context);
+      uid = info?.userInfo?.uid || info?.uid || "";
+    } catch {}
+  }
   if (!uid && context?.userInfo) {
     uid = context.userInfo.uid || "";
   }

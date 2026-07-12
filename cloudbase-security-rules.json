@@ -1,5 +1,5 @@
 {
-  "version": "1.3.0",
+  "version": "1.4.0",
   "description": "CloudBase NoSQL 数据库安全规则 - 防止客户端越权访问",
   "lastUpdated": "2026-07-12",
   "collections": {
@@ -116,6 +116,11 @@
         "write": "auth.uid == null"
       },
       "note": "用户可创建和读自己的资料；所有更新（banned/reputation/badges）通过 user-admin 云函数执行"
+    },
+    "reputation_events": {
+      "permission": "ADMINONLY",
+      "securityRule": null,
+      "note": "声望加分幂等事件，禁止前端访问，仅 content-actions 云函数写入 (#243)"
     },
     "_backups": {
       "permission": "ADMINONLY",
