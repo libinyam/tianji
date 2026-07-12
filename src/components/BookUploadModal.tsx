@@ -36,11 +36,8 @@ export default function BookUploadModal({ open, onClose, onCreated }: BookUpload
   const fileInputRef = useRef<HTMLInputElement>(null);
   const { user } = useAuthStore();
 
-  const handleClose = () => {
-    // 清理已上传但未提交的文件
-    if (uploadedFileId) {
-      app.deleteFile({ fileList: [uploadedFileId] }).catch(() => {});
-    }
+  // 仅重置表单状态，不删除任何云文件
+  const resetForm = () => {
     setTitle("");
     setAuthor("");
     setCategory("AI工具实战");
@@ -54,6 +51,14 @@ export default function BookUploadModal({ open, onClose, onCreated }: BookUpload
     setTocDetected(false);
     setError(null);
     if (fileInputRef.current) fileInputRef.current.value = "";
+  };
+
+  // 取消/关闭：清理已上传但未提交的文件，再重置表单
+  const handleClose = () => {
+    if (uploadedFileId) {
+      app.deleteFile({ fileList: [uploadedFileId] }).catch(() => {});
+    }
+    resetForm();
     onClose();
   };
 
@@ -155,7 +160,9 @@ export default function BookUploadModal({ open, onClose, onCreated }: BookUpload
         rateLimiters.book.record();
         toast.success("资源已发布");
         onCreated(book);
-        handleClose();
+        // 发布成功后 fileUrl 已引用该云文件，不能删除，仅重置表单
+        resetForm();
+        onClose();
       }
     } catch (err) {
       setError((err as Error).message);
