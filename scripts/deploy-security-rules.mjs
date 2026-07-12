@@ -2,6 +2,7 @@
 import { readFileSync } from "fs";
 import { resolve, dirname } from "path";
 import { fileURLToPath } from "url";
+import crypto from "crypto";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const RULES_FILE = resolve(__dirname, "../cloudbase-security-rules.json");
@@ -63,22 +64,96 @@ if (!secretId || !secretKey) {
   process.exit(1);
 }
 
-const cloudbase = (await import("@cloudbase/node-sdk")).default;
-const app = cloudbase.init({ env: envId, secretId, secretKey });
-const db = app.database();
+function sha256(message) {
+  return crypto.createHash("sha256").update(message, "utf8").digest("hex");
+}
+
+function hmacSha256(key, message) {
+  return crypto.createHmac("sha256", key).update(message, "utf8").digest();
+}
+
+function tc3Signature(action, params) {
+  const service = "tcb";
+  const host = "tcb.tencentcloudapi.com";
+  const endpoint = "https://" + host;
+  const timestamp = Math.floor(Date.now() / 1000);
+  const date = new Date(timestamp * 1000).toISOString().slice(0, 10);
+
+  const payload = JSON.stringify({ ...params });
+  const hashedPayload = sha256(payload);
+  const canonicalHeaders = "content-type:application/json; charset=utf-8\n" + "host:" + host + "\n" + "x-tc-action:" + action.toLowerCase() + "\n";
+  const signedHeaders = "content-type;host;x-tc-action";
+  const canonicalRequest = "POST\n/\n\n" + canonicalHeaders + "\n" + signedHeaders + "\n" + hashedPayload;
+
+  const hashedCanonicalRequest = sha256(canonicalRequest);
+  const credentialScope = date + "/" + service + "/tc3_request";
+  const stringToSign = "TC3-HMAC-SHA256\n" + timestamp + "\n" + credentialScope + "\n" + hashedCanonicalRequest;
+
+  const secretDateKey = hmacSha256(Buffer.from("TC3" + secretKey, "utf8"), date);
+  const secretServiceKey = hmacSha256(secretDateKey, service);
+  const secretSigningKey = hmacSha256(secretServiceKey, "tc3_request");
+  const signature = crypto.createHmac("sha256", secretSigningKey).update(stringToSign, "utf8").digest("hex");
+
+  const authorization = "TC3-HMAC-SHA256 Credential=" + secretId + "/" + credentialScope + ", SignedHeaders=" + signedHeaders + ", Signature=" + signature;
+
+  return {
+    method: "POST",
+    url: endpoint,
+    headers: {
+      "Authorization": authorization,
+      "Content-Type": "application/json; charset=utf-8",
+      "Host": host,
+      "X-TC-Action": action,
+      "X-TC-Version": "2018-06-08",
+      "X-TC-Timestamp": String(timestamp),
+    },
+    body: payload,
+  };
+}
 
 let success = 0;
 let failed = 0;
 
 for (const [collectionName, config] of Object.entries(collections)) {
   try {
-    const ruleConfig = {
-      permission: config.permission,
-      securityRule: config.securityRule,
-    };
+    let aclTag = "CUSTOM";
+    let rule = undefined;
 
-    await db.collection(collectionName).setSecurityRule(ruleConfig);
-    console.log(`✅ ${collectionName} - 规则已应用`);
+    if (config.permission === "PRIVATE") {
+      aclTag = "ADMINONLY";
+    } else if (config.securityRule) {
+      aclTag = "CUSTOM";
+      rule = JSON.stringify({
+        read: config.securityRule.read,
+        write: config.securityRule.create,
+        update: config.securityRule.update,
+        delete: config.securityRule.delete,
+      });
+    } else {
+      aclTag = "ADMINONLY";
+    }
+
+    const params = {
+      EnvId: envId,
+      CollectionName: collectionName,
+      AclTag: aclTag,
+    };
+    if (rule) params.Rule = rule;
+
+    const reqConfig = tc3Signature("ModifySafeRule", params);
+
+    const response = await fetch(reqConfig.url, {
+      method: reqConfig.method,
+      headers: reqConfig.headers,
+      body: reqConfig.body,
+    });
+
+    const result = await response.json();
+    if (result.Response && result.Response.Error) {
+      throw new Error(result.Response.Error.Message || JSON.stringify(result.Response.Error));
+    }
+
+    console.log(`✅ ${collectionName} - 规则已应用 (${aclTag})`);
     success++;
   } catch (e) {
     console.error(`❌ ${collectionName} - 失败: ${e.message}`);
