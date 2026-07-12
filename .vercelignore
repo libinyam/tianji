@@ -1,0 +1,10 @@
+cloudfunctions
+scripts
+tests
+.trae
+.github
+.tmp-*
+github-review-workspace
+github-review-memory
+*.mjs
+!vite.config.mjs
