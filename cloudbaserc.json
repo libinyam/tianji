@@ -1,5 +1,16 @@
 {
+  "$schema": "https://static.cloudbase.net/cli/cloudbaserc.schema.json",
   "envId": "tianji-d3gozv3qr802e49cb",
+  "functionRoot": "cloudfunctions",
+  "functions": [
+    { "name": "content-actions", "handler": "index.main", "timeout": 20, "ignore": ["*.test.js", "node_modules"] },
+    { "name": "user-admin", "handler": "index.main", "timeout": 20, "ignore": ["*.test.js", "node_modules"] },
+    { "name": "admin-delete", "handler": "index.main", "timeout": 20, "ignore": ["*.test.js", "node_modules"] },
+    { "name": "check-admin", "handler": "index.main", "timeout": 20, "ignore": ["*.test.js", "node_modules"] },
+    { "name": "ai-bot", "handler": "index.main", "timeout": 60, "ignore": ["*.test.js", "node_modules"] },
+    { "name": "db-backup", "handler": "index.main", "timeout": 60, "ignore": ["*.test.js", "node_modules"] },
+    { "name": "manage-announcements", "handler": "index.main", "timeout": 20, "ignore": ["*.test.js", "node_modules"] }
+  ],
   "hosting": {
     "rewrites": [
       { "source": "**", "destination": "/index.html" }

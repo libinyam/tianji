@@ -68,9 +68,17 @@ jobs:
           TCB_SECRET_KEY: ${{ secrets.TCB_SECRET_KEY }}
         run: node scripts/fix-charset.mjs
 
+      # 云函数随前端一起部署，避免前端调用到线上不存在/过期的 action (#244)。
+      # --force 覆盖同名函数，--all 部署 cloudbaserc.json 中列出的全部函数。
+      # 任一函数部署失败会使整个发布失败（无 continue-on-error）。
+      - name: Deploy cloud functions
+        if: github.event_name == 'push'
+        run: tcb fn deploy --all --force -e ${{ secrets.TCB_ENV_ID }}
+
+      # 安全规则是生产权限边界，部署失败必须让发布失败 (#245)，
+      # 不再使用 continue-on-error，避免代码与线上权限策略漂移。
       - name: Deploy security rules
         if: github.event_name == 'push'
-        continue-on-error: true
         env:
           TCB_SECRET_ID: ${{ secrets.TCB_SECRET_ID }}
           TCB_SECRET_KEY: ${{ secrets.TCB_SECRET_KEY }}
