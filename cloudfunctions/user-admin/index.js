@@ -79,6 +79,31 @@ exports.main = async (event, context) => {
       return { ok: true };
     }
 
+    if (action === "listUsers") {
+      if (!isAdmin) {
+        return { ok: false, error: "无管理员权限" };
+      }
+      const page = Math.max(1, Number(event.page) || 1);
+      const pageSize = Math.min(50, Math.max(1, Number(event.pageSize) || 20));
+      const skip = (page - 1) * pageSize;
+      const { data } = await db.collection("users_v2").skip(skip).limit(pageSize).get();
+      return { ok: true, data: data || [], page, pageSize };
+    }
+
+    if (action === "searchUsers") {
+      if (!isAdmin) {
+        return { ok: false, error: "无管理员权限" };
+      }
+      const { keyword } = event;
+      if (typeof keyword !== "string" || keyword.length > 100) {
+        return { ok: false, error: "keyword 不合法" };
+      }
+      const { data } = await db.collection("users_v2").where({
+        displayName: db.RegExp({ regexp: keyword, options: "i" })
+      }).limit(20).get();
+      return { ok: true, data: data || [] };
+    }
+
     if (action === "setReputation") {
       if (!isAdmin) {
         return { ok: false, error: "无管理员权限" };
