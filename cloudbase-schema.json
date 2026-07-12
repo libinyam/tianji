@@ -154,6 +154,18 @@
       },
       "migrations": []
     },
+    "reputation_events": {
+      "schemaVersion": 1,
+      "fields": {
+        "_id": "string",
+        "eventId": "string",
+        "uid": "string",
+        "points": "number",
+        "reason": "string",
+        "createdAt": "number"
+      },
+      "migrations": []
+    },
     "notifications": {
       "schemaVersion": 1,
       "fields": {

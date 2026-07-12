@@ -186,7 +186,7 @@ export async function createPost(params: {
   const res = await db.collection(POSTS_COLLECTION).add(doc);
   const resObj = res as unknown as Record<string, unknown>;
   const newId = (resObj.id as string) ?? (resObj._id as string) ?? "";
-  await awardReputation(uid, REPUTATION_RULES.createPost);
+  await awardReputation(uid, REPUTATION_RULES.createPost, newId);
   return {
     id: newId,
     title: doc.title,

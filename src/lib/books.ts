@@ -224,7 +224,7 @@ export async function createBook(params: {
   // 登记标签计数（需等待完成）
   await ensureTags(cleanTags);
 
-  await awardReputation(uid, REPUTATION_RULES.createPost);
+  await awardReputation(uid, REPUTATION_RULES.createPost, newId);
 
   return {
     id: newId,
