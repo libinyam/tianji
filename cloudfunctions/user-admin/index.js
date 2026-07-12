@@ -79,23 +79,6 @@ exports.main = async (event, context) => {
       return { ok: true };
     }
 
-    if (action === "awardReputation") {
-      if (!callerUid) {
-        return { ok: false, error: "未登录" };
-      }
-      const { uid, points } = event;
-      if (!isValidUid(uid)) {
-        return { ok: false, error: "uid 不合法" };
-      }
-      if (typeof points !== "number" || !isFinite(points)) {
-        return { ok: false, error: "参数类型错误" };
-      }
-      await db.collection("users_v2").doc(uid).update({
-        reputation: _.inc(points),
-      });
-      return { ok: true };
-    }
-
     if (action === "setReputation") {
       if (!isAdmin) {
         return { ok: false, error: "无管理员权限" };

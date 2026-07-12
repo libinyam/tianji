@@ -299,6 +299,31 @@ async function resonanceIdea(event, uid) {
   return ok({ resonated: true });
 }
 
+const REPUTATION_RULES = {
+  createPost: 2,
+  createAnswer: 5,
+  answerAccepted: 15,
+  answerVoted: 10,
+  bookFavorited: 3,
+  ideaResonated: 1,
+};
+
+async function awardCreateReputation(event, uid) {
+  const { reason } = event;
+  if (!reason) return fail("缺少 reason 参数");
+
+  const points = REPUTATION_RULES[reason];
+  if (typeof points !== "number") return fail("无效的 reason");
+
+  try {
+    await db.collection("users_v2").doc(uid).update({
+      reputation: _.inc(points),
+    });
+  } catch {}
+
+  return ok({ awarded: true });
+}
+
 exports.main = async (event, context) => {
   const { action } = event;
   if (!action) return fail("缺少 action 参数");
@@ -338,6 +363,8 @@ exports.main = async (event, context) => {
         return await adjustBookFavorites(event, uid);
       case "resonanceIdea":
         return await resonanceIdea(event, uid);
+      case "awardCreateReputation":
+        return await awardCreateReputation(event, uid);
       default:
         return fail(`未知 action: ${action}`);
     }

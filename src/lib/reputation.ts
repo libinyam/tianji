@@ -49,11 +49,14 @@ export async function fetchReputation(uid: string): Promise<ReputationInfo> {
   }
 }
 
-/** 原子化增加声望值，避免并发读写丢失更新 */
-export async function awardReputation(uid: string, points: number): Promise<void> {
+/** 内容创建后通过云函数给自己加声望，分值由服务端控制 */
+export async function awardReputation(_uid: string, points: number): Promise<void> {
+  const reason = Object.entries(REPUTATION_RULES).find(([, p]) => p === points)?.[0];
+  if (!reason) return;
+
   await app.callFunction({
-    name: "user-admin",
-    data: { action: "awardReputation", uid, points },
+    name: "content-actions",
+    data: { action: "awardCreateReputation", reason },
   }).catch(() => {});
 }
 
