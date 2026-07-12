@@ -186,7 +186,7 @@ export async function createWorkshop(params: {
   const resObj = res as unknown as Record<string, unknown>;
   const newId = (resObj.id as string) ?? (resObj._id as string) ?? "";
 
-  await awardReputation(uid, REPUTATION_RULES.createPost);
+  await awardReputation(uid, REPUTATION_RULES.createPost, newId);
 
   return {
     id: newId,

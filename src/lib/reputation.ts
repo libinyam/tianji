@@ -49,14 +49,22 @@ export async function fetchReputation(uid: string): Promise<ReputationInfo> {
   }
 }
 
-/** 内容创建后通过云函数给自己加声望，分值由服务端控制 */
-export async function awardReputation(_uid: string, points: number): Promise<void> {
+/**
+ * 内容创建后通过云函数给自己加声望，分值由服务端控制。
+ * 传入 entityId（新建内容的 id）后，服务端按事件幂等：
+ * 同一创建事件重复提交只加分一次。
+ */
+export async function awardReputation(
+  _uid: string,
+  points: number,
+  entityId?: string
+): Promise<void> {
   const reason = Object.entries(REPUTATION_RULES).find(([, p]) => p === points)?.[0];
   if (!reason) return;
 
   await app.callFunction({
     name: "content-actions",
-    data: { action: "awardCreateReputation", reason },
+    data: { action: "awardCreateReputation", reason, entityId },
   }).catch(() => {});
 }
 

@@ -20,6 +20,7 @@
 | users_v2 | v1 | 用户档案（含声望、封禁状态） | — |
 | votes | v1 | 回答投票去重 | — |
 | favorites | v1 | 书籍收藏去重 | — |
+| reputation_events | v1 | 声望加分幂等事件（eventId 唯一） | — |
 | notifications | v1 | 站内通知 | — |
 | reports | v1 | 举报记录 | — |
 | tags | v1 | 标签计数 | — |
