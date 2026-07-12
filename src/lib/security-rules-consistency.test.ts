@@ -58,17 +58,17 @@ describe("安全规则 × 客户端写路径一致性 (#207)", () => {
     expect(rules.collections.users_v2, "users_v2 不在安全规则中").toBeDefined();
   });
 
-  it("_backups 集合必须设为 PRIVATE (#199)", () => {
+  it("_backups 集合必须设为 ADMINONLY (#199)", () => {
     const backupConfig = rules.collections._backups;
     expect(backupConfig, "_backups 不在安全规则中").toBeDefined();
-    expect(backupConfig.permission, "_backups 必须设为 PRIVATE").toBe("PRIVATE");
+    expect(backupConfig.permission, "_backups 必须设为 ADMINONLY").toBe("ADMINONLY");
   });
 
   it("users_v2 的 update 规则禁止客户端修改敏感字段 (#208)", () => {
     const config = rules.collections.users_v2;
     expect(config, "users_v2 不在规则中").toBeDefined();
     if (config.securityRule) {
-      expect(config.securityRule.update, "users_v2 update 不应为客户端开放").toBe(false);
+      expect(config.securityRule.update, "users_v2 update 不应为客户端开放").toBe("false");
     }
   });
 

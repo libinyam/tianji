@@ -1,5 +1,5 @@
 {
-  "version": "1.2.0",
+  "version": "1.3.0",
   "description": "CloudBase NoSQL 数据库安全规则 - 防止客户端越权访问",
   "lastUpdated": "2026-07-12",
   "collections": {
@@ -7,20 +7,20 @@
       "permission": "CUSTOM",
       "securityRule": {
         "read": "auth.uid != null",
-        "create": "auth.uid != null && auth.loginType != 'ANONYMOUS'",
+        "write": "auth.uid != null && doc.authorUid == auth.uid",
         "update": "auth.uid != null && doc.authorUid == auth.uid",
-        "delete": "auth.uid != null && (doc.authorUid == auth.uid || get('database.user_roles.' + auth.uid).role == 'admin')"
+        "delete": "auth.uid != null && doc.authorUid == auth.uid"
       },
       "ownerField": "authorUid",
-      "note": "update 收紧为作者限定；非作者写操作（回答/评论/投票/浏览量）通过 content-actions 云函数执行"
+      "note": "update 收紧为作者限定；非作者写操作通过 content-actions 云函数执行；管理员删除通过 admin-delete 云函数"
     },
     "ideas": {
       "permission": "CUSTOM",
       "securityRule": {
         "read": "auth.uid != null",
-        "create": "auth.uid != null && auth.loginType != 'ANONYMOUS'",
+        "write": "auth.uid != null && doc.authorUid == auth.uid",
         "update": "auth.uid != null && doc.authorUid == auth.uid",
-        "delete": "auth.uid != null && (doc.authorUid == auth.uid || get('database.user_roles.' + auth.uid).role == 'admin')"
+        "delete": "auth.uid != null && doc.authorUid == auth.uid"
       },
       "ownerField": "authorUid",
       "note": "update 收紧为作者限定；共鸣通过 content-actions 云函数执行"
@@ -29,9 +29,9 @@
       "permission": "CUSTOM",
       "securityRule": {
         "read": "auth.uid != null",
-        "create": "auth.uid != null && auth.loginType != 'ANONYMOUS'",
+        "write": "auth.uid != null && doc.uploaderUid == auth.uid",
         "update": "auth.uid != null && doc.uploaderUid == auth.uid",
-        "delete": "auth.uid != null && (doc.uploaderUid == auth.uid || get('database.user_roles.' + auth.uid).role == 'admin')"
+        "delete": "auth.uid != null && doc.uploaderUid == auth.uid"
       },
       "ownerField": "uploaderUid",
       "note": "update 收紧为作者限定；下载计数/收藏通过 content-actions 云函数执行"
@@ -40,9 +40,9 @@
       "permission": "CUSTOM",
       "securityRule": {
         "read": "auth.uid != null",
-        "create": "auth.uid != null && auth.loginType != 'ANONYMOUS'",
+        "write": "auth.uid != null && doc.creatorUid == auth.uid",
         "update": "auth.uid != null && doc.creatorUid == auth.uid",
-        "delete": "auth.uid != null && (doc.creatorUid == auth.uid || get('database.user_roles.' + auth.uid).role == 'admin')"
+        "delete": "auth.uid != null && doc.creatorUid == auth.uid"
       },
       "ownerField": "creatorUid",
       "note": "update 收紧为作者限定；参与者加入/批注通过 content-actions 云函数执行"
@@ -51,7 +51,7 @@
       "permission": "CUSTOM",
       "securityRule": {
         "read": "auth.uid != null",
-        "create": "auth.uid != null && auth.loginType != 'ANONYMOUS'",
+        "write": "auth.uid != null && doc.uid == auth.uid",
         "update": "auth.uid != null && doc.uid == auth.uid",
         "delete": "auth.uid != null && doc.uid == auth.uid"
       },
@@ -62,7 +62,7 @@
       "permission": "CUSTOM",
       "securityRule": {
         "read": "auth.uid != null",
-        "create": "auth.uid != null && auth.loginType != 'ANONYMOUS'",
+        "write": "auth.uid != null && doc.uid == auth.uid",
         "update": "auth.uid != null && doc.uid == auth.uid",
         "delete": "auth.uid != null && doc.uid == auth.uid"
       },
@@ -72,49 +72,39 @@
       "permission": "CUSTOM",
       "securityRule": {
         "read": "auth.uid != null && doc.uid == auth.uid",
-        "create": "auth.uid != null && auth.loginType != 'ANONYMOUS'",
+        "write": "auth.uid != null && doc.uid == auth.uid",
         "update": "auth.uid != null && doc.uid == auth.uid",
         "delete": "auth.uid != null && doc.uid == auth.uid"
       },
       "ownerField": "uid",
-      "note": "通知由客户端创建（当前无云函数），用户只能读/改/删自己的通知。后续应迁移到云函数创建并收紧 create"
+      "note": "通知由客户端创建，用户只能读/改/删自己的通知"
     },
     "reports": {
       "permission": "CUSTOM",
       "securityRule": {
-        "read": "auth.uid != null && (get('database.user_roles.' + auth.uid).role == 'admin' || doc.reporterUid == auth.uid)",
-        "create": "auth.uid != null && auth.loginType != 'ANONYMOUS'",
-        "update": "auth.uid != null && get('database.user_roles.' + auth.uid).role == 'admin'",
-        "delete": "auth.uid != null && get('database.user_roles.' + auth.uid).role == 'admin'"
+        "read": "auth.uid != null && doc.reporterUid == auth.uid",
+        "write": "auth.uid != null",
+        "update": "auth.uid != null && doc.reporterUid == auth.uid",
+        "delete": "auth.uid != null && doc.reporterUid == auth.uid"
       },
       "ownerField": "reporterUid",
-      "note": "用户可举报；仅管理员可处理/删除举报"
+      "note": "用户可创建举报；管理员处理通过云函数"
     },
     "tags": {
-      "permission": "CUSTOM",
-      "securityRule": {
-        "read": "auth.uid != null",
-        "create": "false",
-        "update": "false",
-        "delete": "false"
-      },
+      "permission": "ADMINWRITE",
+      "securityRule": null,
       "note": "标签由云函数维护，前端只读"
     },
     "announcements": {
-      "permission": "CUSTOM",
-      "securityRule": {
-        "read": "auth.uid != null",
-        "create": "false",
-        "update": "false",
-        "delete": "false"
-      },
+      "permission": "ADMINWRITE",
+      "securityRule": null,
       "note": "公告由服务端维护，前端只读"
     },
     "user_roles": {
       "permission": "CUSTOM",
       "securityRule": {
         "read": "auth.uid != null && doc._id == auth.uid",
-        "create": "false",
+        "write": "false",
         "update": "false",
         "delete": "false"
       },
@@ -124,29 +114,29 @@
       "permission": "CUSTOM",
       "securityRule": {
         "read": "auth.uid != null && doc._id == auth.uid",
-        "create": "false",
-        "update": false,
+        "write": "false",
+        "update": "false",
         "delete": "false"
       },
-      "note": "用户只能读自己的资料；所有写入（banned/reputation/badges/displayName）通过 user-admin 云函数执行"
+      "note": "用户只能读自己的资料；所有写入通过 user-admin 云函数执行"
     },
     "_backups": {
-      "permission": "PRIVATE",
+      "permission": "ADMINONLY",
       "securityRule": null,
       "note": "数据库备份集合，禁止前端访问，仅云函数可读写"
     },
     "sys_user": {
-      "permission": "PRIVATE",
+      "permission": "ADMINONLY",
       "securityRule": null,
       "note": "系统集合，禁止前端访问"
     },
     "sys_department": {
-      "permission": "PRIVATE",
+      "permission": "ADMINONLY",
       "securityRule": null,
       "note": "系统集合，禁止前端访问"
     },
     "relation_data_depart": {
-      "permission": "PRIVATE",
+      "permission": "ADMINONLY",
       "securityRule": null,
       "note": "系统集合，禁止前端访问"
     }
