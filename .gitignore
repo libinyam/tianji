@@ -37,3 +37,4 @@ repo-context.json
 .github-review-workspace/
 .github-review-memory/
 .tmp-branch-protection.json
+.tmp-*

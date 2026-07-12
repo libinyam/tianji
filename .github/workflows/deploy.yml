@@ -70,4 +70,7 @@ jobs:
 
       - name: Deploy security rules
         if: github.event_name == 'push'
+        env:
+          TCB_SECRET_ID: ${{ secrets.TCB_SECRET_ID }}
+          TCB_SECRET_KEY: ${{ secrets.TCB_SECRET_KEY }}
         run: node scripts/deploy-security-rules.mjs --envId ${{ secrets.TCB_ENV_ID }}
