@@ -1,0 +1,9 @@
+{
+  "name": "manage-announcements",
+  "version": "1.0.0",
+  "description": "公告管理云函数 - 管理员可创建/切换/删除公告，前端只读",
+  "main": "index.js",
+  "dependencies": {
+    "@cloudbase/node-sdk": "^4.0.0"
+  }
+}
