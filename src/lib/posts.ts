@@ -337,7 +337,7 @@ export async function deletePost(postId: string): Promise<boolean> {
   return true;
 }
 
-/** 编辑回答（仅作者） */
+/** 编辑回答（仅作者，通过云函数绕过安全规则） */
 export async function updateAnswer(
   postId: string,
   answerId: string,
@@ -345,88 +345,42 @@ export async function updateAnswer(
 ): Promise<boolean> {
   const cleanContent = sanitizeInput(content);
 
-  const uid = getCurrentUid();
-  if (!uid) throw new Error("请先登录");
-
-  const docRef = db.collection(POSTS_COLLECTION).doc(postId);
-  const { data } = await docRef.get();
-  if (!data || data.length === 0) return false;
-
-  const post = data[0] as PostDoc;
-  const answerList = post.answerList ?? [];
-  const idx = answerList.findIndex((a) => a.id === answerId);
-  if (idx === -1) return false;
-
-  if (answerList[idx].authorUid !== uid) throw new Error("无权编辑他人回答");
-
-  answerList[idx] = { ...answerList[idx], content: cleanContent };
-  await docRef.update({ answerList });
+  const res = await app.callFunction({
+    name: "content-actions",
+    data: { action: "updateAnswer", postId, answerId, content: cleanContent },
+  });
+  if (!res?.result?.ok) throw new Error(res?.result?.error || "编辑失败");
   return true;
 }
 
-/** 删除回答（仅作者） */
+/** 删除回答（仅作者，通过云函数绕过安全规则） */
 export async function deleteAnswer(
   postId: string,
   answerId: string
 ): Promise<boolean> {
-  const uid = getCurrentUid();
-  if (!uid) throw new Error("请先登录");
-
-  const docRef = db.collection(POSTS_COLLECTION).doc(postId);
-  const { data } = await docRef.get();
-  if (!data || data.length === 0) return false;
-
-  const post = data[0] as PostDoc;
-  const answerList = post.answerList ?? [];
-  const idx = answerList.findIndex((a) => a.id === answerId);
-  if (idx === -1) return false;
-
-  if (answerList[idx].authorUid !== uid) throw new Error("无权删除他人回答");
-
-  answerList.splice(idx, 1);
-  // answersCount 用 inc(-1) 原子递减，避免与 submitAnswer 的 inc(1) 混用导致计数漂移（#131）
-  // answerList 数组移除仍为读-改-写（SDK 不支持位置 $ 操作符），根治见 #105
-  await docRef.update({ answerList, answersCount: db.command.inc(-1) });
-
-  // 级联清理该回答的投票记录（不阻塞主流程）
-  try {
-    await db.collection("votes").where({ answerId }).remove();
-  } catch { /* 安全规则可能拦截，忽略 */ }
-
+  const res = await app.callFunction({
+    name: "content-actions",
+    data: { action: "deleteAnswer", postId, answerId },
+  });
+  if (!res?.result?.ok) throw new Error(res?.result?.error || "删除失败");
   return true;
 }
 
-/** 删除评论（仅作者） */
+/** 删除评论（仅作者，通过云函数绕过安全规则） */
 export async function deleteComment(
   postId: string,
   answerId: string,
   commentId: string
 ): Promise<boolean> {
-  const uid = getCurrentUid();
-  if (!uid) throw new Error("请先登录");
-
-  const docRef = db.collection(POSTS_COLLECTION).doc(postId);
-  const { data } = await docRef.get();
-  if (!data || data.length === 0) return false;
-
-  const post = data[0] as PostDoc;
-  const answerList = post.answerList ?? [];
-  const aIdx = answerList.findIndex((a) => a.id === answerId);
-  if (aIdx === -1) return false;
-
-  const comments = answerList[aIdx].comments ?? [];
-  const cIdx = comments.findIndex((c) => c.id === commentId);
-  if (cIdx === -1) return false;
-
-  if (comments[cIdx].authorUid !== uid) throw new Error("无权删除他人评论");
-
-  comments.splice(cIdx, 1);
-  answerList[aIdx] = { ...answerList[aIdx], comments };
-  await docRef.update({ answerList });
+  const res = await app.callFunction({
+    name: "content-actions",
+    data: { action: "deleteComment", postId, answerId, commentId },
+  });
+  if (!res?.result?.ok) throw new Error(res?.result?.error || "删除失败");
   return true;
 }
 
-/** 编辑评论（仅作者） */
+/** 编辑评论（仅作者，通过云函数绕过安全规则） */
 export async function updateComment(
   postId: string,
   answerId: string,
@@ -435,27 +389,11 @@ export async function updateComment(
 ): Promise<boolean> {
   const cleanContent = sanitizeInput(content);
 
-  const uid = getCurrentUid();
-  if (!uid) throw new Error("请先登录");
-
-  const docRef = db.collection(POSTS_COLLECTION).doc(postId);
-  const { data } = await docRef.get();
-  if (!data || data.length === 0) return false;
-
-  const post = data[0] as PostDoc;
-  const answerList = post.answerList ?? [];
-  const aIdx = answerList.findIndex((a) => a.id === answerId);
-  if (aIdx === -1) return false;
-
-  const comments = answerList[aIdx].comments ?? [];
-  const cIdx = comments.findIndex((c) => c.id === commentId);
-  if (cIdx === -1) return false;
-
-  if (comments[cIdx].authorUid !== uid) throw new Error("无权编辑他人评论");
-
-  comments[cIdx] = { ...comments[cIdx], content: cleanContent };
-  answerList[aIdx] = { ...answerList[aIdx], comments };
-  await docRef.update({ answerList });
+  const res = await app.callFunction({
+    name: "content-actions",
+    data: { action: "updateComment", postId, answerId, commentId, content: cleanContent },
+  });
+  if (!res?.result?.ok) throw new Error(res?.result?.error || "编辑失败");
   return true;
 }
 

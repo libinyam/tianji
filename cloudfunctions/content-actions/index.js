@@ -184,6 +184,120 @@ async function submitComment(event, uid) {
   return ok(comment);
 }
 
+/** 删除回答（仅回答作者） */
+async function deleteAnswer(event, uid) {
+  const { postId, answerId } = event;
+  if (!postId || !answerId) return fail("缺少参数");
+
+  const docRef = db.collection("posts").doc(postId);
+  const { data } = await docRef.get();
+  if (!data || data.length === 0) return fail("帖子不存在");
+
+  const post = data[0];
+  const answerList = post.answerList || [];
+  const idx = answerList.findIndex((a) => a.id === answerId);
+  if (idx === -1) return fail("回答不存在");
+
+  if (answerList[idx].authorUid !== uid) return fail("无权删除他人回答");
+
+  answerList.splice(idx, 1);
+  await docRef.update({
+    answerList,
+    answersCount: _.inc(-1),
+  });
+
+  // 级联清理该回答的投票记录
+  try {
+    await db.collection("votes").where({ answerId }).remove();
+  } catch {}
+
+  return ok({ deleted: true });
+}
+
+/** 删除评论（仅评论作者） */
+async function deleteComment(event, uid) {
+  const { postId, answerId, commentId } = event;
+  if (!postId || !answerId || !commentId) return fail("缺少参数");
+
+  const docRef = db.collection("posts").doc(postId);
+  const { data } = await docRef.get();
+  if (!data || data.length === 0) return fail("帖子不存在");
+
+  const post = data[0];
+  const answerList = post.answerList || [];
+  const aIdx = answerList.findIndex((a) => a.id === answerId);
+  if (aIdx === -1) return fail("回答不存在");
+
+  const comments = answerList[aIdx].comments || [];
+  const cIdx = comments.findIndex((c) => c.id === commentId);
+  if (cIdx === -1) return fail("评论不存在");
+
+  if (comments[cIdx].authorUid !== uid) return fail("无权删除他人评论");
+
+  comments.splice(cIdx, 1);
+  answerList[aIdx] = { ...answerList[aIdx], comments };
+  await docRef.update({ answerList });
+
+  return ok({ deleted: true });
+}
+
+/** 编辑回答（仅回答作者） */
+async function updateAnswer(event, uid) {
+  const { postId, answerId, content } = event;
+  if (!postId || !answerId || !content) return fail("缺少参数");
+
+  if (await isBanned(uid)) return fail("您的账号已被封禁");
+  const sc = containsSensitiveWord(content);
+  if (sc.found) return fail(`内容包含敏感词: ${sc.words.join(", ")}`);
+
+  const docRef = db.collection("posts").doc(postId);
+  const { data } = await docRef.get();
+  if (!data || data.length === 0) return fail("帖子不存在");
+
+  const post = data[0];
+  const answerList = post.answerList || [];
+  const idx = answerList.findIndex((a) => a.id === answerId);
+  if (idx === -1) return fail("回答不存在");
+
+  if (answerList[idx].authorUid !== uid) return fail("无权编辑他人回答");
+
+  answerList[idx] = { ...answerList[idx], content: String(content).slice(0, 10000) };
+  await docRef.update({ answerList });
+
+  return ok({ updated: true });
+}
+
+/** 编辑评论（仅评论作者） */
+async function updateComment(event, uid) {
+  const { postId, answerId, commentId, content } = event;
+  if (!postId || !answerId || !commentId || !content) return fail("缺少参数");
+
+  if (await isBanned(uid)) return fail("您的账号已被封禁");
+  const sc = containsSensitiveWord(content);
+  if (sc.found) return fail(`内容包含敏感词: ${sc.words.join(", ")}`);
+
+  const docRef = db.collection("posts").doc(postId);
+  const { data } = await docRef.get();
+  if (!data || data.length === 0) return fail("帖子不存在");
+
+  const post = data[0];
+  const answerList = post.answerList || [];
+  const aIdx = answerList.findIndex((a) => a.id === answerId);
+  if (aIdx === -1) return fail("回答不存在");
+
+  const comments = answerList[aIdx].comments || [];
+  const cIdx = comments.findIndex((c) => c.id === commentId);
+  if (cIdx === -1) return fail("评论不存在");
+
+  if (comments[cIdx].authorUid !== uid) return fail("无权编辑他人评论");
+
+  comments[cIdx] = { ...comments[cIdx], content: String(content).slice(0, 5000) };
+  answerList[aIdx] = { ...answerList[aIdx], comments };
+  await docRef.update({ answerList });
+
+  return ok({ updated: true });
+}
+
 async function voteAnswer(event, uid) {
   const { postId, answerId, isUpvote } = event;
   if (!postId || !answerId) return fail("缺少参数");
@@ -665,6 +779,14 @@ exports.main = async (event, context) => {
           return await submitAnswer(event, uid);
         case "submitComment":
           return await submitComment(event, uid);
+        case "deleteAnswer":
+          return await deleteAnswer(event, uid);
+        case "deleteComment":
+          return await deleteComment(event, uid);
+        case "updateAnswer":
+          return await updateAnswer(event, uid);
+        case "updateComment":
+          return await updateComment(event, uid);
         case "voteAnswer":
           return await voteAnswer(event, uid);
         case "acceptAnswer":
