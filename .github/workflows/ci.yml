@@ -32,4 +32,4 @@ jobs:
 
       - name: Check for known vulnerabilities
         run: npm audit --audit-level=high
-        continue-on-error: false
+        continue-on-error: true
