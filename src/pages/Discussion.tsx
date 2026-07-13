@@ -5,7 +5,6 @@ import PostModal from "@/components/PostModal";
 import EmptyState from "@/components/EmptyState";
 import WelcomeBanner from "@/components/WelcomeBanner";
 import DiscussionSidebar from "@/components/DiscussionSidebar";
-import Avatar from "@/components/Avatar";
 import { PostCardSkeleton, ListSkeleton } from "@/components/Skeleton";
 
 import { fetchPosts, type PostCategory, type CasualSubCategory, CASUAL_SUB_CATEGORIES } from "@/lib/posts";
@@ -41,24 +40,6 @@ function getLastActivity(q: Question): string {
     return q.answerList.reduce((latest, a) => (a.date > latest ? a.date : latest), q.createdAt);
   }
   return q.createdAt;
-}
-
-/** 从帖子中提取参与者（去重，最多 3 个）：作者优先，然后是回答者 (#294) */
-function getParticipants(q: Question): { author: string; avatarColor: string }[] {
-  const seen = new Set<string>();
-  const list: { author: string; avatarColor: string }[] = [];
-  if (q.author && !seen.has(q.author)) {
-    seen.add(q.author);
-    list.push({ author: q.author, avatarColor: q.avatarColor });
-  }
-  for (const a of q.answerList ?? []) {
-    if (a.author && !seen.has(a.author)) {
-      seen.add(a.author);
-      list.push({ author: a.author, avatarColor: a.avatarColor });
-    }
-    if (list.length >= 3) break;
-  }
-  return list;
 }
 
 const SECTIONS: { key: PostCategory; label: string; icon: typeof GraduationCap }[] = [
@@ -229,13 +210,13 @@ export default function Discussion() {
 
   return (
     <>
-      {/* 顶部工具栏：标题 + 操作 */}
+      {/* 顶部工具栏：标题 + 操作 - 分区 tab 和发起讨论按钮加强可见性 (#294) */}
       <div className="border-b border-void-600/30 bg-void-900/20">
-        <div className="container-tj flex h-12 items-center justify-between">
-          <div className="flex items-center gap-4">
-            <h1 className="text-sm font-medium text-parchment-100">学问讨论</h1>
-            {/* 分区切换：极简文字 tab */}
-            <div className="flex items-center gap-1 text-xs">
+        <div className="container-tj flex h-14 items-center justify-between">
+          <div className="flex items-center gap-3">
+            <h1 className="text-base font-semibold text-parchment-100">学问讨论</h1>
+            {/* 分区切换：明显的 pill tab */}
+            <div className="flex items-center gap-1">
               {SECTIONS.map((s) => {
                 const Icon = s.icon;
                 const isActive = section === s.key;
@@ -243,19 +224,24 @@ export default function Discussion() {
                   <button
                     key={s.key}
                     onClick={() => updateFilters({ section: s.key, cat: "全部", tag: "全部", sort: "最新" })}
-                    className={`inline-flex items-center gap-1 rounded px-2 py-1 transition-colors ${
-                      isActive ? "text-parchment-100" : "text-mist-500 hover:text-mist-300"
+                    className={`inline-flex items-center gap-1.5 rounded-md px-3 py-1.5 text-sm font-medium transition-colors ${
+                      isActive
+                        ? "bg-tian-400/15 text-tian-300"
+                        : "text-mist-400 hover:bg-void-700/50 hover:text-mist-200"
                     }`}
                   >
-                    <Icon size={12} />
+                    <Icon size={14} />
                     {s.label}
                   </button>
                 );
               })}
             </div>
           </div>
-          <button onClick={handlePostClick} className="inline-flex items-center gap-1.5 rounded-md bg-star-400/10 px-3 py-1.5 text-xs font-medium text-star-300 transition-colors hover:bg-star-400/20">
-            <Plus size={13} /> 发起讨论
+          <button
+            onClick={handlePostClick}
+            className="inline-flex items-center gap-1.5 rounded-md bg-star-400 px-3.5 py-2 text-sm font-semibold text-void-950 shadow-sm transition-colors hover:bg-star-500"
+          >
+            <Plus size={15} /> 发起讨论
           </button>
         </div>
       </div>
@@ -375,25 +361,23 @@ export default function Discussion() {
           />
         )}
 
-        {/* 帖子列表 - 论坛 topic table 风格：标题+元信息 | 参与者 | 回复 | 浏览 | 活动时间 (#294) */}
+        {/* 帖子列表 - 论坛 topic table 风格：标题+元信息 | 回复 | 浏览 | 活动时间 (#294) */}
         {!loading && !error && filtered.length > 0 && (
           <div className="overflow-hidden rounded-lg border border-void-600/40 bg-void-800">
             {/* 表头 - 桌面端可见 */}
-            <div className="hidden lg:grid grid-cols-[minmax(0,1fr)_120px_56px_64px_88px] items-center gap-3 border-b border-void-600/40 px-5 py-2.5 text-xs font-medium text-mist-500">
+            <div className="hidden lg:grid grid-cols-[minmax(0,1fr)_56px_64px_88px] items-center gap-3 border-b border-void-600/40 px-5 py-2.5 text-xs font-medium text-mist-500">
               <span>主题</span>
-              <span className="text-right">参与者</span>
               <span className="text-right">回复</span>
               <span className="text-right">浏览</span>
               <span className="text-right">活动</span>
             </div>
             {filtered.map((q, i) => {
-              const participants = getParticipants(q);
               const lastActivity = getLastActivity(q);
               return (
                 <div
                   key={q.id}
                   onClick={() => navigate(`/discussion/${q.id}`)}
-                  className={`group grid cursor-pointer grid-cols-[minmax(0,1fr)_auto] items-center gap-4 px-5 py-4 transition-colors hover:bg-void-700/50 lg:grid-cols-[minmax(0,1fr)_120px_56px_64px_88px] ${
+                  className={`group grid cursor-pointer grid-cols-[minmax(0,1fr)_auto] items-center gap-4 px-5 py-4 transition-colors hover:bg-void-700/50 lg:grid-cols-[minmax(0,1fr)_56px_64px_88px] ${
                     i !== 0 ? "border-t border-void-600/30" : ""
                   }`}
                 >
@@ -419,15 +403,6 @@ export default function Discussion() {
                       <span className="text-mist-600">&middot;</span>
                       <span>{q.author}</span>
                     </div>
-                  </div>
-
-                  {/* 参与者头像 - 桌面端 */}
-                  <div className="hidden items-center justify-end lg:flex">
-                    {participants.map((p, idx) => (
-                      <span key={`${p.author}-${idx}`} className="-ml-1.5 first:ml-0" style={{ zIndex: 3 - idx }}>
-                        <Avatar name={p.author} color={p.avatarColor} size={26} />
-                      </span>
-                    ))}
                   </div>
 
                   {/* 回复数 - 始终可见 */}
