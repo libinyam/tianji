@@ -10,9 +10,9 @@ export default defineConfig({
       include: ["src/lib/**/*.ts"],
       exclude: ["**/*.test.ts", "src/lib/sentry.ts", "src/lib/cloudbase.ts"],
       thresholds: {
-        lines: 4,
-        branches: 3,
-        functions: 5,
+        lines: 20,
+        branches: 12,
+        functions: 15,
       },
     },
   },
