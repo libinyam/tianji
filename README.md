@@ -4,6 +4,20 @@
 
 面向学生、研究者和开发者的知识分享平台，集讨论区、灵感广场、资源库、协作工坊于一体。打通从学习资源到项目协作的完整链路。
 
+## 界面预览
+
+| 产品概览 | 资源库 |
+| --- | --- |
+| ![天玑产品概览](docs/images/tianji-about.jpg) | ![天玑资源库](docs/images/tianji-library.jpg) |
+
+| 灵感广场 | 协作工坊 |
+| --- | --- |
+| ![天玑灵感广场](docs/images/tianji-ideas.jpg) | ![天玑协作工坊](docs/images/tianji-workshop.jpg) |
+
+| 登录与行动入口 |
+| --- |
+| ![天玑登录与行动入口](docs/images/tianji-action-modal.jpg) |
+
 ## 技术栈
 
 - React 18 + TypeScript
