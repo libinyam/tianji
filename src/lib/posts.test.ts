@@ -5,6 +5,7 @@ const mockDb = vi.hoisted(() => {
     orderBy: vi.fn().mockReturnThis(),
     limit: vi.fn().mockReturnThis(),
     where: vi.fn().mockReturnThis(),
+    skip: vi.fn().mockReturnThis(),
     get: vi.fn(),
     add: vi.fn(),
     update: vi.fn(),
@@ -215,6 +216,63 @@ describe("posts", () => {
 
       expect(result.data).toEqual([]);
       expect(result.error).toBe("网络错误");
+      expect(result.hasMore).toBe(false);
+    });
+
+    it("分页：返回满页时 hasMore 为 true", async () => {
+      const docs = Array.from({ length: 20 }, (_, i) => ({
+        _id: `p${i}`,
+        title: `帖子${i}`,
+        excerpt: "",
+        body: "",
+        tags: [],
+        author: "u",
+        authorUid: "u1",
+        avatarColor: "#fff",
+        views: 0,
+        votes: 0,
+        answersCount: 0,
+        answerList: [],
+        createdAt: "2024-01-01T00:00:00.000Z",
+      }));
+      mockDb._chain.get.mockResolvedValue({ data: docs });
+
+      const result = await fetchPosts();
+
+      expect(result.data).toHaveLength(20);
+      expect(result.hasMore).toBe(true);
+    });
+
+    it("分页：返回不足一页时 hasMore 为 false", async () => {
+      const docs = Array.from({ length: 5 }, (_, i) => ({
+        _id: `p${i}`,
+        title: `帖子${i}`,
+        excerpt: "",
+        body: "",
+        tags: [],
+        author: "u",
+        authorUid: "u1",
+        avatarColor: "#fff",
+        views: 0,
+        votes: 0,
+        answersCount: 0,
+        answerList: [],
+        createdAt: "2024-01-01T00:00:00.000Z",
+      }));
+      mockDb._chain.get.mockResolvedValue({ data: docs });
+
+      const result = await fetchPosts();
+
+      expect(result.data).toHaveLength(5);
+      expect(result.hasMore).toBe(false);
+    });
+
+    it("分页：传入 offset 调用 skip", async () => {
+      mockDb._chain.get.mockResolvedValue({ data: [] });
+
+      await fetchPosts("academic", undefined, 40);
+
+      expect(mockDb._chain.skip).toHaveBeenCalledWith(40);
     });
   });
 

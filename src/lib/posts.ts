@@ -83,29 +83,36 @@ const AVATAR_COLORS = ["#7cc4ff", "#f3c969", "#5aa6f0", "#a78bfa", "#34d399", "#
 export interface PostsResult {
   data: Question[];
   error: string | null;
+  hasMore: boolean;
 }
 
-/** 获取所有帖子，可按分区和子分类筛选，按时间倒序。
- *  返回 {data, error} 结构，调用方可区分「无数据」和「请求失败」 */
+const POSTS_PAGE_SIZE = 20;
+
+/** 获取帖子列表，可按分区和子分类筛选，按时间倒序。
+ *  支持分页加载，通过 offset 指定起始位置（#278）。
+ *  返回 {data, error, hasMore} 结构，调用方可区分「无数据」和「请求失败」 */
 export async function fetchPosts(
   category?: PostCategory,
-  subCategory?: CasualSubCategory
+  subCategory?: CasualSubCategory,
+  offset?: number,
+  pageSize?: number,
 ): Promise<PostsResult> {
   try {
+    const page = pageSize ?? POSTS_PAGE_SIZE;
+    const skip = offset ?? 0;
     const col = db.collection(POSTS_COLLECTION);
     const whereCond: Record<string, string> = {};
     if (category) whereCond.category = category;
     if (subCategory) whereCond.subCategory = subCategory;
     const { data } = Object.keys(whereCond).length
-      ? await col.where(whereCond).orderBy("pinned", "desc").orderBy("createdAt", "desc").limit(100).get()
-      : await col.orderBy("pinned", "desc").orderBy("createdAt", "desc").limit(100).get();
+      ? await col.where(whereCond).orderBy("pinned", "desc").orderBy("createdAt", "desc").skip(skip).limit(page).get()
+      : await col.orderBy("pinned", "desc").orderBy("createdAt", "desc").skip(skip).limit(page).get();
 
     const realPosts = ((data as PostDoc[]) ?? []).map(toQuestion);
-    return { data: realPosts, error: null };
+    return { data: realPosts, error: null, hasMore: realPosts.length === page };
   } catch (err) {
-    // 不再把错误吞成空数组，让 UI 能区分「无数据」和「请求失败」
     const msg = err instanceof Error ? err.message : "加载讨论失败";
-    return { data: [], error: msg };
+    return { data: [], error: msg, hasMore: false };
   }
 }
 

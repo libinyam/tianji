@@ -580,6 +580,48 @@ async function resolveWorkshopAnnotation(event, uid) {
   return ok({ resolved: true });
 }
 
+const RATE_LIMIT_WINDOW_MS = 60_000;
+const RATE_LIMIT_RULES = {
+  voteAnswer: { max: 30, windowMs: 60_000 },
+  acceptAnswer: { max: 20, windowMs: 60_000 },
+  incrementPostViews: { max: 120, windowMs: 60_000 },
+  incrementBookDownloads: { max: 60, windowMs: 60_000 },
+  _default: { max: 15, windowMs: 60_000 },
+};
+
+async function checkRateLimit(uid, action) {
+  if (!uid) return { allowed: true };
+  const rule = RATE_LIMIT_RULES[action] || RATE_LIMIT_RULES._default;
+  const now = Date.now();
+  const windowStart = Math.floor(now / rule.windowMs) * rule.windowMs;
+  const docId = `rl_${uid}_${action}_${windowStart}`;
+  try {
+    const { data } = await db.collection("rate_limits").doc(docId).get();
+    if (data && data.length > 0) {
+      const currentCount = data[0].count || 0;
+      if (currentCount >= rule.max) {
+        const retryAfter = Math.ceil((rule.windowMs - (now - windowStart)) / 1000);
+        return { allowed: false, retryAfter };
+      }
+      await db.collection("rate_limits").doc(docId).update({
+        count: _.inc(1),
+        updatedAt: now,
+      });
+    } else {
+      await db.collection("rate_limits").doc(docId).set({
+        count: 1,
+        uid,
+        action,
+        windowStart,
+        updatedAt: now,
+      });
+    }
+    return { allowed: true };
+  } catch {
+    return { allowed: true };
+  }
+}
+
 exports.main = async (event, context) => {
   const { action } = event;
   if (!action) return fail("缺少 action 参数");
@@ -604,6 +646,11 @@ exports.main = async (event, context) => {
   const PUBLIC_ACTIONS = ["incrementPostViews", "incrementBookDownloads"];
   if (!uid && !PUBLIC_ACTIONS.includes(action)) {
     return fail("请先登录");
+  }
+
+  const rateLimit = await checkRateLimit(uid, action);
+  if (!rateLimit.allowed) {
+    return fail(`操作过于频繁，请 ${rateLimit.retryAfter} 秒后再试`);
   }
 
   try {
