@@ -250,25 +250,26 @@ export default function DiscussionDetail() {
               {question.title}
             </h1>
 
-            <div className="mt-4 flex items-center gap-3 text-xs text-mist-500">
-              <Avatar name={question.author} color={question.avatarColor} size={24} />
+            {/* 帖子元信息条 - Discourse 风格作者栏 (#294) */}
+            <div className="mt-5 flex items-center gap-3 rounded-lg border border-void-600/30 bg-void-800/40 px-4 py-2.5 text-sm text-mist-500">
+              <Avatar name={question.author} color={question.avatarColor} size={28} />
               {question.authorUid ? (
-                <Link to={`/user/${question.authorUid}`} className="text-mist-300 transition-colors hover:text-star-300">
+                <Link to={`/user/${question.authorUid}`} className="font-medium text-parchment-100 transition-colors hover:text-star-300">
                   {question.author}
                 </Link>
               ) : (
-                <span className="text-mist-300">{question.author}</span>
+                <span className="font-medium text-parchment-100">{question.author}</span>
               )}
-              <span>·</span>
-              <span className="font-mono">{formatRelativeTime(question.createdAt)}</span>
-              <span>·</span>
-              <span className="flex items-center gap-1">
+              <span className="text-mist-600">·</span>
+              <span className="font-mono text-xs">{formatRelativeTime(question.createdAt)}</span>
+              <span className="text-mist-600">·</span>
+              <span className="flex items-center gap-1 text-xs">
                 <Eye size={12} /> {question.views} 浏览
               </span>
               <button
                 onClick={handleToggleFav}
-                className={`ml-auto flex items-center gap-1 transition-colors ${
-                  favState ? "text-star-300" : "text-mist-400 hover:text-star-300"
+                className={`ml-auto flex items-center gap-1.5 rounded-md px-2.5 py-1.5 text-xs transition-colors ${
+                  favState ? "text-star-300" : "text-mist-400 hover:bg-void-700/60 hover:text-star-300"
                 }`}
               >
                 <Bookmark size={13} className={favState ? "fill-star-400" : ""} />
@@ -279,7 +280,7 @@ export default function DiscussionDetail() {
                   <ShareButton title={question.title} path={`/discussion/${id}`} />
                   <button
                     onClick={() => openReport("post", question.id, question.title)}
-                    className="flex items-center gap-1 rounded-md px-2.5 py-1.5 min-h-[36px] text-mist-400 transition-colors hover:bg-void-700/60 hover:text-red-300"
+                    className="flex items-center gap-1 rounded-md px-2.5 py-1.5 text-xs text-mist-400 transition-colors hover:bg-void-700/60 hover:text-red-300"
                     title="举报帖子"
                   >
                     <Flag size={13} /> 举报
@@ -287,11 +288,11 @@ export default function DiscussionDetail() {
                 </>
               )}
               {isAuthor(user?.uid, question.authorUid) && (
-                <div className="flex items-center gap-3">
+                <div className="flex items-center gap-1">
                   <ShareButton title={question.title} path={`/discussion/${id}`} />
                   <button
                     onClick={startEditPost}
-                    className="flex h-9 w-9 items-center justify-center rounded-md text-mist-400 transition-colors hover:bg-void-700/60 hover:text-tian-300"
+                    className="flex h-8 w-8 items-center justify-center rounded-md text-mist-400 transition-colors hover:bg-void-700/60 hover:text-tian-300"
                     title="编辑帖子"
                     aria-label="编辑帖子"
                   >
@@ -299,7 +300,7 @@ export default function DiscussionDetail() {
                   </button>
                   <button
                     onClick={handleDeletePost}
-                    className="flex h-9 w-9 items-center justify-center rounded-md text-mist-400 transition-colors hover:bg-void-700/60 hover:text-red-300"
+                    className="flex h-8 w-8 items-center justify-center rounded-md text-mist-400 transition-colors hover:bg-void-700/60 hover:text-red-300"
                     title="删除帖子"
                     aria-label="删除帖子"
                   >
@@ -342,13 +343,13 @@ export default function DiscussionDetail() {
             )}
           </motion.div>
 
-          {/* 回答 */}
+          {/* 回答 - Discourse 风格：头像左侧 + 作者栏 + 内容 + 操作行 (#294) */}
           <div className="mt-10 border-t border-void-600/40 pt-6">
             <h2 className="heading-display text-lg text-parchment-50">
               {question.answerList.length} 个回答
             </h2>
 
-            <div className="mt-2 divide-y divide-void-600/40">
+            <div className="mt-4 space-y-4">
               {[...question.answerList]
                 .sort((a, b) => {
                   // 采纳的回答始终排第一
@@ -358,15 +359,16 @@ export default function DiscussionDetail() {
                   return b.date > a.date ? 1 : -1;
                 })
                 .map((a) => (
-                <div key={a.id} className="py-6">
-                  <div className="flex gap-3">
-                    <Avatar name={a.author} color={a.avatarColor} size={38} />
+                <div key={a.id} className="rounded-lg border border-void-600/30 bg-void-800/40 px-5 py-4">
+                  <div className="flex gap-4">
+                    <Avatar name={a.author} color={a.avatarColor} size={42} />
 
                     {/* 内容 */}
                     <div className="min-w-0 flex-1">
-                      <div className="flex flex-wrap items-center gap-x-2 gap-y-1 text-xs text-mist-500">
-                        <span className="text-sm text-parchment-100">{a.author}</span>
-                        <span className="font-mono">{formatRelativeTime(a.date)}</span>
+                      {/* 作者栏 - Discourse 风格：用户名 + 时间 + 采纳标记 */}
+                      <div className="flex flex-wrap items-center gap-x-2 gap-y-1 text-sm">
+                        <span className="font-medium text-parchment-100">{a.author}</span>
+                        <span className="text-xs text-mist-500 font-mono">{formatRelativeTime(a.date)}</span>
                         {a.accepted && (
                           <span className="inline-flex items-center gap-1 rounded-full bg-emerald-400/10 px-2 py-0.5 text-[11px] text-emerald-300">
                             <Check size={11} /> 已采纳
@@ -391,16 +393,16 @@ export default function DiscussionDetail() {
                       ) : (
                         <LazyMathText
                           content={a.content}
-                          className="mt-2 font-content text-base leading-relaxed text-mist-200"
+                          className="mt-3 font-content text-[15px] leading-relaxed text-mist-200"
                         />
                       )}
 
-                      {/* 动作行 */}
-                      <div className="mt-3 flex items-center gap-4 text-xs text-mist-500">
+                      {/* 动作行 - Discourse 风格按钮组 */}
+                      <div className="mt-4 flex items-center gap-1 text-xs text-mist-500">
                         <button
                           onClick={() => toggleVote(a.id)}
-                          className={`inline-flex items-center gap-1.5 transition-colors ${
-                            voted[a.id] ? "text-star-300" : "hover:text-star-300"
+                          className={`inline-flex items-center gap-1.5 rounded-md px-2.5 py-1.5 transition-colors ${
+                            voted[a.id] ? "text-star-300" : "hover:bg-void-700/60 hover:text-star-300"
                           }`}
                           aria-label="投票"
                         >
@@ -409,7 +411,7 @@ export default function DiscussionDetail() {
                         </button>
                         <button
                           onClick={() => openComment(a.id)}
-                          className="inline-flex items-center gap-1.5 transition-colors hover:text-tian-200"
+                          className="inline-flex items-center gap-1.5 rounded-md px-2.5 py-1.5 transition-colors hover:bg-void-700/60 hover:text-tian-200"
                         >
                           <MessageCircle size={14} />
                           {a.comments && a.comments.length > 0 ? `${a.comments.length} 条评论` : "评论"}
@@ -418,7 +420,7 @@ export default function DiscussionDetail() {
                           <button
                             onClick={() => handleAccept(a.id, true)}
                             disabled={acceptingId !== null}
-                            className="inline-flex items-center gap-1 transition-colors hover:text-emerald-300 disabled:cursor-not-allowed disabled:opacity-50"
+                            className="inline-flex items-center gap-1 rounded-md px-2.5 py-1.5 transition-colors hover:bg-emerald-400/10 hover:text-emerald-300 disabled:cursor-not-allowed disabled:opacity-50"
                           >
                             {acceptingId === a.id ? <Loader2 size={13} className="animate-spin" /> : <Check size={13} />}
                             采纳
@@ -428,17 +430,17 @@ export default function DiscussionDetail() {
                           <button
                             onClick={() => handleAccept(a.id, false)}
                             disabled={acceptingId !== null}
-                            className="inline-flex items-center gap-1 transition-colors hover:text-mist-300 disabled:cursor-not-allowed disabled:opacity-50"
+                            className="inline-flex items-center gap-1 rounded-md px-2.5 py-1.5 transition-colors hover:bg-void-700/60 hover:text-mist-300 disabled:cursor-not-allowed disabled:opacity-50"
                           >
                             {acceptingId === a.id ? <Loader2 size={13} className="animate-spin" /> : <X size={13} />}
                             取消采纳
                           </button>
                         )}
-                        <span className="ml-auto flex items-center gap-3">
+                        <span className="ml-auto flex items-center gap-1">
                           {!isAuthor(user?.uid, a.authorUid) && (
                             <button
                               onClick={() => openReport("answer", a.id, `回答：${a.content.slice(0, 30)}`)}
-                              className="transition-colors hover:text-red-300"
+                              className="flex h-8 w-8 items-center justify-center rounded-md transition-colors hover:bg-void-700/60 hover:text-red-300"
                               title="举报回答"
                             >
                               <Flag size={13} />
@@ -448,14 +450,14 @@ export default function DiscussionDetail() {
                             <>
                               <button
                                 onClick={() => startEditAnswer(a.id, a.content)}
-                                className="transition-colors hover:text-tian-300"
+                                className="flex h-8 w-8 items-center justify-center rounded-md transition-colors hover:bg-void-700/60 hover:text-tian-300"
                                 title="编辑回答"
                               >
                                 <Pencil size={13} />
                               </button>
                               <button
                                 onClick={() => handleDeleteAnswer(a.id)}
-                                className="transition-colors hover:text-red-300"
+                                className="flex h-8 w-8 items-center justify-center rounded-md transition-colors hover:bg-void-700/60 hover:text-red-300"
                                 title="删除回答"
                               >
                                 <Trash2 size={13} />
@@ -465,87 +467,90 @@ export default function DiscussionDetail() {
                         </span>
                       </div>
 
-                      {/* 评论列表（扁平） */}
+                      {/* 评论列表 - Discourse 嵌套缩进，左侧竖线连接 (#294) */}
                       {a.comments && a.comments.length > 0 && (
-                        <div className="mt-4 divide-y divide-void-600/30 border-t border-void-600/30">
+                        <div className="mt-4 space-y-3 border-t border-void-600/30 pt-4 pl-2">
                           {[...(a.comments ?? [])].sort((x, y) => (y.date > x.date ? 1 : -1)).map((c) => {
                             const repliedComment = c.replyTo
                               ? a.comments?.find((rc) => rc.id === c.replyTo)
                               : null;
                             return (
-                              <div key={c.id} className="group py-3">
-                                <div className="flex items-center gap-2 text-xs text-mist-500">
-                                  <Avatar name={c.author} color={c.avatarColor} size={20} />
-                                  <span className="text-mist-300">{c.author}</span>
-                                  {repliedComment && (
-                                    <span className="text-tian-300">
-                                      回复 @{repliedComment.author}
-                                    </span>
-                                  )}
-                                  <span className="font-mono">{formatRelativeTime(c.date)}</span>
-                                  <button
-                                    onClick={() => openReply(a.id, c)}
-                                    className="ml-auto flex h-8 w-8 items-center justify-center rounded text-mist-500 opacity-0 transition-opacity hover:text-tian-300 group-hover:opacity-100"
-                                    aria-label="回复评论"
-                                    title="回复评论"
-                                  >
-                                    <CornerDownRight size={11} />
-                                  </button>
-                                  {isAuthor(user?.uid, c.authorUid) && (
-                                    <>
+                              <div key={c.id} className="group flex gap-3 border-l-2 border-void-600/40 pl-3">
+                                <Avatar name={c.author} color={c.avatarColor} size={24} />
+                                <div className="min-w-0 flex-1">
+                                  {/* 评论作者栏 */}
+                                  <div className="flex flex-wrap items-center gap-x-2 gap-y-0.5 text-xs">
+                                    <span className="font-medium text-parchment-100">{c.author}</span>
+                                    {repliedComment && (
+                                      <span className="text-tian-300">回复 @{repliedComment.author}</span>
+                                    )}
+                                    <span className="font-mono text-mist-500">{formatRelativeTime(c.date)}</span>
+                                    <div className="ml-auto flex items-center gap-0.5">
                                       <button
-                                        onClick={() => startEditComment(c.id, c.content)}
-                                        className="flex h-8 w-8 items-center justify-center rounded-md text-mist-500 opacity-0 transition-opacity hover:text-tian-300 group-hover:opacity-100"
-                                        title="编辑评论"
-                                        aria-label="编辑评论"
+                                        onClick={() => openReply(a.id, c)}
+                                        className="flex h-7 w-7 items-center justify-center rounded text-mist-500 opacity-0 transition-opacity hover:text-tian-300 group-hover:opacity-100"
+                                        aria-label="回复评论"
+                                        title="回复评论"
                                       >
-                                        <Pencil size={11} />
+                                        <CornerDownRight size={11} />
                                       </button>
-                                      <button
-                                        onClick={() => {
-                                          handleDeleteComment(a.id, c.id);
-                                        }}
-                                        className="flex h-8 w-8 items-center justify-center rounded-md text-mist-500 opacity-0 transition-opacity hover:text-red-300 group-hover:opacity-100"
-                                        title="删除评论"
-                                        aria-label="删除评论"
-                                      >
-                                        <Trash2 size={11} />
-                                      </button>
-                                    </>
-                                  )}
-                                  {user && !isAuthor(user.uid, c.authorUid) && (
-                                    <button
-                                      onClick={() => {
-                                        openReport("comment", c.id, `评论：${c.content.slice(0, 30)}`);
-                                      }}
-                                      className="flex h-8 w-8 items-center justify-center rounded text-mist-500 opacity-0 transition-opacity hover:text-red-300 group-hover:opacity-100"
-                                      aria-label="举报评论"
-                                      title="举报评论"
-                                    >
-                                      <Flag size={11} />
-                                    </button>
-                                  )}
-                                </div>
-                                {editingCommentId === c.id ? (
-                                  <div className="mt-2 pl-7">
-                                    <textarea
-                                      rows={3}
-                                      value={editCommentText}
-                                      onChange={(e) => setEditCommentText(e.target.value)}
-                                      className="w-full resize-none rounded-lg border border-void-600/50 bg-void-950/50 p-2 text-sm text-parchment-100 focus:border-star-400/50 focus:outline-none"
-                                      maxLength={2000}
-                                    />
-                                    <div className="mt-1 flex justify-end gap-2">
-                                      <button onClick={() => setEditingCommentId(null)} className="btn-ghost text-xs">取消</button>
-                                      <button onClick={() => handleSaveComment(a.id, c.id)} className="btn-gold text-xs">保存</button>
+                                      {isAuthor(user?.uid, c.authorUid) && (
+                                        <>
+                                          <button
+                                            onClick={() => startEditComment(c.id, c.content)}
+                                            className="flex h-7 w-7 items-center justify-center rounded-md text-mist-500 opacity-0 transition-opacity hover:text-tian-300 group-hover:opacity-100"
+                                            title="编辑评论"
+                                            aria-label="编辑评论"
+                                          >
+                                            <Pencil size={11} />
+                                          </button>
+                                          <button
+                                            onClick={() => {
+                                              handleDeleteComment(a.id, c.id);
+                                            }}
+                                            className="flex h-7 w-7 items-center justify-center rounded-md text-mist-500 opacity-0 transition-opacity hover:text-red-300 group-hover:opacity-100"
+                                            title="删除评论"
+                                            aria-label="删除评论"
+                                          >
+                                            <Trash2 size={11} />
+                                          </button>
+                                        </>
+                                      )}
+                                      {user && !isAuthor(user.uid, c.authorUid) && (
+                                        <button
+                                          onClick={() => {
+                                            openReport("comment", c.id, `评论：${c.content.slice(0, 30)}`);
+                                          }}
+                                          className="flex h-7 w-7 items-center justify-center rounded text-mist-500 opacity-0 transition-opacity hover:text-red-300 group-hover:opacity-100"
+                                          aria-label="举报评论"
+                                          title="举报评论"
+                                        >
+                                          <Flag size={11} />
+                                        </button>
+                                      )}
                                     </div>
                                   </div>
-                                ) : (
-                                  <LazyMathText
-                                    content={c.content}
-                                    className="mt-1 pl-7 text-sm text-mist-200"
-                                  />
-                                )}
+                                  {editingCommentId === c.id ? (
+                                    <div className="mt-2">
+                                      <textarea
+                                        rows={3}
+                                        value={editCommentText}
+                                        onChange={(e) => setEditCommentText(e.target.value)}
+                                        className="w-full resize-none rounded-lg border border-void-600/50 bg-void-950/50 p-2 text-sm text-parchment-100 focus:border-star-400/50 focus:outline-none"
+                                        maxLength={2000}
+                                      />
+                                      <div className="mt-1 flex justify-end gap-2">
+                                        <button onClick={() => setEditingCommentId(null)} className="btn-ghost text-xs">取消</button>
+                                        <button onClick={() => handleSaveComment(a.id, c.id)} className="btn-gold text-xs">保存</button>
+                                      </div>
+                                    </div>
+                                  ) : (
+                                    <LazyMathText
+                                      content={c.content}
+                                      className="mt-1 text-[13px] leading-relaxed text-mist-200"
+                                    />
+                                  )}
+                                </div>
                               </div>
                             );
                           })}
