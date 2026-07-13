@@ -34,6 +34,14 @@ const FILTER_DEFAULTS: Record<string, string> = {
 /** 列表内存缓存（按分区+子分类）：后退返回时立即渲染，浏览器才能恢复滚动位置 */
 const postsCache = new Map<string, Question[]>();
 
+/** 从帖子中提取最后活动时间：有回答取最新回答时间，否则用创建时间 (#294) */
+function getLastActivity(q: Question): string {
+  if (q.answerList?.length) {
+    return q.answerList.reduce((latest, a) => (a.date > latest ? a.date : latest), q.createdAt);
+  }
+  return q.createdAt;
+}
+
 const SECTIONS: { key: PostCategory; label: string; icon: typeof GraduationCap }[] = [
   { key: "academic", label: "学术区", icon: GraduationCap },
   { key: "casual", label: "闲聊区", icon: Coffee },
@@ -202,13 +210,13 @@ export default function Discussion() {
 
   return (
     <>
-      {/* 顶部工具栏：标题 + 操作 */}
+      {/* 顶部工具栏：标题 + 操作 - 分区 tab 和发起讨论按钮加强可见性 (#294) */}
       <div className="border-b border-void-600/30 bg-void-900/20">
-        <div className="container-tj flex h-12 items-center justify-between">
-          <div className="flex items-center gap-4">
-            <h1 className="text-sm font-medium text-parchment-100">学问讨论</h1>
-            {/* 分区切换：极简文字 tab */}
-            <div className="flex items-center gap-1 text-xs">
+        <div className="container-tj flex h-14 items-center justify-between">
+          <div className="flex items-center gap-3">
+            <h1 className="text-base font-semibold text-parchment-100">学问讨论</h1>
+            {/* 分区切换：明显的 pill tab */}
+            <div className="flex items-center gap-1">
               {SECTIONS.map((s) => {
                 const Icon = s.icon;
                 const isActive = section === s.key;
@@ -216,25 +224,30 @@ export default function Discussion() {
                   <button
                     key={s.key}
                     onClick={() => updateFilters({ section: s.key, cat: "全部", tag: "全部", sort: "最新" })}
-                    className={`inline-flex items-center gap-1 rounded px-2 py-1 transition-colors ${
-                      isActive ? "text-parchment-100" : "text-mist-500 hover:text-mist-300"
+                    className={`inline-flex items-center gap-1.5 rounded-md px-3 py-1.5 text-sm font-medium transition-colors ${
+                      isActive
+                        ? "bg-tian-400/15 text-tian-300"
+                        : "text-mist-400 hover:bg-void-700/50 hover:text-mist-200"
                     }`}
                   >
-                    <Icon size={12} />
+                    <Icon size={14} />
                     {s.label}
                   </button>
                 );
               })}
             </div>
           </div>
-          <button onClick={handlePostClick} className="inline-flex items-center gap-1.5 rounded-md bg-star-400/10 px-3 py-1.5 text-xs font-medium text-star-300 transition-colors hover:bg-star-400/20">
-            <Plus size={13} /> 发起讨论
+          <button
+            onClick={handlePostClick}
+            className="inline-flex items-center gap-1.5 rounded-md bg-star-400 px-3.5 py-2 text-sm font-semibold text-void-950 shadow-sm transition-colors hover:bg-star-500"
+          >
+            <Plus size={15} /> 发起讨论
           </button>
         </div>
       </div>
 
-      {/* 主体：列表 + 桌面端右侧栏 */}
-      <section className="container-tj grid gap-8 py-6 lg:grid-cols-[minmax(0,1fr)_280px] lg:items-start">
+      {/* 主体：列表 + 桌面端右侧栏。主列表加宽为视觉主角，右侧栏收窄 (#292) */}
+      <section className="container-tj grid gap-8 py-6 lg:grid-cols-[minmax(0,1fr)_300px] lg:items-start">
         <div className="min-w-0">
         {/* 新访客欢迎横幅 */}
         <WelcomeBanner />
@@ -348,48 +361,63 @@ export default function Discussion() {
           />
         )}
 
-        {/* 帖子列表 - Lobsters/HN 风格：行内分割线，无卡片容器 */}
+        {/* 帖子列表 - 论坛 topic table 风格：标题+元信息 | 回复 | 浏览 | 活动时间 (#294) */}
         {!loading && !error && filtered.length > 0 && (
-          <div className="divide-y divide-void-600/20 rounded-lg border border-void-600/20">
-            {filtered.map((q) => (
-              <div
-                key={q.id}
-                onClick={() => navigate(`/discussion/${q.id}`)}
-                className="group flex cursor-pointer items-center gap-3 px-4 py-3 transition-colors hover:bg-void-800/30"
-              >
-                {/* 回答数 - Lobsters 式彩色小标签 */}
-                <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-md bg-tian-400/10 text-xs font-medium text-tian-300">
-                  {q.answers}
-                </span>
+          <div className="overflow-hidden rounded-lg border border-void-600/40 bg-void-800">
+            {/* 表头 - 桌面端可见 */}
+            <div className="hidden lg:grid grid-cols-[minmax(0,1fr)_56px_64px_88px] items-center gap-3 border-b border-void-600/40 px-5 py-2.5 text-xs font-medium text-mist-500">
+              <span>主题</span>
+              <span className="text-right">回复</span>
+              <span className="text-right">浏览</span>
+              <span className="text-right">活动</span>
+            </div>
+            {filtered.map((q, i) => {
+              const lastActivity = getLastActivity(q);
+              return (
+                <div
+                  key={q.id}
+                  onClick={() => navigate(`/discussion/${q.id}`)}
+                  className={`group grid cursor-pointer grid-cols-[minmax(0,1fr)_auto] items-center gap-4 px-5 py-4 transition-colors hover:bg-void-700/50 lg:grid-cols-[minmax(0,1fr)_56px_64px_88px] ${
+                    i !== 0 ? "border-t border-void-600/30" : ""
+                  }`}
+                >
+                  {/* 主题列：标题 + 标签/作者/悬赏 */}
+                  <div className="min-w-0">
+                    <div className="flex items-center gap-2">
+                      {q.pinned && <span className="shrink-0 text-xs text-star-300" title="置顶">📌</span>}
+                      <h3 className="truncate text-[17px] font-medium leading-snug text-parchment-100 transition-colors group-hover:text-star-400">
+                        {q.title}
+                      </h3>
+                      {q.bounty && (
+                        <span className="shrink-0 rounded bg-star-400/10 px-2 py-0.5 text-xs font-medium text-star-300">
+                          {q.bounty}
+                        </span>
+                      )}
+                    </div>
+                    <div className="mt-1.5 flex flex-wrap items-center gap-2 text-sm text-mist-500">
+                      {q.tags.slice(0, 3).map((t) => (
+                        <Link key={t} to={`/tags/${encodeURIComponent(t)}`} onClick={(e) => e.stopPropagation()} className="transition-colors hover:text-mist-300">
+                          {t}
+                        </Link>
+                      ))}
+                      <span className="text-mist-600">&middot;</span>
+                      <span>{q.author}</span>
+                    </div>
+                  </div>
 
-                {/* 主体 */}
-                <div className="min-w-0 flex-1">
-                  <div className="flex items-center gap-2">
-                    <h3 className="truncate text-sm font-medium text-parchment-100 transition-colors group-hover:text-star-300">
-                      {q.title}
-                    </h3>
-                    {q.bounty && (
-                      <span className="shrink-0 rounded bg-star-400/10 px-1.5 py-0.5 text-[10px] font-medium text-star-300">
-                        {q.bounty}
-                      </span>
-                    )}
+                  {/* 回复数 - 始终可见 */}
+                  <div className="text-right">
+                    <span className="text-[15px] font-semibold text-parchment-100">{q.answers}</span>
                   </div>
-                  <div className="mt-0.5 flex items-center gap-2 text-[11px] text-mist-500">
-                    {q.tags.slice(0, 3).map((t) => (
-                      <Link key={t} to={`/tags/${encodeURIComponent(t)}`} onClick={(e) => e.stopPropagation()} className="transition-colors hover:text-mist-300">
-                        {t}
-                      </Link>
-                    ))}
-                    <span className="text-mist-600">&middot;</span>
-                    <span>{q.author}</span>
-                    <span className="text-mist-600">&middot;</span>
-                    <span>{formatRelativeTime(q.createdAt)}</span>
-                    <span className="text-mist-600">&middot;</span>
-                    <span>{q.views} 浏览</span>
-                  </div>
+
+                  {/* 浏览数 - 桌面端 */}
+                  <div className="hidden text-right text-sm text-mist-400 lg:block">{q.views}</div>
+
+                  {/* 活动时间 - 桌面端 */}
+                  <div className="hidden text-right text-sm text-mist-500 lg:block">{formatRelativeTime(lastActivity)}</div>
                 </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
         )}
 
