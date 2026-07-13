@@ -6,8 +6,26 @@
 const cloud = require("@cloudbase/node-sdk");
 const { withTiming, logError } = require("./logger");
 
-const app = cloud.init({ env: cloud.SYMBOL_CURRENT_ENV });
-const db = app.database();
+// 延迟初始化：真实运行时首次使用才连接 CloudBase；测试可通过
+// __setTestDb 注入假数据库与假 auth，避免加载真实 SDK（缺凭据会失败）。
+let app;
+let db;
+let auth;
+
+function ensureApp() {
+  if (!app && !db) {
+    app = cloud.init({ env: cloud.SYMBOL_CURRENT_ENV });
+    db = app.database();
+    auth = app.auth();
+  }
+  return app;
+}
+
+// 仅供测试注入假数据库与假 auth，生产代码不应调用
+exports.__setTestDb = (fakeDb, fakeAuth) => {
+  db = fakeDb;
+  auth = fakeAuth;
+};
 
 const BOT_NAME = "天玑bot";
 const BOT_AVATAR_COLOR = "#a78bfa";
@@ -36,10 +54,13 @@ exports.main = async (event, context) => {
     return { ok: false, error: "未配置 DEEPSEEK_API_KEY" };
   }
 
+  // 首次需要 db/auth 时才初始化 CloudBase（测试已通过 __setTestDb 注入）
+  ensureApp();
+
   // 获取调用者 uid 用于服务端限流
   let uid = "";
   try {
-    const info = await app.auth().getEndUserInfo();
+    const info = await auth.getEndUserInfo();
     uid = info?.userInfo?.uid || "";
   } catch (e) {
     // getEndUserInfo 不可用时回退到 context
