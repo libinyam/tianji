@@ -385,7 +385,7 @@ export default function Discussion() {
                   <div className="min-w-0">
                     <div className="flex items-center gap-2">
                       {q.pinned && <span className="shrink-0 text-xs text-star-300" title="置顶">📌</span>}
-                      <h3 className="truncate text-[17px] font-semibold leading-snug text-parchment-100 transition-colors group-hover:text-star-400">
+                      <h3 className="truncate text-[17px] font-medium leading-snug text-parchment-100 transition-colors group-hover:text-star-400">
                         {q.title}
                       </h3>
                       {q.bounty && (
