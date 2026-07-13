@@ -390,6 +390,173 @@ async function awardCreateReputation(event, uid) {
   return ok({ awarded: true });
 }
 
+async function addBookReview(event, uid) {
+  const { bookId, author, authorUid, rating, content } = event;
+  if (!bookId) return fail("缺少参数");
+
+  const docRef = db.collection("books").doc(bookId);
+  const { data } = await docRef.get();
+  if (!data || data.length === 0) return fail("书籍不存在");
+
+  const book = data[0];
+  const reviews = book.reviews || [];
+  const idx = reviews.findIndex((r) => r.authorUid === authorUid);
+
+  const review = {
+    author: author || "",
+    authorUid: authorUid || "",
+    rating: Number(rating) || 0,
+    content: String(content || "").trim().slice(0, 5000),
+    date: new Date().toISOString(),
+  };
+
+  let updated = false;
+  if (idx >= 0) {
+    reviews[idx] = { ...reviews[idx], ...review };
+    updated = true;
+  } else {
+    reviews.push(review);
+  }
+
+  const sum = reviews.reduce((acc, r) => acc + (Number(r.rating) || 0), 0);
+  const avgRating = reviews.length > 0 ? sum / reviews.length : 0;
+
+  await docRef.update({
+    reviews,
+    avgRating,
+  });
+
+  return ok({ avgRating, updated });
+}
+
+async function joinWorkshop(event, uid) {
+  const { workshopId } = event;
+  if (!workshopId) return fail("缺少参数");
+
+  const docRef = db.collection("workshops").doc(workshopId);
+  const { data } = await docRef.get();
+  if (!data || data.length === 0) return fail("工坊不存在");
+
+  const workshop = data[0];
+  const participants = workshop.participants || [];
+  if (participants.includes(uid)) return fail("已参与此工坊");
+
+  await docRef.update({
+    participants: _.addToSet(uid),
+  });
+
+  if (workshop.authorUid && workshop.authorUid !== uid) {
+    try {
+      await db.collection("notifications").add({
+        uid: workshop.authorUid,
+        type: "workshop",
+        title: workshop.title || "",
+        link: `/workshop/${workshopId}`,
+        read: false,
+        createdAt: new Date().toISOString(),
+      });
+    } catch {}
+  }
+
+  return ok({ joined: true });
+}
+
+async function submitWorkshopContribution(event, uid) {
+  const { workshopId, chapterId, content } = event;
+  if (!workshopId || !chapterId || !content) return fail("缺少参数");
+
+  const sc = containsSensitiveWord(content);
+  if (sc.found) return fail(`内容包含敏感词: ${sc.words.join(", ")}`);
+
+  const sanitized = String(content || "").trim().slice(0, 10000);
+
+  const docRef = db.collection("workshops").doc(workshopId);
+  const { data } = await docRef.get();
+  if (!data || data.length === 0) return fail("工坊不存在");
+
+  const workshop = data[0];
+
+  const contribution = {
+    id: `c_${Date.now()}_${Math.random().toString(36).slice(2, 10)}`,
+    chapterId,
+    authorUid: uid,
+    content: sanitized,
+    date: new Date().toISOString(),
+  };
+
+  await docRef.update({
+    contributions: _.push([contribution]),
+  });
+
+  if (workshop.authorUid && workshop.authorUid !== uid) {
+    try {
+      await db.collection("notifications").add({
+        uid: workshop.authorUid,
+        type: "workshop",
+        title: workshop.title || "",
+        link: `/workshop/${workshopId}`,
+        read: false,
+        createdAt: new Date().toISOString(),
+      });
+    } catch {}
+  }
+
+  return ok(contribution);
+}
+
+async function addWorkshopAnnotation(event, uid) {
+  const { workshopId, content } = event;
+  if (!workshopId || !content) return fail("缺少参数");
+
+  const sc = containsSensitiveWord(content);
+  if (sc.found) return fail(`内容包含敏感词: ${sc.words.join(", ")}`);
+
+  const sanitized = String(content || "").trim().slice(0, 5000);
+
+  const docRef = db.collection("workshops").doc(workshopId);
+  const { data } = await docRef.get();
+  if (!data || data.length === 0) return fail("工坊不存在");
+
+  const annotation = {
+    id: `an_${Date.now()}_${Math.random().toString(36).slice(2, 10)}`,
+    authorUid: uid,
+    content: sanitized,
+    resolved: false,
+    date: new Date().toISOString(),
+  };
+
+  await docRef.update({
+    annotations: _.push([annotation]),
+  });
+
+  return ok(annotation);
+}
+
+async function resolveWorkshopAnnotation(event, uid) {
+  const { workshopId, annotationId } = event;
+  if (!workshopId || !annotationId) return fail("缺少参数");
+
+  const docRef = db.collection("workshops").doc(workshopId);
+  const { data } = await docRef.get();
+  if (!data || data.length === 0) return fail("工坊不存在");
+
+  const workshop = data[0];
+  const annotations = workshop.annotations || [];
+  const idx = annotations.findIndex((a) => a.id === annotationId);
+  if (idx === -1) return fail("批注不存在");
+
+  const annotation = annotations[idx];
+  if (workshop.authorUid !== uid && annotation.authorUid !== uid) {
+    return fail("无权解决此批注");
+  }
+
+  annotations[idx] = { ...annotation, resolved: true };
+
+  await docRef.update({ annotations });
+
+  return ok({ resolved: true });
+}
+
 exports.main = async (event, context) => {
   const { action } = event;
   if (!action) return fail("缺少 action 参数");
@@ -400,8 +567,8 @@ exports.main = async (event, context) => {
   // 测试注入 db 时 appInst 为空，直接走 context.userInfo 回退
   if (appInst) {
     try {
-      const info = await appInst.auth().getEndUserInfo(context);
-      uid = info?.userInfo?.uid || info?.uid || "";
+      const info = await appInst.auth().getEndUserInfo();
+      uid = info?.userInfo?.uid || "";
     } catch {}
   }
   if (!uid && context?.userInfo) {
@@ -436,6 +603,16 @@ exports.main = async (event, context) => {
         return await resonanceIdea(event, uid);
       case "awardCreateReputation":
         return await awardCreateReputation(event, uid);
+      case "addBookReview":
+        return await addBookReview(event, uid);
+      case "joinWorkshop":
+        return await joinWorkshop(event, uid);
+      case "submitWorkshopContribution":
+        return await submitWorkshopContribution(event, uid);
+      case "addWorkshopAnnotation":
+        return await addWorkshopAnnotation(event, uid);
+      case "resolveWorkshopAnnotation":
+        return await resolveWorkshopAnnotation(event, uid);
       default:
         return fail(`未知 action: ${action}`);
     }

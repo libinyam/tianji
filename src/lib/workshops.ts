@@ -1,5 +1,4 @@
 import { app } from "@/lib/cloudbase";
-import { createNotification } from "@/lib/notifications";
 import { sanitizeInput, sanitizeTitle, sanitizeTag } from "@/lib/sanitize";
 import { checkCurrentUserBanned } from "@/lib/ban";
 import { containsSensitiveWord } from "@/lib/sensitive-words";
@@ -212,30 +211,13 @@ export async function createWorkshop(params: {
 export async function joinWorkshop(id: string): Promise<boolean> {
   const uid = getCurrentUid();
   if (!uid) throw new Error("请先登录");
-
   try {
-    const docRef = db.collection(COLLECTION).doc(id);
-    const { data } = await docRef.get();
-    if (!data || data.length === 0) return false;
-
-    const project = data[0] as WorkshopDoc;
-    if (project.participants?.includes(uid)) return true;
-
-    // 使用原子 addToSet 追加参与者，避免读-改-写竞态（PR #129 该处编辑丢失，#131 复修）
-    await docRef.update({
-      participants: db.command.addToSet(uid),
-      updatedAt: new Date().toISOString(),
+    const res = await app.callFunction({
+      name: "content-actions",
+      data: { action: "joinWorkshop", workshopId: id },
     });
-
-    // 通知项目创建者
-    await createNotification({
-      uid: project.creatorUid,
-      type: "join",
-      title: project.title,
-      link: `/workshop/${id}`,
-    });
-
-    return true;
+    const result = (res?.result ?? {}) as { ok?: boolean; error?: string };
+    return result.ok === true;
   } catch {
     return false;
   }
@@ -249,40 +231,18 @@ export async function submitContribution(
 ): Promise<Contribution | null> {
   const uid = getCurrentUid();
   if (!uid) throw new Error("请先登录");
-
-  // Sanitize input
   const cleanContent = sanitizeInput(content);
-
-  const docRef = db.collection(COLLECTION).doc(workshopId);
-  const { data } = await docRef.get();
-  if (!data || data.length === 0) return null;
-
-  const project = data[0] as WorkshopDoc;
-  const contribution: Contribution = {
-    id: `c_${crypto.randomUUID()}`,
-    chapterId,
-    author: getCurrentUserName(),
-    authorUid: uid,
-    avatarColor: AVATAR_COLORS[Math.floor(Math.random() * AVATAR_COLORS.length)],
-    content: cleanContent,
-    createdAt: new Date().toISOString(),
-  };
-
-  // 使用原子 push 追加贡献，避免读-改-写竞态（PR #129 该处编辑丢失，#131 复修）
-  await docRef.update({
-    contributions: db.command.push([contribution]),
-    updatedAt: new Date().toISOString(),
-  });
-
-  // 通知项目创建者
-  await createNotification({
-    uid: project.creatorUid,
-    type: "contribute",
-    title: project.title,
-    link: `/workshop/${workshopId}`,
-  });
-
-  return contribution;
+  try {
+    const res = await app.callFunction({
+      name: "content-actions",
+      data: { action: "submitWorkshopContribution", workshopId, chapterId, content: cleanContent },
+    });
+    const result = (res?.result ?? {}) as { ok?: boolean; data?: Contribution; error?: string };
+    if (!result.ok) return null;
+    return result.data ?? null;
+  } catch {
+    return null;
+  }
 }
 
 /** 判断当前用户是否可查看论文内容 */
@@ -374,31 +334,15 @@ export async function addAnnotation(
   const uid = getCurrentUid();
   if (!uid) throw new Error("请先登录");
   if (!content.trim()) throw new Error("批注内容不能为空");
-
-  // Sanitize input
   const cleanContent = sanitizeInput(content.trim());
-
   try {
-    const docRef = db.collection(COLLECTION).doc(id);
-    const { data } = await docRef.get();
-    if (!data || data.length === 0) return null;
-
-    const annotation: Annotation = {
-      id: `a_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`,
-      author: getCurrentUserName(),
-      authorUid: uid,
-      content: cleanContent,
-      resolved: false,
-      createdAt: new Date().toISOString(),
-    };
-
-    // 使用原子 push 追加批注，避免读-改-写竞态
-    await docRef.update({
-      annotations: db.command.push([annotation]),
-      updatedAt: new Date().toISOString(),
+    const res = await app.callFunction({
+      name: "content-actions",
+      data: { action: "addWorkshopAnnotation", workshopId: id, content: cleanContent },
     });
-
-    return annotation;
+    const result = (res?.result ?? {}) as { ok?: boolean; data?: Annotation; error?: string };
+    if (!result.ok) return null;
+    return result.data ?? null;
   } catch {
     return null;
   }
@@ -415,32 +359,16 @@ export async function resolveAnnotation(
 ): Promise<boolean> {
   const uid = getCurrentUid();
   if (!uid) throw new Error("请先登录");
-
   try {
-    const docRef = db.collection(COLLECTION).doc(id);
-    const { data } = await docRef.get();
-    if (!data || data.length === 0) return false;
-
-    const project = data[0] as WorkshopDoc;
-    const annotations = project.annotations ?? [];
-    const target = annotations.find((a) => a.id === annotationId);
-    if (!target) return false;
-
-    // 权限检查：仅创建者或批注作者可解决
-    if (project.creatorUid !== uid && target.authorUid !== uid) {
-      throw new Error("仅创建者或批注作者可解决批注");
-    }
-
-    const updated = annotations.map((a) =>
-      a.id === annotationId ? { ...a, resolved: true } : a
-    );
-
-    await docRef.update({
-      annotations: updated,
-      updatedAt: new Date().toISOString(),
+    const res = await app.callFunction({
+      name: "content-actions",
+      data: { action: "resolveWorkshopAnnotation", workshopId: id, annotationId },
     });
-
-    return true;
+    const result = (res?.result ?? {}) as { ok?: boolean; error?: string };
+    if (result.error?.includes("仅创建者或批注作者")) {
+      throw new Error(result.error);
+    }
+    return result.ok === true;
   } catch (err) {
     if (err instanceof Error && err.message.includes("仅创建者或批注作者")) throw err;
     return false;
