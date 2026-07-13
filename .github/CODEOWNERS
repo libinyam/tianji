@@ -1,0 +1,8 @@
+* @libinyam
+
+/cloudbase-security-rules.json @libinyam
+/cloudfunctions/ @libinyam
+/.github/workflows/ @libinyam
+/package.json @libinyam
+/tsconfig.json @libinyam
+/cloudbaserc.json @libinyam

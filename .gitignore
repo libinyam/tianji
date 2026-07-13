@@ -38,3 +38,8 @@ repo-context.json
 .github-review-memory/
 .tmp-branch-protection.json
 .tmp-*
+
+# agent worktrees
+.agents/
+.claude/
+.closed-loop-workspace/

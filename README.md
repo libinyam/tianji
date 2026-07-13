@@ -1,4 +1,6 @@
-# 天玑 (Tianji) — 知识共创社区
+# 天玑 (Tianji) - 知识共创社区
+
+[![在线体验](https://img.shields.io/badge/在线体验-tianjihub.cn-blue)](https://tianjihub.cn)
 
 面向学生、研究者和开发者的知识分享平台，集讨论区、灵感广场、资源库、协作工坊于一体。打通从学习资源到项目协作的完整链路。
 
