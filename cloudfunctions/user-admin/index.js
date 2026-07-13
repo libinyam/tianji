@@ -24,8 +24,8 @@ exports.main = async (event, context) => {
   let callerUid = "";
 
   try {
-    const info = await app.auth().getEndUserInfo(context);
-    callerUid = info?.userInfo?.uid || info?.uid || "";
+    const info = await app.auth().getEndUserInfo();
+    callerUid = info?.userInfo?.uid || "";
   } catch (e) {
   }
 
