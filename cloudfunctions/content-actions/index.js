@@ -400,8 +400,8 @@ exports.main = async (event, context) => {
   // 测试注入 db 时 appInst 为空，直接走 context.userInfo 回退
   if (appInst) {
     try {
-      const info = await appInst.auth().getEndUserInfo(context);
-      uid = info?.userInfo?.uid || info?.uid || "";
+      const info = await appInst.auth().getEndUserInfo();
+      uid = info?.userInfo?.uid || "";
     } catch {}
   }
   if (!uid && context?.userInfo) {

@@ -55,8 +55,8 @@ async function resolveCaller(event, context, appInst) {
   let uid = "";
   if (appInst) {
     try {
-      const info = await appInst.auth().getEndUserInfo(context);
-      uid = info?.userInfo?.uid || info?.uid || "";
+      const info = await appInst.auth().getEndUserInfo();
+      uid = info?.userInfo?.uid || "";
     } catch {}
   }
   if (!uid && context?.userInfo) {

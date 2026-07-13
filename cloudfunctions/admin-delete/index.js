@@ -30,8 +30,8 @@ exports.main = async (event, context) => {
   let uid = "";
 
   try {
-    const info = await app.auth().getEndUserInfo(context);
-    uid = info?.userInfo?.uid || info?.uid || "";
+    const info = await app.auth().getEndUserInfo();
+    uid = info?.userInfo?.uid || "";
   } catch (e) {
     // getEndUserInfo 不可用时，回退到 context
   }
