@@ -10,6 +10,7 @@
     ],
     "module": "ESNext",
     "skipLibCheck": true,
+    "types": ["node"],
     "moduleResolution": "bundler",
     "allowImportingTsExtensions": true,
     "verbatimModuleSyntax": false,
@@ -22,7 +23,6 @@
     "noFallthroughCasesInSwitch": true,
     "noUncheckedSideEffectImports": true,
     "forceConsistentCasingInFileNames": true,
-    "baseUrl": "./",
     "paths": {
       "@/*": [
         "./src/*"
