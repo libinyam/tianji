@@ -63,6 +63,8 @@ export default function Discussion() {
   const [loading, setLoading] = useState(() => !postsCache.has(cacheKey));
   const [error, setError] = useState<string | null>(null);
   const [reloadKey, setReloadKey] = useState(0);
+  const [hasMore, setHasMore] = useState(false);
+  const [loadingMore, setLoadingMore] = useState(false);
   const [announcements, setAnnouncements] = useState<Announcement[]>([]);
   const [dismissedAnn, setDismissedAnn] = useState<Set<string>>(new Set());
   const { user } = useAuthStore();
@@ -98,7 +100,6 @@ export default function Discussion() {
       );
       if (!mounted) return;
       if (result.error) {
-        // 静默刷新失败时保留已展示的缓存，只在无缓存时报错
         if (!cached) {
           setError(result.error);
           setRealPosts([]);
@@ -107,10 +108,31 @@ export default function Discussion() {
         postsCache.set(cacheKey, result.data);
         setRealPosts(result.data);
       }
+      setHasMore(result.hasMore);
       setLoading(false);
     })();
     return () => { mounted = false; };
   }, [section, subFilter, cacheKey, reloadKey]);
+
+  const loadMore = async () => {
+    if (loadingMore || !hasMore) return;
+    setLoadingMore(true);
+    try {
+      const offset = realPosts.length;
+      const result = await fetchPosts(
+        section,
+        section === "casual" && subFilter !== "全部" ? subFilter : undefined,
+        offset
+      );
+      if (!result.error) {
+        const next = [...realPosts, ...result.data];
+        setRealPosts(next);
+        postsCache.set(cacheKey, next);
+        setHasMore(result.hasMore);
+      }
+    } catch { /* noop */ }
+    setLoadingMore(false);
+  };
 
   useEffect(() => {
     let mounted = true;
@@ -369,6 +391,16 @@ export default function Discussion() {
               </div>
             ))}
           </div>
+        )}
+
+        {!loading && !error && hasMore && filtered.length > 0 && (
+          <button
+            onClick={loadMore}
+            disabled={loadingMore}
+            className="mt-4 w-full rounded-lg border border-void-600/20 py-2.5 text-sm text-mist-400 transition-colors hover:bg-void-800/30 disabled:opacity-50"
+          >
+            {loadingMore ? "加载中…" : "加载更多"}
+          </button>
         )}
         </div>
 

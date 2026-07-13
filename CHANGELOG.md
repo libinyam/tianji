@@ -4,9 +4,29 @@
 
 ## [Unreleased]
 
-### Added
-- Dependabot 依赖更新自动化配置
-- 分支保护 enforce_admins 启用
+## [0.3.1] - 2026-07-13
+
+### Security
+- 安全规则收紧后前端直写操作失败修复：8 个集合添加 create 规则 (#242)
+- awardCreateReputation 声望刷分漏洞修复：添加内容存在性+作者校验 (#249)
+- 分支保护启用 PR review 要求 (#271)
+
+### CI/CD
+- cloudbaserc.json 移除 node_modules ignore，修复云函数依赖丢失 (#264)
+- CI 添加 npm audit 检查（非阻塞）(#272)
+- 覆盖率阈值提升：lines 4%→8%，branches 3%→5%，functions 5%→7% (#269)
+- CODEOWNERS 文件 (#273)
+
+### Infrastructure
+- getEndUserInfo() 修复：6 个云函数不传 context 参数
+- 仓库描述和 topics 设置 (#274)
+- README 添加在线体验链接 (#276)
+- 清理误提交的 .agents/ 目录
+
+### Test
+- P0 测试补齐：posts CRUD 10 个、auth 13 个、check-admin 4 个、user-admin 5 个、admin-delete 5 个 (#266/#267/#268)
+- awardCreateReputation 6 个测试 (#249)
+- 测试从 117 增长到 123，全部通过
 
 ## [0.3.0] - 2026-07-11
 

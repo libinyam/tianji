@@ -280,3 +280,47 @@ describe("awardCreateReputation", () => {
     expect(repOf("user1")).toBe(3);
   });
 });
+
+describe("服务端限流（issue #277）", () => {
+  it("超过阈值后操作被拒绝", async () => {
+    store.posts = new Map([["p1", { _id: "p1", authorUid: "asker", locked: false }]]);
+    store.users_v2 = new Map();
+
+    for (let i = 0; i < 15; i++) {
+      const res = await main({ action: "submitAnswer", postId: "p1", content: `回答${i}` }, ctx("user1"));
+      expect(res.ok).toBe(true);
+    }
+
+    const res = await main({ action: "submitAnswer", postId: "p1", content: "超限" }, ctx("user1"));
+    expect(res.ok).toBe(false);
+    expect(res.error).toContain("操作过于频繁");
+  });
+
+  it("不同用户互不影响", async () => {
+    store.posts = new Map([["p1", { _id: "p1", authorUid: "asker", locked: false }]]);
+    store.users_v2 = new Map();
+
+    for (let i = 0; i < 14; i++) {
+      await main({ action: "submitAnswer", postId: "p1", content: `u1-${i}` }, ctx("user1"));
+    }
+
+    const res = await main({ action: "submitAnswer", postId: "p1", content: "user2回答" }, ctx("user2"));
+    expect(res.ok).toBe(true);
+  });
+
+  it("不同 action 独立计数", async () => {
+    store.posts = new Map([["p1", { _id: "p1", authorUid: "asker", locked: false }]]);
+    store.users_v2 = new Map();
+
+    for (let i = 0; i < 14; i++) {
+      await main({ action: "submitAnswer", postId: "p1", content: `回答${i}` }, ctx("user1"));
+    }
+
+    store.posts.set("p2", { _id: "p2", authorUid: "user1" });
+    const res = await main(
+      { action: "awardCreateReputation", reason: "createPost", entityId: "p2" },
+      ctx("user1")
+    );
+    expect(res.ok).toBe(true);
+  });
+});
