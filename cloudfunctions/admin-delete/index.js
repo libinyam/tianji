@@ -1,12 +1,23 @@
 const cloudbase = require("@cloudbase/node-sdk");
 
-const app = cloudbase.init({
-  env: cloudbase.SYMBOL_CURRENT_ENV,
-});
+let app;
+let db;
+let _;
 
-const db = app.database();
+function ensureApp() {
+  if (!app && !db) {
+    app = cloudbase.init({ env: cloudbase.SYMBOL_CURRENT_ENV });
+    db = app.database();
+    _ = db.command;
+  }
+  return app;
+}
 
-// 管理员 uid 列表从环境变量读取，逗号分隔；未配置时为空数组（fail-safe：无人是管理员）
+exports.__setTestDb = (fakeDb) => {
+  db = fakeDb;
+  _ = fakeDb.command;
+};
+
 const ADMIN_UIDS = (process.env.ADMIN_UIDS || "")
   .split(",")
   .map((s) => s.trim())
@@ -29,11 +40,14 @@ exports.main = async (event, context) => {
   // --- 1. 身份验证（仅接受服务端身份源） ---
   let uid = "";
 
-  try {
-    const info = await app.auth().getEndUserInfo();
-    uid = info?.userInfo?.uid || "";
-  } catch (e) {
-    // getEndUserInfo 不可用时，回退到 context
+  const appInst = ensureApp();
+
+  if (appInst) {
+    try {
+      const info = await appInst.auth().getEndUserInfo();
+      uid = info?.userInfo?.uid || "";
+    } catch (e) {
+    }
   }
 
   if (!uid && context?.userInfo) {
