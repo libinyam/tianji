@@ -233,8 +233,8 @@ export default function Discussion() {
         </div>
       </div>
 
-      {/* 主体：列表 + 桌面端右侧栏 */}
-      <section className="container-tj grid gap-8 py-6 lg:grid-cols-[minmax(0,1fr)_280px] lg:items-start">
+      {/* 主体：列表 + 桌面端右侧栏。主列表加宽为视觉主角，右侧栏收窄 (#292) */}
+      <section className="container-tj grid gap-8 py-6 lg:grid-cols-[minmax(0,1fr)_300px] lg:items-start">
         <div className="min-w-0">
         {/* 新访客欢迎横幅 */}
         <WelcomeBanner />
@@ -348,33 +348,36 @@ export default function Discussion() {
           />
         )}
 
-        {/* 帖子列表 - Lobsters/HN 风格：行内分割线，无卡片容器 */}
+        {/* 帖子列表 - 社区信息流风格：白底 + 行内分割线，无外层卡片容器 (#292) */}
         {!loading && !error && filtered.length > 0 && (
-          <div className="divide-y divide-void-600/20 rounded-lg border border-void-600/20">
-            {filtered.map((q) => (
+          <div className="overflow-hidden rounded-lg border border-void-600/40 bg-void-800/60">
+            {filtered.map((q, i) => (
               <div
                 key={q.id}
                 onClick={() => navigate(`/discussion/${q.id}`)}
-                className="group flex cursor-pointer items-center gap-3 px-4 py-3 transition-colors hover:bg-void-800/30"
+                className={`group flex cursor-pointer items-center gap-4 px-6 py-4 transition-colors hover:bg-void-700/40 ${
+                  i !== 0 ? "border-t border-void-600/30" : ""
+                }`}
               >
-                {/* 回答数 - Lobsters 式彩色小标签 */}
-                <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-md bg-tian-400/10 text-xs font-medium text-tian-300">
+                {/* 回答数 - Lobsters 式彩色小标签，放大作为帖子封面框 (#292) */}
+                <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-lg bg-tian-400/10 text-base font-semibold text-tian-300">
                   {q.answers}
                 </span>
 
                 {/* 主体 */}
                 <div className="min-w-0 flex-1">
                   <div className="flex items-center gap-2">
-                    <h3 className="truncate text-sm font-medium text-parchment-100 transition-colors group-hover:text-star-300">
+                    {/* 帖子标题 - 系统无衬线，字号放大 (#292) */}
+                    <h3 className="truncate text-lg font-semibold text-parchment-100 transition-colors group-hover:text-star-400">
                       {q.title}
                     </h3>
                     {q.bounty && (
-                      <span className="shrink-0 rounded bg-star-400/10 px-1.5 py-0.5 text-[10px] font-medium text-star-300">
+                      <span className="shrink-0 rounded bg-star-400/10 px-2 py-0.5 text-xs font-medium text-star-300">
                         {q.bounty}
                       </span>
                     )}
                   </div>
-                  <div className="mt-0.5 flex items-center gap-2 text-[11px] text-mist-500">
+                  <div className="mt-1.5 flex items-center gap-2 text-sm text-mist-500">
                     {q.tags.slice(0, 3).map((t) => (
                       <Link key={t} to={`/tags/${encodeURIComponent(t)}`} onClick={(e) => e.stopPropagation()} className="transition-colors hover:text-mist-300">
                         {t}
