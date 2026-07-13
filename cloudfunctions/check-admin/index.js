@@ -12,13 +12,13 @@ exports.main = async (event, context) => {
   let uid = "";
   let uidSource = "";
 
-  // 1. 优先从 getEndUserInfo 获取（最可靠）
+  // 1. 优先从 getEndUserInfo 获取（不传参，从环境变量自动读取调用者身份）
   try {
-    const info = await app.auth().getEndUserInfo(context);
-    uid = info?.userInfo?.uid || info?.uid || "";
+    const info = await app.auth().getEndUserInfo();
+    uid = info?.userInfo?.uid || "";
     uidSource = uid ? "getEndUserInfo" : "";
   } catch (e) {
-    // getEndUserInfo 不可用
+    // getEndUserInfo 不可用（未登录或 SDK 版本不支持）
   }
 
   // 2. 回退到 context.userInfo

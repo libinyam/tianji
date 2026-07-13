@@ -78,7 +78,7 @@ export async function toggleFavorite(params: {
     }
     // 更新对应集合的 favorites 计数
     if (params.type === "book") {
-      db.collection("books").doc(params.targetId).update({ favorites: db.command.inc(-1) }).catch(() => {});
+      app.callFunction({ name: "content-actions", data: { action: "adjustBookFavorites", bookId: params.targetId, delta: -1 } }).catch(() => {});
     }
     return false;
   }
@@ -100,7 +100,7 @@ export async function toggleFavorite(params: {
   }
   // 更新对应集合的 favorites 计数
   if (params.type === "book") {
-    db.collection("books").doc(params.targetId).update({ favorites: db.command.inc(1) }).catch(() => {});
+    app.callFunction({ name: "content-actions", data: { action: "adjustBookFavorites", bookId: params.targetId, delta: 1 } }).catch(() => {});
   }
   return true;
 }
