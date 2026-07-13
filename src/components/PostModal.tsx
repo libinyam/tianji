@@ -3,7 +3,7 @@ import { X, Loader2, RotateCcw, GraduationCap, Coffee } from "lucide-react";
 import { createPost, type PostCategory, type CasualSubCategory, CASUAL_SUB_CATEGORIES } from "@/lib/posts";
 import { ensureTags } from "@/lib/tags";
 import { rateLimiters } from "@/lib/security";
-import { app } from "@/lib/cloudbase";
+import { triggerAiBotReply } from "@/lib/ai";
 import { useAuthStore } from "@/stores/auth";
 import { toast } from "@/stores/toast";
 import { useDraft } from "@/hooks/useDraft";
@@ -105,16 +105,12 @@ export default function PostModal({ open, onClose, onCreated, defaultCategory = 
         handleClose();
 
         // 异步触发 AI 机器人回复（不阻塞用户）
-        app.callFunction({
-          name: "ai-bot",
-          data: {
-            postId: post.id,
-            postTitle: post.title,
-            postBody: post.body,
-            contentType: "post",
-            content: post.body,
-            tags: finalTags,
-          },
+        triggerAiBotReply({
+          postId: post.id,
+          postTitle: post.title,
+          postBody: post.body,
+          tags: finalTags,
+          replyType: "post",
         }).then(() => {
           // AI 回复已异步写入数据库
         }).catch((err) => {

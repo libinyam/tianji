@@ -1,4 +1,5 @@
 const cloudbase = require("@cloudbase/node-sdk");
+const { withTiming, logInfo } = require("./logger");
 
 const app = cloudbase.init({ env: cloudbase.SYMBOL_CURRENT_ENV });
 
@@ -37,6 +38,8 @@ exports.main = async (event, context) => {
   // 不再接受前端传入的 callerUid 作为回退，防止攻击者伪造身份。
 
   const isAdmin = !!uid && ADMIN_UIDS.includes(uid);
+
+  logInfo("check-admin", uid, isAdmin ? "admin verified" : "not admin", { uidSource });
 
   return {
     ok: true,

@@ -53,3 +53,79 @@ export async function assertAdmin(): Promise<void> {
   adminCache = { uid, isAdmin: !!result.isAdmin };
   if (!result.isAdmin) throw new Error("无权限");
 }
+
+const db = app.database();
+
+export async function fetchAdminStats(): Promise<{
+  posts: number;
+  ideas: number;
+  books: number;
+  workshops: number;
+  users_v2: number;
+  notifications: number;
+}> {
+  const collections = [
+    "posts",
+    "ideas",
+    "books",
+    "workshops",
+    "users_v2",
+    "notifications",
+  ] as const;
+  const entries = await Promise.all(
+    collections.map(async (name) => {
+      const { total } = await db.collection(name).count();
+      return [name, total] as const;
+    }),
+  );
+  return Object.fromEntries(entries) as {
+    posts: number;
+    ideas: number;
+    books: number;
+    workshops: number;
+    users_v2: number;
+    notifications: number;
+  };
+}
+
+export async function fetchAdminList(
+  collection: string,
+  limit = 50,
+): Promise<unknown[]> {
+  const { data } = await db
+    .collection(collection)
+    .orderBy("createdAt", "desc")
+    .limit(limit)
+    .get();
+  return data ?? [];
+}
+
+export async function fetchAdminUsers(
+  page = 1,
+  pageSize = 50,
+): Promise<unknown> {
+  const res = await app.callFunction({
+    name: "user-admin",
+    data: { action: "listUsers", page, pageSize },
+  });
+  return res?.result;
+}
+
+export async function searchAdminUsers(keyword: string): Promise<unknown> {
+  const res = await app.callFunction({
+    name: "user-admin",
+    data: { action: "searchUsers", keyword },
+  });
+  return res?.result;
+}
+
+export async function adminDelete(
+  collection: string,
+  docId: string,
+): Promise<unknown> {
+  const res = await app.callFunction({
+    name: "admin-delete",
+    data: { collection, docId, action: "delete" },
+  });
+  return res?.result;
+}

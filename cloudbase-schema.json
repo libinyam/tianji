@@ -25,13 +25,14 @@
         "pinned": "boolean?",
         "locked": "boolean?",
         "featured": "boolean?",
-        "createdAt": "string"
+        "createdAt": "string",
+        "ownerResolutionStatus": "string?"
       },
       "migrations": [
         {
           "from": 1,
           "to": 2,
-          "description": "添加 authorUid 字段",
+          "description": "添加 authorUid 字段，缺失时标记 ownerResolutionStatus=unresolved",
           "defaults": { "authorUid": "" }
         }
       ]
@@ -51,13 +52,14 @@
         "replies": "number",
         "resonatedBy": "string[]",
         "comments": "array?",
-        "createdAt": "string"
+        "createdAt": "string",
+        "ownerResolutionStatus": "string?"
       },
       "migrations": [
         {
           "from": 1,
           "to": 2,
-          "description": "添加 authorUid 字段",
+          "description": "添加 authorUid 字段，缺失时标记 ownerResolutionStatus=unresolved",
           "defaults": { "authorUid": "" }
         }
       ]
@@ -84,13 +86,14 @@
         "link": "string?",
         "fileUrl": "string?",
         "fileName": "string?",
-        "createdAt": "string"
+        "createdAt": "string",
+        "ownerResolutionStatus": "string?"
       },
       "migrations": [
         {
           "from": 1,
           "to": 2,
-          "description": "添加 authorUid 字段",
+          "description": "添加 authorUid 字段，缺失时标记 ownerResolutionStatus=unresolved",
           "defaults": { "authorUid": "" }
         }
       ]
@@ -108,13 +111,14 @@
         "outline": "array",
         "contributions": "array",
         "annotations": "array",
-        "createdAt": "string"
+        "createdAt": "string",
+        "ownerResolutionStatus": "string?"
       },
       "migrations": [
         {
           "from": 1,
           "to": 2,
-          "description": "添加 creatorUid 字段",
+          "description": "添加 creatorUid 字段，缺失时标记 ownerResolutionStatus=unresolved",
           "defaults": { "creatorUid": "" }
         }
       ]

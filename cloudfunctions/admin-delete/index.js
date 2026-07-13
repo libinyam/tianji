@@ -1,4 +1,5 @@
 const cloudbase = require("@cloudbase/node-sdk");
+const { withTiming, logError, logInfo } = require("./logger");
 
 let app;
 let db;
@@ -59,8 +60,11 @@ exports.main = async (event, context) => {
   }
 
   if (!uid || !ADMIN_UIDS.includes(uid)) {
+    logInfo("admin-delete", uid, "unauthorized", { collection, docId });
     return { ok: false, error: "无管理员权限" };
   }
+
+  const timer = withTiming(`admin-delete:${action}`, uid);
 
   // --- 2. 参数校验 ---
   if (typeof collection !== "string" || typeof docId !== "string") {
@@ -89,20 +93,21 @@ exports.main = async (event, context) => {
       try {
         await db.collection("favorites").where({ targetId: docId }).remove();
       } catch (e) {
-        console.warn("清理 favorites 失败:", e);
+        logInfo("admin-delete", uid, "cleanup favorites failed", { docId, error: e.message });
       }
       try {
         await db.collection("reports").where({ targetId: docId }).remove();
       } catch (e) {
-        console.warn("清理 reports 失败:", e);
+        logInfo("admin-delete", uid, "cleanup reports failed", { docId, error: e.message });
       }
 
+      timer.end("success", { collection, docId });
       return { ok: true };
     }
 
     return { ok: false, error: "未知操作" };
   } catch (err) {
-    console.error("admin-delete error:", err);
+    logError(`admin-delete:${action}`, uid, err);
     return { ok: false, error: err.message || "操作失败" };
   }
 };

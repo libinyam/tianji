@@ -1,4 +1,5 @@
 const cloudbase = require("@cloudbase/node-sdk");
+const { withTiming, logError, logInfo } = require("./logger");
 
 // 延迟初始化：真实运行时首次使用才连接 CloudBase；测试可通过
 // __setTestDb 注入假数据库，避免加载真实 SDK（缺凭据会失败）。
@@ -643,50 +644,59 @@ exports.main = async (event, context) => {
     uid = context.identifier;
   }
 
+  const timer = withTiming(action, uid);
+
   const PUBLIC_ACTIONS = ["incrementPostViews", "incrementBookDownloads"];
   if (!uid && !PUBLIC_ACTIONS.includes(action)) {
+    timer.end("unauthorized");
     return fail("请先登录");
   }
 
   const rateLimit = await checkRateLimit(uid, action);
   if (!rateLimit.allowed) {
+    timer.end("rate_limited", { retryAfter: rateLimit.retryAfter });
     return fail(`操作过于频繁，请 ${rateLimit.retryAfter} 秒后再试`);
   }
 
   try {
-    switch (action) {
-      case "submitAnswer":
-        return await submitAnswer(event, uid);
-      case "submitComment":
-        return await submitComment(event, uid);
-      case "voteAnswer":
-        return await voteAnswer(event, uid);
-      case "acceptAnswer":
-        return await acceptAnswer(event, uid);
-      case "incrementPostViews":
-        return await incrementPostViews(event);
-      case "incrementBookDownloads":
-        return await incrementBookDownloads(event);
-      case "adjustBookFavorites":
-        return await adjustBookFavorites(event, uid);
-      case "resonanceIdea":
-        return await resonanceIdea(event, uid);
-      case "awardCreateReputation":
-        return await awardCreateReputation(event, uid);
-      case "addBookReview":
-        return await addBookReview(event, uid);
-      case "joinWorkshop":
-        return await joinWorkshop(event, uid);
-      case "submitWorkshopContribution":
-        return await submitWorkshopContribution(event, uid);
-      case "addWorkshopAnnotation":
-        return await addWorkshopAnnotation(event, uid);
-      case "resolveWorkshopAnnotation":
-        return await resolveWorkshopAnnotation(event, uid);
-      default:
-        return fail(`未知 action: ${action}`);
-    }
+    const switchResult = await (async () => {
+      switch (action) {
+        case "submitAnswer":
+          return await submitAnswer(event, uid);
+        case "submitComment":
+          return await submitComment(event, uid);
+        case "voteAnswer":
+          return await voteAnswer(event, uid);
+        case "acceptAnswer":
+          return await acceptAnswer(event, uid);
+        case "incrementPostViews":
+          return await incrementPostViews(event);
+        case "incrementBookDownloads":
+          return await incrementBookDownloads(event);
+        case "adjustBookFavorites":
+          return await adjustBookFavorites(event, uid);
+        case "resonanceIdea":
+          return await resonanceIdea(event, uid);
+        case "awardCreateReputation":
+          return await awardCreateReputation(event, uid);
+        case "addBookReview":
+          return await addBookReview(event, uid);
+        case "joinWorkshop":
+          return await joinWorkshop(event, uid);
+        case "submitWorkshopContribution":
+          return await submitWorkshopContribution(event, uid);
+        case "addWorkshopAnnotation":
+          return await addWorkshopAnnotation(event, uid);
+        case "resolveWorkshopAnnotation":
+          return await resolveWorkshopAnnotation(event, uid);
+        default:
+          return fail(`未知 action: ${action}`);
+      }
+    })();
+    timer.end(switchResult?.ok ? "success" : "fail", { action });
+    return switchResult;
   } catch (err) {
+    logError(action, uid, err);
     return fail(err.message || "操作失败");
   }
 };

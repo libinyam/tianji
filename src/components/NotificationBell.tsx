@@ -8,13 +8,11 @@ import {
   markAsRead,
   markAllRead,
   getTypeLabel,
+  watchNotifications,
   type NotificationItem,
   type NotificationType,
 } from "@/lib/notifications";
-import { app } from "@/lib/cloudbase";
 import { useAuthStore } from "@/stores/auth";
-
-const db = app.database();
 
 const TYPE_ICON: Record<NotificationType, typeof Bell> = {
   answer: MessageSquare,
@@ -67,13 +65,11 @@ export default function NotificationBell() {
     let unsubscribe: (() => void) | null = null;
     if (uid) {
       try {
-        const watcher = db
-          .collection("notifications")
-          .where({ uid })
-          .watch({
-            onChange: () => { fetchUnreadCount().then(safeSetUnread); },
-            onError: () => {},
-          });
+        const watcher = watchNotifications(
+          uid,
+          () => { fetchUnreadCount().then(safeSetUnread); },
+          () => {},
+        );
         unsubscribe = () => { watcher.close(); };
       } catch {
         // watch not available, polling is fallback

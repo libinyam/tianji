@@ -1,7 +1,6 @@
 import { useEffect, useState } from "react";
 import { Navigate } from "react-router-dom";
-import { app } from "@/lib/cloudbase";
-import { useIsAdmin } from "@/lib/admin";
+import { useIsAdmin, fetchAdminStats, fetchAdminList, fetchAdminUsers, searchAdminUsers, adminDelete } from "@/lib/admin";
 import { useAuthStore } from "@/stores/auth";
 import { toast } from "@/stores/toast";
 import { fetchReports, resolveReport, type Report } from "@/lib/reports";
@@ -14,8 +13,6 @@ import {
   deleteAnnouncement,
   type Announcement,
 } from "@/lib/announcements";
-
-const db = app.database();
 import { banUser, unbanUser } from "@/lib/ban";
 import {
   MessageSquare,
@@ -133,17 +130,14 @@ export default function Admin() {
   const fetchStats = async () => {
     setLoadingData(true);
     try {
-      const collections = ["posts", "ideas", "books", "workshops", "users_v2", "notifications"];
-      const results = await Promise.all(
-        collections.map((col) => db.collection(col).count())
-      );
+      const s = await fetchAdminStats();
       setStats({
-        posts: results[0]?.total ?? 0,
-        ideas: results[1]?.total ?? 0,
-        books: results[2]?.total ?? 0,
-        workshops: results[3]?.total ?? 0,
-        users: results[4]?.total ?? 0,
-        notifications: results[5]?.total ?? 0,
+        posts: s.posts,
+        ideas: s.ideas,
+        books: s.books,
+        workshops: s.workshops,
+        users: s.users_v2,
+        notifications: s.notifications,
       });
     } catch (err) {
       console.error("fetchStats error:", err);
@@ -155,11 +149,7 @@ export default function Admin() {
   const fetchPosts = async () => {
     setLoadingData(true);
     try {
-      const { data } = await db
-        .collection("posts")
-        .orderBy("createdAt", "desc")
-        .limit(50)
-        .get();
+      const data = await fetchAdminList("posts");
       setPosts(data as unknown as PostItem[]);
     } catch (err) {
       console.error("fetchPosts error:", err);
@@ -171,11 +161,7 @@ export default function Admin() {
   const fetchIdeas = async () => {
     setLoadingData(true);
     try {
-      const { data } = await db
-        .collection("ideas")
-        .orderBy("createdAt", "desc")
-        .limit(50)
-        .get();
+      const data = await fetchAdminList("ideas");
       setIdeas(data as unknown as IdeaItem[]);
     } catch (err) {
       console.error("fetchIdeas error:", err);
@@ -187,11 +173,7 @@ export default function Admin() {
   const fetchBooks = async () => {
     setLoadingData(true);
     try {
-      const { data } = await db
-        .collection("books")
-        .orderBy("createdAt", "desc")
-        .limit(50)
-        .get();
+      const data = await fetchAdminList("books");
       setBooks(data as unknown as BookItem[]);
     } catch (err) {
       console.error("fetchBooks error:", err);
@@ -203,11 +185,7 @@ export default function Admin() {
   const fetchWorkshops = async () => {
     setLoadingData(true);
     try {
-      const { data } = await db
-        .collection("workshops")
-        .orderBy("createdAt", "desc")
-        .limit(50)
-        .get();
+      const data = await fetchAdminList("workshops");
       setWorkshops(data as unknown as WorkshopItem[]);
     } catch (err) {
       console.error("fetchWorkshops error:", err);
@@ -281,11 +259,7 @@ export default function Admin() {
   const fetchUsers = async () => {
     setLoadingData(true);
     try {
-      const res = await app.callFunction({
-        name: "user-admin",
-        data: { action: "listUsers", page: 1, pageSize: 50 },
-      });
-      const result = res.result as { ok: boolean; data?: UserItem[]; error?: string };
+      const result = (await fetchAdminUsers()) as { ok: boolean; data?: UserItem[]; error?: string };
       if (result?.ok && result.data) {
         setUserList(result.data);
       } else {
@@ -305,11 +279,7 @@ export default function Admin() {
     }
     setLoadingData(true);
     try {
-      const res = await app.callFunction({
-        name: "user-admin",
-        data: { action: "searchUsers", keyword: searchKeyword.trim() },
-      });
-      const result = res.result as { ok: boolean; data?: UserItem[]; error?: string };
+      const result = (await searchAdminUsers(searchKeyword.trim())) as { ok: boolean; data?: UserItem[]; error?: string };
       if (result?.ok && result.data) {
         setUserList(result.data);
       } else {
@@ -375,11 +345,7 @@ export default function Admin() {
         const col = colMap[report.targetType];
         if (col) {
           try {
-            const res = await app.callFunction({
-              name: "admin-delete",
-              data: { collection: col, docId: report.targetId, action: "delete" },
-            });
-            const result = res.result as { ok?: boolean; error?: string };
+            const result = (await adminDelete(col, report.targetId)) as { ok?: boolean; error?: string };
             if (!result?.ok) {
               toast.error(result?.error || "内容删除失败");
               return;
@@ -404,11 +370,7 @@ export default function Admin() {
   const handleDelete = async (collection: string, id: string) => {
     if (!confirm("确定删除这条内容？此操作不可撤销。")) return;
     try {
-      const res = await app.callFunction({
-        name: "admin-delete",
-        data: { collection, docId: id, action: "delete" },
-      });
-      const result = res.result as { ok?: boolean; error?: string };
+      const result = (await adminDelete(collection, id)) as { ok?: boolean; error?: string };
       if (!result?.ok) {
         toast.error(result?.error || "删除失败");
         return;
