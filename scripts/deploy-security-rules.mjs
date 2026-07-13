@@ -119,9 +119,7 @@ for (const [collectionName, config] of Object.entries(collections)) {
     let aclTag = "CUSTOM";
     let rule = undefined;
 
-    if (config.permission === "PRIVATE") {
-      aclTag = "ADMINONLY";
-    } else if (config.securityRule) {
+    if (config.securityRule) {
       aclTag = "CUSTOM";
       rule = JSON.stringify({
         read: config.securityRule.read,
@@ -130,7 +128,11 @@ for (const [collectionName, config] of Object.entries(collections)) {
         delete: config.securityRule.delete,
       });
     } else {
-      aclTag = "ADMINONLY";
+      // 无自定义规则时，直接使用 permission 作为 AclTag。
+      // CloudBase 支持：READONLY / PRIVATE / ADMINWRITE / ADMINONLY。
+      // 之前把 PRIVATE 和 ADMINWRITE 都映射成 ADMINONLY，导致
+      // tags/announcements 等需要"所有用户可读"的集合变成仅管理员可读。
+      aclTag = config.permission;
     }
 
     const params = {
