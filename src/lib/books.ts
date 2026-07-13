@@ -2,7 +2,7 @@ import { app, auth } from "@/lib/cloudbase";
 import { sanitizeInput, sanitizeTitle, sanitizeTag } from "@/lib/sanitize";
 import { checkCurrentUserBanned } from "@/lib/ban";
 import { containsSensitiveWord } from "@/lib/sensitive-words";
-import { awardReputation, REPUTATION_RULES } from "@/lib/reputation";
+import { awardReputation } from "@/lib/reputation";
 import { useAuthStore } from "@/stores/auth";
 import { ensureTags } from "@/lib/tags";
 import type { Book, BookCategory } from "@/types";
@@ -192,7 +192,7 @@ export async function createBook(params: {
   // 登记标签计数（需等待完成）
   await ensureTags(cleanTags);
 
-  await awardReputation(uid, REPUTATION_RULES.createPost, newId);
+  await awardReputation("createBook", newId);
 
   return {
     id: newId,

@@ -136,8 +136,7 @@ describe("posts", () => {
         })
       );
       expect(mockReputation.awardReputation).toHaveBeenCalledWith(
-        "test-uid",
-        2,
+        "createPost",
         "new-post-id"
       );
     });

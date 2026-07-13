@@ -19,6 +19,9 @@ export const REPUTATION_RULES = {
   answerVoted: 10,
   bookFavorited: 3,
   ideaResonated: 1,
+  createBook: 3,
+  createIdea: 1,
+  createWorkshop: 2,
 };
 
 export function calculateLevel(reputation: number): { level: number; levelName: string } {
@@ -55,12 +58,10 @@ export async function fetchReputation(uid: string): Promise<ReputationInfo> {
  * 同一创建事件重复提交只加分一次。
  */
 export async function awardReputation(
-  _uid: string,
-  points: number,
-  entityId?: string
+  reason: keyof typeof REPUTATION_RULES,
+  entityId: string
 ): Promise<void> {
-  const reason = Object.entries(REPUTATION_RULES).find(([, p]) => p === points)?.[0];
-  if (!reason) return;
+  if (!REPUTATION_RULES[reason] || !entityId) return;
 
   await app.callFunction({
     name: "content-actions",
