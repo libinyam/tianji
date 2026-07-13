@@ -7,6 +7,7 @@ import { main, __setTestDb } from "./index.js";
 // 当前登录用户通过 context.userInfo.uid 注入（main 中 auth 会失败并回退到它）。
 
 let store;
+let db;
 
 const command = {
   inc: (n) => ({ __inc: n }),
@@ -70,7 +71,8 @@ function makeFakeDb() {
 
 beforeEach(() => {
   store = {};
-  __setTestDb(makeFakeDb());
+  db = makeFakeDb();
+  __setTestDb(db);
 });
 
 function ctx(uid) {
@@ -167,6 +169,7 @@ describe("声望加分幂等（issue #243）", () => {
   });
 
   it("awardCreateReputation 带 entityId 时重复提交只加分一次", async () => {
+    store.posts = new Map([["post-123", { _id: "post-123", authorUid: "author-1" }]]);
     store.users_v2 = new Map();
 
     const event = {
@@ -197,5 +200,83 @@ describe("声望加分幂等（issue #243）", () => {
     await main({ action: "voteAnswer", postId: "p1", answerId: "a1", isUpvote: true }, ctx("voter-1"));
 
     expect(repOf("voter-1")).toBe(0);
+  });
+});
+
+describe("awardCreateReputation", () => {
+  it("正常加分：作者创建内容后获得声望", async () => {
+    store.users_v2 = new Map();
+    await db.collection("posts").doc("p1").set({ authorUid: "user1" });
+
+    const res = await main(
+      { action: "awardCreateReputation", reason: "createPost", entityId: "p1" },
+      ctx("user1")
+    );
+
+    expect(res.ok).toBe(true);
+    expect(res.data.awarded).toBe(true);
+    expect(repOf("user1")).toBe(2);
+  });
+
+  it("内容不存在时返回失败", async () => {
+    store.users_v2 = new Map();
+
+    const res = await main(
+      { action: "awardCreateReputation", reason: "createPost", entityId: "no-exist" },
+      ctx("user1")
+    );
+
+    expect(res.ok).toBe(false);
+    expect(res.error).toContain("内容不存在");
+  });
+
+  it("非作者调用返回失败", async () => {
+    store.users_v2 = new Map();
+    await db.collection("posts").doc("p1").set({ authorUid: "user1" });
+
+    const res = await main(
+      { action: "awardCreateReputation", reason: "createPost", entityId: "p1" },
+      ctx("user2")
+    );
+
+    expect(res.ok).toBe(false);
+  });
+
+  it("缺少 entityId 时返回失败", async () => {
+    store.users_v2 = new Map();
+
+    const res = await main(
+      { action: "awardCreateReputation", reason: "createPost" },
+      ctx("user1")
+    );
+
+    expect(res.ok).toBe(false);
+  });
+
+  it("同一 entityId 重复调用只加分一次", async () => {
+    store.users_v2 = new Map();
+    await db.collection("posts").doc("p1").set({ authorUid: "user1" });
+
+    const event = { action: "awardCreateReputation", reason: "createPost", entityId: "p1" };
+    const r1 = await main(event, ctx("user1"));
+    const r2 = await main(event, ctx("user1"));
+
+    expect(r1.data.awarded).toBe(true);
+    expect(r2.data.awarded).toBe(false);
+    expect(repOf("user1")).toBe(2);
+  });
+
+  it("createBook reason 为书籍上传者加分", async () => {
+    store.users_v2 = new Map();
+    await db.collection("books").doc("b1").set({ uploaderUid: "user1" });
+
+    const res = await main(
+      { action: "awardCreateReputation", reason: "createBook", entityId: "b1" },
+      ctx("user1")
+    );
+
+    expect(res.ok).toBe(true);
+    expect(res.data.awarded).toBe(true);
+    expect(repOf("user1")).toBe(3);
   });
 });

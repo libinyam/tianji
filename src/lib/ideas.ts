@@ -3,7 +3,7 @@ import { createNotification } from "@/lib/notifications";
 import { sanitizeInput, sanitizeTitle, sanitizeTag } from "@/lib/sanitize";
 import { checkCurrentUserBanned } from "@/lib/ban";
 import { containsSensitiveWord } from "@/lib/sensitive-words";
-import { awardReputation, REPUTATION_RULES } from "@/lib/reputation";
+import { awardReputation } from "@/lib/reputation";
 import { useAuthStore } from "@/stores/auth";
 import type { Idea, IdeaComment } from "@/types";
 
@@ -121,7 +121,7 @@ export async function createIdea(params: {
   const resObj = res as unknown as Record<string, unknown>;
   const newId = (resObj.id as string) ?? (resObj._id as string) ?? "";
 
-  await awardReputation(uid, REPUTATION_RULES.createPost, newId);
+  await awardReputation("createIdea", newId);
 
   return {
     id: newId,

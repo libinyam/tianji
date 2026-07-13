@@ -1,5 +1,5 @@
 import { app } from "@/lib/cloudbase";
-import { awardReputation, REPUTATION_RULES } from "@/lib/reputation";
+import { awardReputation } from "@/lib/reputation";
 import { sanitizeInput, sanitizeTitle, sanitizeTag } from "@/lib/sanitize";
 import { checkCurrentUserBanned } from "@/lib/ban";
 import { containsSensitiveWord } from "@/lib/sensitive-words";
@@ -186,7 +186,7 @@ export async function createPost(params: {
   const res = await db.collection(POSTS_COLLECTION).add(doc);
   const resObj = res as unknown as Record<string, unknown>;
   const newId = (resObj.id as string) ?? (resObj._id as string) ?? "";
-  await awardReputation(uid, REPUTATION_RULES.createPost, newId);
+  await awardReputation("createPost", newId);
   return {
     id: newId,
     title: doc.title,

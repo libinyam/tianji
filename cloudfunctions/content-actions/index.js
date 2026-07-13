@@ -360,34 +360,57 @@ const REPUTATION_RULES = {
   answerVoted: 10,
   bookFavorited: 3,
   ideaResonated: 1,
+  createBook: 3,
+  createIdea: 1,
+  createWorkshop: 2,
+};
+
+const CREATE_REASON_TO_COLLECTION = {
+  createPost: "posts",
+  createBook: "books",
+  createIdea: "ideas",
+  createWorkshop: "workshops",
+};
+
+const CREATE_REASON_TO_OWNER_FIELD = {
+  createPost: "authorUid",
+  createBook: "uploaderUid",
+  createIdea: "authorUid",
+  createWorkshop: "creatorUid",
 };
 
 async function awardCreateReputation(event, uid) {
   const { reason, entityId } = event;
   if (!reason) return fail("缺少 reason 参数");
+  if (!entityId) return fail("缺少 entityId 参数");
 
   const points = REPUTATION_RULES[reason];
   if (typeof points !== "number") return fail("无效的 reason");
 
-  // 传入 entityId 时按「reason+实体」做幂等，重复提交同一创建事件只加分一次；
-  // 未传时退回到直接加分（兼容旧客户端）
-  if (entityId) {
-    const awarded = await awardReputationOnce(
-      uid,
-      points,
-      `create:${reason}:${entityId}`,
-      reason
-    );
-    return ok({ awarded });
-  }
+  const collectionName = CREATE_REASON_TO_COLLECTION[reason];
+  const ownerField = CREATE_REASON_TO_OWNER_FIELD[reason];
+  if (!collectionName || !ownerField) return fail("该 reason 不支持创建奖励");
 
+  let docExists = false;
   try {
-    await db.collection("users_v2").doc(uid).update({
-      reputation: _.inc(points),
-    });
+    const { data } = await db.collection(collectionName).doc(entityId).get();
+    if (data && data.length > 0) {
+      const doc = data[0];
+      if (doc[ownerField] === uid) {
+        docExists = true;
+      }
+    }
   } catch {}
 
-  return ok({ awarded: true });
+  if (!docExists) return fail("内容不存在或非作者");
+
+  const awarded = await awardReputationOnce(
+    uid,
+    points,
+    `create:${reason}:${entityId}`,
+    reason
+  );
+  return ok({ awarded });
 }
 
 async function addBookReview(event, uid) {
