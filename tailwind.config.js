@@ -59,7 +59,8 @@ export default {
       },
       fontFamily: {
         display: ['Fraunces', '"Noto Serif SC"', 'serif'],
-        sans: ['"Microsoft YaHei"', '"微软雅黑"', '"Spline Sans"', '"Noto Sans SC"', 'system-ui', 'sans-serif'],
+        sans: ['system-ui', '-apple-system', '"Segoe UI"', '"Microsoft YaHei"', '"微软雅黑"', '"Noto Sans SC"', 'sans-serif'],
+        content: ['"Noto Serif SC"', '"Source Han Serif SC"', '"Songti SC"', '"SimSun"', '"宋体"', 'Fraunces', 'serif'],
         mono: ['"Space Mono"', 'monospace'],
       },
       backgroundImage: {

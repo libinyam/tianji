@@ -391,7 +391,7 @@ export default function DiscussionDetail() {
                       ) : (
                         <LazyMathText
                           content={a.content}
-                          className="mt-2 text-[15px] leading-relaxed text-mist-200"
+                          className="mt-2 font-content text-base leading-relaxed text-mist-200"
                         />
                       )}
 

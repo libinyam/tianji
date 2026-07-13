@@ -355,29 +355,29 @@ export default function Discussion() {
               <div
                 key={q.id}
                 onClick={() => navigate(`/discussion/${q.id}`)}
-                className={`group flex cursor-pointer items-center gap-3 px-5 py-3.5 transition-colors hover:bg-void-700/40 ${
+                className={`group flex cursor-pointer items-center gap-4 px-6 py-4 transition-colors hover:bg-void-700/40 ${
                   i !== 0 ? "border-t border-void-600/30" : ""
                 }`}
               >
-                {/* 回答数 - Lobsters 式彩色小标签 */}
-                <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-md bg-tian-400/10 text-xs font-medium text-tian-300">
+                {/* 回答数 - Lobsters 式彩色小标签，放大作为帖子封面框 (#292) */}
+                <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-lg bg-tian-400/10 text-base font-semibold text-tian-300">
                   {q.answers}
                 </span>
 
                 {/* 主体 */}
                 <div className="min-w-0 flex-1">
                   <div className="flex items-center gap-2">
-                    {/* 帖子标题 - 微软雅黑无衬线，更清晰 (#292) */}
-                    <h3 className="truncate text-base font-semibold text-parchment-100 transition-colors group-hover:text-star-400">
+                    {/* 帖子标题 - 系统无衬线，字号放大 (#292) */}
+                    <h3 className="truncate text-lg font-semibold text-parchment-100 transition-colors group-hover:text-star-400">
                       {q.title}
                     </h3>
                     {q.bounty && (
-                      <span className="shrink-0 rounded bg-star-400/10 px-1.5 py-0.5 text-[11px] font-medium text-star-300">
+                      <span className="shrink-0 rounded bg-star-400/10 px-2 py-0.5 text-xs font-medium text-star-300">
                         {q.bounty}
                       </span>
                     )}
                   </div>
-                  <div className="mt-1 flex items-center gap-2 text-xs text-mist-500">
+                  <div className="mt-1.5 flex items-center gap-2 text-sm text-mist-500">
                     {q.tags.slice(0, 3).map((t) => (
                       <Link key={t} to={`/tags/${encodeURIComponent(t)}`} onClick={(e) => e.stopPropagation()} className="transition-colors hover:text-mist-300">
                         {t}
