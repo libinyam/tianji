@@ -70,11 +70,11 @@
 
 /* ========== 浅色主题 ========== */
 :root.light {
-  /* 底色 - 纯白/浅灰论坛风格（#292）：body 浅灰，内容面纯白 */
-  --c-void-950: #f7f8fa;
-  --c-void-900: #fafafa;
+  /* 底色 - 纯白论坛风格（#292/#294）：body 纯白，content 面纯白，边框浅灰 */
+  --c-void-950: #ffffff;
+  --c-void-900: #ffffff;
   --c-void-800: #ffffff;
-  --c-void-700: #f3f4f6;
+  --c-void-700: #f8f9fa;
   --c-void-600: #e5e7eb;
 
   /* 星芒暖金 - 浅色模式下加深，浅色值在白底上不可读 */
@@ -108,8 +108,8 @@
   --c-mist-500: #9ca3af;
 
   --bg-void-radial: none;
-  --bg-body: #f7f8fa;
-  --color-body: #1f2937;
+  --bg-body: #ffffff;
+  --color-body: #111827;
   --bg-scrollbar-track: #f3f4f6;
   --bg-scrollbar-thumb: linear-gradient(#e5e7eb, #d1d5db);
   --bg-scrollbar-thumb-hover: #9ca3af;

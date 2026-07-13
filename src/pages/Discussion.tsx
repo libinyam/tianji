@@ -377,9 +377,9 @@ export default function Discussion() {
 
         {/* 帖子列表 - 论坛 topic table 风格：标题+元信息 | 参与者 | 回复 | 浏览 | 活动时间 (#294) */}
         {!loading && !error && filtered.length > 0 && (
-          <div className="overflow-hidden rounded-lg border border-void-600/40 bg-void-800/60">
+          <div className="overflow-hidden rounded-lg border border-void-600/40 bg-void-800">
             {/* 表头 - 桌面端可见 */}
-            <div className="hidden lg:grid grid-cols-[minmax(0,1fr)_120px_56px_64px_88px] items-center gap-3 border-b border-void-600/40 px-5 py-2 text-xs font-medium text-mist-500">
+            <div className="hidden lg:grid grid-cols-[minmax(0,1fr)_120px_56px_64px_88px] items-center gap-3 border-b border-void-600/40 px-5 py-2.5 text-xs font-medium text-mist-500">
               <span>主题</span>
               <span className="text-right">参与者</span>
               <span className="text-right">回复</span>
@@ -393,24 +393,24 @@ export default function Discussion() {
                 <div
                   key={q.id}
                   onClick={() => navigate(`/discussion/${q.id}`)}
-                  className={`group grid cursor-pointer grid-cols-[minmax(0,1fr)_auto] items-center gap-3 px-5 py-3 transition-colors hover:bg-void-700/40 lg:grid-cols-[minmax(0,1fr)_120px_56px_64px_88px] ${
+                  className={`group grid cursor-pointer grid-cols-[minmax(0,1fr)_auto] items-center gap-4 px-5 py-4 transition-colors hover:bg-void-700/50 lg:grid-cols-[minmax(0,1fr)_120px_56px_64px_88px] ${
                     i !== 0 ? "border-t border-void-600/30" : ""
                   }`}
                 >
-                  {/* 主题列：标题 + 标签/作者/悬赏，接近 Discourse 信息密度 (#294) */}
+                  {/* 主题列：标题 + 标签/作者/悬赏 */}
                   <div className="min-w-0">
                     <div className="flex items-center gap-2">
                       {q.pinned && <span className="shrink-0 text-xs text-star-300" title="置顶">📌</span>}
-                      <h3 className="truncate text-base font-medium text-parchment-100 transition-colors group-hover:text-star-400">
+                      <h3 className="truncate text-[17px] font-semibold leading-snug text-parchment-100 transition-colors group-hover:text-star-400">
                         {q.title}
                       </h3>
                       {q.bounty && (
-                        <span className="shrink-0 rounded bg-star-400/10 px-1.5 py-0.5 text-[11px] font-medium text-star-300">
+                        <span className="shrink-0 rounded bg-star-400/10 px-2 py-0.5 text-xs font-medium text-star-300">
                           {q.bounty}
                         </span>
                       )}
                     </div>
-                    <div className="mt-1 flex flex-wrap items-center gap-2 text-[13px] text-mist-500">
+                    <div className="mt-1.5 flex flex-wrap items-center gap-2 text-sm text-mist-500">
                       {q.tags.slice(0, 3).map((t) => (
                         <Link key={t} to={`/tags/${encodeURIComponent(t)}`} onClick={(e) => e.stopPropagation()} className="transition-colors hover:text-mist-300">
                           {t}
@@ -432,14 +432,14 @@ export default function Discussion() {
 
                   {/* 回复数 - 始终可见 */}
                   <div className="text-right">
-                    <span className="text-sm font-semibold text-parchment-100">{q.answers}</span>
+                    <span className="text-[15px] font-semibold text-parchment-100">{q.answers}</span>
                   </div>
 
                   {/* 浏览数 - 桌面端 */}
-                  <div className="hidden text-right text-[13px] text-mist-400 lg:block">{q.views}</div>
+                  <div className="hidden text-right text-sm text-mist-400 lg:block">{q.views}</div>
 
                   {/* 活动时间 - 桌面端 */}
-                  <div className="hidden text-right text-[13px] text-mist-500 lg:block">{formatRelativeTime(lastActivity)}</div>
+                  <div className="hidden text-right text-sm text-mist-500 lg:block">{formatRelativeTime(lastActivity)}</div>
                 </div>
               );
             })}
