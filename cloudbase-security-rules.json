@@ -7,39 +7,43 @@
       "permission": "CUSTOM",
       "securityRule": {
         "read": "auth.uid != null",
+        "create": "auth.uid != null",
         "write": "auth.uid != null && doc.authorUid == auth.uid",
         "update": "auth.uid != null && doc.authorUid == auth.uid",
         "delete": "auth.uid != null && doc.authorUid == auth.uid"
       },
       "ownerField": "authorUid",
-      "note": "update 收紧为作者限定；非作者写操作通过 content-actions 云函数执行；管理员删除通过 admin-delete 云函数"
+      "note": "create 允许登录用户创建；update/delete 收紧为作者限定；管理员删除通过 admin-delete 云函数"
     },
     "ideas": {
       "permission": "CUSTOM",
       "securityRule": {
         "read": "auth.uid != null",
+        "create": "auth.uid != null",
         "write": "auth.uid != null && doc.authorUid == auth.uid",
         "update": "auth.uid != null && doc.authorUid == auth.uid",
         "delete": "auth.uid != null && doc.authorUid == auth.uid"
       },
       "ownerField": "authorUid",
-      "note": "update 收紧为作者限定；共鸣通过 content-actions 云函数执行"
+      "note": "create 允许登录用户创建；update/delete 收紧为作者限定；共鸣通过 content-actions 云函数执行"
     },
     "books": {
       "permission": "CUSTOM",
       "securityRule": {
         "read": "auth.uid != null",
+        "create": "auth.uid != null",
         "write": "auth.uid != null && doc.uploaderUid == auth.uid",
         "update": "auth.uid != null && doc.uploaderUid == auth.uid",
         "delete": "auth.uid != null && doc.uploaderUid == auth.uid"
       },
       "ownerField": "uploaderUid",
-      "note": "update 收紧为作者限定；下载计数/收藏通过 content-actions 云函数执行"
+      "note": "create 允许登录用户上传；update/delete 收紧为上传者限定；下载计数/收藏通过 content-actions 云函数执行"
     },
     "workshops": {
       "permission": "CUSTOM",
       "securityRule": {
         "read": "auth.uid != null",
+        "create": "auth.uid != null",
         "write": "auth.uid != null && doc.creatorUid == auth.uid",
         "update": "auth.uid != null && doc.creatorUid == auth.uid",
         "delete": "auth.uid != null && doc.creatorUid == auth.uid"
@@ -62,6 +66,7 @@
       "permission": "CUSTOM",
       "securityRule": {
         "read": "auth.uid != null",
+        "create": "auth.uid != null",
         "write": "auth.uid != null && doc.uid == auth.uid",
         "update": "auth.uid != null && doc.uid == auth.uid",
         "delete": "auth.uid != null && doc.uid == auth.uid"
@@ -72,6 +77,7 @@
       "permission": "CUSTOM",
       "securityRule": {
         "read": "auth.uid != null && doc.uid == auth.uid",
+        "create": "auth.uid != null",
         "write": "auth.uid != null && doc.uid == auth.uid",
         "update": "auth.uid != null && doc.uid == auth.uid",
         "delete": "auth.uid != null && doc.uid == auth.uid"
@@ -83,6 +89,7 @@
       "permission": "CUSTOM",
       "securityRule": {
         "read": "auth.uid != null && doc.reporterUid == auth.uid",
+        "create": "auth.uid != null",
         "write": "auth.uid != null",
         "update": "auth.uid != null && doc.reporterUid == auth.uid",
         "delete": "auth.uid != null && doc.reporterUid == auth.uid"
