@@ -5,7 +5,7 @@
 /* ========== 深色主题（默认） ========== */
 :root {
   --font-display: "Fraunces", "Noto Serif SC", serif;
-  --font-sans: "Spline Sans", "Noto Sans SC", sans-serif;
+  --font-sans: "Microsoft YaHei", "微软雅黑", "Spline Sans", "Noto Sans SC", system-ui, sans-serif;
   --font-mono: "Space Mono", monospace;
 
   /* 底色 */

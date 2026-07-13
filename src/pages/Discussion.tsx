@@ -367,17 +367,17 @@ export default function Discussion() {
                 {/* 主体 */}
                 <div className="min-w-0 flex-1">
                   <div className="flex items-center gap-2">
-                    {/* 帖子标题用宋体增强中文阅读感 (#292) */}
-                    <h3 className="heading-display truncate text-[15px] font-medium text-parchment-100 transition-colors group-hover:text-star-400">
+                    {/* 帖子标题 - 微软雅黑无衬线，更清晰 (#292) */}
+                    <h3 className="truncate text-base font-semibold text-parchment-100 transition-colors group-hover:text-star-400">
                       {q.title}
                     </h3>
                     {q.bounty && (
-                      <span className="shrink-0 rounded bg-star-400/10 px-1.5 py-0.5 text-[10px] font-medium text-star-300">
+                      <span className="shrink-0 rounded bg-star-400/10 px-1.5 py-0.5 text-[11px] font-medium text-star-300">
                         {q.bounty}
                       </span>
                     )}
                   </div>
-                  <div className="mt-0.5 flex items-center gap-2 text-[11px] text-mist-500">
+                  <div className="mt-1 flex items-center gap-2 text-xs text-mist-500">
                     {q.tags.slice(0, 3).map((t) => (
                       <Link key={t} to={`/tags/${encodeURIComponent(t)}`} onClick={(e) => e.stopPropagation()} className="transition-colors hover:text-mist-300">
                         {t}

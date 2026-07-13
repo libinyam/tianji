@@ -59,7 +59,7 @@ export default {
       },
       fontFamily: {
         display: ['Fraunces', '"Noto Serif SC"', 'serif'],
-        sans: ['"Spline Sans"', '"Noto Sans SC"', 'sans-serif'],
+        sans: ['"Microsoft YaHei"', '"微软雅黑"', '"Spline Sans"', '"Noto Sans SC"', 'system-ui', 'sans-serif'],
         mono: ['"Space Mono"', 'monospace'],
       },
       backgroundImage: {
