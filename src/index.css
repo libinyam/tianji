@@ -69,12 +69,12 @@
 
 /* ========== 浅色主题 ========== */
 :root.light {
-  /* 底色 - 暖白纸张 */
-  --c-void-950: #f5f3ef;
-  --c-void-900: #faf8f4;
+  /* 底色 - 纯白/浅灰论坛风格（#292）：body 浅灰，内容面纯白 */
+  --c-void-950: #f7f8fa;
+  --c-void-900: #fafafa;
   --c-void-800: #ffffff;
-  --c-void-700: #f0ede5;
-  --c-void-600: #ddd8c8;
+  --c-void-700: #f3f4f6;
+  --c-void-600: #e5e7eb;
 
   /* 星芒暖金 - 浅色模式下加深，浅色值在白底上不可读 */
   --c-star-50: #fffbeb;
@@ -97,23 +97,23 @@
 
   /* 文字主色 - 深墨 */
   --c-parchment-50: #1a1a2e;
-  --c-parchment-100: #2d2d3f;
-  --c-parchment-200: #3d3d50;
-  --c-parchment-300: #5a5a6e;
+  --c-parchment-100: #1f2937;
+  --c-parchment-200: #374151;
+  --c-parchment-300: #4b5563;
 
   /* 次要文字 */
-  --c-mist-300: #555b6e;
+  --c-mist-300: #4b5563;
   --c-mist-400: #6b7280;
-  --c-mist-500: #8b8fa3;
+  --c-mist-500: #9ca3af;
 
-  --bg-void-radial: radial-gradient(ellipse at 50% -10%, rgba(223,217,243,0.5) 0%, rgba(250,248,244,0.9) 45%, #f5f3ef 100%);
-  --bg-body: #f5f3ef;
-  --color-body: #3d3d50;
-  --bg-scrollbar-track: #ede9e0;
-  --bg-scrollbar-thumb: linear-gradient(#d0cbb8, #ddd8c8);
-  --bg-scrollbar-thumb-hover: #b0a888;
-  --shadow-card: 0 18px 40px -20px rgba(0,0,0,0.15);
-  --selection-color: #2d2d3f;
+  --bg-void-radial: none;
+  --bg-body: #f7f8fa;
+  --color-body: #1f2937;
+  --bg-scrollbar-track: #f3f4f6;
+  --bg-scrollbar-thumb: linear-gradient(#e5e7eb, #d1d5db);
+  --bg-scrollbar-thumb-hover: #9ca3af;
+  --shadow-card: 0 1px 3px rgba(0,0,0,0.06), 0 1px 2px rgba(0,0,0,0.04);
+  --selection-color: #1f2937;
 }
 
 html {
