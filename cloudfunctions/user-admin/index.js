@@ -1,4 +1,5 @@
 const cloudbase = require("@cloudbase/node-sdk");
+const { withTiming, logError } = require("./logger");
 
 let app;
 let db;
@@ -53,6 +54,7 @@ exports.main = async (event, context) => {
   }
 
   const isAdmin = !!callerUid && ADMIN_UIDS.includes(callerUid);
+  const timer = withTiming(`user-admin:${action}`, callerUid);
 
   try {
     if (action === "banUser") {
@@ -138,7 +140,8 @@ exports.main = async (event, context) => {
 
     return { ok: false, error: "未知操作" };
   } catch (err) {
-    console.error("user-admin error:", err);
+    logError(`user-admin:${action}`, callerUid, err);
+    timer.end("error");
     return { ok: false, error: err.message || "操作失败" };
   }
 };

@@ -3,7 +3,7 @@ import { X, Loader2, BookOpen, Link2, UploadCloud, FileText, ListTree } from "lu
 import Dialog from "@/components/Dialog";
 import { createBook } from "@/lib/books";
 import { rateLimiters } from "@/lib/security";
-import { app } from "@/lib/cloudbase";
+import { uploadFile, deleteFile } from "@/lib/storage";
 import { useAuthStore } from "@/stores/auth";
 import { toast } from "@/stores/toast";
 import TagSelector from "@/components/TagSelector";
@@ -56,7 +56,7 @@ export default function BookUploadModal({ open, onClose, onCreated }: BookUpload
   // 取消/关闭：清理已上传但未提交的文件，再重置表单
   const handleClose = () => {
     if (uploadedFileId) {
-      app.deleteFile({ fileList: [uploadedFileId] }).catch(() => {});
+      deleteFile(uploadedFileId).catch(() => {});
     }
     resetForm();
     onClose();
@@ -77,8 +77,8 @@ export default function BookUploadModal({ open, onClose, onCreated }: BookUpload
     try {
       const ext = file.name.split(".").pop() || "pdf";
       const cloudPath = `books/${user.uid}-${Date.now()}.${ext}`;
-      const res = await app.uploadFile({ cloudPath, filePath: file as unknown as string });
-      setUploadedFileId(res.fileID);
+      const res = await uploadFile(cloudPath, file as unknown as string);
+      setUploadedFileId(res);
       setUploadedFileName(file.name);
 
       // 如果是 PDF，动态加载解析器并提取目录

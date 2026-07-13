@@ -150,3 +150,22 @@ export async function markAllRead(): Promise<void> {
     console.warn("[notifications] markAllRead failed:", e);
   }
 }
+
+export function watchNotifications(
+  uid: string,
+  onChange: (docs: unknown[]) => void,
+  onError: (err: Error) => void,
+): { close: () => void } {
+  const watcher = db
+    .collection(COLLECTION)
+    .where({ uid })
+    .watch({
+      onChange: (snapshot) => onChange(Object.values(snapshot.docs ?? {})),
+      onError,
+    });
+  return {
+    close: () => {
+      watcher?.close?.();
+    },
+  };
+}

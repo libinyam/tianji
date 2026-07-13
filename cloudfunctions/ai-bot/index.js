@@ -4,6 +4,7 @@
  * 2. 评论 bot 回答时触发 → 回复一条"评论"
  */
 const cloud = require("@cloudbase/node-sdk");
+const { withTiming, logError } = require("./logger");
 
 const app = cloud.init({ env: cloud.SYMBOL_CURRENT_ENV });
 const db = app.database();
@@ -45,6 +46,8 @@ exports.main = async (event, context) => {
   }
   if (!uid && context?.userInfo) uid = context.userInfo.uid || "";
   if (!uid && context?.identifier) uid = context.identifier;
+
+  const timer = withTiming("ai-bot", uid);
 
   // 服务端频率限制：同一 uid 15s 内仅允许一次调用
   if (uid) {
@@ -113,7 +116,7 @@ exports.main = async (event, context) => {
 
     if (!response.ok) {
       const errText = await response.text();
-      console.error("DeepSeek API error:", response.status, errText);
+      logError("ai-bot:deepseek-api", uid, new Error(`HTTP ${response.status}: ${errText}`));
       return { ok: false, error: `AI 服务异常 (${response.status})` };
     }
 
@@ -181,9 +184,11 @@ exports.main = async (event, context) => {
       }
     }
 
+    timer.end("success", { replyType, postId });
     return { ok: true, reply };
   } catch (err) {
-    console.error("AI bot error:", err);
+    logError("ai-bot", uid, err);
+    timer.end("error");
     return { ok: false, error: err.message || "服务器错误" };
   }
 };

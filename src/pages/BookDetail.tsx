@@ -18,7 +18,7 @@ import {
 } from "lucide-react";
 import { books } from "@/data/books";
 import { fetchBookById, incrementBookDownloads, addReview } from "@/lib/books";
-import { app } from "@/lib/cloudbase";
+import { getTempFileURL } from "@/lib/storage";
 import DifficultyDots from "@/components/DifficultyDots";
 import Avatar from "@/components/Avatar";
 import ReportModal from "@/components/ReportModal";
@@ -89,9 +89,8 @@ export default function BookDetail() {
     let mounted = true;
     (async () => {
       try {
-        const result = await app.getTempFileURL({ fileList: [fileUrl] });
+        const tempUrl = await getTempFileURL(fileUrl);
         if (mounted) {
-          const tempUrl = result?.fileList?.[0]?.tempFileURL;
           setResolvedFileUrl(tempUrl || fileUrl);
         }
       } catch {

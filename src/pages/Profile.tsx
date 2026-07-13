@@ -20,7 +20,7 @@ import { fetchUserContent, type UserContent } from "@/lib/profile";
 import { fetchMyFavorites, type FavoriteItem } from "@/lib/favorites";
 import { getCurrentUserReputation, getBadges, type ReputationInfo } from "@/lib/reputation";
 import { useDocumentTitle } from "@/hooks/useDocumentTitle";
-import { app } from "@/lib/cloudbase";
+import { uploadFile, getTempFileURL, deleteFile } from "@/lib/storage";
 
 // 星辰风格头像，契合天玑主题
 const DEFAULT_AVATARS = [
@@ -101,15 +101,12 @@ export default function Profile() {
     try {
       const ext = file.name.split(".").pop() || "jpg";
       const cloudPath = `avatars/${user.uid}-${Date.now()}.${ext}`;
-      const res = await app.uploadFile({ cloudPath, filePath: file as unknown as string });
+      const fileID = await uploadFile(cloudPath, file as unknown as string);
       // 获取可访问的下载链接（有效期 1 年）
-      const urlRes = await app.getTempFileURL({
-        fileList: [{ fileID: res.fileID, maxAge: 365 * 24 * 60 * 60 * 1000 }],
-      });
-      const url = urlRes.fileList?.[0]?.tempFileURL;
+      const url = await getTempFileURL(fileID);
       if (url) {
         setAvatarUrl(url);
-        setNewAvatarFileId(res.fileID);
+        setNewAvatarFileId(fileID);
       }
     } catch {
       toast.error("上传失败，请重试");
@@ -237,7 +234,7 @@ export default function Profile() {
                       onClick={() => {
                         // 清理已上传但未保存的头像
                         if (newAvatarFileId) {
-                          app.deleteFile({ fileList: [newAvatarFileId] }).catch(() => {});
+                          deleteFile(newAvatarFileId).catch(() => {});
                         }
                         setNewAvatarFileId(null);
                         setEditing(false);
