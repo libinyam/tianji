@@ -1,11 +1,22 @@
 const cloudbase = require("@cloudbase/node-sdk");
 
-const app = cloudbase.init({
-  env: cloudbase.SYMBOL_CURRENT_ENV,
-});
+let app;
+let db;
+let _;
 
-const db = app.database();
-const _ = db.command;
+function ensureApp() {
+  if (!app && !db) {
+    app = cloudbase.init({ env: cloudbase.SYMBOL_CURRENT_ENV });
+    db = app.database();
+    _ = db.command;
+  }
+  return app;
+}
+
+exports.__setTestDb = (fakeDb) => {
+  db = fakeDb;
+  _ = fakeDb.command;
+};
 
 const ADMIN_UIDS = (process.env.ADMIN_UIDS || "")
   .split(",")
@@ -23,10 +34,14 @@ exports.main = async (event, context) => {
 
   let callerUid = "";
 
-  try {
-    const info = await app.auth().getEndUserInfo();
-    callerUid = info?.userInfo?.uid || "";
-  } catch (e) {
+  const appInst = ensureApp();
+
+  if (appInst) {
+    try {
+      const info = await appInst.auth().getEndUserInfo();
+      callerUid = info?.userInfo?.uid || "";
+    } catch (e) {
+    }
   }
 
   if (!callerUid && context?.userInfo) {
