@@ -9,6 +9,7 @@ import { toast } from "@/stores/toast";
 import { useDraft } from "@/hooks/useDraft";
 import Dialog from "@/components/Dialog";
 import TagSelector from "@/components/TagSelector";
+import MarkdownEditor from "@/components/MarkdownEditor";
 import type { Question } from "@/types";
 
 interface PostModalProps {
@@ -245,18 +246,16 @@ export default function PostModal({ open, onClose, onCreated, defaultCategory = 
             <label className="mb-1.5 block text-xs text-mist-400">
               正文
               <span className="ml-2 text-mist-500">
-                支持 LaTeX：行内 $...$，行间 $$...$$
+                支持 Markdown 排版与 LaTeX 公式
               </span>
             </label>
-            <textarea
+            <MarkdownEditor
               name="body"
-              required
+              value={body}
+              onChange={setBody}
               rows={8}
               maxLength={10000}
-              value={body}
-              onChange={(e) => setBody(e.target.value)}
               placeholder="详细描述你的问题背景、已尝试的方案、具体的卡点…"
-              className="w-full resize-y rounded-lg border border-void-600/50 bg-void-950/50 p-3 text-sm leading-relaxed text-parchment-100 placeholder:text-mist-500 focus:border-star-400/50 focus:outline-none focus:ring-1 focus:ring-star-400/30"
             />
           </div>
 
