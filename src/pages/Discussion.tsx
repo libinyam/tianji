@@ -1,13 +1,13 @@
 import { useMemo, useState, useEffect } from "react";
 import { useNavigate, useLocation, useSearchParams } from "react-router-dom";
-import { Plus, GraduationCap, Coffee, Search, Megaphone, X, AlertCircle, RefreshCw } from "lucide-react";
+import { Plus, GraduationCap, Coffee, Search, Megaphone, X, AlertCircle, RefreshCw, Heart } from "lucide-react";
 import PostModal from "@/components/PostModal";
 import EmptyState from "@/components/EmptyState";
 import WelcomeBanner from "@/components/WelcomeBanner";
 import DiscussionSidebar from "@/components/DiscussionSidebar";
 import { PostCardSkeleton, ListSkeleton } from "@/components/Skeleton";
 
-import { fetchPosts, type PostCategory, type CasualSubCategory, CASUAL_SUB_CATEGORIES } from "@/lib/posts";
+import { fetchPosts, fetchFollowingPosts, type PostCategory, type CasualSubCategory, CASUAL_SUB_CATEGORIES } from "@/lib/posts";
 import type { PostsResult } from "@/lib/posts";
 import { fetchActiveAnnouncements, type Announcement } from "@/lib/announcements";
 import { PRESET_TAGS } from "@/lib/tags";
@@ -43,9 +43,13 @@ function getLastActivity(q: Question): string {
   return q.createdAt;
 }
 
-const SECTIONS: { key: PostCategory; label: string; icon: typeof GraduationCap }[] = [
+/** 分区类型：在 PostCategory 基础上扩展「关注」分区（个性化 Feed，#149） */
+type Section = PostCategory | "following";
+
+const SECTIONS: { key: Section; label: string; icon: typeof GraduationCap }[] = [
   { key: "academic", label: "学术区", icon: GraduationCap },
   { key: "casual", label: "闲聊区", icon: Coffee },
+  { key: "following", label: "关注", icon: Heart },
 ];
 
 /** 闲聊区子分类 emoji */
@@ -105,7 +109,12 @@ export default function Discussion() {
   const [searchParams, setSearchParams] = useSearchParams();
 
   // 筛选状态由 URL 承载：刷新、分享、后退都能还原
-  const section: PostCategory = searchParams.get("section") === "casual" ? "casual" : "academic";
+  const rawSection = searchParams.get("section");
+  const section: Section = rawSection === "casual"
+    ? "casual"
+    : rawSection === "following"
+      ? "following"
+      : "academic";
   const rawCat = searchParams.get("cat") ?? "全部";
   const categoryFilter: CategoryFilter = ACADEMIC_CATEGORIES.includes(rawCat as CategoryFilter)
     ? (rawCat as CategoryFilter)
@@ -117,7 +126,8 @@ export default function Discussion() {
   const rawSort = searchParams.get("sort") ?? "最新";
   const sort: SortKey = SORT_KEYS.includes(rawSort as SortKey) ? (rawSort as SortKey) : "最新";
 
-  const cacheKey = `${section}:${subFilter}`;
+  // 关注分区不依赖子分类，cacheKey 单独处理（#149）
+  const cacheKey = section === "following" ? "following" : `${section}:${subFilter}`;
   const [postModalOpen, setPostModalOpen] = useState(false);
   const [capturedPrefill, setCapturedPrefill] = useState<{ title: string; body: string; tags: string[] } | null>(null);
   const [realPosts, setRealPosts] = useState<Question[]>(() => postsCache.get(cacheKey) ?? []);
@@ -155,10 +165,13 @@ export default function Discussion() {
     }
     setError(null);
     (async () => {
-      const result: PostsResult = await fetchPosts(
-        section,
-        section === "casual" && subFilter !== "全部" ? subFilter : undefined
-      );
+      // 关注分区走 fetchFollowingPosts，其他分区走 fetchPosts（#149）
+      const result: PostsResult = section === "following"
+        ? await fetchFollowingPosts()
+        : await fetchPosts(
+          section,
+          section === "casual" && subFilter !== "全部" ? subFilter : undefined
+        );
       if (!mounted) return;
       if (result.error) {
         if (!cached) {
@@ -177,6 +190,8 @@ export default function Discussion() {
 
   const loadMore = async () => {
     if (loadingMore || !hasMore) return;
+    // 关注分区暂不支持分页（#149）
+    if (section === "following") return;
     setLoadingMore(true);
     try {
       const offset = realPosts.length;
@@ -223,7 +238,9 @@ export default function Discussion() {
   );
 
   const filtered = useMemo(() => {
+    // 关注分区不做分类/标签筛选，仅按所选排序展示（#149）
     let list = allQuestions.filter((q) => {
+      if (section === "following") return true;
       if (section === "academic") {
         if (categoryFilter === "学科" && !q.tags.some((t) => PRESET_TAGS.subject.includes(t))) return false;
         if (categoryFilter === "工具与部署" && !q.tags.some((t) => PRESET_TAGS.tool.includes(t))) return false;
@@ -240,6 +257,8 @@ export default function Discussion() {
   }, [allQuestions, activeTag, categoryFilter, sort, section]);
 
   const handleNewPost = (post: Question) => {
+    // 关注分区是聚合 Feed，新发的帖子不直接插入列表（#149）
+    if (section === "following") return;
     if (post.category !== section) return;
     const next = [post, ...realPosts];
     postsCache.set(cacheKey, next);
@@ -325,22 +344,24 @@ export default function Discussion() {
           </div>
         )}
 
-        {/* 筛选栏：分类 + 标签 + 排序，合并为紧凑单行 */}
+        {/* 筛选栏：分类 + 标签 + 排序，合并为紧凑单行。关注分区仅显示排序（#149） */}
         <div className="mb-4 flex flex-wrap items-center gap-x-4 gap-y-2 text-xs">
           {/* 分类筛选 */}
-          <div className="flex items-center gap-0.5">
-            {categoryOptions.map((c) => (
-              <button
-                key={c}
-                onClick={() => setActiveCategory(c)}
-                className={`rounded px-2 py-1 transition-colors ${
-                  activeCategory === c ? "text-parchment-100" : "text-mist-500 hover:text-mist-300"
-                }`}
-              >
-                {c}
-              </button>
-            ))}
-          </div>
+          {section !== "following" && (
+            <div className="flex items-center gap-0.5">
+              {categoryOptions.map((c) => (
+                <button
+                  key={c}
+                  onClick={() => setActiveCategory(c)}
+                  className={`rounded px-2 py-1 transition-colors ${
+                    activeCategory === c ? "text-parchment-100" : "text-mist-500 hover:text-mist-300"
+                  }`}
+                >
+                  {c}
+                </button>
+              ))}
+            </div>
+          )}
 
           {/* 标签筛选（仅学术区 + 选中分类时） */}
           {section === "academic" && categoryFilter !== "全部" && (
@@ -403,14 +424,28 @@ export default function Discussion() {
         {!loading && !error && filtered.length === 0 && (
           <EmptyState
             icon={<Search size={28} strokeWidth={1.5} />}
-            title="这片星域还很安静"
-            description={
-              section === "academic"
-                ? "还没有学术讨论。你可以发起第一个讨论，分享你的问题或见解。"
-                : "闲聊区还没有帖子。来聊聊最近的学习动态、有趣新闻，或者灌个水？"
+            title={
+              section === "following"
+                ? user
+                  ? "关注动态为空"
+                  : "登录后查看关注动态"
+                : "这片星域还很安静"
             }
-            actionText={user ? "发起讨论" : "登录后发起讨论"}
-            onAction={handlePostClick}
+            description={
+              section === "following"
+                ? user
+                  ? "你还没有关注任何人，或关注的人尚未发帖。去学术区或闲聊区逛逛，关注感兴趣的作者吧。"
+                  : "登录后即可关注其他用户，这里会显示他们的最新动态。"
+                : section === "academic"
+                  ? "还没有学术讨论。你可以发起第一个讨论，分享你的问题或见解。"
+                  : "闲聊区还没有帖子。来聊聊最近的学习动态、有趣新闻，或者灌个水？"
+            }
+            actionText={section === "following" ? (user ? "去学术区看看" : "登录") : (user ? "发起讨论" : "登录后发起讨论")}
+            onAction={section === "following"
+              ? () => user
+                ? updateFilters({ section: "academic", cat: "全部", tag: "全部", sort: "最新" })
+                : handlePostClick()
+              : handlePostClick}
           />
         )}
 
@@ -508,7 +543,7 @@ export default function Discussion() {
           setCapturedPrefill(null);
         }}
         onCreated={handleNewPost}
-        defaultCategory={section}
+        defaultCategory={section === "following" ? "academic" : section}
         prefill={capturedPrefill ?? undefined}
         onPrefillApplied={() => setCapturedPrefill(null)}
       />

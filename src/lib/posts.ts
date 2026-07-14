@@ -114,6 +114,32 @@ export async function fetchPosts(
   }
 }
 
+/** 获取当前用户关注的人的帖子（个性化 Feed，#149）。
+ *  未登录或未关注任何人时返回空 data，hasMore=false。 */
+export async function fetchFollowingPosts(): Promise<PostsResult> {
+  try {
+    const uid = useAuthStore.getState().user?.uid ?? "";
+    if (!uid) return { data: [], error: null, hasMore: false };
+    // 延迟引入避免循环依赖（follows.ts 未引入 posts.ts，可安全静态引入，
+    // 但保持动态 import 以隔离关注体系失败时不影响主流程）
+    const { fetchFollowingUids } = await import("@/lib/follows");
+    const uids = await fetchFollowingUids(uid);
+    if (uids.length === 0) return { data: [], error: null, hasMore: false };
+    const _ = db.command;
+    const { data } = await db
+      .collection(POSTS_COLLECTION)
+      .where({ authorUid: _.in(uids) })
+      .orderBy("createdAt", "desc")
+      .limit(POSTS_PAGE_SIZE)
+      .get();
+    const realPosts = ((data as PostDoc[]) ?? []).map(toQuestion);
+    return { data: realPosts, error: null, hasMore: false };
+  } catch (err) {
+    const msg = err instanceof Error ? err.message : "加载关注动态失败";
+    return { data: [], error: msg, hasMore: false };
+  }
+}
+
 /** 按浏览量取热门帖子（首页侧栏榜单用），失败时返回空数组不阻塞页面 */
 export async function fetchHotPosts(limit = 5): Promise<Question[]> {
   try {

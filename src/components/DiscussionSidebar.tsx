@@ -1,7 +1,9 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
-import { Sparkles, BookOpen, Lightbulb, PenLine, ArrowUpRight, Flame, Compass } from "lucide-react";
+import { Sparkles, BookOpen, Lightbulb, PenLine, ArrowUpRight, Flame, Compass, Bookmark } from "lucide-react";
 import { fetchHotPosts } from "@/lib/posts";
+import { fetchFollowedTags } from "@/lib/follows";
+import { useAuthStore } from "@/stores/auth";
 import type { Question } from "@/types";
 
 const MODULES = [
@@ -20,7 +22,10 @@ const ONBOARDING_STEPS = [
 let hotCache: Question[] | null = null;
 
 export default function DiscussionSidebar() {
+  const { user } = useAuthStore();
   const [hot, setHot] = useState<Question[]>(hotCache ?? []);
+  // #149 我关注的标签
+  const [followedTags, setFollowedTags] = useState<string[]>([]);
 
   useEffect(() => {
     if (hotCache) return;
@@ -35,6 +40,15 @@ export default function DiscussionSidebar() {
     });
     return () => { mounted = false; };
   }, []);
+
+  useEffect(() => {
+    if (!user) return;
+    let mounted = true;
+    void fetchFollowedTags().then((tags) => {
+      if (mounted) setFollowedTags(tags);
+    });
+    return () => { mounted = false; };
+  }, [user]);
 
   return (
     <aside className="hidden space-y-3 lg:sticky lg:top-20 lg:block">
@@ -103,6 +117,26 @@ export default function DiscussionSidebar() {
           );
         })}
       </div>
+
+      {/* #149 我关注的标签 */}
+      {user && followedTags.length > 0 && (
+        <div className="card-surface px-4 py-3">
+          <div className="flex items-center gap-1.5 text-xs font-medium text-parchment-100">
+            <Bookmark size={13} className="text-star-400" /> 我关注的标签
+          </div>
+          <div className="mt-2 flex flex-wrap gap-1">
+            {followedTags.map((tag) => (
+              <Link
+                key={tag}
+                to={`/tags/${encodeURIComponent(tag)}`}
+                className="rounded bg-void-700/50 px-2 py-0.5 text-[11px] text-mist-300 transition-colors hover:bg-void-700/80 hover:text-star-400"
+              >
+                #{tag}
+              </Link>
+            ))}
+          </div>
+        </div>
+      )}
 
       {/* 热门讨论 */}
       {hot.length > 0 && (
