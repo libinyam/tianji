@@ -9,7 +9,8 @@ const db = app.database();
 const COLLECTION = "workshops";
 
 export type WorkshopType = "教材" | "论文";
-export type WorkshopStatus = "招募中" | "进行中" | "已完成" | "open" | "closed";
+// #98 统一中文状态，移除遗留的英文 "open"/"closed"
+export type WorkshopStatus = "招募中" | "进行中" | "已完成";
 
 export interface OutlineChapter {
   id: string;
@@ -76,6 +77,15 @@ export interface WorkshopDoc {
 
 const AVATAR_COLORS = ["#7cc4ff", "#f3c969", "#5aa6f0", "#a78bfa", "#34d399", "#fb923c"];
 
+// #98 遗留英文 status 映射为中文
+function normalizeStatus(s: string | undefined): WorkshopStatus {
+  if (!s) return "招募中";
+  if (s === "open") return "招募中";
+  if (s === "closed") return "已完成";
+  if (s === "招募中" || s === "进行中" || s === "已完成") return s;
+  return "招募中";
+}
+
 function getCurrentUserName(): string {
   const user = useAuthStore.getState().user;
   return user?.nickname || user?.username || user?.email || "匿名用户";
@@ -100,7 +110,8 @@ function toProject(doc: WorkshopDoc): WorkshopProject {
     contributions: doc.contributions ?? [],
     annotations: doc.annotations ?? [],
     tags: doc.tags ?? [],
-    status: doc.status ?? "open",
+    // #98 兼容遗留英文 status，统一映射为中文
+    status: normalizeStatus(doc.status),
     createdAt: doc.createdAt,
     updatedAt: doc.updatedAt ?? doc.createdAt,
   };
@@ -176,7 +187,7 @@ export async function createWorkshop(params: {
     contributions: [],
     annotations: [],
     tags: cleanTags,
-    status: "open",
+    status: "招募中",
     createdAt: now,
     updatedAt: now,
   };
@@ -253,9 +264,9 @@ export function canViewContent(project: WorkshopProject): boolean {
 }
 
 /**
- * 更新文档内容（仅创建者可编辑）
- * @param id 文档 id
- * @param params 可更新 title、description、content、status
+ * 更新文档内容
+ * #98: title/description/status 仅创建者可改（直写 DB）；
+ * content 创建者和参与者都可改（走云函数绕过安全规则）
  */
 export async function updateWorkshop(
   id: string,
@@ -275,23 +286,35 @@ export async function updateWorkshop(
     if (!data || data.length === 0) return false;
 
     const project = data[0] as WorkshopDoc;
-    if (project.creatorUid !== uid) {
-      throw new Error("仅创建者可编辑文档内容");
+    const isCreator = project.creatorUid === uid;
+
+    // content 走云函数（参与者也能编辑）
+    if (params.content !== undefined) {
+      const res = await app.callFunction({
+        name: "content-actions",
+        data: { action: "updateWorkshopContent", workshopId: id, content: params.content },
+      });
+      const result = (res?.result ?? {}) as { ok?: boolean; error?: string };
+      if (!result.ok) throw new Error(result.error || "保存失败");
     }
 
-    const updateFields: Record<string, unknown> = {
-      updatedAt: new Date().toISOString(),
-    };
-    if (params.title !== undefined) updateFields.title = sanitizeTitle(params.title);
-    if (params.description !== undefined) updateFields.description = sanitizeInput(params.description);
-    if (params.content !== undefined) updateFields.content = sanitizeInput(params.content);
-    if (params.status !== undefined) updateFields.status = params.status;
+    // title/description/status 仅创建者可改（直写 DB）
+    const metaFields: Record<string, unknown> = {};
+    if (params.title !== undefined) metaFields.title = sanitizeTitle(params.title);
+    if (params.description !== undefined) metaFields.description = sanitizeInput(params.description);
+    if (params.status !== undefined) metaFields.status = params.status;
 
-    await docRef.update(updateFields);
+    if (Object.keys(metaFields).length > 0) {
+      if (!isCreator) {
+        throw new Error("仅创建者可编辑标题、简介和状态");
+      }
+      metaFields.updatedAt = new Date().toISOString();
+      await docRef.update(metaFields);
+    }
+
     return true;
   } catch (err) {
-    // 权限错误向上抛出，其他错误返回 false
-    if (err instanceof Error && err.message.includes("仅创建者")) throw err;
+    if (err instanceof Error && (err.message.includes("仅创建者") || err.message.includes("无权"))) throw err;
     return false;
   }
 }
@@ -371,6 +394,49 @@ export async function resolveAnnotation(
     return result.ok === true;
   } catch (err) {
     if (err instanceof Error && err.message.includes("仅创建者或批注作者")) throw err;
+    return false;
+  }
+}
+
+/**
+ * #98 参与者退出项目（创建者不能退出，只能删除）
+ */
+export async function leaveWorkshop(id: string): Promise<boolean> {
+  const uid = getCurrentUid();
+  if (!uid) throw new Error("请先登录");
+  try {
+    const res = await app.callFunction({
+      name: "content-actions",
+      data: { action: "leaveWorkshop", workshopId: id },
+    });
+    const result = (res?.result ?? {}) as { ok?: boolean; error?: string };
+    if (!result.ok) throw new Error(result.error || "退出失败");
+    return true;
+  } catch (err) {
+    if (err instanceof Error && err.message) throw err;
+    return false;
+  }
+}
+
+/**
+ * #98 删除批注（创建者或批注作者可删除）
+ */
+export async function deleteAnnotation(
+  id: string,
+  annotationId: string
+): Promise<boolean> {
+  const uid = getCurrentUid();
+  if (!uid) throw new Error("请先登录");
+  try {
+    const res = await app.callFunction({
+      name: "content-actions",
+      data: { action: "deleteWorkshopAnnotation", workshopId: id, annotationId },
+    });
+    const result = (res?.result ?? {}) as { ok?: boolean; error?: string };
+    if (!result.ok) throw new Error(result.error || "删除失败");
+    return true;
+  } catch (err) {
+    if (err instanceof Error && err.message) throw err;
     return false;
   }
 }

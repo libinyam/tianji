@@ -826,7 +826,91 @@ async function resolveWorkshopAnnotation(event, uid) {
   return ok({ resolved: true });
 }
 
-const RATE_LIMIT_WINDOW_MS = 60_000;
+/**
+ * #98 参与者退出工坊项目
+ * 创建者不能退出（只能删除项目）；参与者从 participants 数组移除
+ */
+async function leaveWorkshop(event, uid) {
+  const { workshopId } = event;
+  if (!workshopId) return fail("缺少参数");
+
+  const docRef = db.collection("workshops").doc(workshopId);
+  const { data } = await docRef.get();
+  if (!data || data.length === 0) return fail("工坊不存在");
+
+  const workshop = data[0];
+  if (workshop.creatorUid === uid) return fail("创建者不能退出，请删除项目");
+
+  const participants = workshop.participants || [];
+  if (!participants.includes(uid)) return fail("您未参与此项目");
+
+  await docRef.update({
+    participants: _.pull(uid),
+  });
+
+  return ok({ left: true });
+}
+
+/**
+ * #98 删除批注（创建者或批注作者可删除）
+ */
+async function deleteWorkshopAnnotation(event, uid) {
+  const { workshopId, annotationId } = event;
+  if (!workshopId || !annotationId) return fail("缺少参数");
+
+  const docRef = db.collection("workshops").doc(workshopId);
+  const { data } = await docRef.get();
+  if (!data || data.length === 0) return fail("工坊不存在");
+
+  const workshop = data[0];
+  const annotations = workshop.annotations || [];
+  const annotation = annotations.find((a) => a.id === annotationId);
+  if (!annotation) return fail("批注不存在");
+
+  // 创建者或批注作者可删除
+  if (workshop.creatorUid !== uid && annotation.authorUid !== uid) {
+    return fail("无权删除此批注");
+  }
+
+  await docRef.update({
+    annotations: _.pull({ id: annotationId }),
+  });
+
+  return ok({ deleted: true });
+}
+
+/**
+ * #98 参与者编辑工坊文档正文（content 字段）
+ * 创建者可编辑所有字段（title/description/content/status 走原有 updateWorkshop），
+ * 参与者只能编辑 content，通过云函数绕过安全规则的 creatorUid 限制
+ */
+async function updateWorkshopContent(event, uid) {
+  const { workshopId, content } = event;
+  if (!workshopId) return fail("缺少参数");
+  if (content === undefined) return fail("缺少 content");
+
+  const sanitized = String(content).slice(0, 30000);
+
+  const docRef = db.collection("workshops").doc(workshopId);
+  const { data } = await docRef.get();
+  if (!data || data.length === 0) return fail("工坊不存在");
+
+  const workshop = data[0];
+  const participants = workshop.participants || [];
+  // 创建者或参与者可编辑 content
+  if (workshop.creatorUid !== uid && !participants.includes(uid)) {
+    return fail("无权编辑，请先加入项目");
+  }
+
+  await docRef.update({
+    content: sanitized,
+    updatedAt: new Date().toISOString(),
+  });
+
+  return ok({ updated: true });
+}
+
+
 const RATE_LIMIT_RULES = {
   voteAnswer: { max: 30, windowMs: 60_000 },
   acceptAnswer: { max: 20, windowMs: 60_000 },
@@ -944,6 +1028,12 @@ exports.main = async (event, context) => {
           return await addWorkshopAnnotation(event, uid);
         case "resolveWorkshopAnnotation":
           return await resolveWorkshopAnnotation(event, uid);
+        case "leaveWorkshop":
+          return await leaveWorkshop(event, uid);
+        case "deleteWorkshopAnnotation":
+          return await deleteWorkshopAnnotation(event, uid);
+        case "updateWorkshopContent":
+          return await updateWorkshopContent(event, uid);
         default:
           return fail(`未知 action: ${action}`);
       }
