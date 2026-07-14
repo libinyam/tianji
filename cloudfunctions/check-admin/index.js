@@ -1,7 +1,14 @@
 const cloudbase = require("@cloudbase/node-sdk");
 const { withTiming, logInfo } = require("./logger");
 
-const app = cloudbase.init({ env: cloudbase.SYMBOL_CURRENT_ENV });
+// 延迟初始化：真实运行时首次使用才连接 CloudBase；测试无 env 时不阻塞模块加载
+let app;
+function ensureApp() {
+  if (!app) {
+    app = cloudbase.init({ env: cloudbase.SYMBOL_CURRENT_ENV });
+  }
+  return app;
+}
 
 // 管理员 uid 列表从环境变量读取，逗号分隔；未配置时为空数组（fail-safe：无人是管理员）
 const ADMIN_UIDS = (process.env.ADMIN_UIDS || "")
@@ -15,7 +22,7 @@ exports.main = async (event, context) => {
 
   // 1. 优先从 getEndUserInfo 获取（不传参，从环境变量自动读取调用者身份）
   try {
-    const info = await app.auth().getEndUserInfo();
+    const info = await ensureApp().auth().getEndUserInfo();
     uid = info?.userInfo?.uid || "";
     uidSource = uid ? "getEndUserInfo" : "";
   } catch (e) {
