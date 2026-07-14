@@ -8,6 +8,7 @@ import { fetchBooks } from "@/lib/books";
 import { useAuthStore } from "@/stores/auth";
 import { dispatchAuthWithIntent } from "@/lib/pending-action";
 import { useDocumentTitle } from "@/hooks/useDocumentTitle";
+import { useSEO } from "@/hooks/useSEO";
 import type { Book, BookCategory } from "@/types";
 
 const CATEGORIES: ("全部" | BookCategory)[] = [
@@ -24,6 +25,12 @@ const SORTS: SortKey[] = ["热度", "最新", "难度"];
 
 export default function Library() {
   useDocumentTitle("资源库");
+  // #150 SEO
+  useSEO({
+    title: "资源库",
+    description: "天玑学习资源库 -- 精选 AI 工具实战、编程基础、项目实战与基础理论书单，支持上传分享与社区评价。",
+    canonical: "https://tianjihub.cn/library",
+  });
   const [query, setQuery] = useState("");
   const [category, setCategory] = useState<"全部" | BookCategory>("全部");
   const [sort, setSort] = useState<SortKey>("热度");

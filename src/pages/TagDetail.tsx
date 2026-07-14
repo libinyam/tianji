@@ -5,6 +5,7 @@ import { ArrowLeft, Tag, MessageSquare, Lightbulb, BookOpen, Users, Wrench, Grad
 import { fetchContentByTag, fetchTagCount, inferCategory, CATEGORY_LABEL, type TagContentItem } from "@/lib/tags";
 import { PostCardSkeleton, BookCardSkeleton, IdeaCardSkeleton, WorkshopCardSkeleton } from "@/components/Skeleton";
 import { useDocumentTitle } from "@/hooks/useDocumentTitle";
+import { useSEO } from "@/hooks/useSEO";
 
 const TYPE_ICON = {
   post: MessageSquare,
@@ -23,6 +24,12 @@ const TYPE_LABEL = {
 export default function TagDetail() {
   const { name = "" } = useParams<{ name: string }>();
   useDocumentTitle(name ? `#${name}` : undefined);
+  // #150 动态 SEO
+  useSEO({
+    title: name ? `#${name}` : undefined,
+    description: name ? `查看天玑社区中带「#${name}」标签的所有内容：讨论、灵感、资源、协作工坊。` : undefined,
+    canonical: name ? `https://tianjihub.cn/tags/${encodeURIComponent(name)}` : undefined,
+  });
   const [loading, setLoading] = useState(true);
   const [content, setContent] = useState<{
     posts: TagContentItem[];

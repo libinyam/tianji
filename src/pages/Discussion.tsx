@@ -13,6 +13,7 @@ import { fetchActiveAnnouncements, type Announcement } from "@/lib/announcements
 import { PRESET_TAGS } from "@/lib/tags";
 import { formatShortTime, formatCount } from "@/lib/format";
 import { useDocumentTitle } from "@/hooks/useDocumentTitle";
+import { useSEO, websiteJsonLd } from "@/hooks/useSEO";
 import { useAuthStore } from "@/stores/auth";
 import { dispatchAuthWithIntent } from "@/lib/pending-action";
 import type { Question } from "@/types";
@@ -95,6 +96,12 @@ function getCategoryBadge(q: Question): { emoji: string; label: string } | null 
 
 export default function Discussion() {
   useDocumentTitle();
+  // #150 首页 SEO + WebSite JSON-LD
+  useSEO({
+    description: "天玑 -- 跨专业 AI 转型者的学习与项目共创社区。在讨论区提问、分享见解，探索 AI 工具实战、编程基础与项目案例。",
+    canonical: "https://tianjihub.cn/",
+    jsonLd: websiteJsonLd(),
+  });
   const [searchParams, setSearchParams] = useSearchParams();
 
   // 筛选状态由 URL 承载：刷新、分享、后退都能还原
