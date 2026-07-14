@@ -235,8 +235,34 @@ exports.main = async (event, context) => {
       return { ok: false, error: "AI 未返回内容" };
     }
 
+    // 查询相关帖子，附上链接（发帖回复场景，#331）
+    let finalReply = reply;
+    if (replyType !== "comment") {
+      try {
+        const _ = db.command;
+        const { data: related } = await db
+          .collection("posts")
+          .where({
+            _id: _.neq(postId),
+            tags: _.in(safeTags),
+          })
+          .orderBy("views", "desc")
+          .limit(3)
+          .get();
+        const relatedPosts = (related || []).filter((p) => p.title);
+        if (relatedPosts.length > 0) {
+          const links = relatedPosts
+            .map((p) => `- [${String(p.title).slice(0, 60)}](/discussion/${p._id})`)
+            .join("\n");
+          finalReply = `${reply}\n\n---\n**📚 相关帖子推荐：**\n${links}`;
+        }
+      } catch {
+        // 查询失败不阻塞主流程
+      }
+    }
+
     // #38 AI 回复写入前过审（复用 #289 content-moderation）
-    const modResult = await moderateReply(reply, BOT_UID, "ai-bot");
+    const modResult = await moderateReply(finalReply, BOT_UID, "ai-bot");
     await logModeration({
       uid: BOT_UID,
       action: "ai-bot-reply",
@@ -270,7 +296,7 @@ exports.main = async (event, context) => {
         author: BOT_NAME,
         authorUid: BOT_UID,
         avatarColor: BOT_AVATAR_COLOR,
-        content: reply,
+        content: finalReply,
         date: new Date().toISOString(),
       };
 
@@ -280,7 +306,7 @@ exports.main = async (event, context) => {
 
       await docRef.update({ answerList });
 
-      return { ok: true, reply, comment: botComment, answerId };
+      return { ok: true, reply: finalReply, comment: botComment, answerId };
     } else {
       // 发帖回复 -> 原子追加回答（避免与用户提交回答的写操作竞态）
       const botAnswer = {
@@ -290,7 +316,7 @@ exports.main = async (event, context) => {
         avatarColor: BOT_AVATAR_COLOR,
         votes: 0,
         accepted: false,
-        content: reply,
+        content: finalReply,
         date: new Date().toISOString(),
       };
 
@@ -301,7 +327,7 @@ exports.main = async (event, context) => {
         answersCount: _.inc(1),
       });
 
-      return { ok: true, reply, answer: botAnswer };
+      return { ok: true, reply: finalReply, answer: botAnswer };
     }
   } catch (err) {
     logError("ai-bot", uid, err);
