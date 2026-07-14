@@ -16,6 +16,8 @@ export const books: Book[] = [
     rating: 4.8,
     year: 2025,
     pages: 268,
+    downloads: 1500,
+    createdAt: "2025-06-10T08:00:00.000Z",
     toc: [
       "AI 编程工具的全景与选型",
       "环境准备：Node、PowerShell 与终端基础",
@@ -56,6 +58,8 @@ export const books: Book[] = [
     rating: 4.7,
     year: 2025,
     pages: 152,
+    downloads: 1200,
+    createdAt: "2025-06-08T08:00:00.000Z",
     toc: [
       "为什么需要版本管理",
       "安装与配置 Git",
@@ -90,6 +94,8 @@ export const books: Book[] = [
     rating: 4.6,
     year: 2025,
     pages: 184,
+    downloads: 850,
+    createdAt: "2025-06-11T08:00:00.000Z",
     toc: [
       "部署是什么：本地与云端的区别",
       "前端一键部署：Vercel 实操",
@@ -121,6 +127,8 @@ export const books: Book[] = [
     rating: 4.8,
     year: 2006,
     pages: 738,
+    downloads: 380,
+    createdAt: "2025-03-12T08:00:00.000Z",
     toc: [
       "绪论：概率论与决策论",
       "概率分布",
@@ -156,6 +164,8 @@ export const books: Book[] = [
     rating: 4.6,
     year: 2025,
     pages: 240,
+    downloads: 1100,
+    createdAt: "2025-05-28T08:00:00.000Z",
     toc: [
       "编程是什么：从公式到代码",
       "变量、类型与函数",
@@ -189,6 +199,8 @@ export const books: Book[] = [
     rating: 4.9,
     year: 2025,
     pages: 196,
+    downloads: 1800,
+    createdAt: "2025-06-12T08:00:00.000Z",
     toc: [
       "从想法到项目：拆解思维",
       "需求文档与最小可行产品",
@@ -228,6 +240,8 @@ export const books: Book[] = [
     rating: 4.7,
     year: 2025,
     pages: 224,
+    downloads: 920,
+    createdAt: "2025-06-05T08:00:00.000Z",
     toc: [
       "大模型应用的全貌",
       "调用 LLM API 与流式输出",
@@ -259,6 +273,8 @@ export const books: Book[] = [
     rating: 4.7,
     year: 2016,
     pages: 800,
+    downloads: 760,
+    createdAt: "2025-04-02T08:00:00.000Z",
     toc: [
       "应用数学与机器学习基础",
       "线性代数",

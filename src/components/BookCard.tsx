@@ -1,5 +1,5 @@
 import { Link, useNavigate } from "react-router-dom";
-import { BookOpen, Star, Bookmark } from "lucide-react";
+import { BookOpen, Star, Bookmark, Download } from "lucide-react";
 import type { Book } from "@/types";
 import DifficultyDots from "./DifficultyDots";
 
@@ -7,8 +7,17 @@ export default function BookCard({ book }: { book: Book; index?: number }) {
   const navigate = useNavigate();
   return (
     <div
+      role="button"
+      tabIndex={0}
       onClick={() => navigate(`/library/${book.id}`)}
-      className="group flex h-full cursor-pointer flex-col overflow-hidden rounded-lg border border-void-600/30 bg-void-800/20 transition-colors hover:bg-void-800/40"
+      onKeyDown={(e) => {
+        // #96 键盘可达性：Enter / Space 触发跳转
+        if (e.key === "Enter" || e.key === " ") {
+          e.preventDefault();
+          navigate(`/library/${book.id}`);
+        }
+      }}
+      className="group flex h-full cursor-pointer flex-col overflow-hidden rounded-lg border border-void-600/30 bg-void-800/20 transition-colors outline-none focus-visible:ring-2 focus-visible:ring-star-400/40 hover:bg-void-800/40"
     >
       {/* 封面 */}
       <div
@@ -54,9 +63,17 @@ export default function BookCard({ book }: { book: Book; index?: number }) {
             <span className="text-[10px] text-mist-500">难度</span>
             <DifficultyDots level={book.difficulty} />
           </div>
-          <span className="flex items-center gap-1 text-xs text-mist-400">
-            <Bookmark size={11} /> {book.favorites}
-          </span>
+          <div className="flex items-center gap-2.5 text-xs text-mist-400">
+            {/* #96 显示下载数 */}
+            {book.downloads > 0 && (
+              <span className="flex items-center gap-0.5">
+                <Download size={10} /> {book.downloads}
+              </span>
+            )}
+            <span className="flex items-center gap-1">
+              <Bookmark size={11} /> {book.favorites}
+            </span>
+          </div>
         </div>
       </div>
     </div>
