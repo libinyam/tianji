@@ -30,7 +30,8 @@ import { useDiscussionDetail } from "@/hooks/useDiscussionDetail";
 import { useAnswerActions } from "@/hooks/useAnswerActions";
 import { useCommentActions } from "@/hooks/useCommentActions";
 import { usePostEditor } from "@/hooks/usePostEditor";
-import LazyMathText from "@/components/LazyMathText";
+import LazyMarkdownRenderer from "@/components/LazyMarkdownRenderer";
+import MarkdownEditor from "@/components/MarkdownEditor";
 import Avatar from "@/components/Avatar";
 import RelatedContent from "@/components/RelatedContent";
 import ReportModal from "@/components/ReportModal";
@@ -320,12 +321,11 @@ export default function DiscussionDetail() {
                   placeholder="标题"
                   maxLength={200}
                 />
-                <textarea
+                <MarkdownEditor
                   name="body"
-                  rows={8}
                   value={editBody}
-                  onChange={(e) => setEditBody(e.target.value)}
-                  className="w-full resize-none rounded-lg border border-void-600/50 bg-void-950/50 p-3 text-sm text-parchment-100 focus:border-star-400/50 focus:outline-none"
+                  onChange={setEditBody}
+                  rows={8}
                   maxLength={10000}
                 />
                 <div className="mt-3 flex justify-end gap-2">
@@ -335,7 +335,7 @@ export default function DiscussionDetail() {
               </div>
             ) : (
               <div className="mt-6 border-t border-void-600/40 pt-6">
-                <LazyMathText
+                <LazyMarkdownRenderer
                   content={question.body}
                   className="text-[15px] leading-relaxed text-parchment-100"
                 />
@@ -377,12 +377,11 @@ export default function DiscussionDetail() {
                       </div>
                       {editingAnswerId === a.id ? (
                         <div className="mt-3">
-                          <textarea
+                          <MarkdownEditor
                             name="answer"
-                            rows={5}
                             value={editAnswerText}
-                            onChange={(e) => setEditAnswerText(e.target.value)}
-                            className="w-full resize-none rounded-lg border border-void-600/50 bg-void-950/50 p-3 text-sm text-parchment-100 focus:border-star-400/50 focus:outline-none"
+                            onChange={setEditAnswerText}
+                            rows={5}
                             maxLength={8000}
                           />
                           <div className="mt-2 flex justify-end gap-2">
@@ -391,7 +390,7 @@ export default function DiscussionDetail() {
                           </div>
                         </div>
                       ) : (
-                        <LazyMathText
+                        <LazyMarkdownRenderer
                           content={a.content}
                           className="mt-3 font-content text-[15px] leading-relaxed text-mist-200"
                         />
@@ -532,12 +531,12 @@ export default function DiscussionDetail() {
                                   </div>
                                   {editingCommentId === c.id ? (
                                     <div className="mt-2">
-                                      <textarea
-                                        rows={3}
+                                      <MarkdownEditor
                                         value={editCommentText}
-                                        onChange={(e) => setEditCommentText(e.target.value)}
-                                        className="w-full resize-none rounded-lg border border-void-600/50 bg-void-950/50 p-2 text-sm text-parchment-100 focus:border-star-400/50 focus:outline-none"
+                                        onChange={setEditCommentText}
+                                        rows={3}
                                         maxLength={2000}
+                                        compact
                                       />
                                       <div className="mt-1 flex justify-end gap-2">
                                         <button onClick={() => setEditingCommentId(null)} className="btn-ghost text-xs">取消</button>
@@ -545,7 +544,7 @@ export default function DiscussionDetail() {
                                       </div>
                                     </div>
                                   ) : (
-                                    <LazyMathText
+                                    <LazyMarkdownRenderer
                                       content={c.content}
                                       className="mt-1 text-[13px] leading-relaxed text-mist-200"
                                     />
@@ -575,14 +574,14 @@ export default function DiscussionDetail() {
                               </button>
                             </div>
                           )}
-                          <textarea
+                          <MarkdownEditor
                             name="comment"
-                            rows={2}
                             value={commentText}
-                            onChange={(e) => setCommentText(e.target.value)}
-                            placeholder="写下你的评论…"
-                            className="w-full resize-none rounded-md border border-void-600/50 bg-void-950/50 p-2.5 text-sm text-parchment-100 placeholder:text-mist-500 focus:border-star-400/50 focus:outline-none"
+                            onChange={setCommentText}
+                            rows={2}
                             maxLength={500}
+                            placeholder="写下你的评论…"
+                            compact
                           />
                           <div className="mt-2 flex justify-end gap-2">
                             <button
@@ -615,18 +614,17 @@ export default function DiscussionDetail() {
             <div className="mt-8 rounded-xl border border-void-600/40 bg-void-800/30 p-5">
               <h3 className="heading-display text-base text-parchment-50">你的回答</h3>
               <p className="mt-1 text-xs text-mist-500">
-                支持 LaTeX：行内用 <code className="text-star-300">$...$</code>，行间用{" "}
-                <code className="text-star-300">$$...$$</code>
+                支持 Markdown 排版与 LaTeX 公式
               </p>
-              <textarea
+              <MarkdownEditor
                 name="answer"
-                rows={5}
                 value={answerText}
-                onChange={(e) => setAnswerText(e.target.value)}
+                onChange={setAnswerText}
+                rows={5}
+                maxLength={8000}
                 placeholder={user ? "撰写你的推导与解答…" : "请先登录后再回答…"}
                 disabled={!user}
-                className="mt-3 w-full resize-none rounded-lg border border-void-600/50 bg-void-950/50 p-3 text-sm text-parchment-100 placeholder:text-mist-500 focus:border-star-400/50 focus:outline-none disabled:opacity-50"
-                maxLength={8000}
+                className="mt-3"
               />
               {answerError && (
                 <p className="mt-2 text-xs text-red-300">{answerError}</p>
