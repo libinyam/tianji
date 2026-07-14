@@ -19,10 +19,11 @@ import {
   Trash2,
   Settings,
   ListTree,
-  GitBranch,
   LogOut,
+  Plus,
 } from "lucide-react";
 import { PostDetailSkeleton } from "@/components/Skeleton";
+import ContributeModal from "@/components/ContributeModal";
 import {
   fetchWorkshopById,
   joinWorkshop,
@@ -36,6 +37,8 @@ import {
   type WorkshopProject,
   type Annotation,
   type WorkshopStatus,
+  type Contribution,
+  type OutlineChapter,
 } from "@/lib/workshops";
 import { useAuthStore } from "@/stores/auth";
 import { toast } from "@/stores/toast";
@@ -83,6 +86,9 @@ export default function WorkshopDetail() {
   // 删除确认状态
   const [deleteConfirm, setDeleteConfirm] = useState(false);
   const [deleting, setDeleting] = useState(false);
+
+  // #30 章节贡献流：当前正在贡献的章节
+  const [contributingChapter, setContributingChapter] = useState<OutlineChapter | null>(null);
 
   // 批注状态
   const [selectedText, setSelectedText] = useState("");
@@ -653,64 +659,90 @@ export default function WorkshopDetail() {
         </div>
       )}
 
-      {/* #98 大纲展示 */}
+      {/* #30 章节大纲 + 贡献流：每章一张卡片，含贡献按钮和该章节的贡献列表 */}
       {project.outline.length > 0 && (
         <div className="mt-8 rounded-xl border border-void-600/40 bg-void-800/30 p-6">
           <div className="mb-4 flex items-center gap-2">
             <ListTree size={15} className="text-star-400" />
-            <h3 className="font-mono text-xs uppercase tracking-[0.2em] text-star-300">章节大纲</h3>
-          </div>
-          <div className="space-y-3">
-            {project.outline.map((ch, i) => (
-              <div key={ch.id} className="flex gap-3 rounded-lg border border-void-600/30 bg-void-900/30 p-3">
-                <span className="mt-0.5 font-mono text-xs text-mist-500">第{i + 1}章</span>
-                <div className="flex-1">
-                  <p className="text-sm font-medium text-parchment-100">{ch.title}</p>
-                  {ch.brief && (
-                    <p className="mt-1 text-xs text-mist-400">{ch.brief}</p>
-                  )}
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-      )}
-
-      {/* #98 贡献列表展示 */}
-      {project.contributions.length > 0 && (
-        <div className="mt-8 rounded-xl border border-void-600/40 bg-void-800/30 p-6">
-          <div className="mb-4 flex items-center gap-2">
-            <GitBranch size={15} className="text-star-400" />
             <h3 className="font-mono text-xs uppercase tracking-[0.2em] text-star-300">
-              贡献列表 · {project.contributions.length}
+              章节大纲 · {project.outline.length} 章 · {project.contributions.length} 条贡献
             </h3>
           </div>
-          <div className="space-y-3">
-            {project.contributions.map((c) => {
-              const chapter = project.outline.find((ch) => ch.id === c.chapterId);
+          <div className="space-y-4">
+            {project.outline.map((ch, i) => {
+              const chapterContribs = project.contributions.filter((c) => c.chapterId === ch.id);
               return (
-                <div key={c.id} className="rounded-lg border border-void-600/30 bg-void-900/30 p-3">
-                  <div className="mb-2 flex items-center justify-between gap-2">
-                    <div className="flex items-center gap-2">
-                      <Avatar name={c.author} color={c.avatarColor} size={20} />
-                      <span className="text-xs text-mist-300">{c.author}</span>
-                      {chapter && (
-                        <span className="rounded border border-void-600/40 px-1.5 py-0.5 text-[10px] text-mist-500">
-                          {chapter.title}
-                        </span>
+                <div key={ch.id} className="rounded-lg border border-void-600/30 bg-void-900/30 p-4">
+                  {/* 章节标题区 */}
+                  <div className="flex items-start justify-between gap-3">
+                    <div className="flex-1">
+                      <div className="flex items-center gap-2">
+                        <span className="font-mono text-xs text-mist-500">第{i + 1}章</span>
+                        <p className="text-sm font-medium text-parchment-100">{ch.title}</p>
+                        {chapterContribs.length > 0 && (
+                          <span className="rounded-full border border-star-400/30 bg-star-400/10 px-1.5 py-0.5 text-[10px] text-star-300">
+                            {chapterContribs.length} 条贡献
+                          </span>
+                        )}
+                      </div>
+                      {ch.brief && (
+                        <p className="mt-1 text-xs text-mist-400">{ch.brief}</p>
                       )}
                     </div>
-                    <span className="font-mono text-[9px] text-mist-500">{formatTime(c.createdAt)}</span>
+                    {/* #30 参与者可为每个章节贡献内容 */}
+                    {(isCreator || isParticipant) && (
+                      <button
+                        onClick={() => setContributingChapter(ch)}
+                        className="flex shrink-0 items-center gap-1 rounded-lg border border-star-400/30 bg-star-400/10 px-3 py-1.5 text-xs text-star-300 transition-colors hover:bg-star-400/20"
+                      >
+                        <Plus size={12} /> 贡献内容
+                      </button>
+                    )}
                   </div>
-                  <LazyMathText
-                    content={c.content}
-                    className="text-xs leading-relaxed text-mist-200"
-                  />
+
+                  {/* 该章节的贡献列表 */}
+                  {chapterContribs.length > 0 && (
+                    <div className="mt-3 space-y-2 border-t border-void-600/20 pt-3">
+                      {chapterContribs.map((c) => (
+                        <div key={c.id} className="rounded border border-void-600/20 bg-void-950/30 p-2.5">
+                          <div className="mb-1.5 flex items-center justify-between gap-2">
+                            <div className="flex items-center gap-2">
+                              <Avatar name={c.author} color={c.avatarColor} size={18} />
+                              <span className="text-xs text-mist-300">{c.author}</span>
+                            </div>
+                            <span className="font-mono text-[9px] text-mist-500">{formatTime(c.createdAt)}</span>
+                          </div>
+                          <LazyMathText
+                            content={c.content}
+                            className="text-xs leading-relaxed text-mist-200"
+                          />
+                        </div>
+                      ))}
+                    </div>
+                  )}
                 </div>
               );
             })}
           </div>
         </div>
+      )}
+
+      {/* #30 章节贡献弹窗 */}
+      {contributingChapter && (
+        <ContributeModal
+          open={!!contributingChapter}
+          onClose={() => setContributingChapter(null)}
+          workshopId={project.id}
+          chapterId={contributingChapter.id}
+          chapterTitle={contributingChapter.title}
+          onContributed={(contribution: Contribution) => {
+            setProject({
+              ...project,
+              contributions: [...project.contributions, contribution],
+            });
+            setContributingChapter(null);
+          }}
+        />
       )}
 
       {/* 文档内容 + 批注 */}
