@@ -31,7 +31,7 @@
     "zustand": "^5.0.3"
   },
   "devDependencies": {
-    "@cloudbase/node-sdk": "^3.18.3",
+    "@cloudbase/node-sdk": "^4.0.0",
     "@eslint/js": "^10.0.1",
     "@types/node": "^22.15.30",
     "@types/react": "^19.2.17",
@@ -40,7 +40,7 @@
     "@vitest/coverage-v8": "^4.1.10",
     "autoprefixer": "^10.4.21",
     "babel-plugin-react-dev-locator": "^1.0.0",
-    "cos-nodejs-sdk-v5": "^2.14.4",
+    "cos-nodejs-sdk-v5": "^3.0.0",
     "eslint": "^10.7.0",
     "eslint-plugin-react-hooks": "^5.2.0",
     "eslint-plugin-react-refresh": "^0.5.3",
