@@ -51,6 +51,7 @@ function toBook(doc: BookDoc): Book {
     accent: doc.accent,
     summary: doc.summary,
     favorites: doc.favorites ?? 0,
+    downloads: doc.downloads ?? 0, // #96 透出下载数
     rating,
     year: doc.year ?? new Date().getFullYear(),
     pages: doc.pages ?? 0,
@@ -59,6 +60,7 @@ function toBook(doc: BookDoc): Book {
     link: doc.link,
     fileUrl: doc.fileUrl,
     fileName: doc.fileName,
+    createdAt: doc.createdAt ?? new Date().toISOString(), // #96 透出创建时间
   };
 }
 
@@ -204,6 +206,7 @@ export async function createBook(params: {
     accent: doc.accent,
     summary: doc.summary,
     favorites: 0,
+    downloads: 0,
     rating: 0,
     year: doc.year,
     pages: 0,
@@ -212,5 +215,81 @@ export async function createBook(params: {
     link: doc.link,
     fileUrl: doc.fileUrl,
     fileName: doc.fileName,
+    createdAt: doc.createdAt,
+    authorUid: doc.authorUid,
   };
+}
+
+/**
+ * #96 查询相关推荐（按 category 从数据库查，不再只查 mock）
+ * 排除当前资源，按收藏数倒序取前 limit 条
+ */
+export async function fetchRelatedBooks(category: BookCategory, excludeId: string, limit = 3): Promise<Book[]> {
+  try {
+    const _ = db.command;
+    const { data } = await db
+      .collection(BOOKS_COLLECTION)
+      .where({ category, _id: _.neq(excludeId) })
+      .orderBy("favorites", "desc")
+      .limit(limit)
+      .get();
+    return (data as BookDoc[]).map(toBook);
+  } catch {
+    return [];
+  }
+}
+
+/**
+ * #96 编辑资源（仅上传者可改）
+ */
+export async function updateBook(
+  id: string,
+  params: {
+    title?: string;
+    author?: string;
+    summary?: string;
+    tags?: string[];
+    difficulty?: 1 | 2 | 3 | 4 | 5;
+    link?: string;
+  }
+): Promise<boolean> {
+  const uid = getCurrentUid();
+  if (!uid) throw new Error("请先登录");
+
+  const docRef = db.collection(BOOKS_COLLECTION).doc(id);
+  const { data } = await docRef.get();
+  if (!data || data.length === 0) return false;
+
+  const book = data[0] as BookDoc;
+  if (book.authorUid !== uid) throw new Error("无权编辑他人资源");
+
+  const updateFields: Record<string, unknown> = {};
+  if (params.title !== undefined) updateFields.title = sanitizeTitle(params.title);
+  if (params.author !== undefined) updateFields.author = sanitizeInput(params.author, 200);
+  if (params.summary !== undefined) updateFields.summary = sanitizeInput(params.summary);
+  if (params.tags !== undefined) updateFields.tags = params.tags.map(sanitizeTag);
+  if (params.difficulty !== undefined) updateFields.difficulty = params.difficulty;
+  if (params.link !== undefined) updateFields.link = params.link ? sanitizeInput(params.link, 2000) : undefined;
+
+  if (Object.keys(updateFields).length === 0) return true;
+  await docRef.update(updateFields);
+  return true;
+}
+
+/**
+ * #96 删除资源（仅上传者可删）
+ */
+export async function deleteBook(id: string): Promise<boolean> {
+  const uid = getCurrentUid();
+  if (!uid) throw new Error("请先登录");
+
+  const docRef = db.collection(BOOKS_COLLECTION).doc(id);
+  const { data } = await docRef.get();
+  if (!data || data.length === 0) return false;
+
+  const book = data[0] as BookDoc;
+  if (book.authorUid !== uid) throw new Error("无权删除他人资源");
+
+  await docRef.remove();
+  return true;
 }

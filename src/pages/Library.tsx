@@ -69,16 +69,19 @@ export default function Library() {
     let list = allBooks.filter((b) => {
       const matchCat = category === "全部" || b.category === category;
       const q = query.trim().toLowerCase();
+      // #96 搜索覆盖 summary 字段
       const matchQ =
         !q ||
         b.title.toLowerCase().includes(q) ||
         b.author.toLowerCase().includes(q) ||
+        b.summary.toLowerCase().includes(q) ||
         b.tags.some((t) => t.toLowerCase().includes(q));
       return matchCat && matchQ;
     });
     list = [...list].sort((a, b) => {
       if (sort === "热度") return b.favorites - a.favorites;
-      if (sort === "最新") return b.year - a.year;
+      // #96 "最新"排序改用 createdAt（之前用 year，用户上传资源 year 都是当前年，排序随机）
+      if (sort === "最新") return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
       return b.difficulty - a.difficulty;
     });
     return list;
