@@ -35,6 +35,8 @@ function lazyWithReload<T extends ComponentType<unknown>>(
 
 // 路由级懒加载 — 首屏只加载讨论区（首页），其余按需加载
 const About = lazyWithReload(() => import("@/pages/About"));
+const GrowthPath = lazyWithReload(() => import("@/pages/GrowthPath"));
+const Portfolio = lazyWithReload(() => import("@/pages/Portfolio"));
 const Library = lazyWithReload(() => import("@/pages/Library"));
 const BookDetail = lazyWithReload(() => import("@/pages/BookDetail"));
 const DiscussionDetail = lazyWithReload(() => import("@/pages/DiscussionDetail"));
@@ -84,6 +86,8 @@ export default function App() {
               <Suspense fallback={<PageFallback />}>
                 <Routes>
                   <Route path="/about" element={<About />} />
+                  <Route path="/growth" element={<GrowthPath />} />
+                  <Route path="/portfolio" element={<Portfolio />} />
                   <Route path="/library" element={<Library />} />
                   <Route path="/library/:id" element={<BookDetail />} />
                   <Route path="/discussion" element={<DiscussionRedirect />} />

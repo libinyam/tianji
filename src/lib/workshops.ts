@@ -440,3 +440,74 @@ export async function deleteAnnotation(
     return false;
   }
 }
+
+// ==================== 作品集（#312） ====================
+// 用 tags 数组包含 "作品集" 标记成果，不改 schema
+
+const PORTFOLIO_TAG = "作品集";
+
+/** 获取所有标记为作品集成果的协作项目 */
+export async function fetchPortfolioWorks(): Promise<WorkshopProject[]> {
+  try {
+    const _ = db.command;
+    const { data } = await db
+      .collection(COLLECTION)
+      .where({ tags: _.in([PORTFOLIO_TAG]) })
+      .orderBy("updatedAt", "desc")
+      .limit(30)
+      .get();
+    return (data as WorkshopDoc[]).map(toProject);
+  } catch {
+    return [];
+  }
+}
+
+/** 将协作项目标记为作品集成果（仅创建者） */
+export async function markAsPortfolio(id: string): Promise<boolean> {
+  const uid = getCurrentUid();
+  if (!uid) throw new Error("请先登录");
+  try {
+    const docRef = db.collection(COLLECTION).doc(id);
+    const { data } = await docRef.get();
+    if (!data || data.length === 0) return false;
+    const project = data[0] as WorkshopDoc;
+    if (project.creatorUid !== uid) throw new Error("仅创建者可标记作品集");
+    const tags = project.tags ?? [];
+    if (tags.includes(PORTFOLIO_TAG)) return true;
+    await docRef.update({
+      tags: [...tags, PORTFOLIO_TAG],
+      updatedAt: new Date().toISOString(),
+    });
+    return true;
+  } catch (err) {
+    if (err instanceof Error && err.message.includes("仅创建者")) throw err;
+    return false;
+  }
+}
+
+/** 取消作品集标记（仅创建者） */
+export async function unmarkPortfolio(id: string): Promise<boolean> {
+  const uid = getCurrentUid();
+  if (!uid) throw new Error("请先登录");
+  try {
+    const docRef = db.collection(COLLECTION).doc(id);
+    const { data } = await docRef.get();
+    if (!data || data.length === 0) return false;
+    const project = data[0] as WorkshopDoc;
+    if (project.creatorUid !== uid) throw new Error("仅创建者可取消标记");
+    const tags = (project.tags ?? []).filter((t) => t !== PORTFOLIO_TAG);
+    await docRef.update({
+      tags,
+      updatedAt: new Date().toISOString(),
+    });
+    return true;
+  } catch (err) {
+    if (err instanceof Error && err.message.includes("仅创建者")) throw err;
+    return false;
+  }
+}
+
+/** 判断项目是否已标记为作品集成果 */
+export function isPortfolioWork(project: WorkshopProject): boolean {
+  return (project.tags ?? []).includes(PORTFOLIO_TAG);
+}

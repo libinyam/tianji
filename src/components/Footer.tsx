@@ -8,6 +8,8 @@ const MODULES = [
   { to: "/ideas", label: "灵感广场" },
   { to: "/workshop", label: "协作工坊" },
   { to: "/about", label: "关于天玑" },
+  { to: "/growth", label: "成长路径" },
+  { to: "/portfolio", label: "作品集" },
 ];
 
 export default function Footer() {
