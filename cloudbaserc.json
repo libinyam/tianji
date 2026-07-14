@@ -4,6 +4,7 @@
   "functionRoot": "cloudfunctions",
   "functions": [
     { "name": "content-actions", "handler": "index.main", "timeout": 20, "ignore": ["*.test.js"] },
+    { "name": "content-moderation", "handler": "index.main", "timeout": 20, "ignore": ["*.test.js"] },
     { "name": "user-admin", "handler": "index.main", "timeout": 20, "ignore": ["*.test.js"] },
     { "name": "admin-delete", "handler": "index.main", "timeout": 20, "ignore": ["*.test.js"] },
     { "name": "check-admin", "handler": "index.main", "timeout": 20, "ignore": ["*.test.js"] },
