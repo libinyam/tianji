@@ -5,7 +5,7 @@ export default defineConfig({
     globals: false,
     environment: "node",
     setupFiles: ["src/test/setup.ts"],
-    exclude: ["node_modules", ".claude/**", ".agents/**", ".closed-loop-workspace/**", "dist/**"],
+    exclude: ["node_modules", "**/node_modules/**", ".claude/**", ".agents/**", ".closed-loop-workspace/**", "dist/**"],
     coverage: {
       provider: "v8",
       reporter: ["text", "json", "html"],
