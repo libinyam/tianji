@@ -64,9 +64,9 @@ const STAGES = [
     title: "作品集产出",
     subtitle: "把成果展示出来",
     description: "最终目标：把学习路径沉淀成可展示的作品。项目文档、学习记录、协作者、演示链接——一个能分享给评审或同学的可信成果，证明「我真的学会了」。",
-    link: "/about",
-    linkLabel: "了解天玑愿景",
-    example: { to: "/about", label: "从 C++ 入门到 CLI Notes 知识系统" },
+    link: "/portfolio",
+    linkLabel: "查看作品集",
+    example: { to: "/portfolio", label: "从 C++ 入门到 CLI Notes 知识系统" },
     accent: "#fb923c",
   },
 ];
@@ -80,7 +80,7 @@ const EXAMPLE_ROUTE = {
     { label: "提问答疑", to: "/tags/C++", detail: "C++ 入门 01-07 + 学习路线总结" },
     { label: "灵感落地", to: "/ideas", detail: "用 C++ 做 CLI 笔记知识系统" },
     { label: "协作开发", to: "/workshop", detail: "CLI Notes 协作工坊（5 章大纲）" },
-    { label: "作品产出", to: "/about", detail: "可展示的项目教程" },
+    { label: "作品产出", to: "/portfolio", detail: "可展示的项目教程" },
   ],
 };
 
