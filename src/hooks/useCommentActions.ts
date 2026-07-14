@@ -78,13 +78,11 @@ export function useCommentActions(
 
         const targetAnswer = question.answerList.find((a) => a.id === answerId);
         if (targetAnswer?.authorUid === "ai-bot-001") {
+          // #38 云函数从数据库取 post/answer 内容，客户端只传 postId/answerId/userComment
           triggerAiBotReply({
             postId: question.id,
-            postTitle: question.title,
-            tags: question.tags,
             replyType: "comment",
             answerId,
-            answerContent: targetAnswer.content,
             userComment: comment.content,
           })
             .then((result) => {
