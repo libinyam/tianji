@@ -1,5 +1,5 @@
 import { useMemo, useState, useEffect } from "react";
-import { Link, useNavigate, useLocation, useSearchParams } from "react-router-dom";
+import { useNavigate, useLocation, useSearchParams } from "react-router-dom";
 import { Plus, GraduationCap, Coffee, Search, Megaphone, X, AlertCircle, RefreshCw } from "lucide-react";
 import PostModal from "@/components/PostModal";
 import EmptyState from "@/components/EmptyState";
@@ -11,7 +11,7 @@ import { fetchPosts, type PostCategory, type CasualSubCategory, CASUAL_SUB_CATEG
 import type { PostsResult } from "@/lib/posts";
 import { fetchActiveAnnouncements, type Announcement } from "@/lib/announcements";
 import { PRESET_TAGS } from "@/lib/tags";
-import { formatRelativeTime } from "@/lib/format";
+import { formatShortTime, formatCount } from "@/lib/format";
 import { useDocumentTitle } from "@/hooks/useDocumentTitle";
 import { useAuthStore } from "@/stores/auth";
 import { dispatchAuthWithIntent } from "@/lib/pending-action";
@@ -46,6 +46,52 @@ const SECTIONS: { key: PostCategory; label: string; icon: typeof GraduationCap }
   { key: "academic", label: "学术区", icon: GraduationCap },
   { key: "casual", label: "闲聊区", icon: Coffee },
 ];
+
+/** 闲聊区子分类 emoji */
+const SUB_CATEGORY_EMOJI: Record<string, string> = {
+  "灌水": "💧",
+  "动态": "📡",
+  "新闻": "📰",
+  "其他": "💬",
+};
+
+/** 常用标签 emoji 映射 */
+const TAG_EMOJI: Record<string, string> = {
+  "人工智能": "🧠",
+  "深度学习": "🤖",
+  "机器学习": "📊",
+  "数学": "📐",
+  "物理": "⚛️",
+  "化学": "🧪",
+  "生物": "🧬",
+  "计算机": "💻",
+  "编程": "⌨️",
+  "Python": "🐍",
+  "工具部署": "🔧",
+  "工具与部署": "🔧",
+  "论文": "📄",
+  "学习": "📚",
+  "考研": "🎯",
+  "就业": "💼",
+  "留学": "✈️",
+  "问答": "❓",
+  "综合讨论": "💭",
+};
+
+function getTagEmoji(tag: string): string {
+  return TAG_EMOJI[tag] || "🏷️";
+}
+
+function getCategoryBadge(q: Question): { emoji: string; label: string } | null {
+  if (q.category === "casual" && q.subCategory) {
+    return { emoji: SUB_CATEGORY_EMOJI[q.subCategory] || "💬", label: q.subCategory };
+  }
+  if (q.tags && q.tags.length > 0) {
+    return { emoji: getTagEmoji(q.tags[0]), label: q.tags[0] };
+  }
+  if (q.category === "academic") return { emoji: "🎓", label: "学术" };
+  return null;
+}
 
 export default function Discussion() {
   useDocumentTitle();
@@ -361,60 +407,73 @@ export default function Discussion() {
           />
         )}
 
-        {/* 帖子列表 - 论坛 topic table 风格：标题+元信息 | 回复 | 浏览 | 活动时间 (#294) */}
+        {/* 帖子列表 - Discourse 风格 topic table：无外框圆角，行底部分隔线 (#294) */}
         {!loading && !error && filtered.length > 0 && (
-          <div className="overflow-hidden rounded-lg border border-void-600/40 bg-void-800">
-            {/* 表头 - 桌面端可见 */}
-            <div className="hidden lg:grid grid-cols-[minmax(0,1fr)_56px_64px_88px] items-center gap-3 border-b border-void-600/40 px-5 py-2.5 text-xs font-medium text-mist-500">
-              <span>主题</span>
+          <div className="bg-void-800">
+            {/* 表头 */}
+            <div className="grid grid-cols-[minmax(0,1fr)_56px_64px_80px] items-center gap-3 border-b border-void-600/30 px-1 py-2 text-xs text-mist-500 lg:grid-cols-[minmax(0,1fr)_56px_64px_80px]">
+              <span>话题</span>
               <span className="text-right">回复</span>
-              <span className="text-right">浏览</span>
+              <span className="text-right">浏览量</span>
               <span className="text-right">活动</span>
             </div>
             {filtered.map((q, i) => {
               const lastActivity = getLastActivity(q);
+              const catBadge = getCategoryBadge(q);
+              const extraTags = q.category === "casual" && q.subCategory
+                ? q.tags
+                : q.tags.slice(catBadge ? 1 : 0);
               return (
                 <div
                   key={q.id}
                   onClick={() => navigate(`/discussion/${q.id}`)}
-                  className={`group grid cursor-pointer grid-cols-[minmax(0,1fr)_auto] items-center gap-4 px-5 py-4 transition-colors hover:bg-void-700/50 lg:grid-cols-[minmax(0,1fr)_56px_64px_88px] ${
-                    i !== 0 ? "border-t border-void-600/30" : ""
+                  className={`group cursor-pointer grid grid-cols-[minmax(0,1fr)_auto] items-center gap-4 px-1 py-3 transition-colors hover:bg-void-700/50 lg:grid-cols-[minmax(0,1fr)_56px_64px_80px] ${
+                    i !== 0 ? "border-t border-void-600/20" : ""
                   }`}
                 >
-                  {/* 主题列：标题 + 标签/作者/悬赏 */}
+                  {/* 主题列 */}
                   <div className="min-w-0">
-                    <div className="flex items-center gap-2">
-                      {q.pinned && <span className="shrink-0 text-xs text-star-300" title="置顶">📌</span>}
-                      <h3 className="truncate text-[17px] font-medium leading-snug text-parchment-100 transition-colors group-hover:text-star-400">
+                    <div className="flex items-center gap-1.5">
+                      {q.pinned && <span className="shrink-0 text-sm text-mist-400" title="置顶">📌</span>}
+                      {q.locked && <span className="shrink-0 text-sm text-mist-400" title="锁定">🔒</span>}
+                      {q.featured && !q.pinned && <span className="shrink-0 text-sm" title="加精">⭐</span>}
+                      <h3 className="truncate text-[15px] font-medium leading-snug text-parchment-100 transition-colors group-hover:text-tian-400">
                         {q.title}
                       </h3>
-                      {q.bounty && (
-                        <span className="shrink-0 rounded bg-star-400/10 px-2 py-0.5 text-xs font-medium text-star-300">
-                          {q.bounty}
+                      {q.bounty ? (
+                        <span className="shrink-0 rounded bg-star-400/10 px-1.5 py-0.5 text-xs font-medium text-star-400">
+                          💰 {q.bounty}
+                        </span>
+                      ) : null}
+                    </div>
+                    <div className="mt-1 flex flex-wrap items-center gap-1 text-xs">
+                      {catBadge && (
+                        <span className="inline-flex items-center gap-0.5 rounded bg-void-700/70 px-1.5 py-0.5 text-mist-400">
+                          <span>{catBadge.emoji}</span>
+                          <span>{catBadge.label}</span>
                         </span>
                       )}
-                    </div>
-                    <div className="mt-1.5 flex flex-wrap items-center gap-2 text-sm text-mist-500">
-                      {q.tags.slice(0, 3).map((t) => (
-                        <Link key={t} to={`/tags/${encodeURIComponent(t)}`} onClick={(e) => e.stopPropagation()} className="transition-colors hover:text-mist-300">
-                          {t}
-                        </Link>
+                      {extraTags.slice(0, 2).map((t) => (
+                        <span key={t} className="inline-flex items-center gap-0.5 rounded bg-void-700/70 px-1.5 py-0.5 text-mist-400">
+                          <span>{getTagEmoji(t)}</span>
+                          <span>{t}</span>
+                        </span>
                       ))}
-                      <span className="text-mist-600">&middot;</span>
-                      <span>{q.author}</span>
+                      <span className="mx-0.5 text-void-600">·</span>
+                      <span className="text-mist-500">{q.author}</span>
                     </div>
                   </div>
 
-                  {/* 回复数 - 始终可见 */}
+                  {/* 回复数 */}
                   <div className="text-right">
-                    <span className="text-[15px] font-semibold text-parchment-100">{q.answers}</span>
+                    <span className={`text-[15px] font-semibold ${q.answers > 0 ? "text-star-400" : "text-mist-400"}`}>{formatCount(q.answers)}</span>
                   </div>
 
-                  {/* 浏览数 - 桌面端 */}
-                  <div className="hidden text-right text-sm text-mist-400 lg:block">{q.views}</div>
+                  {/* 浏览数 */}
+                  <div className="hidden text-right text-sm text-mist-400 lg:block">{formatCount(q.views)}</div>
 
-                  {/* 活动时间 - 桌面端 */}
-                  <div className="hidden text-right text-sm text-mist-500 lg:block">{formatRelativeTime(lastActivity)}</div>
+                  {/* 活动时间 */}
+                  <div className="hidden text-right text-sm text-mist-500 lg:block">{formatShortTime(lastActivity)}</div>
                 </div>
               );
             })}
