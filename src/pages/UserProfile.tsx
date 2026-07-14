@@ -13,6 +13,7 @@ import { PostDetailSkeleton } from "@/components/Skeleton";
 import { fetchPublicUser, fetchUserContent, type UserContent, type PublicUser } from "@/lib/profile";
 import { useAuthStore } from "@/stores/auth";
 import { useDocumentTitle } from "@/hooks/useDocumentTitle";
+import { useSEO } from "@/hooks/useSEO";
 
 function formatDate(s: string) {
   if (!s) return "";
@@ -25,6 +26,12 @@ export default function UserProfile() {
   const { user: currentUser } = useAuthStore();
   const [profile, setProfile] = useState<PublicUser | null>(null);
   useDocumentTitle(profile ? profile.nickname || "匿名用户" : undefined);
+  // #150 动态 SEO
+  useSEO({
+    title: profile ? `${profile.nickname || "匿名用户"}的个人主页` : undefined,
+    description: profile ? `${profile.nickname || "匿名用户"}在天玑社区发布的帖子、回答、灵感与资源。` : undefined,
+    canonical: uid ? `https://tianjihub.cn/user/${uid}` : undefined,
+  });
   const [content, setContent] = useState<UserContent | null>(null);
   const [loading, setLoading] = useState(true);
 

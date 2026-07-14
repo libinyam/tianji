@@ -25,7 +25,7 @@ import { toggleFavorite } from "@/lib/favorites";
 import { rateLimiters } from "@/lib/security";
 import { useAuthStore } from "@/stores/auth";
 import { formatRelativeTime } from "@/lib/format";
-import { useDocumentTitle } from "@/hooks/useDocumentTitle";
+import { useSEO, qaPageJsonLd } from "@/hooks/useSEO";
 import { useDiscussionDetail } from "@/hooks/useDiscussionDetail";
 import { useAnswerActions } from "@/hooks/useAnswerActions";
 import { useCommentActions } from "@/hooks/useCommentActions";
@@ -53,7 +53,23 @@ export default function DiscussionDetail() {
     favState,
     setFavState,
   } = useDiscussionDetail(id, mockQuestion);
-  useDocumentTitle(question?.title);
+  // #150 动态 SEO + QAPage JSON-LD
+  const pageUrl = id ? `https://tianjihub.cn/discussion/${id}` : "https://tianjihub.cn/";
+  useSEO({
+    title: question?.title,
+    description: question?.excerpt,
+    canonical: pageUrl,
+    type: "article",
+    jsonLd: question
+      ? qaPageJsonLd({
+          title: question.title,
+          body: question.body,
+          author: question.author,
+          url: pageUrl,
+          answerCount: question.answers,
+        })
+      : null,
+  });
 
   const {
     editingPost,

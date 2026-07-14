@@ -14,10 +14,17 @@ import { useAuthStore } from "@/stores/auth";
 import { dispatchAuthWithIntent } from "@/lib/pending-action";
 import { isAuthor } from "@/lib/utils";
 import { useDocumentTitle } from "@/hooks/useDocumentTitle";
+import { useSEO } from "@/hooks/useSEO";
 import type { Idea } from "@/types";
 
 export default function Ideas() {
   useDocumentTitle("灵感广场");
+  // #150 SEO
+  useSEO({
+    title: "灵感广场",
+    description: "天玑灵感广场 -- 分享跨专业 AI 转型路上的灵感与想法，寻找同频伙伴，碰撞协作火花。",
+    canonical: "https://tianjihub.cn/ideas",
+  });
   const [topic, setTopic] = useState("全部");
   const [sort, setSort] = useState<"最新" | "共鸣">("共鸣");
   const [ideaModalOpen, setIdeaModalOpen] = useState(false);

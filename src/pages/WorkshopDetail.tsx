@@ -43,6 +43,7 @@ import {
 import { useAuthStore } from "@/stores/auth";
 import { toast } from "@/stores/toast";
 import { useDocumentTitle } from "@/hooks/useDocumentTitle";
+import { useSEO } from "@/hooks/useSEO";
 import Avatar from "@/components/Avatar";
 import LazyMathText from "@/components/LazyMathText";
 import RelatedContent from "@/components/RelatedContent";
@@ -67,6 +68,12 @@ export default function WorkshopDetail() {
 
   const [project, setProject] = useState<WorkshopProject | null>(null);
   useDocumentTitle(project?.title);
+  // #150 动态 SEO
+  useSEO({
+    title: project?.title,
+    description: project?.description,
+    canonical: id ? `https://tianjihub.cn/workshop/${id}` : undefined,
+  });
   const [loading, setLoading] = useState(true);
   const [joining, setJoining] = useState(false);
 
