@@ -77,8 +77,6 @@ function getCurrentUid(): string {
 // 延迟引入避免循环依赖
 import { useAuthStore } from "@/stores/auth";
 
-const AVATAR_COLORS = ["#7cc4ff", "#f3c969", "#5aa6f0", "#a78bfa", "#34d399", "#fb923c"];
-
 /** 结构化查询结果，区分「无数据」和「加载失败」（#106） */
 export interface PostsResult {
   data: Question[];
@@ -145,7 +143,7 @@ export async function fetchPostById(id: string): Promise<Question | null> {
   }
 }
 
-/** 创建新帖子 */
+/** 创建新帖子（#289 走云函数，含文本审核） */
 export async function createPost(params: {
   title: string;
   body: string;
@@ -164,52 +162,41 @@ export async function createPost(params: {
   const banStatus = await checkCurrentUserBanned();
   if (banStatus) throw new Error("您的账号已被封禁");
 
-  const sensitiveCheck = containsSensitiveWord(cleanTitle + cleanBody);
-  if (sensitiveCheck.found) {
-    throw new Error(`内容包含敏感词: ${sensitiveCheck.words.join(", ")}`);
-  }
+  // #289 调用云函数写入（含数据万象 CI 文本审核）
+  const res = await app.callFunction({
+    name: "content-actions",
+    data: {
+      action: "createPost",
+      title: cleanTitle,
+      body: cleanBody,
+      tags: cleanTags,
+      category: params.category,
+      subCategory: params.subCategory,
+      bounty: params.bounty,
+      author: getCurrentUserName(),
+    },
+  });
+  const result = (res?.result ?? {}) as { ok?: boolean; data?: PostDoc & { id: string }; error?: string };
+  if (!result.ok) throw new Error(result.error || "发帖失败");
 
-  const excerpt =
-    cleanBody.length > 120 ? cleanBody.slice(0, 120) + "…" : cleanBody;
-
-  const doc: Omit<PostDoc, "_id"> = {
-    title: cleanTitle,
-    excerpt,
-    body: cleanBody,
-    tags: cleanTags,
-    author: getCurrentUserName(),
-    authorUid: uid,
-    avatarColor: AVATAR_COLORS[Math.floor(Math.random() * AVATAR_COLORS.length)],
-    bounty: params.bounty,
-    category: params.category ?? "academic",
-    subCategory: params.subCategory,
-    views: 0,
-    votes: 0,
-    answersCount: 0,
-    answerList: [],
-    createdAt: new Date().toISOString(),
-  };
-
-  const res = await db.collection(POSTS_COLLECTION).add(doc);
-  const resObj = res as unknown as Record<string, unknown>;
-  const newId = (resObj.id as string) ?? (resObj._id as string) ?? "";
-  await awardReputation("createPost", newId);
+  const d = result.data!;
+  await awardReputation("createPost", d.id);
   return {
-    id: newId,
-    title: doc.title,
-    excerpt: doc.excerpt,
-    author: doc.author,
-    authorUid: uid,
-    avatarColor: doc.avatarColor,
-    tags: doc.tags,
-    category: doc.category,
-    subCategory: doc.subCategory,
+    id: d.id,
+    title: d.title,
+    excerpt: d.excerpt,
+    author: d.author,
+    authorUid: d.authorUid,
+    avatarColor: d.avatarColor,
+    tags: d.tags ?? [],
+    category: d.category ?? "academic",
+    subCategory: d.subCategory,
     answers: 0,
     views: 0,
     votes: 0,
-    bounty: doc.bounty,
-    createdAt: doc.createdAt,
-    body: doc.body,
+    bounty: d.bounty,
+    createdAt: d.createdAt,
+    body: d.body,
     answerList: [],
   };
 }

@@ -52,8 +52,11 @@ const mockSensitive = vi.hoisted(() => ({
   containsSensitiveWord: vi.fn(() => ({ found: false, words: [] })),
 }));
 
+// #289 createPost 改为调用 content-actions 云函数（含文本审核）
+const mockCallFunction = vi.hoisted(() => vi.fn());
+
 vi.mock("@/lib/cloudbase", () => ({
-  app: { database: () => mockDb },
+  app: { database: () => mockDb, callFunction: mockCallFunction },
 }));
 
 vi.mock("@/stores/auth", () => ({
@@ -101,12 +104,31 @@ describe("posts", () => {
       words: [],
     });
     mockReputation.awardReputation.mockResolvedValue(undefined);
+    mockCallFunction.mockReset();
   });
 
   describe("createPost", () => {
-    it("成功：返回包含新 id 的 Question 并写入文档", async () => {
+    it("成功：调用云函数并返回 Question", async () => {
       mockAuth.user = { uid: "test-uid", nickname: "Tester" };
-      mockDb._chain.add.mockResolvedValue({ id: "new-post-id" });
+      // #289 云函数返回审核通过后的帖子数据
+      mockCallFunction.mockResolvedValue({
+        result: {
+          ok: true,
+          data: {
+            id: "new-post-id",
+            title: "标题",
+            excerpt: "正文内容",
+            author: "Tester",
+            authorUid: "test-uid",
+            avatarColor: "#7cc4ff",
+            tags: ["t1"],
+            category: "academic",
+            bounty: undefined,
+            createdAt: "2026-07-14T12:00:00.000Z",
+            body: "正文内容",
+          },
+        },
+      });
 
       const result = await createPost({
         title: "标题",
@@ -122,18 +144,18 @@ describe("posts", () => {
       expect(result?.views).toBe(0);
       expect(result?.answers).toBe(0);
       expect(result?.category).toBe("academic");
-      expect(mockDb._chain.add).toHaveBeenCalledTimes(1);
-      expect(mockDb._chain.add).toHaveBeenCalledWith(
+      // #289 验证调用 content-actions 云函数 createPost action
+      expect(mockCallFunction).toHaveBeenCalledTimes(1);
+      expect(mockCallFunction).toHaveBeenCalledWith(
         expect.objectContaining({
-          title: "标题",
-          body: "正文内容",
-          author: "Tester",
-          authorUid: "test-uid",
-          views: 0,
-          votes: 0,
-          answersCount: 0,
-          answerList: [],
-          category: "academic",
+          name: "content-actions",
+          data: expect.objectContaining({
+            action: "createPost",
+            title: "标题",
+            body: "正文内容",
+            tags: ["t1"],
+            author: "Tester",
+          }),
         })
       );
       expect(mockReputation.awardReputation).toHaveBeenCalledWith(
@@ -142,25 +164,38 @@ describe("posts", () => {
       );
     });
 
-    it("未登录：抛出'请先登录'且不写入数据库", async () => {
+    it("未登录：抛出'请先登录'且不调用云函数", async () => {
       mockAuth.user = null;
 
       await expect(
         createPost({ title: "标题", body: "正文", tags: [] })
       ).rejects.toThrow("请先登录");
 
-      expect(mockDb._chain.add).not.toHaveBeenCalled();
+      expect(mockCallFunction).not.toHaveBeenCalled();
       expect(mockReputation.awardReputation).not.toHaveBeenCalled();
     });
 
-    it("标题为空：抛出校验错误且不写入数据库", async () => {
+    it("标题为空：抛出校验错误且不调用云函数", async () => {
       mockAuth.user = { uid: "test-uid" };
 
       await expect(
         createPost({ title: "   ", body: "正文", tags: [] })
       ).rejects.toThrow("标题不能为空");
 
-      expect(mockDb._chain.add).not.toHaveBeenCalled();
+      expect(mockCallFunction).not.toHaveBeenCalled();
+    });
+
+    it("云函数返回失败：抛出错误", async () => {
+      mockAuth.user = { uid: "test-uid", nickname: "Tester" };
+      mockCallFunction.mockResolvedValue({
+        result: { ok: false, error: "内容包含涉黄信息，请修改后重试" },
+      });
+
+      await expect(
+        createPost({ title: "标题", body: "违规内容", tags: [] })
+      ).rejects.toThrow("内容包含涉黄信息，请修改后重试");
+
+      expect(mockReputation.awardReputation).not.toHaveBeenCalled();
     });
   });
 

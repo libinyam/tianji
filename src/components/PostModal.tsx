@@ -105,11 +105,9 @@ export default function PostModal({ open, onClose, onCreated, defaultCategory = 
         handleClose();
 
         // 异步触发 AI 机器人回复（不阻塞用户）
+        // #38 云函数从数据库取 post 内容，客户端只传 postId
         triggerAiBotReply({
           postId: post.id,
-          postTitle: post.title,
-          postBody: post.body,
-          tags: finalTags,
           replyType: "post",
         }).then(() => {
           // AI 回复已异步写入数据库

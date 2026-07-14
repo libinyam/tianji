@@ -1,7 +1,7 @@
 {
   "version": "1.4.0",
   "description": "CloudBase NoSQL 数据库安全规则 - 防止客户端越权访问",
-  "lastUpdated": "2026-07-12",
+  "lastUpdated": "2026-07-14",
   "collections": {
     "posts": {
       "permission": "CUSTOM",
@@ -148,6 +148,11 @@
       "permission": "ADMINONLY",
       "securityRule": null,
       "note": "系统集合，禁止前端访问"
+    },
+    "moderation_logs": {
+      "permission": "ADMINONLY",
+      "securityRule": null,
+      "note": "UGC 文本审核日志，禁止前端访问，仅 content-actions 云函数写入 (#289)"
     }
   }
 }

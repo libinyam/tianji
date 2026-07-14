@@ -66,12 +66,22 @@ const mockAuth = {
   getEndUserInfo: vi.fn().mockResolvedValue({ userInfo: { uid: "" } }),
 };
 
+// #38 mock content-moderation 云函数调用，默认放行
+const mockCallFunction = vi.fn().mockResolvedValue({
+  result: { ok: true, suggestion: "pass", label: "Normal", score: 0, requestId: "test-req-id" },
+});
+
+const mockApp = { callFunction: mockCallFunction };
+
 beforeEach(() => {
   for (const k of Object.keys(store)) delete store[k];
   vi.clearAllMocks();
   mockAuth.getEndUserInfo.mockResolvedValue({ userInfo: { uid: "" } });
+  mockCallFunction.mockResolvedValue({
+    result: { ok: true, suggestion: "pass", label: "Normal", score: 0, requestId: "test-req-id" },
+  });
   process.env.DEEPSEEK_API_KEY = "test-key";
-  __setTestDb(makeFakeDb(), mockAuth);
+  __setTestDb(makeFakeDb(), mockAuth, mockApp);
 });
 
 function ctx(uid) {
@@ -82,30 +92,49 @@ describe("ai-bot", () => {
   describe("参数校验", () => {
     it("缺少 DEEPSEEK_API_KEY 返回错误", async () => {
       delete process.env.DEEPSEEK_API_KEY;
-      const res = await main({ postId: "p1", postTitle: "t", postBody: "b" }, ctx("u1"));
+      const res = await main({ postId: "p1" }, ctx("u1"));
       expect(res.ok).toBe(false);
       expect(res.error).toContain("DEEPSEEK_API_KEY");
     });
 
-    it("发帖回复缺少 postTitle 返回错误", async () => {
-      const res = await main({ postId: "p1", postBody: "b" }, ctx("u1"));
+    it("缺少 postId 返回错误", async () => {
+      const res = await main({}, ctx("u1"));
       expect(res.ok).toBe(false);
-      expect(res.error).toContain("缺少必要参数");
+      expect(res.error).toContain("postId");
     });
 
-    it("发帖回复缺少 postBody 返回错误", async () => {
-      const res = await main({ postId: "p1", postTitle: "t" }, ctx("u1"));
+    it("帖子不存在返回错误", async () => {
+      const res = await main({ postId: "nonexistent" }, ctx("u1"));
       expect(res.ok).toBe(false);
-      expect(res.error).toContain("缺少必要参数");
+      expect(res.error).toContain("帖子不存在");
+    });
+
+    it("评论回复缺少 answerId 返回错误", async () => {
+      store.posts = new Map();
+      store.posts.set("p1", {
+        _id: "p1",
+        title: "t",
+        body: "b",
+        answerList: [{ id: "a1", authorUid: "ai-bot-001", content: "c", comments: [] }],
+      });
+
+      const res = await main({ postId: "p1", replyType: "comment" }, ctx("u1"));
+      expect(res.ok).toBe(false);
+      expect(res.error).toContain("answerId");
     });
 
     it("评论回复缺少 userComment 返回错误", async () => {
-      const res = await main(
-        { postId: "p1", postTitle: "t", replyType: "comment", answerId: "a1", answerContent: "c" },
-        ctx("u1")
-      );
+      store.posts = new Map();
+      store.posts.set("p1", {
+        _id: "p1",
+        title: "t",
+        body: "b",
+        answerList: [{ id: "a1", authorUid: "ai-bot-001", content: "c", comments: [] }],
+      });
+
+      const res = await main({ postId: "p1", replyType: "comment", answerId: "a1" }, ctx("u1"));
       expect(res.ok).toBe(false);
-      expect(res.error).toContain("缺少必要参数");
+      expect(res.error).toContain("userComment");
     });
   });
 
@@ -115,7 +144,7 @@ describe("ai-bot", () => {
       store.ai_bot_limits = new Map();
       store.ai_bot_limits.set("u1", { lastCallAt: Date.now() - 5000 });
 
-      const res = await main({ postId: "p1", postTitle: "t", postBody: "b" }, ctx("u1"));
+      const res = await main({ postId: "p1" }, ctx("u1"));
       expect(res.ok).toBe(false);
       expect(res.error).toContain("操作过于频繁");
     });
@@ -137,11 +166,12 @@ describe("ai-bot", () => {
         _id: "p1",
         title: "t",
         body: "b",
+        tags: ["数学"],
         answerList: [],
         answersCount: 0,
       });
 
-      const res = await main({ postId: "p1", postTitle: "t", postBody: "b" }, ctx("u1"));
+      const res = await main({ postId: "p1" }, ctx("u1"));
       expect(res.ok).toBe(true);
     });
   });
@@ -161,14 +191,13 @@ describe("ai-bot", () => {
         _id: "p1",
         title: "测试帖子",
         body: "测试内容",
+        tags: ["数学"],
         answerList: [],
         answersCount: 0,
       });
 
-      const res = await main(
-        { postId: "p1", postTitle: "测试帖子", postBody: "测试内容", tags: ["数学"] },
-        ctx("u1")
-      );
+      // #38 客户端只传 postId，云函数从 DB 取 title/body/tags
+      const res = await main({ postId: "p1" }, ctx("u1"));
 
       expect(res.ok).toBe(true);
       expect(res.reply).toBe("这是一个有用的回答");
@@ -178,6 +207,17 @@ describe("ai-bot", () => {
       const post = store.posts.get("p1");
       expect(post.answerList).toHaveLength(1);
       expect(post.answersCount).toBe(1);
+
+      // #38 验证调用 content-moderation 审核
+      expect(mockCallFunction).toHaveBeenCalledWith(
+        expect.objectContaining({
+          name: "content-moderation",
+          data: expect.objectContaining({
+            text: "这是一个有用的回答",
+            source: "ai-bot",
+          }),
+        })
+      );
     });
 
     it("DeepSeek API 返回错误时返回失败", async () => {
@@ -188,10 +228,10 @@ describe("ai-bot", () => {
         text: async () => "Internal Server Error",
       });
 
-      const res = await main(
-        { postId: "p1", postTitle: "t", postBody: "b" },
-        ctx("u1")
-      );
+      store.posts = new Map();
+      store.posts.set("p1", { _id: "p1", title: "t", body: "b", answerList: [], answersCount: 0 });
+
+      const res = await main({ postId: "p1" }, ctx("u1"));
 
       expect(res.ok).toBe(false);
       expect(res.error).toContain("AI 服务异常");
@@ -206,10 +246,10 @@ describe("ai-bot", () => {
         }),
       });
 
-      const res = await main(
-        { postId: "p1", postTitle: "t", postBody: "b" },
-        ctx("u1")
-      );
+      store.posts = new Map();
+      store.posts.set("p1", { _id: "p1", title: "t", body: "b", answerList: [], answersCount: 0 });
+
+      const res = await main({ postId: "p1" }, ctx("u1"));
 
       expect(res.ok).toBe(false);
       expect(res.error).toContain("未返回内容");
@@ -231,20 +271,14 @@ describe("ai-bot", () => {
         _id: "p1",
         title: "测试",
         body: "内容",
+        tags: ["数学"],
         answerList: [
           { id: "a1", author: "bot", authorUid: "ai-bot-001", content: "原回答", comments: [] },
         ],
       });
 
       const res = await main(
-        {
-          postId: "p1",
-          postTitle: "测试",
-          replyType: "comment",
-          answerId: "a1",
-          answerContent: "原回答",
-          userComment: "谢谢",
-        },
+        { postId: "p1", replyType: "comment", answerId: "a1", userComment: "谢谢" },
         ctx("u1")
       );
 
@@ -271,23 +305,153 @@ describe("ai-bot", () => {
         _id: "p1",
         title: "测试",
         body: "内容",
-        answerList: [{ id: "a1", content: "原回答", comments: [] }],
+        answerList: [{ id: "a1", authorUid: "ai-bot-001", content: "原回答", comments: [] }],
       });
 
       const res = await main(
-        {
-          postId: "p1",
-          postTitle: "测试",
-          replyType: "comment",
-          answerId: "nonexistent",
-          answerContent: "原回答",
-          userComment: "谢谢",
-        },
+        { postId: "p1", replyType: "comment", answerId: "nonexistent", userComment: "谢谢" },
         ctx("u1")
       );
 
       expect(res.ok).toBe(false);
       expect(res.error).toContain("未找到目标回答");
+    });
+
+    it("对非 bot 回复发评论返回失败", async () => {
+      store.posts = new Map();
+      store.posts.set("p1", {
+        _id: "p1",
+        title: "测试",
+        body: "内容",
+        answerList: [{ id: "a1", authorUid: "user-123", content: "用户回答", comments: [] }],
+      });
+
+      const res = await main(
+        { postId: "p1", replyType: "comment", answerId: "a1", userComment: "谢谢" },
+        ctx("u1")
+      );
+
+      expect(res.ok).toBe(false);
+      expect(res.error).toContain("只能对 bot 的回答发评论");
+    });
+  });
+
+  describe("#38 幂等防重复", () => {
+    it("发帖回复：已有 bot 回答时不重复生成", async () => {
+      mockAuth.getEndUserInfo.mockResolvedValue({ userInfo: { uid: "u1" } });
+      store.posts = new Map();
+      store.posts.set("p1", {
+        _id: "p1",
+        title: "t",
+        body: "b",
+        answerList: [
+          { id: "bot_old", authorUid: "ai-bot-001", content: "旧 bot 回答", comments: [] },
+        ],
+      });
+
+      const res = await main({ postId: "p1" }, ctx("u1"));
+
+      expect(res.ok).toBe(false);
+      expect(res.error).toContain("已有 bot 回复");
+      // 不应调用 DeepSeek API
+      expect(global.fetch).not.toHaveBeenCalled();
+    });
+
+    it("评论回复：60s 内已有 bot 评论时不重复生成", async () => {
+      mockAuth.getEndUserInfo.mockResolvedValue({ userInfo: { uid: "u1" } });
+      const recentDate = new Date(Date.now() - 10000).toISOString(); // 10s 前
+      store.posts = new Map();
+      store.posts.set("p1", {
+        _id: "p1",
+        title: "t",
+        body: "b",
+        answerList: [
+          {
+            id: "a1",
+            authorUid: "ai-bot-001",
+            content: "原回答",
+            comments: [
+              { id: "botc_old", authorUid: "ai-bot-001", content: "最近的 bot 评论", date: recentDate },
+            ],
+          },
+        ],
+      });
+
+      const res = await main(
+        { postId: "p1", replyType: "comment", answerId: "a1", userComment: "再次评论" },
+        ctx("u1")
+      );
+
+      expect(res.ok).toBe(false);
+      expect(res.error).toContain("已有待处理的 bot 回复");
+      expect(global.fetch).not.toHaveBeenCalled();
+    });
+  });
+
+  describe("#38 AI 回复审核", () => {
+    it("审核通过：正常写入数据库", async () => {
+      mockAuth.getEndUserInfo.mockResolvedValue({ userInfo: { uid: "u1" } });
+      mockCallFunction.mockResolvedValue({
+        result: { ok: true, suggestion: "pass", label: "Normal", score: 0 },
+      });
+      global.fetch = vi.fn().mockResolvedValue({
+        ok: true,
+        json: async () => ({
+          choices: [{ message: { content: "正常回复" } }],
+        }),
+      });
+
+      store.posts = new Map();
+      store.posts.set("p1", { _id: "p1", title: "t", body: "b", answerList: [], answersCount: 0 });
+
+      const res = await main({ postId: "p1" }, ctx("u1"));
+      expect(res.ok).toBe(true);
+      expect(store.posts.get("p1").answerList).toHaveLength(1);
+    });
+
+    it("审核拦截：不写入数据库，返回错误", async () => {
+      mockAuth.getEndUserInfo.mockResolvedValue({ userInfo: { uid: "u1" } });
+      mockCallFunction.mockResolvedValue({
+        result: { ok: false, suggestion: "block", label: "Porn", score: 99 },
+      });
+      global.fetch = vi.fn().mockResolvedValue({
+        ok: true,
+        json: async () => ({
+          choices: [{ message: { content: "违规内容" } }],
+        }),
+      });
+
+      store.posts = new Map();
+      store.posts.set("p1", { _id: "p1", title: "t", body: "b", answerList: [], answersCount: 0 });
+
+      const res = await main({ postId: "p1" }, ctx("u1"));
+      expect(res.ok).toBe(false);
+      expect(res.error).toContain("审核未通过");
+      expect(res.error).toContain("涉黄");
+      // 不应写入数据库
+      expect(store.posts.get("p1").answerList).toHaveLength(0);
+
+      // 应记录审核日志到 moderation_logs
+      expect(store.moderation_logs).toBeDefined();
+      expect(store.moderation_logs.size).toBe(1);
+    });
+
+    it("审核服务异常：fail-open 放行", async () => {
+      mockAuth.getEndUserInfo.mockResolvedValue({ userInfo: { uid: "u1" } });
+      mockCallFunction.mockRejectedValue(new Error("网络错误"));
+      global.fetch = vi.fn().mockResolvedValue({
+        ok: true,
+        json: async () => ({
+          choices: [{ message: { content: "正常回复" } }],
+        }),
+      });
+
+      store.posts = new Map();
+      store.posts.set("p1", { _id: "p1", title: "t", body: "b", answerList: [], answersCount: 0 });
+
+      const res = await main({ postId: "p1" }, ctx("u1"));
+      expect(res.ok).toBe(true);
+      expect(store.posts.get("p1").answerList).toHaveLength(1);
     });
   });
 
@@ -304,7 +468,7 @@ describe("ai-bot", () => {
       store.posts = new Map();
       store.posts.set("p1", { _id: "p1", title: "t", body: "b", answerList: [], answersCount: 0 });
 
-      const res = await main({ postId: "p1", postTitle: "t", postBody: "b" }, ctx("u1"));
+      const res = await main({ postId: "p1" }, ctx("u1"));
       expect(res.ok).toBe(true);
       expect(res.reply).toBe("安全内容");
     });
@@ -321,7 +485,7 @@ describe("ai-bot", () => {
       store.posts = new Map();
       store.posts.set("p1", { _id: "p1", title: "t", body: "b", answerList: [], answersCount: 0 });
 
-      const res = await main({ postId: "p1", postTitle: "t", postBody: "b" }, ctx("u1"));
+      const res = await main({ postId: "p1" }, ctx("u1"));
       expect(res.reply).toBe("粗体文本");
     });
 
@@ -337,7 +501,7 @@ describe("ai-bot", () => {
       store.posts = new Map();
       store.posts.set("p1", { _id: "p1", title: "t", body: "b", answerList: [], answersCount: 0 });
 
-      const res = await main({ postId: "p1", postTitle: "t", postBody: "b" }, ctx("u1"));
+      const res = await main({ postId: "p1" }, ctx("u1"));
       // sanitizeReply 只移除 javascript: 协议本身（防止 href="javascript:..."），
       // 不移除后续内容
       expect(res.reply).toBe("点击 alert(1) 这里");
@@ -356,7 +520,7 @@ describe("ai-bot", () => {
       store.posts = new Map();
       store.posts.set("p1", { _id: "p1", title: "t", body: "b", answerList: [], answersCount: 0 });
 
-      const res = await main({ postId: "p1", postTitle: "t", postBody: "b" }, ctx("u1"));
+      const res = await main({ postId: "p1" }, ctx("u1"));
       expect(res.reply.length).toBe(1000);
     });
   });

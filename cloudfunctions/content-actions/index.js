@@ -39,6 +39,67 @@ function containsSensitiveWord(text) {
   return { found: found.length > 0, words: found };
 }
 
+/**
+ * 调用 content-moderation 云函数进行文本审核（#289）
+ * fail-open：审核服务异常时放行，由 containsSensitiveWord 兜底
+ * 返回 { passed: boolean, suggestion, label, score, error? }
+ */
+async function moderateText(text, uid, source) {
+  // 先做本地敏感词快筛（零延迟兜底）
+  const sc = containsSensitiveWord(text);
+  if (sc.found) {
+    return { passed: false, suggestion: "block", label: "LocalFilter", score: 100, words: sc.words };
+  }
+
+  // 调用数据万象 CI 文本审核
+  try {
+    const res = await app.callFunction({
+      name: "content-moderation",
+      data: { text: String(text).slice(0, 50000), uid: uid || "", source: source || "" },
+    });
+    const r = (res && res.result) || {};
+    return {
+      passed: r.ok !== false,
+      suggestion: r.suggestion || "pass",
+      label: r.label || "",
+      score: r.score || 0,
+      requestId: r.requestId || "",
+      failOpen: r.failOpen || false,
+    };
+  } catch (err) {
+    // 审核服务不可用时 fail-open
+    return { passed: true, suggestion: "pass", label: "", score: 0, error: err.message, failOpen: true };
+  }
+}
+
+/**
+ * 记录审核日志到 moderation_logs 集合（#289）
+ * 保留 ≥ 60 天供监管调取
+ */
+async function logModeration(entry) {
+  try {
+    await db.collection("moderation_logs").add({
+      ...entry,
+      timestamp: Date.now(),
+      createdAt: new Date().toISOString(),
+    });
+  } catch {
+    // 日志记录失败不阻断主流程
+  }
+}
+
+/** 审核拦截时的可读提示 */
+function moderationRejectMessage(result) {
+  if (result.words && result.words.length > 0) {
+    return `内容包含敏感词: ${result.words.join(", ")}`;
+  }
+  const labelMap = {
+    Porn: "涉黄", Ad: "广告", Illegal: "违法", Abuse: "辱骂", Polity: "涉政", Terrorist: "暴恐",
+  };
+  const label = labelMap[result.label] || result.label || "违规";
+  return `内容包含${label}信息，请修改后重试`;
+}
+
 async function isBanned(uid) {
   try {
     const { data } = await db.collection("users_v2").doc(uid).get();
@@ -98,13 +159,63 @@ async function awardReputationOnce(uid, points, eventId, reason) {
   return true;
 }
 
+/** 创建新帖子（#289 发帖走云函数，含文本审核） */
+const AVATAR_COLORS = ["#7cc4ff", "#f3c969", "#5aa6f0", "#a78bfa", "#34d399", "#fb923c"];
+
+async function createPost(event, uid) {
+  const { title, body, tags, category, subCategory, bounty, author } = event;
+  if (!title || !body) return fail("缺少标题或正文");
+
+  if (await isBanned(uid)) return fail("您的账号已被封禁");
+
+  // #289 文本审核（标题+正文一起审核）
+  const fullText = title + "\n" + body;
+  const modResult = await moderateText(fullText, uid, "createPost");
+  await logModeration({ uid, action: "createPost", suggestion: modResult.suggestion, label: modResult.label, score: modResult.score, textPreview: String(fullText).slice(0, 200) });
+  if (!modResult.passed) return fail(moderationRejectMessage(modResult));
+
+  const cleanTitle = String(title).trim().slice(0, 200);
+  const cleanBody = String(body).slice(0, 50000);
+  const cleanTags = Array.isArray(tags)
+    ? tags.map((t) => String(t).trim().slice(0, 20)).filter(Boolean).slice(0, 5)
+    : [];
+  const excerpt = cleanBody.length > 120 ? cleanBody.slice(0, 120) + "…" : cleanBody;
+
+  const doc = {
+    title: cleanTitle,
+    excerpt,
+    body: cleanBody,
+    tags: cleanTags,
+    author: author || "匿名用户",
+    authorUid: uid,
+    avatarColor: AVATAR_COLORS[Math.floor(Math.random() * AVATAR_COLORS.length)],
+    bounty: bounty || undefined,
+    category: category || "academic",
+    subCategory: subCategory || undefined,
+    views: 0,
+    votes: 0,
+    answersCount: 0,
+    answerList: [],
+    createdAt: new Date().toISOString(),
+  };
+
+  const res = await db.collection("posts").add(doc);
+  const resObj = res || {};
+  const newId = resObj.id || resObj._id || "";
+
+  return ok({ id: newId, title: doc.title, excerpt: doc.excerpt, author: doc.author, authorUid: uid, avatarColor: doc.avatarColor, tags: doc.tags, category: doc.category, subCategory: doc.subCategory, bounty: doc.bounty, views: 0, votes: 0, answersCount: 0, answerList: [], createdAt: doc.createdAt, body: doc.body });
+}
+
 async function submitAnswer(event, uid) {
   const { postId, content } = event;
   if (!postId || !content) return fail("缺少参数");
 
   if (await isBanned(uid)) return fail("您的账号已被封禁");
-  const sc = containsSensitiveWord(content);
-  if (sc.found) return fail(`内容包含敏感词: ${sc.words.join(", ")}`);
+
+  // #289 文本审核
+  const modResult = await moderateText(content, uid, "submitAnswer");
+  await logModeration({ uid, action: "submitAnswer", postId, suggestion: modResult.suggestion, label: modResult.label, score: modResult.score, textPreview: String(content).slice(0, 200) });
+  if (!modResult.passed) return fail(moderationRejectMessage(modResult));
 
   const docRef = db.collection("posts").doc(postId);
   const { data } = await docRef.get();
@@ -152,8 +263,11 @@ async function submitComment(event, uid) {
   if (!postId || !answerId || !content) return fail("缺少参数");
 
   if (await isBanned(uid)) return fail("您的账号已被封禁");
-  const sc = containsSensitiveWord(content);
-  if (sc.found) return fail(`内容包含敏感词: ${sc.words.join(", ")}`);
+
+  // #289 文本审核
+  const modResult = await moderateText(content, uid, "submitComment");
+  await logModeration({ uid, action: "submitComment", postId, answerId, suggestion: modResult.suggestion, label: modResult.label, score: modResult.score, textPreview: String(content).slice(0, 200) });
+  if (!modResult.passed) return fail(moderationRejectMessage(modResult));
 
   const docRef = db.collection("posts").doc(postId);
   const { data } = await docRef.get();
@@ -247,8 +361,11 @@ async function updateAnswer(event, uid) {
   if (!postId || !answerId || !content) return fail("缺少参数");
 
   if (await isBanned(uid)) return fail("您的账号已被封禁");
-  const sc = containsSensitiveWord(content);
-  if (sc.found) return fail(`内容包含敏感词: ${sc.words.join(", ")}`);
+
+  // #289 文本审核
+  const modResult = await moderateText(content, uid, "updateAnswer");
+  await logModeration({ uid, action: "updateAnswer", postId, answerId, suggestion: modResult.suggestion, label: modResult.label, score: modResult.score, textPreview: String(content).slice(0, 200) });
+  if (!modResult.passed) return fail(moderationRejectMessage(modResult));
 
   const docRef = db.collection("posts").doc(postId);
   const { data } = await docRef.get();
@@ -273,8 +390,11 @@ async function updateComment(event, uid) {
   if (!postId || !answerId || !commentId || !content) return fail("缺少参数");
 
   if (await isBanned(uid)) return fail("您的账号已被封禁");
-  const sc = containsSensitiveWord(content);
-  if (sc.found) return fail(`内容包含敏感词: ${sc.words.join(", ")}`);
+
+  // #289 文本审核
+  const modResult = await moderateText(content, uid, "updateComment");
+  await logModeration({ uid, action: "updateComment", postId, answerId, commentId, suggestion: modResult.suggestion, label: modResult.label, score: modResult.score, textPreview: String(content).slice(0, 200) });
+  if (!modResult.passed) return fail(moderationRejectMessage(modResult));
 
   const docRef = db.collection("posts").doc(postId);
   const { data } = await docRef.get();
@@ -532,6 +652,13 @@ async function addBookReview(event, uid) {
   const { bookId, author, authorUid, rating, content } = event;
   if (!bookId) return fail("缺少参数");
 
+  // #289 文本审核（仅审核有内容的情况）
+  if (content) {
+    const modResult = await moderateText(content, uid || authorUid, "addBookReview");
+    await logModeration({ uid: uid || authorUid, action: "addBookReview", bookId, suggestion: modResult.suggestion, label: modResult.label, score: modResult.score, textPreview: String(content).slice(0, 200) });
+    if (!modResult.passed) return fail(moderationRejectMessage(modResult));
+  }
+
   const docRef = db.collection("books").doc(bookId);
   const { data } = await docRef.get();
   if (!data || data.length === 0) return fail("书籍不存在");
@@ -603,8 +730,10 @@ async function submitWorkshopContribution(event, uid) {
   const { workshopId, chapterId, content } = event;
   if (!workshopId || !chapterId || !content) return fail("缺少参数");
 
-  const sc = containsSensitiveWord(content);
-  if (sc.found) return fail(`内容包含敏感词: ${sc.words.join(", ")}`);
+  // #289 文本审核
+  const modResult = await moderateText(content, uid, "submitWorkshopContribution");
+  await logModeration({ uid, action: "submitWorkshopContribution", workshopId, suggestion: modResult.suggestion, label: modResult.label, score: modResult.score, textPreview: String(content).slice(0, 200) });
+  if (!modResult.passed) return fail(moderationRejectMessage(modResult));
 
   const sanitized = String(content || "").trim().slice(0, 10000);
 
@@ -646,8 +775,10 @@ async function addWorkshopAnnotation(event, uid) {
   const { workshopId, content } = event;
   if (!workshopId || !content) return fail("缺少参数");
 
-  const sc = containsSensitiveWord(content);
-  if (sc.found) return fail(`内容包含敏感词: ${sc.words.join(", ")}`);
+  // #289 文本审核
+  const modResult = await moderateText(content, uid, "addWorkshopAnnotation");
+  await logModeration({ uid, action: "addWorkshopAnnotation", workshopId, suggestion: modResult.suggestion, label: modResult.label, score: modResult.score, textPreview: String(content).slice(0, 200) });
+  if (!modResult.passed) return fail(moderationRejectMessage(modResult));
 
   const sanitized = String(content || "").trim().slice(0, 5000);
 
@@ -775,6 +906,8 @@ exports.main = async (event, context) => {
   try {
     const switchResult = await (async () => {
       switch (action) {
+        case "createPost":
+          return await createPost(event, uid);
         case "submitAnswer":
           return await submitAnswer(event, uid);
         case "submitComment":
