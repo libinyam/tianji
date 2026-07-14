@@ -73,6 +73,30 @@
       },
       "ownerField": "uid"
     },
+    "follows": {
+      "permission": "CUSTOM",
+      "securityRule": {
+        "read": "auth.uid != null",
+        "create": "auth.uid != null",
+        "write": "auth.uid != null && doc.uid == auth.uid",
+        "update": "auth.uid != null && doc.uid == auth.uid",
+        "delete": "auth.uid != null && doc.uid == auth.uid"
+      },
+      "ownerField": "uid",
+      "note": "用户关注关系，uid=关注者，targetUid=被关注者；用户只能管理自己的关注记录"
+    },
+    "tag_follows": {
+      "permission": "CUSTOM",
+      "securityRule": {
+        "read": "auth.uid != null",
+        "create": "auth.uid != null",
+        "write": "auth.uid != null && doc.uid == auth.uid",
+        "update": "auth.uid != null && doc.uid == auth.uid",
+        "delete": "auth.uid != null && doc.uid == auth.uid"
+      },
+      "ownerField": "uid",
+      "note": "标签关注关系，uid=关注者；用户只能管理自己的标签关注记录"
+    },
     "notifications": {
       "permission": "CUSTOM",
       "securityRule": {

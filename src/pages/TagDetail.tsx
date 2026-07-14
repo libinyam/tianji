@@ -6,6 +6,11 @@ import { fetchContentByTag, fetchTagCount, inferCategory, CATEGORY_LABEL, type T
 import { PostCardSkeleton, BookCardSkeleton, IdeaCardSkeleton, WorkshopCardSkeleton } from "@/components/Skeleton";
 import { useDocumentTitle } from "@/hooks/useDocumentTitle";
 import { useSEO } from "@/hooks/useSEO";
+import { toggleTagFollow, isTagFollowing } from "@/lib/follows";
+import { rateLimiters } from "@/lib/security";
+import { useAuthStore } from "@/stores/auth";
+import { toast } from "@/stores/toast";
+import { Bookmark, Loader2 } from "lucide-react";
 
 const TYPE_ICON = {
   post: MessageSquare,
@@ -23,6 +28,7 @@ const TYPE_LABEL = {
 
 export default function TagDetail() {
   const { name = "" } = useParams<{ name: string }>();
+  const { user } = useAuthStore();
   useDocumentTitle(name ? `#${name}` : undefined);
   // #150 动态 SEO
   useSEO({
@@ -39,19 +45,47 @@ export default function TagDetail() {
   }>({ posts: [], ideas: [], books: [], workshops: [] });
   const [count, setCount] = useState(0);
   const [activeTab, setActiveTab] = useState<"post" | "idea" | "book" | "workshop">("post");
+  // #149 标签关注
+  const [tagFollowing, setTagFollowing] = useState(false);
+  const [tagFollowLoading, setTagFollowLoading] = useState(false);
 
   useEffect(() => {
     if (!name) return;
     let mounted = true;
     setLoading(true);
-    Promise.all([fetchContentByTag(name), fetchTagCount(name)]).then(([c, n]) => {
+    Promise.all([fetchContentByTag(name), fetchTagCount(name), isTagFollowing(name)]).then(([c, n, isFollow]) => {
       if (!mounted) return;
       setContent(c);
       setCount(n);
+      setTagFollowing(isFollow);
       setLoading(false);
     });
     return () => { mounted = false; };
   }, [name]);
+
+  // #149 关注 / 取消关注标签
+  const handleTagFollow = async () => {
+    if (!user) {
+      window.dispatchEvent(new CustomEvent("tianji:open-auth"));
+      return;
+    }
+    const rl = rateLimiters.tagFollow.check();
+    if (!rl.allowed) {
+      toast.error(`操作太快，请等待 ${rl.remaining} 秒`);
+      return;
+    }
+    setTagFollowLoading(true);
+    try {
+      const newState = await toggleTagFollow(name);
+      rateLimiters.tagFollow.record();
+      setTagFollowing(newState);
+      toast.success(newState ? "已关注标签" : "已取消关注");
+    } catch (e) {
+      toast.error((e as Error).message || "操作失败");
+    } finally {
+      setTagFollowLoading(false);
+    }
+  };
 
   const tabData = [
     { key: "post" as const, label: TYPE_LABEL.post, icon: MessageSquare, items: content.posts },
@@ -75,27 +109,48 @@ export default function TagDetail() {
       <motion.div
         initial={{ opacity: 0, y: 12 }}
         animate={{ opacity: 1, y: 0 }}
-        className="mb-8 flex items-center gap-4"
+        className="mb-8 flex items-center justify-between gap-4"
       >
-        <div className="flex h-16 w-16 items-center justify-center rounded-2xl border border-star-400/30 bg-star-400/10 text-star-300">
-          <Tag size={28} />
-        </div>
-        <div>
-          <div className="flex items-center gap-3">
-            <h1 className="heading-display text-3xl text-parchment-100">#{name}</h1>
-            <span className={`flex items-center gap-1 rounded-full border px-2.5 py-0.5 text-[10px] font-medium ${
-              inferCategory(name) === "tool"
-                ? "border-star-400/40 bg-star-400/10 text-star-300"
-                : "border-tian-400/40 bg-tian-400/10 text-tian-300"
-            }`}>
-              {inferCategory(name) === "tool" ? <Wrench size={9} /> : <GraduationCap size={9} />}
-              {CATEGORY_LABEL[inferCategory(name)]}
-            </span>
+        <div className="flex items-center gap-4">
+          <div className="flex h-16 w-16 items-center justify-center rounded-2xl border border-star-400/30 bg-star-400/10 text-star-300">
+            <Tag size={28} />
           </div>
-          <p className="mt-1 text-sm text-mist-400">
-            {loading ? "加载中…" : `${count} 次使用 · ${content.posts.length + content.ideas.length + content.books.length + content.workshops.length} 条内容`}
-          </p>
+          <div>
+            <div className="flex items-center gap-3">
+              <h1 className="heading-display text-3xl text-parchment-100">#{name}</h1>
+              <span className={`flex items-center gap-1 rounded-full border px-2.5 py-0.5 text-[10px] font-medium ${
+                inferCategory(name) === "tool"
+                  ? "border-star-400/40 bg-star-400/10 text-star-300"
+                  : "border-tian-400/40 bg-tian-400/10 text-tian-300"
+              }`}>
+                {inferCategory(name) === "tool" ? <Wrench size={9} /> : <GraduationCap size={9} />}
+                {CATEGORY_LABEL[inferCategory(name)]}
+              </span>
+            </div>
+            <p className="mt-1 text-sm text-mist-400">
+              {loading ? "加载中…" : `${count} 次使用 · ${content.posts.length + content.ideas.length + content.books.length + content.workshops.length} 条内容`}
+            </p>
+          </div>
         </div>
+        {/* #149 关注标签按钮 */}
+        {user && (
+          <button
+            onClick={handleTagFollow}
+            disabled={tagFollowLoading}
+            className={`inline-flex shrink-0 items-center gap-1.5 rounded-md px-3 py-1.5 text-xs font-medium transition-all disabled:opacity-60 ${
+              tagFollowing
+                ? "border border-void-600/50 bg-void-800/40 text-mist-300 hover:border-red-400/40 hover:text-red-300"
+                : "bg-tian-400/15 text-tian-200 hover:bg-tian-400/25"
+            }`}
+          >
+            {tagFollowLoading ? (
+              <Loader2 size={12} className="animate-spin" />
+            ) : (
+              <Bookmark size={12} className={tagFollowing ? "fill-mist-300" : ""} />
+            )}
+            {tagFollowing ? "已关注" : "关注标签"}
+          </button>
+        )}
       </motion.div>
 
       {/* Tab 切换 */}

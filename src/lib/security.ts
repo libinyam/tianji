@@ -47,4 +47,6 @@ export const rateLimiters = {
   answer: new RateLimiter("answer", 15),
   book: new RateLimiter("book", 60),
   workshop: new RateLimiter("workshop", 60),
+  follow: new RateLimiter("follow", 5),
+  tagFollow: new RateLimiter("tagFollow", 5),
 };

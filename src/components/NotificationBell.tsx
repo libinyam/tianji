@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "motion/react";
-import { Bell, CheckCheck, MessageCircle, ThumbsUp, Users, CornerDownRight, Lightbulb, MessageSquare, CheckCircle } from "lucide-react";
+import { Bell, CheckCheck, MessageCircle, ThumbsUp, Users, CornerDownRight, Lightbulb, MessageSquare, CheckCircle, UserPlus } from "lucide-react";
 import {
   fetchNotifications,
   fetchUnreadCount,
@@ -21,6 +21,7 @@ const TYPE_ICON: Record<NotificationType, typeof Bell> = {
   join: Users,
   contribute: Lightbulb,
   accept: CheckCircle,
+  follow: UserPlus,
 };
 
 function formatTime(s: string): string {
