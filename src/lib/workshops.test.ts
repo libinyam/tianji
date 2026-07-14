@@ -115,7 +115,7 @@ const workshopDoc: WorkshopDoc = {
   contributions: [],
   annotations: [],
   tags: ["AI"],
-  status: "open",
+  status: "招募中",
   createdAt: "2024-01-01T00:00:00.000Z",
   updatedAt: "2024-01-02T00:00:00.000Z",
 };
@@ -190,7 +190,7 @@ describe("workshops", () => {
       expect(result[0].contributions).toEqual([]);
       expect(result[0].annotations).toEqual([]);
       expect(result[0].tags).toEqual([]);
-      expect(result[0].status).toBe("open");
+      expect(result[0].status).toBe("招募中");
       expect(result[0].updatedAt).toBe("2024-01-01T00:00:00.000Z");
     });
   });
@@ -243,7 +243,7 @@ describe("workshops", () => {
       expect(result?.creator).toBe("Tester");
       expect(result?.creatorUid).toBe("u1");
       expect(result?.participants).toEqual(["u1"]);
-      expect(result?.status).toBe("open");
+      expect(result?.status).toBe("招募中");
       expect(mockDb._chain.add).toHaveBeenCalled();
       expect(mockReputation.awardReputation).toHaveBeenCalledWith("createWorkshop", "new-id");
     });
@@ -441,14 +441,14 @@ describe("workshops", () => {
 
       const result = await updateWorkshop("w1", {
         title: "新标题",
-        status: "closed",
+        status: "已完成",
       });
 
       expect(result).toBe(true);
       expect(mockDb._docRef.update).toHaveBeenCalled();
       const updateArgs = mockDb._docRef.update.mock.calls[0][0];
       expect(updateArgs.title).toBe("新标题");
-      expect(updateArgs.status).toBe("closed");
+      expect(updateArgs.status).toBe("已完成");
       expect(updateArgs.updatedAt).toBeDefined();
     });
 
