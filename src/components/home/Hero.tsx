@@ -1,5 +1,5 @@
 import { Link } from "react-router-dom";
-import { ArrowUpRight, Compass } from "lucide-react";
+import { ArrowUpRight, Compass, MessageCircle } from "lucide-react";
 
 export default function Hero() {
   return (
@@ -33,6 +33,7 @@ export default function Hero() {
               <ArrowUpRight size={15} />
             </Link>
             <Link to="/" className="btn-ghost">
+              <MessageCircle size={15} />
               加入讨论
             </Link>
           </div>
