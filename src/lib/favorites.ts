@@ -1,5 +1,5 @@
 import { app } from "@/lib/cloudbase";
-import { useAuthStore } from "@/stores/auth";
+import { getCurrentUid } from "@/lib/current-user";
 import { sanitizeInput } from "@/lib/sanitize";
 import { checkCurrentUserBanned } from "@/lib/ban";
 
@@ -39,10 +39,6 @@ function toFav(doc: FavoriteDoc): FavoriteItem {
     link: doc.link,
     createdAt: doc.createdAt,
   };
-}
-
-function getCurrentUid(): string {
-  return useAuthStore.getState().user?.uid ?? "";
 }
 
 /** 收藏 / 取消收藏（toggle），返回新的收藏状态 */

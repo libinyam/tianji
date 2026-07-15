@@ -3,6 +3,7 @@ import { awardReputation } from "@/lib/reputation";
 import { sanitizeInput, sanitizeTitle, sanitizeTag } from "@/lib/sanitize";
 import { checkCurrentUserBanned } from "@/lib/ban";
 import { containsSensitiveWord } from "@/lib/sensitive-words";
+import { getCurrentUid, getCurrentUserName } from "@/lib/current-user";
 import type { Question, Answer, Comment } from "@/types";
 
 const db = app.database();
@@ -64,19 +65,6 @@ function toQuestion(doc: PostDoc): Question {
   };
 }
 
-/** 获取当前登录用户的显示名 */
-function getCurrentUserName(): string {
-  const user = useAuthStore.getState().user;
-  return user?.nickname || user?.username || user?.email || "匿名用户";
-}
-
-function getCurrentUid(): string {
-  return useAuthStore.getState().user?.uid ?? "";
-}
-
-// 延迟引入避免循环依赖
-import { useAuthStore } from "@/stores/auth";
-
 /** 结构化查询结果，区分「无数据」和「加载失败」（#106） */
 export interface PostsResult {
   data: Question[];
@@ -119,7 +107,7 @@ export async function fetchPosts(
  *  未登录或未关注任何人时返回空 data，hasMore=false。 */
 export async function fetchFollowingPosts(): Promise<PostsResult> {
   try {
-    const uid = useAuthStore.getState().user?.uid ?? "";
+    const uid = getCurrentUid();
     if (!uid) return { data: [], error: null, hasMore: false };
     // 延迟引入避免循环依赖（follows.ts 未引入 posts.ts，可安全静态引入，
     // 但保持动态 import 以隔离关注体系失败时不影响主流程）
