@@ -57,6 +57,7 @@ const mockCallFunction = vi.hoisted(() => vi.fn());
 
 vi.mock("@/lib/cloudbase", () => ({
   app: { database: () => mockDb, callFunction: mockCallFunction },
+  authReady: Promise.resolve(),
 }));
 
 vi.mock("@/stores/auth", () => ({
@@ -346,12 +347,13 @@ describe("posts", () => {
   });
 
   describe("incrementViews", () => {
-    it("调用 doc.update 并使用 command.inc(1)", async () => {
+    it("调用 content-actions 云函数 incrementPostViews（#346 走云函数绕过安全规则）", async () => {
+      mockCallFunction.mockResolvedValue({ result: { ok: true } });
       await incrementViews("p1");
 
-      expect(mockDb.command.inc).toHaveBeenCalledWith(1);
-      expect(mockDb._docRef.update).toHaveBeenCalledWith({
-        views: { __inc: 1 },
+      expect(mockCallFunction).toHaveBeenCalledWith({
+        name: "content-actions",
+        data: { action: "incrementPostViews", postId: "p1" },
       });
     });
   });

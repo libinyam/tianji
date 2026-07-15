@@ -63,6 +63,7 @@ const mockNotifications = vi.hoisted(() => ({
 
 vi.mock("@/lib/cloudbase", () => ({
   app: { database: () => mockDb, callFunction: mockCallFunction },
+  authReady: Promise.resolve(),
 }));
 
 vi.mock("@/stores/auth", () => ({

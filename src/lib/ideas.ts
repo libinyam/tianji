@@ -1,4 +1,4 @@
-import { app } from "@/lib/cloudbase";
+import { app, authReady } from "@/lib/cloudbase";
 import { createNotification } from "@/lib/notifications";
 import { sanitizeInput, sanitizeTitle, sanitizeTag } from "@/lib/sanitize";
 import { checkCurrentUserBanned } from "@/lib/ban";
@@ -58,6 +58,7 @@ function getCurrentUid(): string {
 /** 获取所有灵感（按共鸣数倒序） */
 export async function fetchIdeas(): Promise<Idea[]> {
   try {
+    await authReady; // #345 等匿名身份就绪，避免新访客首屏 401
     const { data } = await db
       .collection(IDEAS_COLLECTION)
       .orderBy("createdAt", "desc")

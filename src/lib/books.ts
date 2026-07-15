@@ -1,4 +1,4 @@
-import { app, auth } from "@/lib/cloudbase";
+import { app, auth, authReady } from "@/lib/cloudbase";
 import { sanitizeInput, sanitizeTitle, sanitizeTag } from "@/lib/sanitize";
 import { checkCurrentUserBanned } from "@/lib/ban";
 import { containsSensitiveWord } from "@/lib/sensitive-words";
@@ -103,6 +103,7 @@ export async function fetchBooks(): Promise<{ data: Book[]; error: boolean }> {
   };
 
   try {
+    await authReady; // #345 等匿名身份就绪，避免新访客首屏 401（避免触发重试分支）
     const books = await doFetch();
     return { data: books, error: false };
   } catch (firstErr) {

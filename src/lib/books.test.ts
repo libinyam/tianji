@@ -72,6 +72,7 @@ vi.mock("@/lib/cloudbase", () => ({
   auth: {
     signInAnonymously: mockCloudAuth.signInAnonymously,
   },
+  authReady: Promise.resolve(),
 }));
 
 vi.mock("@/stores/auth", () => ({

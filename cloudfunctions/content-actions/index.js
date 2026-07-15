@@ -556,6 +556,26 @@ async function adjustBookFavorites(event, uid) {
   return ok({ adjusted: true });
 }
 
+/**
+ * #344 取消收藏（绕过安全规则）
+ * 生产环境安全规则可能未及时部署或 delete 规则未生效，导致客户端
+ * favorites.doc(id).remove() 返回 deleted=0 / 403。此 action 以 admin
+ * 权限删除当前用户自己的收藏记录，校验 doc.uid == auth.uid 防越权。
+ */
+async function removeFavorite(event, uid) {
+  const { targetId } = event;
+  if (!targetId) return fail("缺少参数");
+
+  const favCol = db.collection("favorites");
+  const { data } = await favCol.where({ uid, targetId }).get();
+  const list = data || [];
+  if (list.length === 0) return ok({ removed: false, reason: "not_found" });
+
+  const docId = list[0]._id;
+  await favCol.doc(docId).remove();
+  return ok({ removed: true });
+}
+
 async function resonanceIdea(event, uid) {
   const { id } = event;
   if (!id) return fail("缺少参数");
@@ -1014,6 +1034,8 @@ exports.main = async (event, context) => {
           return await incrementBookDownloads(event);
         case "adjustBookFavorites":
           return await adjustBookFavorites(event, uid);
+        case "removeFavorite":
+          return await removeFavorite(event, uid);
         case "resonanceIdea":
           return await resonanceIdea(event, uid);
         case "awardCreateReputation":

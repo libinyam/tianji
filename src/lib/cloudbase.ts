@@ -28,4 +28,35 @@ const app = cloudbase.init({
 /** Auth 实例，本地持久化登录态 */
 const auth = app.auth({ persistence: "local" });
 
+/**
+ * #345 authReady：确保匿名身份/SDK 初始化完成后再发数据库请求。
+ * 新访客首次访问时，Layout 的 useEffect 调 initSession() 之前子组件可能已
+ * 开始查询，匿名身份未就绪导致 401。此 promise 在模块加载时即启动，
+ * 被 posts.ts/ideas.ts 等 lib 的查询函数 await。
+ */
+let _resolve: () => void = () => {};
+export const authReady: Promise<void> = new Promise((resolve) => {
+  _resolve = resolve;
+});
+
+async function ensureAuthReady() {
+  try {
+    const { data, error } = await auth.getSession();
+    if (error || !data?.session) {
+      // 无会话则匿名登录（accessKey 模式下也能读取公开数据）
+      try {
+        await auth.signInAnonymously();
+      } catch {
+        // 匿名登录失败也放行，accessKey 模式下仍可读取
+      }
+    }
+  } catch {
+    // getSession 失败也放行
+  } finally {
+    _resolve();
+  }
+}
+
+void ensureAuthReady();
+
 export { app, auth, ENV_ID };
