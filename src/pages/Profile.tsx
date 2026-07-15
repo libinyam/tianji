@@ -21,6 +21,7 @@ import { fetchMyFavorites, type FavoriteItem } from "@/lib/favorites";
 import { getCurrentUserReputation, getBadges, type ReputationInfo } from "@/lib/reputation";
 import { useDocumentTitle } from "@/hooks/useDocumentTitle";
 import { uploadFile, getTempFileURL, deleteFile } from "@/lib/storage";
+import { ListSkeleton, PostCardSkeleton } from "@/components/Skeleton";
 
 // 星辰风格头像，契合天玑主题
 const DEFAULT_AVATARS = [
@@ -315,7 +316,10 @@ export default function Profile() {
       {/* 内容区域 */}
       <div className="container-tj mt-8">
         {loading ? (
-          <div className="py-20 text-center text-mist-400">加载中...</div>
+          <div className="grid gap-6 lg:grid-cols-2">
+            <ListSkeleton count={3}><PostCardSkeleton /></ListSkeleton>
+            <ListSkeleton count={3}><PostCardSkeleton /></ListSkeleton>
+          </div>
         ) : (
           <div className="grid gap-6 lg:grid-cols-2">
             {tabs.map((tab) => {
