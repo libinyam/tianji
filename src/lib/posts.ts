@@ -82,15 +82,17 @@ export async function fetchPosts(
   subCategory?: CasualSubCategory,
   offset?: number,
   pageSize?: number,
+  tag?: string,
 ): Promise<PostsResult> {
   try {
     await authReady; // #345 等匿名身份就绪，避免新访客首屏 401
     const page = pageSize ?? POSTS_PAGE_SIZE;
     const skip = offset ?? 0;
     const col = db.collection(POSTS_COLLECTION);
-    const whereCond: Record<string, string> = {};
+    const whereCond: Record<string, unknown> = {};
     if (category) whereCond.category = category;
     if (subCategory) whereCond.subCategory = subCategory;
+    if (tag && tag !== "全部") whereCond.tags = tag;
     const { data } = Object.keys(whereCond).length
       ? await col.where(whereCond).orderBy("pinned", "desc").orderBy("createdAt", "desc").skip(skip).limit(page).get()
       : await col.orderBy("pinned", "desc").orderBy("createdAt", "desc").skip(skip).limit(page).get();
