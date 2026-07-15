@@ -288,32 +288,28 @@ export async function submitComment(
   return result.data ?? null;
 }
 
-/** 编辑帖子（仅作者） */
+/** 编辑帖子（仅作者，走云函数绕过安全规则 + 文本审核） */
 export async function updatePost(
   postId: string,
   params: { title: string; body: string; tags: string[] }
 ): Promise<boolean> {
-  const cleanTitle = sanitizeTitle(params.title);
-  const cleanBody = sanitizeInput(params.body);
-  const cleanTags = params.tags.map(sanitizeTag);
-
   const uid = getCurrentUid();
   if (!uid) throw new Error("请先登录");
 
-  const docRef = db.collection(POSTS_COLLECTION).doc(postId);
-  const { data } = await docRef.get();
-  if (!data || data.length === 0) return false;
-
-  const post = data[0] as PostDoc;
-  if (post.authorUid !== uid) throw new Error("无权编辑他人帖子");
-
-  const excerpt = cleanBody.length > 120 ? cleanBody.slice(0, 120) + "…" : cleanBody;
-  await docRef.update({
-    title: cleanTitle,
-    body: cleanBody,
-    excerpt,
-    tags: cleanTags,
+  const res = await app.callFunction({
+    name: "content-actions",
+    data: {
+      action: "updatePost",
+      postId,
+      title: params.title,
+      body: params.body,
+      tags: params.tags,
+    },
   });
+  const result = (res?.result ?? {}) as { ok?: boolean; error?: string };
+  if (!result.ok) {
+    throw new Error(result.error || "编辑失败，请稍后重试");
+  }
   return true;
 }
 

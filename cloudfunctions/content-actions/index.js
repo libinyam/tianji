@@ -417,6 +417,46 @@ async function deleteComment(event, uid) {
   return ok({ deleted: true });
 }
 
+/**
+ * 编辑帖子（仅作者，以 admin 权限绕过安全规则）
+ * 含文本审核，防止通过编辑绕过 UGC 审核
+ */
+async function updatePost(event, uid) {
+  const { postId, title, body, tags } = event;
+  if (!postId || !title || !body) return fail("缺少参数");
+
+  if (await isBanned(uid)) return fail("您的账号已被封禁");
+
+  // 文本审核（标题+正文）
+  const fullText = title + "\n" + body;
+  const modResult = await moderateText(fullText, uid, "updatePost");
+  await logModeration({ uid, action: "updatePost", postId, suggestion: modResult.suggestion, label: modResult.label, score: modResult.score, textPreview: String(fullText).slice(0, 200) });
+  if (!modResult.passed) return fail(moderationRejectMessage(modResult));
+
+  const docRef = db.collection("posts").doc(postId);
+  const { data } = await docRef.get();
+  if (!data || data.length === 0) return fail("帖子不存在");
+
+  const post = data[0];
+  if (post.authorUid !== uid) return fail("无权编辑他人帖子");
+
+  const cleanTitle = String(title).trim().slice(0, 200);
+  const cleanBody = String(body).slice(0, 50000);
+  const cleanTags = Array.isArray(tags)
+    ? tags.map((t) => String(t).trim().slice(0, 20)).filter(Boolean).slice(0, 5)
+    : [];
+  const excerpt = cleanBody.length > 120 ? cleanBody.slice(0, 120) + "…" : cleanBody;
+
+  await docRef.update({
+    title: cleanTitle,
+    body: cleanBody,
+    excerpt,
+    tags: cleanTags,
+  });
+
+  return ok({ updated: true });
+}
+
 /** 编辑回答（仅回答作者） */
 async function updateAnswer(event, uid) {
   const { postId, answerId, content } = event;
@@ -1093,6 +1133,8 @@ exports.main = async (event, context) => {
           return await deletePost(event, uid);
         case "deleteIdea":
           return await deleteIdea(event, uid);
+        case "updatePost":
+          return await updatePost(event, uid);
         case "updateAnswer":
           return await updateAnswer(event, uid);
         case "updateComment":
