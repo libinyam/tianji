@@ -1,4 +1,4 @@
-import { app } from "@/lib/cloudbase";
+import { app, authReady } from "@/lib/cloudbase";
 
 const db = app.database();
 const _ = db.command;
@@ -226,8 +226,11 @@ export async function searchAll(
   return { results: pagedResults, hasMore, totalCount, errors: errors.length > 0 ? errors : undefined };
 }
 
-/** 获取全站热门内容榜单（按热度排序，取前 10） */
+/** 获取全站热门内容榜单（按热度排序，取前 10）。
+ *  #350 之前未 await authReady 导致新访客首次打开搜索时查询全部失败，
+ *  被 .catch 静默吞掉，UI 显示"暂无热门内容"，与首页热门帖不一致。 */
 export async function fetchHotList(): Promise<HotItem[]> {
+  await authReady;
   const items: HotItem[] = [];
 
   const tasks: Promise<void>[] = [
@@ -247,7 +250,7 @@ export async function fetchHotList(): Promise<HotItem[]> {
           });
         });
       })
-      .catch((e) => console.warn("fetchHotList error:", e)),
+      .catch((e) => console.warn("fetchHotList posts error:", e)),
 
     db
       .collection("ideas")
@@ -265,7 +268,7 @@ export async function fetchHotList(): Promise<HotItem[]> {
           });
         });
       })
-      .catch((e) => console.warn("fetchHotList error:", e)),
+      .catch((e) => console.warn("fetchHotList ideas error:", e)),
 
     db
       .collection("books")
@@ -283,7 +286,7 @@ export async function fetchHotList(): Promise<HotItem[]> {
           });
         });
       })
-      .catch((e) => console.warn("fetchHotList error:", e)),
+      .catch((e) => console.warn("fetchHotList books error:", e)),
 
     db
       .collection("workshops")
@@ -303,7 +306,7 @@ export async function fetchHotList(): Promise<HotItem[]> {
           });
         });
       })
-      .catch((e) => console.warn("fetchHotList error:", e)),
+      .catch((e) => console.warn("fetchHotList workshops error:", e)),
   ];
 
   await Promise.all(tasks);

@@ -135,7 +135,7 @@ export default function WorkshopCreateModal({ open, onClose, onCreated }: Worksh
       labelledById="workshop-create-dialog-title"
       maxWidthClass="max-w-xl"
     >
-      <div className="max-h-[90vh] overflow-y-auto">
+      <div className="flex max-h-[85vh] flex-col">
         <button
           onClick={handleClose}
           aria-label="关闭"
@@ -144,7 +144,7 @@ export default function WorkshopCreateModal({ open, onClose, onCreated }: Worksh
           <X size={18} />
         </button>
 
-        <div className="relative">
+        <div className="relative shrink-0">
           <span className="font-mono text-xs uppercase tracking-[0.25em] text-star-300">
             新建协作项目
           </span>
@@ -167,7 +167,8 @@ export default function WorkshopCreateModal({ open, onClose, onCreated }: Worksh
               )}
             </div>
 
-            <form onSubmit={handleSubmit} className="relative mt-6 space-y-5">
+            <form onSubmit={handleSubmit} className="relative mt-6 flex flex-1 flex-col overflow-hidden">
+            <div className="flex-1 space-y-5 overflow-y-auto pr-1">
               {/* 类型选择 */}
               <div>
                 <label className="mb-1.5 block text-xs text-mist-400">项目类型</label>
@@ -309,8 +310,9 @@ export default function WorkshopCreateModal({ open, onClose, onCreated }: Worksh
                   {error}
                 </div>
               )}
+            </div>
 
-              <div className="flex justify-end gap-3">
+              <div className="flex shrink-0 justify-end gap-3 pt-4">
                 <button type="button" onClick={handleClose} className="btn-ghost">
                   取消
                 </button>

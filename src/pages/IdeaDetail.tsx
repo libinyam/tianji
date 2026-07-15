@@ -13,7 +13,6 @@ import { rateLimiters } from "@/lib/security";
 import { useAuthStore } from "@/stores/auth";
 import { formatRelativeTime } from "@/lib/format";
 import { isAuthor } from "@/lib/utils";
-import { useDocumentTitle } from "@/hooks/useDocumentTitle";
 import { useSEO } from "@/hooks/useSEO";
 import type { Idea } from "@/types";
 
@@ -22,7 +21,6 @@ export default function IdeaDetail() {
   const { user } = useAuthStore();
   const navigate = useNavigate();
   const [idea, setIdea] = useState<Idea | null>(null);
-  useDocumentTitle(idea?.title);
   // #150 动态 SEO
   useSEO({
     title: idea?.title,

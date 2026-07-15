@@ -33,7 +33,6 @@ import { toggleFavorite, isFavorited } from "@/lib/favorites";
 import { rateLimiters } from "@/lib/security";
 import { useAuthStore } from "@/stores/auth";
 import { toast } from "@/stores/toast";
-import { useDocumentTitle } from "@/hooks/useDocumentTitle";
 import { useSEO, bookJsonLd } from "@/hooks/useSEO";
 import LazyMathText from "@/components/LazyMathText";
 import type { Book } from "@/types";
@@ -42,7 +41,6 @@ export default function BookDetail() {
   const { id } = useParams();
   const mockBook = books.find((b) => b.id === id);
   const [book, setBook] = useState(mockBook || null);
-  useDocumentTitle(book?.title);
   // #150 动态 SEO + Book JSON-LD
   const bookPageUrl = id ? `https://tianjihub.cn/library/${id}` : "https://tianjihub.cn/library";
   useSEO({

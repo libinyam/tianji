@@ -18,7 +18,6 @@ import { toggleFollow, isFollowing, fetchFollowingCount, fetchFollowersCount } f
 import { rateLimiters } from "@/lib/security";
 import { useAuthStore } from "@/stores/auth";
 import { toast } from "@/stores/toast";
-import { useDocumentTitle } from "@/hooks/useDocumentTitle";
 import { useSEO } from "@/hooks/useSEO";
 
 function formatDate(s: string) {
@@ -31,7 +30,6 @@ export default function UserProfile() {
   const { uid } = useParams();
   const { user: currentUser } = useAuthStore();
   const [profile, setProfile] = useState<PublicUser | null>(null);
-  useDocumentTitle(profile ? profile.nickname || "匿名用户" : undefined);
   // #150 动态 SEO
   useSEO({
     title: profile ? `${profile.nickname || "匿名用户"}的个人主页` : undefined,
