@@ -21,6 +21,10 @@ function ensureApp() {
 exports.__setTestDb = (fakeDb) => {
   db = fakeDb;
   _ = fakeDb.command;
+  // #315 测试模式下注入 mock app，moderateText 调用 callFunction 时返回放行
+  app = {
+    callFunction: async () => ({ result: { ok: true, suggestion: "pass" } }),
+  };
 };
 
 const SENSITIVE_WORDS = [
@@ -41,7 +45,7 @@ function containsSensitiveWord(text) {
 
 /**
  * 调用 content-moderation 云函数进行文本审核（#289）
- * fail-open：审核服务异常时放行，由 containsSensitiveWord 兜底
+ * #315 fail-closed：审核服务异常时拒绝，防止通过制造服务故障绕过 UGC 审核
  * 返回 { passed: boolean, suggestion, label, score, error? }
  */
 async function moderateText(text, uid, source) {
@@ -67,8 +71,8 @@ async function moderateText(text, uid, source) {
       failOpen: r.failOpen || false,
     };
   } catch (err) {
-    // 审核服务不可用时 fail-open
-    return { passed: true, suggestion: "pass", label: "", score: 0, error: err.message, failOpen: true };
+    // #315 审核服务不可用时拒绝，要求用户稍后重试
+    return { passed: false, suggestion: "block", label: "ServiceError", score: 0, error: err.message, failOpen: false };
   }
 }
 
@@ -93,6 +97,10 @@ function moderationRejectMessage(result) {
   if (result.words && result.words.length > 0) {
     return `内容包含敏感词: ${result.words.join(", ")}`;
   }
+  // #315 服务故障时提示用户重试，而非判定为内容违规
+  if (result.label === "ServiceError") {
+    return "内容审核服务暂时不可用，请稍后重试";
+  }
   const labelMap = {
     Porn: "涉黄", Ad: "广告", Illegal: "违法", Abuse: "辱骂", Polity: "涉政", Terrorist: "暴恐",
   };
@@ -112,7 +120,8 @@ async function isBanned(uid) {
     }
     return true;
   } catch {
-    return false;
+    // #313 fail-closed：DB 异常时视为封禁，避免被封禁用户因数据库故障绕过封禁
+    return true;
   }
 }
 
