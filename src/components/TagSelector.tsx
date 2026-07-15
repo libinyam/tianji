@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef, useMemo } from "react";
 import { X, Loader2, Tag, Wrench, GraduationCap } from "lucide-react";
-import { fetchHotTags, searchTags, PRESET_TAGS, CATEGORY_LABEL, type TagInfo } from "@/lib/tags";
+import { fetchHotTags, searchTags, PRESET_TAGS, CATEGORY_LABEL, isCasualTag, type TagInfo } from "@/lib/tags";
 
 interface TagSelectorProps {
   value: string[];
@@ -21,9 +21,9 @@ export default function TagSelector({
   const [activeIndex, setActiveIndex] = useState(-1);
   const containerRef = useRef<HTMLDivElement>(null);
 
-  // 加载热门标签
+  // 加载热门标签（排除闲聊区标签，TagSelector 仅用于学术区发帖）
   useEffect(() => {
-    fetchHotTags(20).then(setHotTags);
+    fetchHotTags(20, true).then(setHotTags);
   }, []);
 
   // 输入时搜索补全（防抖）
@@ -35,7 +35,7 @@ export default function TagSelector({
     setLoading(true);
     const timer = setTimeout(() => {
       searchTags(input).then((res) => {
-        setSuggestions(res);
+        setSuggestions(res.filter((t) => !isCasualTag(t.name)));
         setLoading(false);
       });
     }, 300);
