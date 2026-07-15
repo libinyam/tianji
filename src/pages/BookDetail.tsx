@@ -58,7 +58,7 @@ export default function BookDetail() {
       : null,
   });
   const [loading, setLoading] = useState(!mockBook);
-  const [tocOpen, setTocOpen] = useState(true);
+  const [tocOpen, setTocOpen] = useState(false);
   const [favorited, setFavorited] = useState(false);
   const [reportOpen, setReportOpen] = useState(false);
   const [resolvedFileUrl, setResolvedFileUrl] = useState<string | undefined>(undefined);
@@ -412,7 +412,7 @@ export default function BookDetail() {
             </button>
             <button
               onClick={handleFav}
-              className={`inline-flex items-center justify-center gap-2 rounded-lg border px-5 py-2.5 text-sm font-medium transition-all ${
+              className={`col-span-2 inline-flex items-center justify-center gap-2 rounded-lg border px-5 py-2.5 text-sm font-medium transition-all ${
                 favorited
                   ? "border-star-400/70 bg-star-400/15 text-star-200"
                   : "border-void-600/50 bg-void-800/40 text-mist-300 hover:border-mist-400/40"
@@ -526,7 +526,7 @@ export default function BookDetail() {
               />
             </button>
             {tocOpen && (
-              <ol className="space-y-0.5 border-t border-void-600/30 p-4">
+              <ol className="max-h-96 space-y-0.5 overflow-y-auto border-t border-void-600/30 p-4">
                 {book.toc.map((c, i) => {
                   const depth = c.match(/^ */)?.[0].length ?? 0;
                   const indent = Math.floor(depth / 2);
