@@ -10,7 +10,7 @@ import { PostCardSkeleton, ListSkeleton } from "@/components/Skeleton";
 import { fetchPosts, fetchFollowingPosts, type PostCategory, type CasualSubCategory, CASUAL_SUB_CATEGORIES } from "@/lib/posts";
 import type { PostsResult } from "@/lib/posts";
 import { fetchActiveAnnouncements, type Announcement } from "@/lib/announcements";
-import { PRESET_TAGS } from "@/lib/tags";
+import { fetchHotTags } from "@/lib/tags";
 import { formatShortTime, formatCount } from "@/lib/format";
 import { useSEO, websiteJsonLd } from "@/hooks/useSEO";
 import { useAuthStore } from "@/stores/auth";
@@ -18,10 +18,8 @@ import { dispatchAuthWithIntent } from "@/lib/pending-action";
 import type { Question } from "@/types";
 
 type SortKey = "最新" | "热度" | "悬赏";
-type CategoryFilter = "全部" | "学科" | "工具与部署";
 
 const SORT_KEYS: SortKey[] = ["最新", "热度", "悬赏"];
-const ACADEMIC_CATEGORIES: CategoryFilter[] = ["全部", "学科", "工具与部署"];
 
 /** 筛选参数默认值 —— 等于默认值的参数不写进 URL，保持地址干净 */
 const FILTER_DEFAULTS: Record<string, string> = {
@@ -114,9 +112,6 @@ export default function Discussion() {
       ? "following"
       : "academic";
   const rawCat = searchParams.get("cat") ?? "全部";
-  const categoryFilter: CategoryFilter = ACADEMIC_CATEGORIES.includes(rawCat as CategoryFilter)
-    ? (rawCat as CategoryFilter)
-    : "全部";
   const subFilter: CasualSubCategory | "全部" = (CASUAL_SUB_CATEGORIES as string[]).includes(rawCat)
     ? (rawCat as CasualSubCategory)
     : "全部";
@@ -125,7 +120,8 @@ export default function Discussion() {
   const sort: SortKey = SORT_KEYS.includes(rawSort as SortKey) ? (rawSort as SortKey) : "最新";
 
   // 关注分区不依赖子分类，cacheKey 单独处理（#149）
-  const cacheKey = section === "following" ? "following" : `${section}:${subFilter}`;
+  // 标签筛选走后端查询，cacheKey 需包含 activeTag
+  const cacheKey = section === "following" ? "following" : `${section}:${subFilter}:${activeTag}`;
   const [postModalOpen, setPostModalOpen] = useState(false);
   const [capturedPrefill, setCapturedPrefill] = useState<{ title: string; body: string; tags: string[] } | null>(null);
   const [realPosts, setRealPosts] = useState<Question[]>(() => postsCache.get(cacheKey) ?? []);
@@ -136,6 +132,7 @@ export default function Discussion() {
   const [loadingMore, setLoadingMore] = useState(false);
   const [announcements, setAnnouncements] = useState<Announcement[]>([]);
   const [dismissedAnn, setDismissedAnn] = useState<Set<string>>(new Set());
+  const [hotTags, setHotTags] = useState<string[]>([]);
   const { user } = useAuthStore();
   const navigate = useNavigate();
   const location = useLocation();
@@ -164,11 +161,15 @@ export default function Discussion() {
     setError(null);
     (async () => {
       // 关注分区走 fetchFollowingPosts，其他分区走 fetchPosts（#149）
+      // 标签筛选走后端查询，避免前端只从已加载的 20 条中筛
       const result: PostsResult = section === "following"
         ? await fetchFollowingPosts()
         : await fetchPosts(
           section,
-          section === "casual" && subFilter !== "全部" ? subFilter : undefined
+          section === "casual" && subFilter !== "全部" ? subFilter : undefined,
+          undefined,
+          undefined,
+          section === "academic" ? activeTag : undefined
         );
       if (!mounted) return;
       if (result.error) {
@@ -184,7 +185,19 @@ export default function Discussion() {
       setLoading(false);
     })();
     return () => { mounted = false; };
-  }, [section, subFilter, cacheKey, reloadKey]);
+  }, [section, subFilter, activeTag, cacheKey, reloadKey]);
+
+  // 加载热门标签（从 tags 集合查询，完整列表，不从 20 条帖子提取）
+  useEffect(() => {
+    let mounted = true;
+    (async () => {
+      try {
+        const tags = await fetchHotTags(20);
+        if (mounted) setHotTags(tags.map((t) => t.name));
+      } catch { /* noop */ }
+    })();
+    return () => { mounted = false; };
+  }, []);
 
   const loadMore = async () => {
     if (loadingMore || !hasMore) return;
@@ -196,7 +209,9 @@ export default function Discussion() {
       const result = await fetchPosts(
         section,
         section === "casual" && subFilter !== "全部" ? subFilter : undefined,
-        offset
+        offset,
+        undefined,
+        section === "academic" ? activeTag : undefined
       );
       if (!result.error) {
         const next = [...realPosts, ...result.data];
@@ -230,29 +245,15 @@ export default function Discussion() {
 
   const allQuestions = realPosts;
 
-  const ALL_TAGS = useMemo(
-    () => Array.from(new Set(allQuestions.flatMap((q) => q.tags))),
-    [allQuestions]
-  );
-
   const filtered = useMemo(() => {
-    // 关注分区不做分类/标签筛选，仅按所选排序展示（#149）
-    let list = allQuestions.filter((q) => {
-      if (section === "following") return true;
-      if (section === "academic") {
-        if (categoryFilter === "学科" && !q.tags.some((t) => PRESET_TAGS.subject.includes(t))) return false;
-        if (categoryFilter === "工具与部署" && !q.tags.some((t) => PRESET_TAGS.tool.includes(t))) return false;
-        if (activeTag !== "全部" && !q.tags.includes(activeTag)) return false;
-      }
-      return true;
-    });
-    list = [...list].sort((a, b) => {
+    // 标签筛选已走后端查询，前端只做排序
+    const list = [...allQuestions].sort((a, b) => {
       if (sort === "热度") return b.views - a.views;
       if (sort === "悬赏") return (b.bounty ?? 0) - (a.bounty ?? 0);
       return b.createdAt < a.createdAt ? -1 : 1;
     });
     return list;
-  }, [allQuestions, activeTag, categoryFilter, sort, section]);
+  }, [allQuestions, sort]);
 
   const handleNewPost = (post: Question) => {
     // 关注分区是聚合 Feed，新发的帖子不直接插入列表（#149）
@@ -273,9 +274,9 @@ export default function Discussion() {
 
   // 分类筛选选项
   const categoryOptions = section === "academic"
-    ? ACADEMIC_CATEGORIES
+    ? ["全部"]
     : (["全部", ...CASUAL_SUB_CATEGORIES] as (CasualSubCategory | "全部")[]);
-  const activeCategory = section === "academic" ? categoryFilter : subFilter;
+  const activeCategory = section === "academic" ? "全部" : subFilter;
   const setActiveCategory = (v: string) => updateFilters({ cat: v, tag: "全部" });
 
   return (
@@ -344,8 +345,8 @@ export default function Discussion() {
 
         {/* 筛选栏：分类 + 标签 + 排序，合并为紧凑单行。关注分区仅显示排序（#149） */}
         <div className="mb-4 flex flex-wrap items-center gap-x-4 gap-y-2 text-xs">
-          {/* 分类筛选 */}
-          {section !== "following" && (
+          {/* 闲聊区分类筛选 */}
+          {section === "casual" && (
             <div className="flex items-center gap-0.5">
               {categoryOptions.map((c) => (
                 <button
@@ -361,14 +362,13 @@ export default function Discussion() {
             </div>
           )}
 
-          {/* 标签筛选（仅学术区 + 选中分类时） */}
-          {section === "academic" && categoryFilter !== "全部" && (
+          {/* 学术区标签筛选（从 tags 集合查询的热门标签） */}
+          {section === "academic" && hotTags.length > 0 && (
             <div className="flex items-center gap-0.5 text-mist-500">
-              <span className="mr-1 text-mist-600">|</span>
               <button onClick={() => updateFilters({ tag: "全部" })} className={`rounded px-2 py-1 transition-colors ${activeTag === "全部" ? "text-parchment-100" : ""}`}>
                 全部
               </button>
-              {ALL_TAGS.map((t) => (
+              {hotTags.map((t) => (
                 <button key={t} onClick={() => updateFilters({ tag: t })} className={`rounded px-2 py-1 transition-colors ${activeTag === t ? "text-parchment-100" : "hover:text-mist-300"}`}>
                   {t}
                 </button>
