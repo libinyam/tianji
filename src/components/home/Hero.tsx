@@ -1,5 +1,5 @@
 import { Link } from "react-router-dom";
-import { ArrowUpRight, Compass, MessageCircle } from "lucide-react";
+import { ArrowUpRight, Compass, MessageCircle, Lightbulb, Users, FolderGit } from "lucide-react";
 
 export default function Hero() {
   return (
@@ -35,6 +35,19 @@ export default function Hero() {
             <Link to="/" className="btn-ghost">
               <MessageCircle size={15} />
               加入讨论
+            </Link>
+          </div>
+
+          {/* 其余入口（与导航栏一致） */}
+          <div className="mt-3 flex flex-wrap items-center gap-x-4 gap-y-2 text-xs text-mist-400">
+            <Link to="/ideas" className="inline-flex items-center gap-1.5 transition-colors hover:text-star-300">
+              <Lightbulb size={13} /> 灵感广场
+            </Link>
+            <Link to="/workshop" className="inline-flex items-center gap-1.5 transition-colors hover:text-star-300">
+              <Users size={13} /> 协作工坊
+            </Link>
+            <Link to="/portfolio" className="inline-flex items-center gap-1.5 transition-colors hover:text-star-300">
+              <FolderGit size={13} /> 作品集
             </Link>
           </div>
         </div>
