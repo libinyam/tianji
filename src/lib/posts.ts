@@ -435,12 +435,13 @@ export async function getVotedAnswerIds(answerIds: string[]): Promise<Set<string
   return new Set((data ?? []).map((d: { answerId: string }) => d.answerId));
 }
 
-/** 给回答投票/取消投票（持久化到数据库 + 防重复） */
+/** 给回答投票/取消投票（持久化到数据库 + 防重复）
+ *  返回 changed: true 表示后端实际修改了票数，false 表示重复操作（前端应回滚 optimistic update） */
 export async function voteAnswer(
   postId: string,
   answerId: string,
   isUpvote: boolean
-): Promise<boolean> {
+): Promise<{ changed: boolean }> {
   const uid = getCurrentUid();
   if (!uid) throw new Error("请先登录");
 
@@ -448,7 +449,7 @@ export async function voteAnswer(
     name: "content-actions",
     data: { action: "voteAnswer", postId, answerId, isUpvote },
   });
-  const result = (res?.result ?? {}) as { ok?: boolean; error?: string };
+  const result = (res?.result ?? {}) as { ok?: boolean; error?: string; data?: { changed?: boolean } };
   if (!result.ok) throw new Error(result.error || "操作失败");
-  return true;
+  return { changed: result.data?.changed !== false };
 }
