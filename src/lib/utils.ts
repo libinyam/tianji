@@ -18,3 +18,15 @@ export function isAuthor(
 ): boolean {
   return Boolean(uid && authorUid && uid === authorUid);
 }
+
+/**
+ * 将 CloudBase SDK 抛出的英文错误信息翻译成中文。
+ * 常见场景：直写 DB 被安全规则拦截时抛出 "Permission denied by security rules"。
+ */
+export function friendlyErrorMessage(err: unknown): string {
+  const msg = err instanceof Error ? err.message : String(err);
+  if (/permission denied|security rules/i.test(msg)) {
+    return "操作失败：权限不足或登录已过期，请刷新后重试";
+  }
+  return msg;
+}

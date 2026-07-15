@@ -313,36 +313,29 @@ describe("posts", () => {
   });
 
   describe("deletePost", () => {
-    it("成功：作者删除自己的帖子返回 true", async () => {
+    it("成功：走云函数删除帖子返回 true", async () => {
       mockAuth.user = { uid: "test-uid" };
-      mockDb._docRef.get.mockResolvedValue({
-        data: [{ _id: "p1", authorUid: "test-uid", title: "x" }],
-      });
+      mockCallFunction.mockResolvedValue({ result: { ok: true, deleted: true } });
 
       const result = await deletePost("p1");
 
       expect(result).toBe(true);
-      expect(mockDb._docRef.remove).toHaveBeenCalledTimes(1);
-    });
-
-    it("帖子不存在：返回 false 且不调用 remove", async () => {
-      mockAuth.user = { uid: "test-uid" };
-      mockDb._docRef.get.mockResolvedValue({ data: [] });
-
-      const result = await deletePost("missing");
-
-      expect(result).toBe(false);
-      expect(mockDb._docRef.remove).not.toHaveBeenCalled();
-    });
-
-    it("非作者：抛出'无权删除他人帖子'", async () => {
-      mockAuth.user = { uid: "test-uid" };
-      mockDb._docRef.get.mockResolvedValue({
-        data: [{ _id: "p1", authorUid: "other-uid", title: "x" }],
+      expect(mockCallFunction).toHaveBeenCalledWith({
+        name: "content-actions",
+        data: { action: "deletePost", postId: "p1" },
       });
+    });
+
+    it("云函数返回失败：抛出错误", async () => {
+      mockAuth.user = { uid: "test-uid" };
+      mockCallFunction.mockResolvedValue({ result: { ok: false, error: "无权删除他人帖子" } });
 
       await expect(deletePost("p1")).rejects.toThrow("无权删除他人帖子");
-      expect(mockDb._docRef.remove).not.toHaveBeenCalled();
+    });
+
+    it("未登录：抛出'请先登录'", async () => {
+      mockAuth.user = null;
+      await expect(deletePost("p1")).rejects.toThrow("请先登录");
     });
   });
 
