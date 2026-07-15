@@ -244,3 +244,7 @@ npm run deploy:rules
 ## License
 
 MIT
+
+## 隐私政策
+
+详见 [PRIVACY.md](PRIVACY.md)，说明我们如何收集、处理和保护您的个人信息（PIPL 合规）。

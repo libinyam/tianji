@@ -34,6 +34,8 @@ export interface Annotation {
   author: string;
   authorUid: string;
   content: string;
+  /** #27 批注对应的选中文本快照，方便后续读者定位批注上下文 */
+  selectedText?: string;
   resolved: boolean;
   createdAt: string;
 }
@@ -340,19 +342,28 @@ export async function deleteWorkshop(id: string): Promise<boolean> {
  * 添加批注（登录用户均可添加）
  * @param id 文档 id
  * @param content 批注内容
+ * @param selectedText #27 批注对应的选中文本快照（可选）
  */
 export async function addAnnotation(
   id: string,
-  content: string
+  content: string,
+  selectedText?: string
 ): Promise<Annotation | null> {
   const uid = getCurrentUid();
   if (!uid) throw new Error("请先登录");
   if (!content.trim()) throw new Error("批注内容不能为空");
   const cleanContent = sanitizeInput(content.trim());
+  // #27 选中文本截断到 200 字符，避免过长
+  const cleanSelectedText = selectedText ? sanitizeInput(selectedText.trim(), 200) : undefined;
   try {
     const res = await app.callFunction({
       name: "content-actions",
-      data: { action: "addWorkshopAnnotation", workshopId: id, content: cleanContent },
+      data: {
+        action: "addWorkshopAnnotation",
+        workshopId: id,
+        content: cleanContent,
+        ...(cleanSelectedText ? { selectedText: cleanSelectedText } : {}),
+      },
     });
     const result = (res?.result ?? {}) as { ok?: boolean; data?: Annotation; error?: string };
     if (!result.ok) return null;
