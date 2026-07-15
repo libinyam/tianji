@@ -490,13 +490,16 @@ async function voteAnswer(event, uid) {
   let shouldInc = false;
 
   if (isUpvote) {
-    const result = await votesCol.doc(voteDocId).set({
+    // 先查是否已存在投票记录（防重复点赞）
+    // 不依赖 set() 返回值的 upserted/replaced 字段，不同 SDK 版本格式不一致
+    const { data: existing } = await votesCol.doc(voteDocId).get();
+    if (existing && existing.length > 0) {
+      return ok({ changed: false });
+    }
+    await votesCol.doc(voteDocId).set({
       answerId, uid, postId, createdAt: Date.now(),
     });
-    const resultObj = result || {};
-    const upserted = resultObj.upserted || 0;
-    const replaced = resultObj.replaced || 0;
-    shouldInc = upserted > 0 && replaced === 0;
+    shouldInc = true;
   } else {
     // #371 取消点赞：先删 deterministic id，再清理历史随机 _id 记录
     // 旧版直写 DB votes.add() 产生随机 _id，doc(voteDocId).remove() 删不掉

@@ -96,8 +96,9 @@ export function useAnswerActions(
       };
     });
     try {
-      const ok = await voteAnswer(question.id, aid, newVoted);
-      if (!ok) {
+      const { changed } = await voteAnswer(question.id, aid, newVoted);
+      if (!changed) {
+        // 后端未实际修改（重复点赞/取消），回滚 optimistic update
         setVoted((v) => ({ ...v, [aid]: !newVoted }));
         setQuestion((q) => {
           if (!q) return q;
