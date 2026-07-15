@@ -85,6 +85,9 @@ export default function BookDetail() {
   const [deleteConfirm, setDeleteConfirm] = useState(false);
   const [deleting, setDeleting] = useState(false);
 
+  // 当前用户是否已评价过此书
+  const hasReviewed = !!(book && user && book.reviews.some((r) => r.authorUid === user.uid));
+
   useEffect(() => {
     if (mockBook) {
       setBook(mockBook);
@@ -106,6 +109,16 @@ export default function BookDetail() {
   useEffect(() => {
     if (id) isFavorited(id).then(setFavorited);
   }, [id, user?.uid]);
+
+  // 回填已有评价：用户进入页面时如果已经评价过，显示此前的评分和内容
+  useEffect(() => {
+    if (!book || !user) return;
+    const existing = book.reviews.find((r) => r.authorUid === user.uid);
+    if (existing) {
+      setReviewRating(existing.rating);
+      setReviewText(existing.content);
+    }
+  }, [book?.id, user?.uid]);
 
   // #96 相关推荐从数据库按 category 查询（不再只查 mock）
   useEffect(() => {
@@ -231,8 +244,6 @@ export default function BookDetail() {
         reviews: newReviews,
         rating: result.avgRating,
       });
-      setReviewRating(0);
-      setReviewText("");
       toast.success(result.updated ? "评价已更新" : "评价已提交");
     } catch {
       toast.error("提交失败，请重试");
@@ -597,7 +608,7 @@ export default function BookDetail() {
                   className="btn-gold text-sm disabled:opacity-50"
                 >
                   {reviewSubmitting ? <Loader2 size={14} className="animate-spin" /> : <Send size={14} />}
-                  提交评价
+                  {hasReviewed ? "更新评价" : "提交评价"}
                 </button>
               </div>
             </div>
