@@ -23,7 +23,7 @@
  *     error?: string
  *   }
  *
- * 审核服务异常时默认放行（fail-open），避免审核服务故障阻断正常 UGC。
+ * 审核服务异常时默认拒绝（fail-closed），防止通过制造服务故障绕过 UGC 审核。
  */
 
 const crypto = require("crypto");
@@ -241,13 +241,14 @@ exports.main = async (event) => {
       timestamp: Date.now(),
     };
   } catch (err) {
-    // 审核服务异常：fail-open 放行，记录错误
+    // #315 fail-closed：审核服务异常时拒绝，防止通过制造服务故障绕过 UGC 审核
     console.error("[content-moderation] 审核异常:", err.message);
     return {
-      ok: true,
-      suggestion: "pass",
+      ok: false,
+      suggestion: "block",
+      label: "ServiceError",
       error: err.message,
-      failOpen: true,
+      failOpen: false,
       uid: uid || "",
       source: source || "",
       timestamp: Date.now(),

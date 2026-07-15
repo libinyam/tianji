@@ -115,8 +115,10 @@ exports.main = async (event, context) => {
       if (typeof keyword !== "string" || keyword.length > 100) {
         return { ok: false, error: "keyword 不合法" };
       }
+      // #314 转义正则特殊字符，防止 keyword 构造恶意正则导致 ReDoS 或注入
+      const escaped = keyword.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
       const { data } = await db.collection("users_v2").where({
-        displayName: db.RegExp({ regexp: keyword, options: "i" })
+        displayName: db.RegExp({ regexp: escaped, options: "i" })
       }).limit(20).get();
       return { ok: true, data: data || [] };
     }

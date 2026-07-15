@@ -25,7 +25,8 @@ export async function checkBanStatus(uid: string): Promise<BanStatus> {
       bannedUntil: user.bannedUntil,
     };
   } catch {
-    return { banned: false };
+    // #313 fail-closed：DB 异常时视为封禁，避免被封禁用户因数据库故障绕过封禁发帖
+    return { banned: true, bannedReason: "数据库异常，临时拒绝操作，请稍后重试" };
   }
 }
 
