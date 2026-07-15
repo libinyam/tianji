@@ -358,7 +358,7 @@ export default function WorkshopDetail() {
     setAnnotSubmitting(true);
     setAnnotError(null);
     try {
-      const annot = await addAnnotation(id, annotInput);
+      const annot = await addAnnotation(id, annotInput, selectedText);
       if (annot && project) {
         setProject({
           ...project,
@@ -1011,6 +1011,14 @@ function AnnotationCard({
         content={annotation.content}
         className="text-xs leading-relaxed text-mist-200"
       />
+      {/* #27 展示批注对应的选中文本快照 */}
+      {annotation.selectedText && (
+        <blockquote className="mt-2 border-l-2 border-star-400/40 bg-void-950/40 px-2.5 py-1 text-[11px] italic leading-relaxed text-mist-400">
+          「{annotation.selectedText.length > 80
+            ? annotation.selectedText.slice(0, 80) + "…"
+            : annotation.selectedText}」
+        </blockquote>
+      )}
       <div className="mt-2 flex items-center justify-end gap-3">
         {resolved ? (
           <span className="flex items-center gap-1 text-[10px] text-emerald-400">

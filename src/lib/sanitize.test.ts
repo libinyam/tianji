@@ -83,11 +83,17 @@ describe("sanitizeTitle", () => {
 });
 
 describe("sanitizeTag", () => {
-  it("只保留中英文、数字、连字符、下划线", () => {
+  it("只保留中英文、数字、连字符、下划线、加号", () => {
     expect(sanitizeTag("AI学习")).toBe("AI学习");
     expect(sanitizeTag("react-18")).toBe("react-18");
     expect(sanitizeTag("node_js")).toBe("node_js");
     expect(sanitizeTag("数学AI")).toBe("数学AI");
+  });
+
+  it("#363 支持加号（C++、R++ 等技术标签）", () => {
+    expect(sanitizeTag("C++")).toBe("C++");
+    expect(sanitizeTag("R++")).toBe("R++");
+    expect(sanitizeTag("C++编程")).toBe("C++编程");
   });
 
   it("去除特殊字符", () => {

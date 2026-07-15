@@ -85,7 +85,10 @@ export async function searchTags(keyword: string, limit = 10): Promise<TagInfo[]
   }
 }
 
-/** 确保标签存在，新标签插入并 count=1，已有标签 count+1 */
+/**
+ * 确保标签存在，新标签插入并 count=1，已有标签 count+1
+ * #363 大小写归一化：匹配到已有标签时复用其展示名，避免 cpp/CPP/Cpp 分裂为多个标签
+ */
 export async function ensureTags(names: string[]): Promise<void> {
   for (const name of names) {
     const trimmed = name.trim();
