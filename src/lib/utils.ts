@@ -24,9 +24,19 @@ export function isAuthor(
  * 常见场景：直写 DB 被安全规则拦截时抛出 "Permission denied by security rules"。
  */
 export function friendlyErrorMessage(err: unknown): string {
-  const msg = err instanceof Error ? err.message : String(err);
+  let msg: string;
+  if (err instanceof Error) {
+    msg = err.message;
+  } else if (err && typeof err === "object" && "message" in err) {
+    msg = String((err as { message: unknown }).message);
+  } else {
+    msg = String(err);
+  }
   if (/permission denied|security rules/i.test(msg)) {
     return "操作失败：权限不足或登录已过期，请刷新后重试";
+  }
+  if (msg === "[object Object]") {
+    return "操作失败，请稍后重试";
   }
   return msg;
 }
