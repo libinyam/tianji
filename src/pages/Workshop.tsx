@@ -6,7 +6,6 @@ import { WorkshopCardSkeleton, ListSkeleton } from "@/components/Skeleton";
 import { fetchWorkshops, canViewContent, type WorkshopProject } from "@/lib/workshops";
 import { useAuthStore } from "@/stores/auth";
 import { dispatchAuthWithIntent } from "@/lib/pending-action";
-import { useDocumentTitle } from "@/hooks/useDocumentTitle";
 import { useSEO } from "@/hooks/useSEO";
 
 function formatUpdatedAt(iso: string): string {
@@ -23,7 +22,6 @@ function formatUpdatedAt(iso: string): string {
 }
 
 export default function Workshop() {
-  useDocumentTitle("协作工坊");
   // #150 SEO
   useSEO({
     title: "协作工坊",

@@ -1,4 +1,4 @@
-import { app } from "@/lib/cloudbase";
+import { app, authReady } from "@/lib/cloudbase";
 
 const db = app.database();
 
@@ -21,6 +21,7 @@ export interface PublicUser {
 /** 通过 uid 获取用户公开信息（从帖子中提取，因为 CloudBase Auth 无公开查询 API） */
 export async function fetchPublicUser(uid: string): Promise<PublicUser | null> {
   try {
+    await authReady; // #345/#348 等匿名身份就绪，避免新访客首次访问用户主页 401
     // 尝试从 posts 集合获取作者信息
     const { data } = await db
       .collection("posts")
@@ -82,6 +83,7 @@ export async function fetchPublicUser(uid: string): Promise<PublicUser | null> {
 export async function fetchUserContent(uid: string): Promise<UserContent> {
   const empty: UserContent = { posts: [], ideas: [], books: [], workshops: [] };
   try {
+    await authReady; // #345/#348 等匿名身份就绪
     const [postsRes, ideasRes, booksRes, workshopsRes] = await Promise.all([
       db.collection("posts").where({ authorUid: uid }).orderBy("createdAt", "desc").limit(50).get(),
       db.collection("ideas").where({ authorUid: uid }).orderBy("createdAt", "desc").limit(50).get(),

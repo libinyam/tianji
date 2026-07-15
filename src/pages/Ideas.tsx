@@ -13,12 +13,10 @@ import { toggleFavorite, getFavoritedIds } from "@/lib/favorites";
 import { useAuthStore } from "@/stores/auth";
 import { dispatchAuthWithIntent } from "@/lib/pending-action";
 import { isAuthor } from "@/lib/utils";
-import { useDocumentTitle } from "@/hooks/useDocumentTitle";
 import { useSEO } from "@/hooks/useSEO";
 import type { Idea } from "@/types";
 
 export default function Ideas() {
-  useDocumentTitle("灵感广场");
   // #150 SEO
   useSEO({
     title: "灵感广场",

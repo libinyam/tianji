@@ -9,7 +9,6 @@ import {
   Compass,
 } from "lucide-react";
 import PageHero from "@/components/PageHero";
-import { useDocumentTitle } from "@/hooks/useDocumentTitle";
 import { useSEO } from "@/hooks/useSEO";
 
 /** 成长路径的 5 个阶段 */
@@ -85,9 +84,8 @@ const EXAMPLE_ROUTE = {
 };
 
 export default function GrowthPath() {
-  useDocumentTitle("成长路径");
   useSEO({
-    title: "成长路径 — 天玑",
+    title: "成长路径",
     description:
       "从学习资源到项目作品的完整链路：学习 → 答疑 → 灵感 → 协作 → 作品集。天玑帮助跨专业学习者从「不会」开始，最终产出可展示的作品。",
     canonical: "https://tianjihub.cn/growth",
