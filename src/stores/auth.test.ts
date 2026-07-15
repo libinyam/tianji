@@ -183,5 +183,31 @@ describe("useAuthStore", () => {
       await useAuthStore.getState().initSession();
       expect(useAuthStore.getState().user).toBeNull();
     });
+
+    it("手机号注册无 nickname：生成默认昵称并持久化", async () => {
+      // 模拟手机号注册用户：phone 有值，user_metadata 无 nickname
+      const phoneSession = {
+        user: {
+          id: "uid-phone",
+          email: null,
+          phone: "13800138000",
+          user_metadata: { username: "13800138000" },
+        },
+      };
+      mockAuth.getSession.mockResolvedValue({ data: { session: phoneSession }, error: null });
+      mockAuth.updateUser.mockResolvedValue({});
+      await useAuthStore.getState().initSession();
+      const state = useAuthStore.getState();
+      expect(state.user).not.toBeNull();
+      expect(state.user?.nickname).toMatch(/^小星辰[a-z0-9]{4}$/);
+      expect(mockAuth.updateUser).toHaveBeenCalledWith({ nickname: state.user?.nickname });
+    });
+
+    it("已有 nickname：不生成默认昵称", async () => {
+      mockAuth.getSession.mockResolvedValue({ data: { session: validSession }, error: null });
+      mockAuth.updateUser.mockClear();
+      await useAuthStore.getState().initSession();
+      expect(mockAuth.updateUser).not.toHaveBeenCalled();
+    });
   });
 });

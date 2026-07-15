@@ -2,6 +2,23 @@ import { create } from "zustand";
 import { auth } from "@/lib/cloudbase";
 import { sanitizeInput } from "@/lib/sanitize";
 
+/** 判断 username/phone 是否是裸手机号或 qq 号（纯数字），需要生成默认昵称 */
+function isRawIdentifier(value: string | null): boolean {
+  if (!value) return false;
+  // 手机号（11 位）或 qq 号（5-12 位纯数字）
+  return /^\d{5,15}$/.test(value);
+}
+
+/** 生成随机默认昵称：小星辰+4位字母数字后缀 */
+function generateDefaultNickname(): string {
+  const chars = "abcdefghijklmnopqrstuvwxyz0123456789";
+  let suffix = "";
+  for (let i = 0; i < 4; i++) {
+    suffix += chars[Math.floor(Math.random() * chars.length)];
+  }
+  return `小星辰${suffix}`;
+}
+
 export interface TianjiUser {
   uid: string;
   email: string | null;
@@ -65,14 +82,41 @@ function extractUser(session: unknown): TianjiUser | null {
   const user = (s.user ?? s) as Record<string, unknown> | undefined;
   if (!user || !user.id) return null;
   const meta = (user.user_metadata ?? {}) as Record<string, unknown>;
+  const username = (meta.username as string) ?? null;
+  const phone = (user.phone as string) ?? null;
+  const nickname = (meta.nickname as string) ?? (meta.nickName as string) ?? null;
   return {
     uid: String(user.id),
     email: (user.email as string) ?? null,
-    phone: (user.phone as string) ?? null,
-    username: (meta.username as string) ?? null,
-    nickname: (meta.nickname as string) ?? (meta.nickName as string) ?? null,
+    phone,
+    username,
+    nickname,
     avatarUrl: (meta.avatarUrl as string) ?? (meta.avatar_url as string) ?? null,
   };
+}
+
+/**
+ * 检查用户是否需要默认昵称（nickname 为空且 username/phone 是裸手机号或 qq 号），
+ * 若需要则生成随机昵称并持久化到 user_metadata，同时更新本地 user 状态。
+ * 静默失败不阻塞主流程（持久化失败时本地仍用生成的昵称显示）。
+ */
+async function ensureDefaultNickname(
+  user: TianjiUser | null,
+  set: (partial: Partial<AuthState>) => void
+): Promise<void> {
+  if (!user) return;
+  if (user.nickname) return;
+  if (!isRawIdentifier(user.username) && !isRawIdentifier(user.phone)) return;
+
+  const defaultName = generateDefaultNickname();
+  // 本地立即更新，避免 session 刷新前显示空昵称
+  set({ user: { ...user, nickname: defaultName } });
+  // 后台持久化到 user_metadata，失败不阻塞
+  try {
+    await auth.updateUser({ nickname: defaultName });
+  } catch {
+    // 持久化失败不阻塞，下次 initSession 会再次尝试
+  }
 }
 
 export const useAuthStore = create<AuthState>((set) => ({
@@ -105,6 +149,8 @@ export const useAuthStore = create<AuthState>((set) => ({
         return;
       }
       set({ user: extractedUser, loading: false });
+      // 手机号/QQ 注册用户首次登录时生成随机默认昵称并持久化
+      await ensureDefaultNickname(extractedUser, set);
     } catch {
       set({ user: null, loading: false });
     }
@@ -206,7 +252,10 @@ export const useAuthStore = create<AuthState>((set) => ({
         set({ error: error?.message ?? "注册成功但获取会话失败", loading: false });
         return false;
       }
-      set({ user: extractUser(data.session), loading: false });
+      const extractedUser = extractUser(data.session);
+      set({ user: extractedUser, loading: false });
+      // 手机号注册用户生成随机默认昵称并持久化
+      await ensureDefaultNickname(extractedUser, set);
       return true;
     } catch (e) {
       set({ error: (e as Error).message, loading: false });
