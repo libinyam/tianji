@@ -1,0 +1,11 @@
+dist
+coverage
+node_modules
+.cloudbase
+.claude
+.agents
+.closed-loop-workspace
+*.min.js
+*.min.css
+package-lock.json
+cloudbase-security-rules.json
