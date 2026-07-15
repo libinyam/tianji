@@ -7,7 +7,6 @@ import BookUploadModal from "@/components/BookUploadModal";
 import { fetchBooks } from "@/lib/books";
 import { useAuthStore } from "@/stores/auth";
 import { dispatchAuthWithIntent } from "@/lib/pending-action";
-import { useDocumentTitle } from "@/hooks/useDocumentTitle";
 import { useSEO } from "@/hooks/useSEO";
 import type { Book, BookCategory } from "@/types";
 
@@ -24,7 +23,6 @@ type SortKey = "热度" | "最新" | "难度";
 const SORTS: SortKey[] = ["热度", "最新", "难度"];
 
 export default function Library() {
-  useDocumentTitle("资源库");
   // #150 SEO
   useSEO({
     title: "资源库",
@@ -113,7 +111,7 @@ export default function Library() {
         <div className="container-tj flex h-12 items-center justify-between">
           <div className="flex items-center gap-4">
             <h1 className="text-sm font-medium text-parchment-100">学习资源库</h1>
-            <span className="text-xs text-mist-500">{allBooks.length} 份资源</span>
+            <span className="text-xs text-mist-500">{filtered.length} 份资源{filtered.length !== allBooks.length && ` / 共 ${allBooks.length} 份`}</span>
           </div>
           <button onClick={handleUploadClick} className="inline-flex items-center gap-1.5 rounded-md bg-star-400/10 px-3 py-1.5 text-xs font-medium text-star-300 transition-colors hover:bg-star-400/20">
             <Plus size={13} /> 上传资源

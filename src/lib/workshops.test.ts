@@ -60,6 +60,7 @@ vi.mock("@/lib/cloudbase", () => ({
     database: () => mockDb,
     callFunction: mockCallFunction,
   },
+  authReady: Promise.resolve(),
 }));
 
 vi.mock("@/stores/auth", () => ({

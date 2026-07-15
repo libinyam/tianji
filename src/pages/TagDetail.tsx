@@ -4,7 +4,6 @@ import { motion } from "motion/react";
 import { ArrowLeft, Tag, MessageSquare, Lightbulb, BookOpen, Users, Wrench, GraduationCap } from "lucide-react";
 import { fetchContentByTag, fetchTagCount, inferCategory, CATEGORY_LABEL, type TagContentItem } from "@/lib/tags";
 import { PostCardSkeleton, BookCardSkeleton, IdeaCardSkeleton, WorkshopCardSkeleton } from "@/components/Skeleton";
-import { useDocumentTitle } from "@/hooks/useDocumentTitle";
 import { useSEO } from "@/hooks/useSEO";
 import { toggleTagFollow, isTagFollowing } from "@/lib/follows";
 import { rateLimiters } from "@/lib/security";
@@ -29,7 +28,6 @@ const TYPE_LABEL = {
 export default function TagDetail() {
   const { name = "" } = useParams<{ name: string }>();
   const { user } = useAuthStore();
-  useDocumentTitle(name ? `#${name}` : undefined);
   // #150 动态 SEO
   useSEO({
     title: name ? `#${name}` : undefined,

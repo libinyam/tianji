@@ -1,4 +1,4 @@
-import { app } from "@/lib/cloudbase";
+import { app, authReady } from "@/lib/cloudbase";
 import { sanitizeInput, sanitizeTitle, sanitizeTag } from "@/lib/sanitize";
 import { checkCurrentUserBanned } from "@/lib/ban";
 import { containsSensitiveWord } from "@/lib/sensitive-words";
@@ -124,6 +124,7 @@ export async function fetchWorkshops(): Promise<WorkshopProject[]> {
 /** 获取单个项目 */
 export async function fetchWorkshopById(id: string): Promise<WorkshopProject | null> {
   try {
+    await authReady; // #345/#348 等匿名身份就绪，避免新访客首次访问详情页 401 后误显示"未找到"
     const { data } = await db.collection(COLLECTION).doc(id).get();
     if (!data || data.length === 0) return null;
     return toProject(data[0] as WorkshopDoc);

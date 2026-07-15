@@ -8,7 +8,6 @@ import {
   fetchPortfolioWorks,
   type WorkshopProject,
 } from "@/lib/workshops";
-import { useDocumentTitle } from "@/hooks/useDocumentTitle";
 import { useSEO } from "@/hooks/useSEO";
 
 function formatTime(iso: string): string {
@@ -23,9 +22,8 @@ function formatTime(iso: string): string {
 }
 
 export default function Portfolio() {
-  useDocumentTitle("作品集");
   useSEO({
-    title: "作品集 — 天玑",
+    title: "作品集",
     description:
       "天玑社区成员的项目作品集——从学习到产出的真实成果展示。每个作品都源自协作工坊，包含项目文档、贡献者、技术栈与演示链接。",
     canonical: "https://tianjihub.cn/portfolio",
