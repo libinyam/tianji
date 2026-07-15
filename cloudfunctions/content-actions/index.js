@@ -498,14 +498,25 @@ async function voteAnswer(event, uid) {
     const replaced = resultObj.replaced || 0;
     shouldInc = upserted > 0 && replaced === 0;
   } else {
+    // #371 取消点赞：先删 deterministic id，再清理历史随机 _id 记录
+    // 旧版直写 DB votes.add() 产生随机 _id，doc(voteDocId).remove() 删不掉
+    let deletedCount = 0;
     try {
       const result = await votesCol.doc(voteDocId).remove();
       const resultObj = result || {};
-      const deleted = resultObj.deleted || 1;
-      shouldInc = deleted > 0;
+      deletedCount += resultObj.deleted || 0;
     } catch {
-      return ok({ changed: false });
+      // deterministic id 不存在不阻断，继续清理历史记录
     }
+    try {
+      // 清理同一 uid+answerId 的所有历史随机 _id 记录
+      const legacyResult = await votesCol.where({ uid, answerId }).remove();
+      const legacyObj = legacyResult || {};
+      deletedCount += legacyObj.deleted || 0;
+    } catch {
+      // 清理失败不阻断，至少 deterministic id 已尝试删除
+    }
+    shouldInc = deletedCount > 0;
   }
 
   if (!shouldInc) return ok({ changed: false });
