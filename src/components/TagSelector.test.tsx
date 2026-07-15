@@ -18,7 +18,8 @@ vi.mock("@/lib/tags", () => ({
     subject: ["数学", "人工智能", "物理", "哲学"],
     tool: ["Codex", "Trae", "CloudBase", "GitHub Actions"],
   },
-  CATEGORY_LABEL: { subject: "学科", tool: "工具与部署" },
+  CATEGORY_LABEL: { subject: "学科", tool: "工具与部署", casual: "闲聊" },
+  isCasualTag: vi.fn((name: string) => ["灌水", "动态", "新闻", "其他", "闲聊"].includes(name)),
 }));
 
 import { fetchHotTags, searchTags } from "@/lib/tags";
@@ -39,9 +40,9 @@ describe("TagSelector（#191）", () => {
     render(<TagSelector value={["已有标签"]} onChange={onChange} />);
     expect(screen.getByText("已有标签")).toBeInTheDocument();
     expect(screen.getByRole("combobox")).toBeInTheDocument();
-    // 初次挂载会请求热门标签
+    // 初次挂载会请求热门标签（排除闲聊区标签）
     await waitFor(() => {
-      expect(fetchHotTags).toHaveBeenCalledWith(20);
+      expect(fetchHotTags).toHaveBeenCalledWith(20, true);
     });
   });
 
