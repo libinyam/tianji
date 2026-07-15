@@ -9,6 +9,14 @@
     <link rel="canonical" href="https://tianjihub.cn/" />
     <meta http-equiv="X-Content-Type-Options" content="nosniff" />
     <meta http-equiv="Referrer-Policy" content="strict-origin-when-cross-origin" />
+    <!-- #342 HTTP 强制跳转 HTTPS（前端兜底，CloudBase Hosting 控制台需同时开启"强制 HTTPS"） -->
+    <script>
+      (function () {
+        if (location.protocol === 'http:' && location.hostname !== 'localhost' && location.hostname !== '127.0.0.1') {
+          location.replace('https:' + location.href.substring(location.protocol.length));
+        }
+      })();
+    </script>
     <!-- Open Graph -->
     <meta property="og:title" content="天玑 · 跨专业 AI 学习与项目共创社区" />
     <meta property="og:description" content="整合学习资源、工具教程、项目案例与协作空间，帮你从只会学理论，走向能做项目、会协作、能产出。" />

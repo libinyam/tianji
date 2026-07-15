@@ -277,6 +277,31 @@ export const useAuthStore = create<AuthState>((set) => ({
     } catch {
       // 忽略登出错误
     } finally {
+      // #341 彻底清理本地凭证：SDK signOut 可能未清干净 localStorage 中的
+      // access_token / refresh_token / 用户信息，退出后旧 token 仍能访问受保护数据。
+      // 扫描所有可能包含 cloudbase / tcb / token 的 key 并清除。
+      try {
+        const keysToRemove: string[] = [];
+        for (let i = 0; i < localStorage.length; i++) {
+          const key = localStorage.key(i);
+          if (!key) continue;
+          const lower = key.toLowerCase();
+          if (
+            lower.includes("cloudbase") ||
+            lower.includes("tcb_") ||
+            lower.includes("access_token") ||
+            lower.includes("refresh_token") ||
+            lower.includes("id_token") ||
+            lower.includes("user_info")
+          ) {
+            keysToRemove.push(key);
+          }
+        }
+        keysToRemove.forEach((k) => localStorage.removeItem(k));
+      } catch {
+        // localStorage 清理失败不阻塞
+      }
+
       set({
         user: null,
         error: null,

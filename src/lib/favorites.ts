@@ -74,7 +74,13 @@ export async function toggleFavorite(params: {
     const res = await favCol.doc(docId).remove();
     // CloudBase 安全规则拦截时不会 throw，而是 deleted=0
     if (res.deleted === 0) {
-      throw new Error("取消收藏失败，可能是权限不足");
+      // #344 生产环境安全规则可能未及时部署，回退到云函数以 admin 权限删除
+      const cfRes = await app.callFunction({
+        name: "content-actions",
+        data: { action: "removeFavorite", targetId: params.targetId },
+      });
+      const cfResult = (cfRes?.result ?? {}) as { ok?: boolean; error?: string };
+      if (!cfResult.ok) throw new Error(cfResult.error || "取消收藏失败，可能是权限不足");
     }
     // 更新对应集合的 favorites 计数
     if (params.type === "book") {

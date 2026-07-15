@@ -1,4 +1,4 @@
-import { app } from "@/lib/cloudbase";
+import { app, authReady } from "@/lib/cloudbase";
 
 const db = app.database();
 
@@ -49,6 +49,7 @@ export function inferCategory(name: string): TagCategory {
 /** 获取热门标签（按使用次数降序） */
 export async function fetchHotTags(limit = 30): Promise<TagInfo[]> {
   try {
+    await authReady; // #345 等匿名身份就绪，避免新访客首屏 401
     const { data } = await db
       .collection("tags")
       .orderBy("count", "desc")

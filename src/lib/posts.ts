@@ -1,4 +1,4 @@
-import { app } from "@/lib/cloudbase";
+import { app, authReady } from "@/lib/cloudbase";
 import { awardReputation } from "@/lib/reputation";
 import { sanitizeInput, sanitizeTitle, sanitizeTag } from "@/lib/sanitize";
 import { checkCurrentUserBanned } from "@/lib/ban";
@@ -96,6 +96,7 @@ export async function fetchPosts(
   pageSize?: number,
 ): Promise<PostsResult> {
   try {
+    await authReady; // #345 等匿名身份就绪，避免新访客首屏 401
     const page = pageSize ?? POSTS_PAGE_SIZE;
     const skip = offset ?? 0;
     const col = db.collection(POSTS_COLLECTION);
@@ -143,6 +144,7 @@ export async function fetchFollowingPosts(): Promise<PostsResult> {
 /** 按浏览量取热门帖子（首页侧栏榜单用），失败时返回空数组不阻塞页面 */
 export async function fetchHotPosts(limit = 5): Promise<Question[]> {
   try {
+    await authReady; // #345 等匿名身份就绪，避免新访客首屏 401
     const { data } = await db
       .collection(POSTS_COLLECTION)
       .orderBy("views", "desc")
@@ -227,11 +229,14 @@ export async function createPost(params: {
   };
 }
 
-/** 增加浏览量 */
+/** 增加浏览量（#346 走云函数绕过安全规则：posts.update 仅限作者，
+ *  非作者浏览时直接 update 会 403，改由 content-actions 云函数以 admin 权限自增） */
 export async function incrementViews(id: string): Promise<void> {
   try {
-    const docRef = db.collection(POSTS_COLLECTION).doc(id);
-    await docRef.update({ views: db.command.inc(1) });
+    await app.callFunction({
+      name: "content-actions",
+      data: { action: "incrementPostViews", postId: id },
+    });
   } catch {
     // 静默失败，浏览量不影响核心体验
   }
