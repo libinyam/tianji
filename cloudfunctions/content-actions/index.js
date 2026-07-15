@@ -326,10 +326,36 @@ async function deletePost(event, uid) {
 
   await docRef.remove();
 
-  // 级联清理收藏、举报和投票（不阻塞主流程）
+  // 级联清理收藏、举报、投票和通知（不阻塞主流程）
   try { await db.collection("favorites").where({ targetId: postId }).remove(); } catch {}
   try { await db.collection("reports").where({ targetId: postId }).remove(); } catch {}
   try { await db.collection("votes").where({ postId }).remove(); } catch {}
+  // #373 清理该帖子相关的通知，避免删帖后通知中心出现死链
+  try { await db.collection("notifications").where({ link: `/discussion/${postId}` }).remove(); } catch {}
+
+  return ok({ deleted: true });
+}
+
+/**
+ * #374 删除灵感（仅作者，以 admin 权限绕过安全规则）
+ * 级联清理 favorites/reports，避免直写 DB 被安全规则拦截产生孤儿记录
+ */
+async function deleteIdea(event, uid) {
+  const { ideaId } = event;
+  if (!ideaId) return fail("缺少参数");
+
+  const docRef = db.collection("ideas").doc(ideaId);
+  const { data } = await docRef.get();
+  if (!data || data.length === 0) return fail("灵感不存在");
+
+  const idea = data[0];
+  if (idea.authorUid !== uid) return fail("无权删除他人灵感");
+
+  await docRef.remove();
+
+  // 级联清理收藏和举报（不阻塞主流程）
+  try { await db.collection("favorites").where({ targetId: ideaId }).remove(); } catch {}
+  try { await db.collection("reports").where({ targetId: ideaId }).remove(); } catch {}
 
   return ok({ deleted: true });
 }
@@ -572,19 +598,8 @@ async function adjustBookFavorites(event, uid) {
   const d = Number(delta);
   if (d !== 1 && d !== -1) return fail("delta 只能为 1 或 -1");
 
-  const favDocId = `${uid}_${bookId}`;
-  const favCol = db.collection("favorites");
-
-  if (d === 1) {
-    await favCol.doc(favDocId).set({
-      uid, bookId, createdAt: Date.now(),
-    });
-  } else {
-    try {
-      await favCol.doc(favDocId).remove();
-    } catch {}
-  }
-
+  // #372 favorites 记录由前端 toggleFavorite 的 add/remove 管理，
+  // 此函数仅负责更新 books.favorites 计数，避免重复写入产生孤儿记录
   await db.collection("books").doc(bookId).update({
     favorites: _.inc(d),
   });
@@ -1062,6 +1077,8 @@ exports.main = async (event, context) => {
           return await deleteComment(event, uid);
         case "deletePost":
           return await deletePost(event, uid);
+        case "deleteIdea":
+          return await deleteIdea(event, uid);
         case "updateAnswer":
           return await updateAnswer(event, uid);
         case "updateComment":

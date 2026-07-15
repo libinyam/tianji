@@ -652,42 +652,35 @@ describe("ideas", () => {
   });
 
   describe("deleteIdea", () => {
-    it("成功：作者删除自己的灵感并级联清理收藏与举报", async () => {
+    beforeEach(() => {
+      vi.clearAllMocks();
+    });
+
+    it("成功：调用云函数删除灵感", async () => {
       mockAuth.user = { uid: "test-uid" };
-      mockDb._docRef.get.mockResolvedValue({
-        data: [{ _id: "i1", authorUid: "test-uid", title: "x" }],
-      });
+      mockCallFunction.mockResolvedValue({ result: { ok: true } });
 
       const result = await deleteIdea("i1");
 
       expect(result).toBe(true);
-      expect(mockDb._docRef.remove).toHaveBeenCalledTimes(1);
-      expect(mockDb._chain.remove).toHaveBeenCalledTimes(2);
-      expect(mockDb._chain.where).toHaveBeenCalledWith({ targetId: "i1" });
-      expect(mockDb._chain.where).toHaveBeenCalledTimes(2);
-    });
-
-    it("灵感不存在：返回 false 且不调用 remove", async () => {
-      mockAuth.user = { uid: "test-uid" };
-      mockDb._docRef.get.mockResolvedValue({ data: [] });
-
-      const result = await deleteIdea("missing");
-
-      expect(result).toBe(false);
-      expect(mockDb._docRef.remove).not.toHaveBeenCalled();
-      expect(mockDb._chain.remove).not.toHaveBeenCalled();
-    });
-
-    it("非作者：抛出'无权删除他人灵感'", async () => {
-      mockAuth.user = { uid: "test-uid" };
-      mockDb._docRef.get.mockResolvedValue({
-        data: [{ _id: "i1", authorUid: "other-uid", title: "x" }],
+      expect(mockCallFunction).toHaveBeenCalledWith({
+        name: "content-actions",
+        data: { action: "deleteIdea", ideaId: "i1" },
       });
+    });
+
+    it("云函数返回失败：抛出错误", async () => {
+      mockAuth.user = { uid: "test-uid" };
+      mockCallFunction.mockResolvedValue({ result: { ok: false, error: "无权删除他人灵感" } });
 
       await expect(deleteIdea("i1")).rejects.toThrow("无权删除他人灵感");
+    });
 
-      expect(mockDb._docRef.remove).not.toHaveBeenCalled();
-      expect(mockDb._chain.remove).not.toHaveBeenCalled();
+    it("灵感不存在：云函数返回失败并抛出错误", async () => {
+      mockAuth.user = { uid: "test-uid" };
+      mockCallFunction.mockResolvedValue({ result: { ok: false, error: "灵感不存在" } });
+
+      await expect(deleteIdea("missing")).rejects.toThrow("灵感不存在");
     });
 
     it("未登录：抛出'请先登录'", async () => {
@@ -695,20 +688,7 @@ describe("ideas", () => {
 
       await expect(deleteIdea("i1")).rejects.toThrow("请先登录");
 
-      expect(mockDb._docRef.remove).not.toHaveBeenCalled();
-    });
-
-    it("级联清理失败：不阻断主流程仍返回 true", async () => {
-      mockAuth.user = { uid: "test-uid" };
-      mockDb._docRef.get.mockResolvedValue({
-        data: [{ _id: "i1", authorUid: "test-uid", title: "x" }],
-      });
-      mockDb._chain.remove.mockRejectedValue(new Error("权限拒绝"));
-
-      const result = await deleteIdea("i1");
-
-      expect(result).toBe(true);
-      expect(mockDb._docRef.remove).toHaveBeenCalledTimes(1);
+      expect(mockCallFunction).not.toHaveBeenCalled();
     });
   });
 });
