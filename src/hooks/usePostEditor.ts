@@ -2,6 +2,7 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { toast } from "@/stores/toast";
 import { updatePost, deletePost } from "@/lib/posts";
+import { friendlyErrorMessage } from "@/lib/utils";
 import type { Question } from "@/types";
 
 type SetQuestion = React.Dispatch<React.SetStateAction<Question | null>>;
@@ -41,7 +42,7 @@ export function usePostEditor(
       });
       setEditingPost(false);
     } catch (e) {
-      toast.error((e as Error).message);
+      toast.error(friendlyErrorMessage(e));
     }
   };
 
@@ -53,7 +54,7 @@ export function usePostEditor(
       toast.success("帖子已删除");
       navigate("/");
     } catch (e) {
-      toast.error((e as Error).message);
+      toast.error(friendlyErrorMessage(e));
     }
   };
 

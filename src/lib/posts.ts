@@ -320,26 +320,15 @@ export async function deletePost(postId: string): Promise<boolean> {
   const uid = getCurrentUid();
   if (!uid) throw new Error("请先登录");
 
-  const docRef = db.collection(POSTS_COLLECTION).doc(postId);
-  const { data } = await docRef.get();
-  if (!data || data.length === 0) return false;
-
-  const post = data[0] as PostDoc;
-  if (post.authorUid !== uid) throw new Error("无权删除他人帖子");
-
-  await docRef.remove();
-
-  // 级联清理收藏、举报和投票（不阻塞主流程）
-  try {
-    await db.collection("favorites").where({ targetId: postId }).remove();
-  } catch { /* 安全规则可能拦截，忽略 */ }
-  try {
-    await db.collection("reports").where({ targetId: postId }).remove();
-  } catch { /* 安全规则可能拦截，忽略 */ }
-  try {
-    await db.collection("votes").where({ postId }).remove();
-  } catch { /* 安全规则可能拦截，忽略 */ }
-
+  // 走云函数绕过安全规则（直写 DB 会被拦截 "Permission denied by security rules"）
+  const res = await app.callFunction({
+    name: "content-actions",
+    data: { action: "deletePost", postId },
+  });
+  const result = (res?.result ?? {}) as { ok?: boolean; error?: string };
+  if (!result.ok) {
+    throw new Error(result.error || "删除失败，请稍后重试");
+  }
   return true;
 }
 

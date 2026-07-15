@@ -307,6 +307,31 @@ async function submitComment(event, uid) {
   return ok(comment);
 }
 
+/**
+ * 删除帖子（仅作者，以 admin 权限绕过安全规则）
+ * 级联清理收藏、举报、投票记录
+ */
+async function deletePost(event, uid) {
+  const { postId } = event;
+  if (!postId) return fail("缺少参数");
+
+  const docRef = db.collection("posts").doc(postId);
+  const { data } = await docRef.get();
+  if (!data || data.length === 0) return fail("帖子不存在");
+
+  const post = data[0];
+  if (post.authorUid !== uid) return fail("无权删除他人帖子");
+
+  await docRef.remove();
+
+  // 级联清理收藏、举报和投票（不阻塞主流程）
+  try { await db.collection("favorites").where({ targetId: postId }).remove(); } catch {}
+  try { await db.collection("reports").where({ targetId: postId }).remove(); } catch {}
+  try { await db.collection("votes").where({ postId }).remove(); } catch {}
+
+  return ok({ deleted: true });
+}
+
 /** 删除回答（仅回答作者） */
 async function deleteAnswer(event, uid) {
   const { postId, answerId } = event;
@@ -1029,6 +1054,8 @@ exports.main = async (event, context) => {
           return await deleteAnswer(event, uid);
         case "deleteComment":
           return await deleteComment(event, uid);
+        case "deletePost":
+          return await deletePost(event, uid);
         case "updateAnswer":
           return await updateAnswer(event, uid);
         case "updateComment":

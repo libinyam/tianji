@@ -67,16 +67,23 @@ export async function toggleFavorite(params: {
     // 已收藏 -> 取消
     const docId = (list[0] as FavoriteDoc)._id;
     if (!docId) throw new Error("无法获取收藏记录ID");
-    const res = await favCol.doc(docId).remove();
-    // CloudBase 安全规则拦截时不会 throw，而是 deleted=0
-    if (res.deleted === 0) {
-      // #344 生产环境安全规则可能未及时部署，回退到云函数以 admin 权限删除
+    // #344 直写 DB 可能被安全规则拦截（throw 异常或 deleted=0），两种情况都回退到云函数
+    let directDeleted = false;
+    try {
+      const res = await favCol.doc(docId).remove();
+      directDeleted = (res?.deleted ?? 0) > 0;
+    } catch {
+      // 安全规则拒绝时会 throw "Permission denied by security rules"
+      directDeleted = false;
+    }
+    if (!directDeleted) {
+      // 回退到云函数以 admin 权限删除
       const cfRes = await app.callFunction({
         name: "content-actions",
         data: { action: "removeFavorite", targetId: params.targetId },
       });
       const cfResult = (cfRes?.result ?? {}) as { ok?: boolean; error?: string };
-      if (!cfResult.ok) throw new Error(cfResult.error || "取消收藏失败，可能是权限不足");
+      if (!cfResult.ok) throw new Error(cfResult.error || "取消收藏失败，请稍后重试");
     }
     // 更新对应集合的 favorites 计数
     if (params.type === "book") {

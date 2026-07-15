@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { isAuthor } from "./utils";
+import { isAuthor, friendlyErrorMessage } from "./utils";
 
 describe("isAuthor", () => {
   it("当前用户是作者时返回 true", () => {
@@ -40,5 +40,29 @@ describe("isAuthor", () => {
 
   it("authorUid 为空串时返回 false", () => {
     expect(isAuthor("uid-123", "")).toBe(false);
+  });
+});
+
+describe("friendlyErrorMessage", () => {
+  it("CloudBase 安全规则错误翻译成中文", () => {
+    expect(friendlyErrorMessage(new Error("Permission denied by security rules"))).toBe(
+      "操作失败：权限不足或登录已过期，请刷新后重试"
+    );
+  });
+
+  it("大小写不敏感匹配", () => {
+    expect(friendlyErrorMessage(new Error("PERMISSION DENIED"))).toBe(
+      "操作失败：权限不足或登录已过期，请刷新后重试"
+    );
+  });
+
+  it("非安全规则错误保持原样", () => {
+    expect(friendlyErrorMessage(new Error("无权删除他人帖子"))).toBe("无权删除他人帖子");
+    expect(friendlyErrorMessage(new Error("网络错误"))).toBe("网络错误");
+  });
+
+  it("非 Error 类型入参转为字符串", () => {
+    expect(friendlyErrorMessage("some string")).toBe("some string");
+    expect(friendlyErrorMessage(42)).toBe("42");
   });
 });
