@@ -27,7 +27,7 @@
  */
 
 const crypto = require("crypto");
-const https = require("https");
+let https = require("https");
 
 /** URL 安全编码（与 cos-nodejs-sdk-v5 camSafeUrlEncode 一致） */
 function camSafeUrlEncode(str) {
@@ -254,4 +254,17 @@ exports.main = async (event) => {
       timestamp: Date.now(),
     };
   }
+};
+
+// 仅供测试使用：注入 mock https 模块以避免真实网络请求
+exports.__setTestHttps = (mockHttps) => {
+  https = mockHttps;
+};
+
+// 仅供测试使用：重置环境变量
+exports.__resetEnv = () => {
+  delete process.env.CI_SECRET_ID;
+  delete process.env.CI_SECRET_KEY;
+  delete process.env.CI_BUCKET;
+  delete process.env.CI_REGION;
 };
