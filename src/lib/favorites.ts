@@ -73,8 +73,7 @@ export async function toggleFavorite(params: {
       const res = await favCol.doc(docId).remove();
       directDeleted = (res?.deleted ?? 0) > 0;
     } catch {
-      // 安全规则拒绝时会 throw "Permission denied by security rules"
-      directDeleted = false;
+      // 安全规则拒绝时会 throw "Permission denied by security rules"，保持 false
     }
     if (!directDeleted) {
       // 回退到云函数以 admin 权限删除
