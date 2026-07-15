@@ -826,7 +826,7 @@ async function submitWorkshopContribution(event, uid) {
 }
 
 async function addWorkshopAnnotation(event, uid) {
-  const { workshopId, content } = event;
+  const { workshopId, content, selectedText } = event;
   if (!workshopId || !content) return fail("缺少参数");
 
   // #289 文本审核
@@ -835,6 +835,8 @@ async function addWorkshopAnnotation(event, uid) {
   if (!modResult.passed) return fail(moderationRejectMessage(modResult));
 
   const sanitized = String(content || "").trim().slice(0, 5000);
+  // #27 选中文本快照，截断到 200 字符
+  const selectedSnapshot = String(selectedText || "").trim().slice(0, 200);
 
   const docRef = db.collection("workshops").doc(workshopId);
   const { data } = await docRef.get();
@@ -844,6 +846,8 @@ async function addWorkshopAnnotation(event, uid) {
     id: `an_${Date.now()}_${Math.random().toString(36).slice(2, 10)}`,
     authorUid: uid,
     content: sanitized,
+    // #27 仅在有选中文本时存储，避免空字段
+    ...(selectedSnapshot ? { selectedText: selectedSnapshot } : {}),
     resolved: false,
     date: new Date().toISOString(),
   };

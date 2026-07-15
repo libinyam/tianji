@@ -44,10 +44,11 @@ export function sanitizeTitle(title: string): string {
 
 /**
  * 校验并清理标签名
- * 标签仅允许中文、字母、数字、连字符、下划线
+ * 标签允许中文、字母、数字、连字符、下划线、加号（支持 C++、R++ 等技术标签）
+ * #363 单标签最大长度 30 字符
  */
 export function sanitizeTag(tag: string): string {
   if (typeof tag !== "string") return "";
-  // 去除一切非预期字符，只保留中英文、数字、-、_
-  return tag.replace(/[^\u4e00-\u9fa5a-zA-Z0-9\-_]/g, "").slice(0, 30);
+  // 去除非预期字符，保留中英文、数字、-、_、+
+  return tag.replace(/[^\u4e00-\u9fa5a-zA-Z0-9\-_+]/g, "").slice(0, 30);
 }
