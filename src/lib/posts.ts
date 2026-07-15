@@ -250,7 +250,7 @@ export async function submitAnswer(
 
   const res = await app.callFunction({
     name: "content-actions",
-    data: { action: "submitAnswer", postId, content: cleanContent },
+    data: { action: "submitAnswer", postId, content: cleanContent, author: getCurrentUserName() },
   });
   const result = (res?.result ?? {}) as { ok?: boolean; data?: Answer; error?: string };
   if (!result.ok) throw new Error(result.error || "操作失败");
@@ -279,7 +279,7 @@ export async function submitComment(
 
   const res = await app.callFunction({
     name: "content-actions",
-    data: { action: "submitComment", postId, answerId, content: cleanContent, replyTo },
+    data: { action: "submitComment", postId, answerId, content: cleanContent, replyTo, author: getCurrentUserName() },
   });
   const result = (res?.result ?? {}) as { ok?: boolean; data?: Comment; error?: string };
   if (!result.ok) throw new Error(result.error || "操作失败");
