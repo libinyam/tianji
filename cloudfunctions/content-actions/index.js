@@ -216,7 +216,7 @@ async function createPost(event, uid) {
 }
 
 async function submitAnswer(event, uid) {
-  const { postId, content } = event;
+  const { postId, content, author } = event;
   if (!postId || !content) return fail("缺少参数");
 
   if (await isBanned(uid)) return fail("您的账号已被封禁");
@@ -233,11 +233,12 @@ async function submitAnswer(event, uid) {
   const post = data[0];
   if (post.locked) return fail("该帖子已被锁定，无法回答");
 
+  // #367 author 由前端传入（与 createPost 一致），authorUid 用服务端 uid 保证可信
   const answer = {
     id: `a_${Date.now()}_${Math.random().toString(36).slice(2, 10)}`,
-    author: post.author || "",
+    author: String(author || "").slice(0, 50) || "匿名用户",
     authorUid: uid,
-    avatarColor: "#7cc4ff",
+    avatarColor: AVATAR_COLORS[Math.floor(Math.random() * AVATAR_COLORS.length)],
     votes: 0,
     accepted: false,
     content: String(content).slice(0, 10000),
@@ -268,7 +269,7 @@ async function submitAnswer(event, uid) {
 }
 
 async function submitComment(event, uid) {
-  const { postId, answerId, content, replyTo } = event;
+  const { postId, answerId, content, replyTo, author } = event;
   if (!postId || !answerId || !content) return fail("缺少参数");
 
   if (await isBanned(uid)) return fail("您的账号已被封禁");
@@ -289,11 +290,12 @@ async function submitComment(event, uid) {
   const idx = answerList.findIndex((a) => a.id === answerId);
   if (idx === -1) return fail("回答不存在");
 
+  // #367 author 由前端传入（与 createPost/submitAnswer 一致）
   const comment = {
     id: `c_${Date.now()}_${Math.random().toString(36).slice(2, 10)}`,
-    author: "",
+    author: String(author || "").slice(0, 50) || "匿名用户",
     authorUid: uid,
-    avatarColor: "#7cc4ff",
+    avatarColor: AVATAR_COLORS[Math.floor(Math.random() * AVATAR_COLORS.length)],
     content: String(content).slice(0, 5000),
     date: new Date().toISOString(),
     replyTo: replyTo || null,
