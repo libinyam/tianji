@@ -187,12 +187,12 @@ export default function Discussion() {
     return () => { mounted = false; };
   }, [section, subFilter, activeTag, cacheKey, reloadKey]);
 
-  // 加载热门标签（从 tags 集合查询，完整列表，不从 20 条帖子提取）
+  // 加载热门标签（学术区排除闲聊区标签，避免"灌水""动态"出现在学术区）
   useEffect(() => {
     let mounted = true;
     (async () => {
       try {
-        const tags = await fetchHotTags(20);
+        const tags = await fetchHotTags(20, true);
         if (mounted) setHotTags(tags.map((t) => t.name));
       } catch { /* noop */ }
     })();

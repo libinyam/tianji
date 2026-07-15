@@ -2,7 +2,7 @@ import { app, authReady } from "@/lib/cloudbase";
 
 const db = app.database();
 
-export type TagCategory = "subject" | "tool";
+export type TagCategory = "subject" | "tool" | "casual";
 
 export interface TagInfo {
   name: string;
@@ -20,8 +20,11 @@ export interface TagContentItem {
   link: string;
 }
 
+/** 闲聊区标签（与 CASUAL_SUB_CATEGORIES 对齐 + "闲聊"兜底） */
+const CASUAL_TAG_NAMES = ["灌水", "动态", "新闻", "其他", "闲聊"];
+
 /** 预设两级标签 */
-export const PRESET_TAGS: Record<TagCategory, string[]> = {
+export const PRESET_TAGS: Record<Exclude<TagCategory, "casual">, string[]> = {
   subject: [
     "数学", "人工智能", "物理", "哲学", "金融", "计算机",
     "文学", "历史", "化学", "生物", "经济学", "统计学",
@@ -36,18 +39,29 @@ export const PRESET_TAGS: Record<TagCategory, string[]> = {
 export const CATEGORY_LABEL: Record<TagCategory, string> = {
   subject: "学科",
   tool: "工具与部署",
+  casual: "闲聊",
 };
 
 /** 根据标签名推断分类 */
 export function inferCategory(name: string): TagCategory {
+  if (CASUAL_TAG_NAMES.includes(name)) return "casual";
   if (PRESET_TAGS.tool.includes(name)) return "tool";
   if (PRESET_TAGS.subject.includes(name)) return "subject";
   // 默认归为学科
   return "subject";
 }
 
-/** 获取热门标签（按使用次数降序） */
-export async function fetchHotTags(limit = 30): Promise<TagInfo[]> {
+/** 判断标签名是否属于闲聊区 */
+export function isCasualTag(name: string): boolean {
+  return CASUAL_TAG_NAMES.includes(name);
+}
+
+/**
+ * 获取热门标签（按使用次数降序）
+ * @param excludeCasual 为 true 时过滤掉闲聊区标签（灌水/动态/新闻/其他/闲聊），
+ *   兼容历史数据中 category 字段为 "subject" 的闲聊标签（按名称匹配）
+ */
+export async function fetchHotTags(limit = 30, excludeCasual = false): Promise<TagInfo[]> {
   try {
     await authReady; // #345 等匿名身份就绪，避免新访客首屏 401
     const { data } = await db
@@ -55,11 +69,17 @@ export async function fetchHotTags(limit = 30): Promise<TagInfo[]> {
       .orderBy("count", "desc")
       .limit(limit)
       .get();
-    return (data as TagInfo[]).map((d) => ({
+    let list = (data as TagInfo[]).map((d) => ({
       name: d.name,
       count: d.count ?? 0,
       category: d.category,
     }));
+    if (excludeCasual) {
+      list = list.filter(
+        (t) => t.category !== "casual" && !isCasualTag(t.name)
+      );
+    }
+    return list;
   } catch {
     return [];
   }
