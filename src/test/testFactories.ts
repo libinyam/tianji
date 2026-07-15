@@ -1,7 +1,7 @@
 import type { Answer, Comment, Review } from "@/types";
+import { AVATAR_COLORS } from "@/lib/avatar-colors";
 
 const DEFAULT_DATE = "2024-01-01T00:00:00.000Z";
-const AVATAR_COLORS = ["#7cc4ff", "#f3c969", "#5aa6f0", "#a78bfa", "#34d399", "#fb923c"];
 
 interface Overrides {
   [key: string]: unknown;

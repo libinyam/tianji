@@ -1,5 +1,6 @@
 import { app } from "@/lib/cloudbase";
 import { useAuthStore } from "@/stores/auth";
+import { getCurrentUid } from "@/lib/current-user";
 import { sanitizeInput } from "@/lib/sanitize";
 import { checkCurrentUserBanned } from "@/lib/ban";
 import { createNotification } from "@/lib/notifications";
@@ -45,10 +46,6 @@ function toFollower(doc: FollowDoc): FollowItem {
     avatarUrl: doc.avatarUrl,
     createdAt: doc.createdAt,
   };
-}
-
-function getCurrentUid(): string {
-  return useAuthStore.getState().user?.uid ?? "";
 }
 
 function getCurrentUser() {

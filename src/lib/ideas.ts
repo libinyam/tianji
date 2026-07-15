@@ -4,7 +4,8 @@ import { sanitizeInput, sanitizeTitle, sanitizeTag } from "@/lib/sanitize";
 import { checkCurrentUserBanned } from "@/lib/ban";
 import { containsSensitiveWord } from "@/lib/sensitive-words";
 import { awardReputation } from "@/lib/reputation";
-import { useAuthStore } from "@/stores/auth";
+import { getCurrentUid, getCurrentUserName } from "@/lib/current-user";
+import { AVATAR_COLORS } from "@/lib/avatar-colors";
 import type { Idea, IdeaComment } from "@/types";
 
 const db = app.database();
@@ -26,8 +27,6 @@ export interface IdeaDoc {
   comments?: IdeaComment[];
 }
 
-const AVATAR_COLORS = ["#7cc4ff", "#f3c969", "#5aa6f0", "#a78bfa", "#34d399", "#fb923c"];
-
 function toIdea(doc: IdeaDoc): Idea {
   return {
     id: doc._id ?? "",
@@ -44,15 +43,6 @@ function toIdea(doc: IdeaDoc): Idea {
     comments: doc.comments ?? [],
     resonatedBy: doc.resonatedBy ?? [],
   };
-}
-
-function getCurrentUserName(): string {
-  const user = useAuthStore.getState().user;
-  return user?.nickname || user?.username || user?.email || "匿名用户";
-}
-
-function getCurrentUid(): string {
-  return useAuthStore.getState().user?.uid ?? "";
 }
 
 /** 获取所有灵感（按共鸣数倒序） */

@@ -3,7 +3,7 @@ import { sanitizeInput, sanitizeTitle, sanitizeTag } from "@/lib/sanitize";
 import { checkCurrentUserBanned } from "@/lib/ban";
 import { containsSensitiveWord } from "@/lib/sensitive-words";
 import { awardReputation } from "@/lib/reputation";
-import { useAuthStore } from "@/stores/auth";
+import { getCurrentUid } from "@/lib/current-user";
 import { ensureTags } from "@/lib/tags";
 import type { Book, BookCategory } from "@/types";
 
@@ -85,10 +85,6 @@ export async function addReview(bookId: string, review: { author: string; author
   const result = (res?.result ?? {}) as { ok?: boolean; data?: { avgRating: number; updated: boolean }; error?: string };
   if (!result.ok) throw new Error(result.error || "评价失败");
   return result.data ?? null;
-}
-
-function getCurrentUid(): string {
-  return useAuthStore.getState().user?.uid ?? "";
 }
 
 /** 获取所有用户上传的书籍 */

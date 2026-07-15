@@ -1,5 +1,5 @@
 import { app } from "@/lib/cloudbase";
-import { useAuthStore } from "@/stores/auth";
+import { getCurrentUid, getCurrentUserName } from "@/lib/current-user";
 
 const db = app.database();
 const COLLECTION = "notifications";
@@ -59,15 +59,6 @@ function toNotif(doc: NotificationDoc): NotificationItem {
     read: doc.read ?? false,
     createdAt: doc.createdAt,
   };
-}
-
-function getCurrentUid(): string {
-  return useAuthStore.getState().user?.uid ?? "";
-}
-
-function getCurrentUserName(): string {
-  const user = useAuthStore.getState().user;
-  return user?.nickname || user?.username || user?.email || "匿名用户";
 }
 
 /** 创建通知（供其他模块调用） */

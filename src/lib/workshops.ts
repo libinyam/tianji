@@ -3,7 +3,8 @@ import { sanitizeInput, sanitizeTitle, sanitizeTag } from "@/lib/sanitize";
 import { checkCurrentUserBanned } from "@/lib/ban";
 import { containsSensitiveWord } from "@/lib/sensitive-words";
 import { awardReputation } from "@/lib/reputation";
-import { useAuthStore } from "@/stores/auth";
+import { getCurrentUid, getCurrentUserName } from "@/lib/current-user";
+import { AVATAR_COLORS } from "@/lib/avatar-colors";
 
 const db = app.database();
 const COLLECTION = "workshops";
@@ -75,8 +76,6 @@ export interface WorkshopDoc {
   updatedAt: string;
 }
 
-const AVATAR_COLORS = ["#7cc4ff", "#f3c969", "#5aa6f0", "#a78bfa", "#34d399", "#fb923c"];
-
 // #98 遗留英文 status 映射为中文
 function normalizeStatus(s: string | undefined): WorkshopStatus {
   if (!s) return "招募中";
@@ -84,15 +83,6 @@ function normalizeStatus(s: string | undefined): WorkshopStatus {
   if (s === "closed") return "已完成";
   if (s === "招募中" || s === "进行中" || s === "已完成") return s;
   return "招募中";
-}
-
-function getCurrentUserName(): string {
-  const user = useAuthStore.getState().user;
-  return user?.nickname || user?.username || user?.email || "匿名用户";
-}
-
-function getCurrentUid(): string {
-  return useAuthStore.getState().user?.uid ?? "";
 }
 
 function toProject(doc: WorkshopDoc): WorkshopProject {
