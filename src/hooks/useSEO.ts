@@ -1,6 +1,6 @@
 import { useEffect } from "react";
+import { BASE_TITLE, buildPageTitle } from "./useDocumentTitle";
 
-const BASE_TITLE = "天玑 · 跨专业 AI 学习与项目共创社区";
 const BASE_DESCRIPTION =
   "天玑 -- 面向跨专业 AI 转型者的学习与项目共创社区。整合学习资源、工具教程、项目案例与协作空间，帮你从只会学理论，走向能做项目、会协作、能产出。";
 const SITE_URL = "https://tianjihub.cn";
@@ -65,7 +65,7 @@ export function useSEO(options: SEOOptions = {}) {
   const { title, description, canonical, type = "website", image, jsonLd } = options;
 
   useEffect(() => {
-    const fullTitle = title ? `${title} · 天玑` : BASE_TITLE;
+    const fullTitle = buildPageTitle(title);
     const desc = description || BASE_DESCRIPTION;
     const url = canonical || SITE_URL + "/";
 
