@@ -19,7 +19,7 @@
     "deploy:rules:dry": "node scripts/deploy-security-rules.mjs --dry-run"
   },
   "dependencies": {
-    "@cloudbase/js-sdk": "^3.6.2",
+    "@cloudbase/js-sdk": "^3.6.3",
     "@sentry/react": "^10.65.0",
     "clsx": "^2.1.1",
     "highlight.js": "^11.11.1",
