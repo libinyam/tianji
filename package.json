@@ -20,7 +20,7 @@
   },
   "dependencies": {
     "@cloudbase/js-sdk": "^3.6.2",
-    "@sentry/react": "^10.65.0",
+    "@sentry/react": "^10.66.0",
     "clsx": "^2.1.1",
     "highlight.js": "^11.11.1",
     "katex": "^0.16.22",
