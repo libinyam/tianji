@@ -1,11 +1,11 @@
 import { useEffect, useState } from "react";
 import { Navigate } from "react-router-dom";
-import { app } from "@/lib/cloudbase";
-import { useIsAdmin } from "@/lib/admin";
+import { useIsAdmin, fetchAdminStats, fetchAdminList, fetchAdminUsers, searchAdminUsers, adminDelete } from "@/lib/admin";
 import { useAuthStore } from "@/stores/auth";
 import { toast } from "@/stores/toast";
 import { fetchReports, resolveReport, type Report } from "@/lib/reports";
 import { useDocumentTitle } from "@/hooks/useDocumentTitle";
+import { togglePin, toggleLock, toggleFeature } from "@/lib/post-moderation";
 import {
   fetchAllAnnouncements,
   createAnnouncement,
@@ -13,8 +13,7 @@ import {
   deleteAnnouncement,
   type Announcement,
 } from "@/lib/announcements";
-
-const db = app.database();
+import { banUser, unbanUser } from "@/lib/ban";
 import {
   MessageSquare,
   Lightbulb,
@@ -31,6 +30,12 @@ import {
   Megaphone,
   Plus,
   Power,
+  Pin,
+  Lock,
+  Star,
+  Search,
+  Ban,
+  ShieldCheck,
 } from "lucide-react";
 
 interface Stats {
@@ -50,6 +55,9 @@ interface PostItem {
   createdAt: string;
   views: number;
   tags: string[];
+  pinned?: boolean;
+  locked?: boolean;
+  featured?: boolean;
 }
 
 interface IdeaItem {
@@ -80,11 +88,20 @@ interface WorkshopItem {
   status: string;
 }
 
+interface UserItem {
+  _id: string;
+  displayName: string;
+  reputation: number;
+  banned: boolean;
+  bannedReason: string;
+  bannedUntil: string;
+}
+
 export default function Admin() {
   useDocumentTitle("管理后台");
   const isAdmin = useIsAdmin();
   const { user, loading } = useAuthStore();
-  const [tab, setTab] = useState<"overview" | "posts" | "ideas" | "books" | "workshops" | "reports" | "announcements">("overview");
+  const [tab, setTab] = useState<"overview" | "posts" | "ideas" | "books" | "workshops" | "reports" | "announcements" | "users">("overview");
   const [stats, setStats] = useState<Stats | null>(null);
   const [posts, setPosts] = useState<PostItem[]>([]);
   const [ideas, setIdeas] = useState<IdeaItem[]>([]);
@@ -95,6 +112,8 @@ export default function Admin() {
   const [annForm, setAnnForm] = useState({ title: "", content: "" });
   const [annSubmitting, setAnnSubmitting] = useState(false);
   const [loadingData, setLoadingData] = useState(false);
+  const [userList, setUserList] = useState<UserItem[]>([]);
+  const [searchKeyword, setSearchKeyword] = useState("");
 
   useEffect(() => {
     if (!isAdmin) return;
@@ -105,22 +124,20 @@ export default function Admin() {
     else if (tab === "workshops") fetchWorkshops();
     else if (tab === "reports") fetchReportsData();
     else if (tab === "announcements") fetchAnnouncementsData();
+    else if (tab === "users") fetchUsers();
   }, [tab, isAdmin]);
 
   const fetchStats = async () => {
     setLoadingData(true);
     try {
-      const collections = ["posts", "ideas", "books", "workshops", "users_v2", "notifications"];
-      const results = await Promise.all(
-        collections.map((col) => db.collection(col).count())
-      );
+      const s = await fetchAdminStats();
       setStats({
-        posts: results[0]?.total ?? 0,
-        ideas: results[1]?.total ?? 0,
-        books: results[2]?.total ?? 0,
-        workshops: results[3]?.total ?? 0,
-        users: results[4]?.total ?? 0,
-        notifications: results[5]?.total ?? 0,
+        posts: s.posts,
+        ideas: s.ideas,
+        books: s.books,
+        workshops: s.workshops,
+        users: s.users_v2,
+        notifications: s.notifications,
       });
     } catch (err) {
       console.error("fetchStats error:", err);
@@ -132,11 +149,7 @@ export default function Admin() {
   const fetchPosts = async () => {
     setLoadingData(true);
     try {
-      const { data } = await db
-        .collection("posts")
-        .orderBy("createdAt", "desc")
-        .limit(50)
-        .get();
+      const data = await fetchAdminList("posts");
       setPosts(data as unknown as PostItem[]);
     } catch (err) {
       console.error("fetchPosts error:", err);
@@ -148,11 +161,7 @@ export default function Admin() {
   const fetchIdeas = async () => {
     setLoadingData(true);
     try {
-      const { data } = await db
-        .collection("ideas")
-        .orderBy("createdAt", "desc")
-        .limit(50)
-        .get();
+      const data = await fetchAdminList("ideas");
       setIdeas(data as unknown as IdeaItem[]);
     } catch (err) {
       console.error("fetchIdeas error:", err);
@@ -164,11 +173,7 @@ export default function Admin() {
   const fetchBooks = async () => {
     setLoadingData(true);
     try {
-      const { data } = await db
-        .collection("books")
-        .orderBy("createdAt", "desc")
-        .limit(50)
-        .get();
+      const data = await fetchAdminList("books");
       setBooks(data as unknown as BookItem[]);
     } catch (err) {
       console.error("fetchBooks error:", err);
@@ -180,11 +185,7 @@ export default function Admin() {
   const fetchWorkshops = async () => {
     setLoadingData(true);
     try {
-      const { data } = await db
-        .collection("workshops")
-        .orderBy("createdAt", "desc")
-        .limit(50)
-        .get();
+      const data = await fetchAdminList("workshops");
       setWorkshops(data as unknown as WorkshopItem[]);
     } catch (err) {
       console.error("fetchWorkshops error:", err);
@@ -255,6 +256,75 @@ export default function Admin() {
     }
   };
 
+  const fetchUsers = async () => {
+    setLoadingData(true);
+    try {
+      const result = (await fetchAdminUsers()) as { ok: boolean; data?: UserItem[]; error?: string };
+      if (result?.ok && result.data) {
+        setUserList(result.data);
+      } else {
+        toast.error(result?.error || "获取用户列表失败");
+      }
+    } catch (err) {
+      toast.error((err as Error).message || "获取用户列表失败");
+    } finally {
+      setLoadingData(false);
+    }
+  };
+
+  const handleSearchUsers = async () => {
+    if (!searchKeyword.trim()) {
+      fetchUsers();
+      return;
+    }
+    setLoadingData(true);
+    try {
+      const result = (await searchAdminUsers(searchKeyword.trim())) as { ok: boolean; data?: UserItem[]; error?: string };
+      if (result?.ok && result.data) {
+        setUserList(result.data);
+      } else {
+        toast.error(result?.error || "搜索失败");
+      }
+    } catch (err) {
+      toast.error((err as Error).message || "搜索失败");
+    } finally {
+      setLoadingData(false);
+    }
+  };
+
+  const handleBanUser = async (uid: string, displayName: string) => {
+    const reason = prompt(`确定封禁用户「${displayName}」？请输入封禁原因：`);
+    if (!reason) return;
+    try {
+      await banUser(uid, reason);
+      setUserList((prev) =>
+        prev.map((u) =>
+          u._id === uid ? { ...u, banned: true, bannedReason: reason } : u
+        )
+      );
+      toast.success("用户已封禁");
+    } catch (err) {
+      toast.error((err as Error).message || "封禁失败");
+    }
+  };
+
+  const handleUnbanUser = async (uid: string) => {
+    if (!confirm("确定解封此用户？")) return;
+    try {
+      await unbanUser(uid);
+      setUserList((prev) =>
+        prev.map((u) =>
+          u._id === uid
+            ? { ...u, banned: false, bannedReason: "", bannedUntil: "" }
+            : u
+        )
+      );
+      toast.success("用户已解封");
+    } catch (err) {
+      toast.error((err as Error).message || "解封失败");
+    }
+  };
+
   const handleResolveReport = async (
     report: Report,
     action: "resolved" | "dismissed"
@@ -275,11 +345,7 @@ export default function Admin() {
         const col = colMap[report.targetType];
         if (col) {
           try {
-            const res = await app.callFunction({
-              name: "admin-delete",
-              data: { collection: col, docId: report.targetId, action: "delete" },
-            });
-            const result = res.result as { ok?: boolean; error?: string };
+            const result = (await adminDelete(col, report.targetId)) as { ok?: boolean; error?: string };
             if (!result?.ok) {
               toast.error(result?.error || "内容删除失败");
               return;
@@ -304,11 +370,7 @@ export default function Admin() {
   const handleDelete = async (collection: string, id: string) => {
     if (!confirm("确定删除这条内容？此操作不可撤销。")) return;
     try {
-      const res = await app.callFunction({
-        name: "admin-delete",
-        data: { collection, docId: id, action: "delete" },
-      });
-      const result = res.result as { ok?: boolean; error?: string };
+      const result = (await adminDelete(collection, id)) as { ok?: boolean; error?: string };
       if (!result?.ok) {
         toast.error(result?.error || "删除失败");
         return;
@@ -320,6 +382,36 @@ export default function Admin() {
       else if (tab === "workshops") fetchWorkshops();
     } catch (err) {
       toast.error("删除失败：" + (err as Error).message);
+    }
+  };
+
+  const handleTogglePin = async (postId: string) => {
+    try {
+      await togglePin(postId);
+      toast.success("置顶状态已更新");
+      fetchPosts();
+    } catch (err) {
+      toast.error((err as Error).message || "操作失败");
+    }
+  };
+
+  const handleToggleLock = async (postId: string) => {
+    try {
+      await toggleLock(postId);
+      toast.success("锁定状态已更新");
+      fetchPosts();
+    } catch (err) {
+      toast.error((err as Error).message || "操作失败");
+    }
+  };
+
+  const handleToggleFeature = async (postId: string) => {
+    try {
+      await toggleFeature(postId);
+      toast.success("加精状态已更新");
+      fetchPosts();
+    } catch (err) {
+      toast.error((err as Error).message || "操作失败");
     }
   };
 
@@ -359,6 +451,7 @@ export default function Admin() {
     { key: "workshops" as const, label: "协作管理", icon: HardHat },
     { key: "reports" as const, label: "举报管理", icon: Flag },
     { key: "announcements" as const, label: "公告管理", icon: Megaphone },
+    { key: "users" as const, label: "用户管理", icon: Users },
   ];
 
   return (
@@ -457,13 +550,48 @@ export default function Admin() {
                   ))}
                 </div>
               </div>
-              <button
-                onClick={() => handleDelete("posts", p._id)}
-                className="ml-3 flex-shrink-0 rounded-lg border border-red-500/30 bg-red-500/10 p-2 text-red-400 transition-all hover:bg-red-500/20"
-                title="删除"
-              >
-                <Trash2 size={16} />
-              </button>
+              <div className="ml-3 flex flex-shrink-0 items-center gap-1.5">
+                <button
+                  onClick={() => handleTogglePin(p._id)}
+                  className={`flex-shrink-0 rounded-lg border p-2 transition-all ${
+                    p.pinned
+                      ? "border-blue-400/50 bg-blue-400/20 text-blue-300 hover:bg-blue-400/30"
+                      : "border-void-600/50 bg-void-800/40 text-mist-400 hover:border-blue-400/40 hover:text-blue-300"
+                  }`}
+                  title={p.pinned ? "取消置顶" : "置顶"}
+                >
+                  <Pin size={16} />
+                </button>
+                <button
+                  onClick={() => handleToggleLock(p._id)}
+                  className={`flex-shrink-0 rounded-lg border p-2 transition-all ${
+                    p.locked
+                      ? "border-red-400/50 bg-red-400/20 text-red-300 hover:bg-red-400/30"
+                      : "border-void-600/50 bg-void-800/40 text-mist-400 hover:border-red-400/40 hover:text-red-300"
+                  }`}
+                  title={p.locked ? "取消锁定" : "锁定"}
+                >
+                  <Lock size={16} />
+                </button>
+                <button
+                  onClick={() => handleToggleFeature(p._id)}
+                  className={`flex-shrink-0 rounded-lg border p-2 transition-all ${
+                    p.featured
+                      ? "border-yellow-400/50 bg-yellow-400/20 text-yellow-300 hover:bg-yellow-400/30"
+                      : "border-void-600/50 bg-void-800/40 text-mist-400 hover:border-yellow-400/40 hover:text-yellow-300"
+                  }`}
+                  title={p.featured ? "取消加精" : "加精"}
+                >
+                  <Star size={16} />
+                </button>
+                <button
+                  onClick={() => handleDelete("posts", p._id)}
+                  className="flex-shrink-0 rounded-lg border border-red-500/30 bg-red-500/10 p-2 text-red-400 transition-all hover:bg-red-500/20"
+                  title="删除"
+                >
+                  <Trash2 size={16} />
+                </button>
+              </div>
             </div>
           ))}
         </div>
@@ -725,6 +853,81 @@ export default function Admin() {
               </div>
             </div>
           ))}
+        </div>
+      )}
+
+      {/* Users */}
+      {tab === "users" && !loadingData && (
+        <div>
+          <div className="mb-4 flex gap-2">
+            <input
+              type="text"
+              value={searchKeyword}
+              onChange={(e) => setSearchKeyword(e.target.value)}
+              onKeyDown={(e) => e.key === "Enter" && handleSearchUsers()}
+              placeholder="搜索用户名..."
+              className="flex-1 rounded-lg border border-void-600/50 bg-void-800/40 px-4 py-2 text-sm text-star-100 placeholder:text-mist-500"
+            />
+            <button
+              onClick={handleSearchUsers}
+              className="flex items-center gap-1 rounded-lg bg-tian-500/20 px-4 py-2 text-sm text-tian-200 hover:bg-tian-500/30"
+            >
+              <Search size={16} /> 搜索
+            </button>
+          </div>
+
+          <div className="space-y-2">
+            {userList.length === 0 && (
+              <p className="py-8 text-center text-mist-400">暂无用户数据</p>
+            )}
+            {userList.map((u) => (
+              <div
+                key={u._id}
+                className="flex items-center justify-between rounded-xl border border-void-600/40 bg-void-800/30 p-4"
+              >
+                <div className="min-w-0 flex-1">
+                  <div className="flex items-center gap-2">
+                    <span className="truncate font-medium text-star-100">
+                      {u.displayName || "(未设置昵称)"}
+                    </span>
+                    {u.banned && (
+                      <span className="flex items-center gap-1 rounded-full bg-red-500/10 px-2 py-0.5 text-xs text-red-400">
+                        <Ban size={12} /> 已封禁
+                      </span>
+                    )}
+                  </div>
+                  <div className="mt-1 flex items-center gap-3 text-xs text-mist-400">
+                    <span className="flex items-center gap-1">
+                      <ShieldCheck size={12} /> 声望: {u.reputation ?? 0}
+                    </span>
+                    <span className="font-mono">{u._id}</span>
+                    {u.banned && u.bannedReason && (
+                      <span className="truncate text-red-400/70">
+                        原因: {u.bannedReason}
+                      </span>
+                    )}
+                  </div>
+                </div>
+                <div className="flex-shrink-0">
+                  {u.banned ? (
+                    <button
+                      onClick={() => handleUnbanUser(u._id)}
+                      className="flex items-center gap-1 rounded-lg border border-green-500/30 bg-green-500/10 px-3 py-1.5 text-xs text-green-400 transition-all hover:bg-green-500/20"
+                    >
+                      <ShieldCheck size={14} /> 解封
+                    </button>
+                  ) : (
+                    <button
+                      onClick={() => handleBanUser(u._id, u.displayName)}
+                      className="flex items-center gap-1 rounded-lg border border-red-500/30 bg-red-500/10 px-3 py-1.5 text-xs text-red-400 transition-all hover:bg-red-500/20"
+                    >
+                      <Ban size={14} /> 封禁
+                    </button>
+                  )}
+                </div>
+              </div>
+            ))}
+          </div>
         </div>
       )}
     </div>

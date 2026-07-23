@@ -15,28 +15,50 @@ import {
   Loader2,
   MessageCircle,
   Send,
+  Pencil,
+  Trash2,
+  Check,
+  X,
 } from "lucide-react";
 import { books } from "@/data/books";
-import { fetchBookById, incrementBookDownloads, addReview } from "@/lib/books";
-import { app } from "@/lib/cloudbase";
+import { fetchBookById, incrementBookDownloads, addReview, fetchRelatedBooks, updateBook, deleteBook } from "@/lib/books";
+import { getTempFileURL } from "@/lib/storage";
 import DifficultyDots from "@/components/DifficultyDots";
 import Avatar from "@/components/Avatar";
 import ReportModal from "@/components/ReportModal";
+import TagSelector from "@/components/TagSelector";
+import Dialog from "@/components/Dialog";
 import RelatedContent from "@/components/RelatedContent";
 import { toggleFavorite, isFavorited } from "@/lib/favorites";
 import { rateLimiters } from "@/lib/security";
 import { useAuthStore } from "@/stores/auth";
 import { toast } from "@/stores/toast";
-import { useDocumentTitle } from "@/hooks/useDocumentTitle";
+import { useSEO, bookJsonLd } from "@/hooks/useSEO";
 import LazyMathText from "@/components/LazyMathText";
+import type { Book } from "@/types";
 
 export default function BookDetail() {
   const { id } = useParams();
   const mockBook = books.find((b) => b.id === id);
   const [book, setBook] = useState(mockBook || null);
-  useDocumentTitle(book?.title);
+  // #150 动态 SEO + Book JSON-LD
+  const bookPageUrl = id ? `https://tianjihub.cn/library/${id}` : "https://tianjihub.cn/library";
+  useSEO({
+    title: book?.title,
+    description: book?.summary,
+    canonical: bookPageUrl,
+    jsonLd: book
+      ? bookJsonLd({
+          title: book.title,
+          author: book.author,
+          description: book.summary,
+          url: bookPageUrl,
+          rating: book.rating,
+        })
+      : null,
+  });
   const [loading, setLoading] = useState(!mockBook);
-  const [tocOpen, setTocOpen] = useState(true);
+  const [tocOpen, setTocOpen] = useState(false);
   const [favorited, setFavorited] = useState(false);
   const [reportOpen, setReportOpen] = useState(false);
   const [resolvedFileUrl, setResolvedFileUrl] = useState<string | undefined>(undefined);
@@ -49,6 +71,22 @@ export default function BookDetail() {
   const [questionPage, setQuestionPage] = useState("");
   const [questionText, setQuestionText] = useState("");
   const navigate = useNavigate();
+
+  // #96 相关推荐（DB 查询）+ 编辑/删除
+  const [related, setRelated] = useState<Book[]>([]);
+  const [editOpen, setEditOpen] = useState(false);
+  const [editTitle, setEditTitle] = useState("");
+  const [editAuthor, setEditAuthor] = useState("");
+  const [editSummary, setEditSummary] = useState("");
+  const [editTags, setEditTags] = useState<string[]>([]);
+  const [editDifficulty, setEditDifficulty] = useState<1 | 2 | 3 | 4 | 5>(3);
+  const [editLink, setEditLink] = useState("");
+  const [editSaving, setEditSaving] = useState(false);
+  const [deleteConfirm, setDeleteConfirm] = useState(false);
+  const [deleting, setDeleting] = useState(false);
+
+  // 当前用户是否已评价过此书
+  const hasReviewed = !!(book && user && book.reviews.some((r) => r.authorUid === user.uid));
 
   useEffect(() => {
     if (mockBook) {
@@ -72,6 +110,27 @@ export default function BookDetail() {
     if (id) isFavorited(id).then(setFavorited);
   }, [id, user?.uid]);
 
+  // 回填已有评价：用户进入页面时如果已经评价过，显示此前的评分和内容
+  useEffect(() => {
+    if (!book || !user) return;
+    const existing = book.reviews.find((r) => r.authorUid === user.uid);
+    if (existing) {
+      setReviewRating(existing.rating);
+      setReviewText(existing.content);
+    }
+  }, [book?.id, user?.uid]);
+
+  // #96 相关推荐从数据库按 category 查询（不再只查 mock）
+  useEffect(() => {
+    if (!book || mockBook) return;
+    let mounted = true;
+    (async () => {
+      const relatedBooks = await fetchRelatedBooks(book.category, book.id, 3);
+      if (mounted) setRelated(relatedBooks);
+    })();
+    return () => { mounted = false; };
+  }, [book?.id, book?.category, mockBook]);
+
   // 如果 fileUrl 是 cloud:// fileID，先换取临时下载链接
   useEffect(() => {
     const fileUrl = book?.fileUrl;
@@ -89,9 +148,8 @@ export default function BookDetail() {
     let mounted = true;
     (async () => {
       try {
-        const result = await app.getTempFileURL({ fileList: [fileUrl] });
+        const tempUrl = await getTempFileURL(fileUrl);
         if (mounted) {
-          const tempUrl = result?.fileList?.[0]?.tempFileURL;
           setResolvedFileUrl(tempUrl || fileUrl);
         }
       } catch {
@@ -186,8 +244,6 @@ export default function BookDetail() {
         reviews: newReviews,
         rating: result.avgRating,
       });
-      setReviewRating(0);
-      setReviewText("");
       toast.success(result.updated ? "评价已更新" : "评价已提交");
     } catch {
       toast.error("提交失败，请重试");
@@ -202,6 +258,73 @@ export default function BookDetail() {
       return;
     }
     setReportOpen(true);
+  };
+
+  // #96 编辑资源（仅上传者）
+  const handleStartEdit = () => {
+    if (!book) return;
+    setEditTitle(book.title);
+    setEditAuthor(book.author);
+    setEditSummary(book.summary);
+    setEditTags(book.tags);
+    setEditDifficulty(book.difficulty);
+    setEditLink(book.link ?? "");
+    setEditOpen(true);
+  };
+
+  const handleSaveEdit = async () => {
+    if (!book || !editTitle.trim() || !editAuthor.trim()) return;
+    setEditSaving(true);
+    try {
+      const ok = await updateBook(book.id, {
+        title: editTitle.trim(),
+        author: editAuthor.trim(),
+        summary: editSummary.trim(),
+        tags: editTags,
+        difficulty: editDifficulty,
+        link: editLink.trim() || undefined,
+      });
+      if (ok) {
+        setBook({
+          ...book,
+          title: editTitle.trim(),
+          author: editAuthor.trim(),
+          summary: editSummary.trim(),
+          tags: editTags,
+          difficulty: editDifficulty,
+          link: editLink.trim() || undefined,
+        });
+        setEditOpen(false);
+        toast.success("资源已更新");
+      } else {
+        toast.error("更新失败");
+      }
+    } catch (e) {
+      toast.error((e as Error).message || "更新失败");
+    } finally {
+      setEditSaving(false);
+    }
+  };
+
+  // #96 删除资源（仅上传者）
+  const handleDelete = async () => {
+    if (!book) return;
+    setDeleting(true);
+    try {
+      const ok = await deleteBook(book.id);
+      if (ok) {
+        toast.success("资源已删除");
+        navigate("/library");
+      } else {
+        toast.error("删除失败");
+        setDeleteConfirm(false);
+      }
+    } catch (e) {
+      toast.error((e as Error).message || "删除失败");
+      setDeleteConfirm(false);
+    } finally {
+      setDeleting(false);
+    }
   };
 
   if (loading) {
@@ -219,7 +342,10 @@ export default function BookDetail() {
     );
   }
 
-  const related = books.filter((b) => b.id !== book.id && b.category === book.category).slice(0, 3);
+  // #96 相关推荐：mockBook 用 mock 数据，DB 资源用 fetchRelatedBooks 查询
+  const relatedList = mockBook
+    ? books.filter((b) => b.id !== book.id && b.category === book.category).slice(0, 3)
+    : related;
 
   return (
     <div className="container-tj py-10">
@@ -297,7 +423,7 @@ export default function BookDetail() {
             </button>
             <button
               onClick={handleFav}
-              className={`inline-flex items-center justify-center gap-2 rounded-lg border px-5 py-2.5 text-sm font-medium transition-all ${
+              className={`col-span-2 inline-flex items-center justify-center gap-2 rounded-lg border px-5 py-2.5 text-sm font-medium transition-all ${
                 favorited
                   ? "border-star-400/70 bg-star-400/15 text-star-200"
                   : "border-void-600/50 bg-void-800/40 text-mist-300 hover:border-mist-400/40"
@@ -337,7 +463,38 @@ export default function BookDetail() {
                 <Star size={13} className="fill-star-400" /> {book.rating}
               </dd>
             </div>
+            {/* #96 下载数展示 */}
+            <div className="flex items-center justify-between">
+              <dt className="text-mist-500">下载</dt>
+              <dd className="flex items-center gap-1 text-parchment-100">
+                <Download size={12} /> {book.downloads}
+              </dd>
+            </div>
+            <div className="flex items-center justify-between">
+              <dt className="text-mist-500">收藏</dt>
+              <dd className="flex items-center gap-1 text-parchment-100">
+                <Bookmark size={12} /> {book.favorites}
+              </dd>
+            </div>
           </dl>
+
+          {/* #96 作者管理区（仅上传者可见） */}
+          {!mockBook && book.authorUid && book.authorUid === user?.uid && (
+            <div className="mt-3 grid grid-cols-2 gap-2.5">
+              <button
+                onClick={handleStartEdit}
+                className="inline-flex items-center justify-center gap-2 rounded-lg border border-tian-400/40 bg-tian-400/10 px-5 py-2.5 text-sm font-medium text-tian-200 transition-all hover:bg-tian-400/20"
+              >
+                <Pencil size={15} /> 编辑资源
+              </button>
+              <button
+                onClick={() => setDeleteConfirm(true)}
+                className="inline-flex items-center justify-center gap-2 rounded-lg border border-red-500/40 bg-red-500/10 px-5 py-2.5 text-sm font-medium text-red-300 transition-all hover:bg-red-500/20"
+              >
+                <Trash2 size={15} /> 删除资源
+              </button>
+            </div>
+          )}
         </motion.div>
 
         {/* 右：信息 */}
@@ -380,7 +537,7 @@ export default function BookDetail() {
               />
             </button>
             {tocOpen && (
-              <ol className="space-y-0.5 border-t border-void-600/30 p-4">
+              <ol className="max-h-96 space-y-0.5 overflow-y-auto border-t border-void-600/30 p-4">
                 {book.toc.map((c, i) => {
                   const depth = c.match(/^ */)?.[0].length ?? 0;
                   const indent = Math.floor(depth / 2);
@@ -451,7 +608,7 @@ export default function BookDetail() {
                   className="btn-gold text-sm disabled:opacity-50"
                 >
                   {reviewSubmitting ? <Loader2 size={14} className="animate-spin" /> : <Send size={14} />}
-                  提交评价
+                  {hasReviewed ? "更新评价" : "提交评价"}
                 </button>
               </div>
             </div>
@@ -531,11 +688,11 @@ export default function BookDetail() {
       </div>
 
       {/* 相关推荐 */}
-      {related.length > 0 && (
+      {relatedList.length > 0 && (
         <section className="mt-16 border-t border-void-600/30 pt-12">
           <h2 className="heading-display text-xl text-parchment-50">相关书目</h2>
           <div className="mt-5 grid gap-4 sm:grid-cols-3">
-            {related.map((b) => (
+            {relatedList.map((b) => (
               <Link
                 key={b.id}
                 to={`/library/${b.id}`}
@@ -571,6 +728,162 @@ export default function BookDetail() {
         targetId={book.id}
         targetTitle={book.title}
       />
+
+      {/* #96 编辑资源弹窗（仅上传者可见） */}
+      <Dialog
+        open={editOpen}
+        onClose={() => !editSaving && setEditOpen(false)}
+        preventClose={editSaving}
+        labelledById="book-edit-title"
+        maxWidthClass="max-w-xl"
+      >
+        <div className="max-h-[90vh] overflow-y-auto">
+          <button
+            onClick={() => setEditOpen(false)}
+            disabled={editSaving}
+            className="absolute right-4 top-4 flex h-8 w-8 items-center justify-center rounded-md text-mist-400 transition-colors hover:bg-void-700/50 hover:text-parchment-100"
+            aria-label="关闭"
+          >
+            <X size={18} />
+          </button>
+          <div className="mb-2 flex items-center gap-2">
+            <Pencil size={14} className="text-tian-300" />
+            <span className="font-mono text-xs uppercase tracking-[0.25em] text-tian-200">编辑资源</span>
+          </div>
+          <h3 id="book-edit-title" className="heading-display text-2xl text-parchment-50">编辑资源信息</h3>
+
+          <form
+            onSubmit={(e) => { e.preventDefault(); handleSaveEdit(); }}
+            className="mt-6 space-y-5"
+          >
+            <div>
+              <label className="mb-1.5 block text-xs text-mist-400">标题</label>
+              <input
+                type="text"
+                required
+                maxLength={100}
+                value={editTitle}
+                onChange={(e) => setEditTitle(e.target.value)}
+                className="w-full rounded-lg border border-void-600/50 bg-void-950/50 px-3 py-2.5 text-sm text-parchment-100 placeholder:text-mist-500 focus:border-star-400/50 focus:outline-none focus:ring-1 focus:ring-star-400/30"
+              />
+            </div>
+            <div>
+              <label className="mb-1.5 block text-xs text-mist-400">作者</label>
+              <input
+                type="text"
+                required
+                maxLength={200}
+                value={editAuthor}
+                onChange={(e) => setEditAuthor(e.target.value)}
+                className="w-full rounded-lg border border-void-600/50 bg-void-950/50 px-3 py-2.5 text-sm text-parchment-100 placeholder:text-mist-500 focus:border-star-400/50 focus:outline-none focus:ring-1 focus:ring-star-400/30"
+              />
+            </div>
+            <div>
+              <label className="mb-1.5 block text-xs text-mist-400">简介</label>
+              <textarea
+                required
+                rows={5}
+                maxLength={1000}
+                value={editSummary}
+                onChange={(e) => setEditSummary(e.target.value)}
+                className="w-full resize-y rounded-lg border border-void-600/50 bg-void-950/50 p-3 text-sm leading-relaxed text-parchment-100 placeholder:text-mist-500 focus:border-star-400/50 focus:outline-none focus:ring-1 focus:ring-star-400/30"
+              />
+            </div>
+            <div>
+              <label className="mb-1.5 block text-xs text-mist-400">难度</label>
+              <div className="flex items-center gap-2">
+                {[1, 2, 3, 4, 5].map((n) => (
+                  <button
+                    key={n}
+                    type="button"
+                    onClick={() => setEditDifficulty(n as 1 | 2 | 3 | 4 | 5)}
+                    className={`flex h-9 w-9 items-center justify-center rounded-md border text-sm transition-all ${
+                      editDifficulty === n
+                        ? "border-star-400/60 bg-star-400/15 text-star-200"
+                        : "border-void-600/50 bg-void-800/40 text-mist-300 hover:border-mist-400/40"
+                    }`}
+                  >
+                    {n}
+                  </button>
+                ))}
+              </div>
+            </div>
+            <div>
+              <label className="mb-1.5 block text-xs text-mist-400">标签（最多 5 个）</label>
+              <TagSelector value={editTags} onChange={setEditTags} />
+            </div>
+            <div>
+              <label className="mb-1.5 block text-xs text-mist-400">外部链接（可选）</label>
+              <input
+                type="url"
+                value={editLink}
+                onChange={(e) => setEditLink(e.target.value)}
+                placeholder="https://..."
+                className="w-full rounded-lg border border-void-600/50 bg-void-950/50 px-3 py-2.5 text-sm text-parchment-100 placeholder:text-mist-500 focus:border-star-400/50 focus:outline-none focus:ring-1 focus:ring-star-400/30"
+              />
+            </div>
+            <div className="flex justify-end gap-3">
+              <button type="button" onClick={() => setEditOpen(false)} className="btn-ghost" disabled={editSaving}>
+                取消
+              </button>
+              <button
+                type="submit"
+                disabled={editSaving || !editTitle.trim() || !editAuthor.trim()}
+                className="btn-gold disabled:cursor-not-allowed disabled:opacity-60"
+              >
+                {editSaving ? (
+                  <>
+                    <Loader2 size={15} className="animate-spin" /> 保存中…
+                  </>
+                ) : (
+                  <>
+                    <Check size={15} /> 保存修改
+                  </>
+                )}
+              </button>
+            </div>
+          </form>
+        </div>
+      </Dialog>
+
+      {/* #96 删除资源确认弹窗 */}
+      <Dialog
+        open={deleteConfirm}
+        onClose={() => !deleting && setDeleteConfirm(false)}
+        preventClose={deleting}
+        labelledById="book-delete-title"
+        maxWidthClass="max-w-md"
+      >
+        <div className="mb-2 flex items-center gap-2">
+          <Trash2 size={14} className="text-red-400" />
+          <span className="font-mono text-xs uppercase tracking-[0.25em] text-red-300">危险操作</span>
+        </div>
+        <h3 id="book-delete-title" className="heading-display text-2xl text-parchment-50">确认删除该资源？</h3>
+        <p className="mt-3 text-sm leading-relaxed text-mist-300">
+          即将删除《<span className="text-parchment-100">{book.title}</span>》。删除后无法恢复，所有评价与下载数记录将一并丢失。
+        </p>
+        <div className="mt-6 flex justify-end gap-3">
+          <button type="button" onClick={() => setDeleteConfirm(false)} className="btn-ghost" disabled={deleting}>
+            取消
+          </button>
+          <button
+            type="button"
+            onClick={handleDelete}
+            disabled={deleting}
+            className="inline-flex items-center gap-2 rounded-lg border border-red-500/50 bg-red-500/20 px-5 py-2.5 text-sm font-medium text-red-200 transition-all hover:bg-red-500/30 disabled:cursor-not-allowed disabled:opacity-60"
+          >
+            {deleting ? (
+              <>
+                <Loader2 size={15} className="animate-spin" /> 删除中…
+              </>
+            ) : (
+              <>
+                <Trash2 size={15} /> 确认删除
+              </>
+            )}
+          </button>
+        </div>
+      </Dialog>
     </div>
   );
 }

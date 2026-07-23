@@ -3,7 +3,7 @@ import { X, Loader2, BookOpen, Link2, UploadCloud, FileText, ListTree } from "lu
 import Dialog from "@/components/Dialog";
 import { createBook } from "@/lib/books";
 import { rateLimiters } from "@/lib/security";
-import { app } from "@/lib/cloudbase";
+import { uploadFile, deleteFile } from "@/lib/storage";
 import { useAuthStore } from "@/stores/auth";
 import { toast } from "@/stores/toast";
 import TagSelector from "@/components/TagSelector";
@@ -36,11 +36,8 @@ export default function BookUploadModal({ open, onClose, onCreated }: BookUpload
   const fileInputRef = useRef<HTMLInputElement>(null);
   const { user } = useAuthStore();
 
-  const handleClose = () => {
-    // 清理已上传但未提交的文件
-    if (uploadedFileId) {
-      app.deleteFile({ fileList: [uploadedFileId] }).catch(() => {});
-    }
+  // 仅重置表单状态，不删除任何云文件
+  const resetForm = () => {
     setTitle("");
     setAuthor("");
     setCategory("AI工具实战");
@@ -54,6 +51,14 @@ export default function BookUploadModal({ open, onClose, onCreated }: BookUpload
     setTocDetected(false);
     setError(null);
     if (fileInputRef.current) fileInputRef.current.value = "";
+  };
+
+  // 取消/关闭：清理已上传但未提交的文件，再重置表单
+  const handleClose = () => {
+    if (uploadedFileId) {
+      deleteFile(uploadedFileId).catch(() => {});
+    }
+    resetForm();
     onClose();
   };
 
@@ -72,8 +77,8 @@ export default function BookUploadModal({ open, onClose, onCreated }: BookUpload
     try {
       const ext = file.name.split(".").pop() || "pdf";
       const cloudPath = `books/${user.uid}-${Date.now()}.${ext}`;
-      const res = await app.uploadFile({ cloudPath, filePath: file as unknown as string });
-      setUploadedFileId(res.fileID);
+      const res = await uploadFile(cloudPath, file as unknown as string);
+      setUploadedFileId(res);
       setUploadedFileName(file.name);
 
       // 如果是 PDF，动态加载解析器并提取目录
@@ -155,7 +160,9 @@ export default function BookUploadModal({ open, onClose, onCreated }: BookUpload
         rateLimiters.book.record();
         toast.success("资源已发布");
         onCreated(book);
-        handleClose();
+        // 发布成功后 fileUrl 已引用该云文件，不能删除，仅重置表单
+        resetForm();
+        onClose();
       }
     } catch (err) {
       setError((err as Error).message);
@@ -173,7 +180,7 @@ export default function BookUploadModal({ open, onClose, onCreated }: BookUpload
       maxWidthClass="max-w-2xl"
       paddingClass="p-7"
     >
-      <div className="max-h-[90vh] overflow-y-auto">
+      <div className="flex max-h-[85vh] flex-col">
         <button
           onClick={handleClose}
           className="absolute right-4 top-4 flex h-8 w-8 items-center justify-center rounded-md text-mist-400 transition-colors hover:bg-void-700/50 hover:text-parchment-100"
@@ -182,7 +189,7 @@ export default function BookUploadModal({ open, onClose, onCreated }: BookUpload
           <X size={18} />
         </button>
 
-        <div className="relative">
+        <div className="relative shrink-0">
               <div className="mb-2 flex items-center gap-2">
                 <BookOpen size={14} className="text-star-400" />
                 <span className="font-mono text-xs uppercase tracking-[0.25em] text-star-300">
@@ -195,7 +202,8 @@ export default function BookUploadModal({ open, onClose, onCreated }: BookUpload
               </p>
             </div>
 
-            <form onSubmit={handleSubmit} className="relative mt-6 space-y-5">
+            <form onSubmit={handleSubmit} className="relative mt-6 flex flex-1 flex-col overflow-hidden">
+            <div className="flex-1 space-y-5 overflow-y-auto pr-1">
               {/* 标题 */}
               <div>
                 <label className="mb-1.5 block text-xs text-mist-400">资源名称 *</label>
@@ -402,8 +410,9 @@ export default function BookUploadModal({ open, onClose, onCreated }: BookUpload
                   {error}
                 </div>
               )}
+            </div>
 
-              <div className="flex justify-end gap-3">
+              <div className="flex shrink-0 justify-end gap-3 pt-4">
                 <button type="button" onClick={handleClose} className="btn-ghost">
                   取消
                 </button>

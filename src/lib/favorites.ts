@@ -1,6 +1,7 @@
 import { app } from "@/lib/cloudbase";
-import { useAuthStore } from "@/stores/auth";
+import { getCurrentUid } from "@/lib/current-user";
 import { sanitizeInput } from "@/lib/sanitize";
+import { checkCurrentUserBanned } from "@/lib/ban";
 
 const db = app.database();
 const COLLECTION = "favorites";
@@ -40,10 +41,6 @@ function toFav(doc: FavoriteDoc): FavoriteItem {
   };
 }
 
-function getCurrentUid(): string {
-  return useAuthStore.getState().user?.uid ?? "";
-}
-
 /** 收藏 / 取消收藏（toggle），返回新的收藏状态 */
 export async function toggleFavorite(params: {
   targetId: string;
@@ -54,6 +51,9 @@ export async function toggleFavorite(params: {
 }): Promise<boolean> {
   const uid = getCurrentUid();
   if (!uid) throw new Error("请先登录");
+
+  const banStatus = await checkCurrentUserBanned();
+  if (banStatus) throw new Error("您的账号已被封禁");
 
   const favCol = db.collection(COLLECTION);
 
@@ -67,14 +67,26 @@ export async function toggleFavorite(params: {
     // 已收藏 -> 取消
     const docId = (list[0] as FavoriteDoc)._id;
     if (!docId) throw new Error("无法获取收藏记录ID");
-    const res = await favCol.doc(docId).remove();
-    // CloudBase 安全规则拦截时不会 throw，而是 deleted=0
-    if (res.deleted === 0) {
-      throw new Error("取消收藏失败，可能是权限不足");
+    // #344 直写 DB 可能被安全规则拦截（throw 异常或 deleted=0），两种情况都回退到云函数
+    let directDeleted = false;
+    try {
+      const res = await favCol.doc(docId).remove();
+      directDeleted = (res?.deleted ?? 0) > 0;
+    } catch {
+      // 安全规则拒绝时会 throw "Permission denied by security rules"，保持 false
+    }
+    if (!directDeleted) {
+      // 回退到云函数以 admin 权限删除
+      const cfRes = await app.callFunction({
+        name: "content-actions",
+        data: { action: "removeFavorite", targetId: params.targetId },
+      });
+      const cfResult = (cfRes?.result ?? {}) as { ok?: boolean; error?: string };
+      if (!cfResult.ok) throw new Error(cfResult.error || "取消收藏失败，请稍后重试");
     }
     // 更新对应集合的 favorites 计数
     if (params.type === "book") {
-      db.collection("books").doc(params.targetId).update({ favorites: db.command.inc(-1) }).catch(() => {});
+      app.callFunction({ name: "content-actions", data: { action: "adjustBookFavorites", bookId: params.targetId, delta: -1 } }).catch(() => {});
     }
     return false;
   }
@@ -96,7 +108,7 @@ export async function toggleFavorite(params: {
   }
   // 更新对应集合的 favorites 计数
   if (params.type === "book") {
-    db.collection("books").doc(params.targetId).update({ favorites: db.command.inc(1) }).catch(() => {});
+    app.callFunction({ name: "content-actions", data: { action: "adjustBookFavorites", bookId: params.targetId, delta: 1 } }).catch(() => {});
   }
   return true;
 }

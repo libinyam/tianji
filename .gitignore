@@ -10,12 +10,18 @@ lerna-debug.log*
 node_modules
 dist
 dist-ssr
+coverage
 *.local
 .env
 .env.local
 
 # Local debug / scratch files
 _read_db.*
+
+# Review artifacts (should never be committed)
+repo-context.json
+.trae/skills/
+.tmp-e2e/
 
 # Editor directories and files
 .vscode/*
@@ -27,3 +33,13 @@ _read_db.*
 *.njsproj
 *.sln
 *.sw?
+# github-project-review skill artifacts
+.github-review-workspace/
+.github-review-memory/
+.tmp-branch-protection.json
+.tmp-*
+
+# agent worktrees
+.agents/
+.claude/
+.closed-loop-workspace/

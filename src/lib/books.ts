@@ -1,6 +1,9 @@
-import { app, auth } from "@/lib/cloudbase";
+import { app, auth, authReady } from "@/lib/cloudbase";
 import { sanitizeInput, sanitizeTitle, sanitizeTag } from "@/lib/sanitize";
-import { useAuthStore } from "@/stores/auth";
+import { checkCurrentUserBanned } from "@/lib/ban";
+import { containsSensitiveWord } from "@/lib/sensitive-words";
+import { awardReputation } from "@/lib/reputation";
+import { getCurrentUid } from "@/lib/current-user";
 import { ensureTags } from "@/lib/tags";
 import type { Book, BookCategory } from "@/types";
 
@@ -48,6 +51,7 @@ function toBook(doc: BookDoc): Book {
     accent: doc.accent,
     summary: doc.summary,
     favorites: doc.favorites ?? 0,
+    downloads: doc.downloads ?? 0, // #96 透出下载数
     rating,
     year: doc.year ?? new Date().getFullYear(),
     pages: doc.pages ?? 0,
@@ -56,66 +60,31 @@ function toBook(doc: BookDoc): Book {
     link: doc.link,
     fileUrl: doc.fileUrl,
     fileName: doc.fileName,
+    createdAt: doc.createdAt ?? new Date().toISOString(), // #96 透出创建时间
   };
 }
 
 /** 资源被下载时，下载数 +1 */
 export async function incrementBookDownloads(id: string): Promise<void> {
   try {
-    await db
-      .collection(BOOKS_COLLECTION)
-      .doc(id)
-      .update({ downloads: db.command.inc(1) });
+    await app.callFunction({
+      name: "content-actions",
+      data: { action: "incrementBookDownloads", bookId: id },
+    });
   } catch {
-    // 静默
+    void 0;
   }
 }
 
 /** 添加读者评价（按 uid 去重，已评过则更新原评价） */
 export async function addReview(bookId: string, review: { author: string; authorUid: string; rating: number; content: string }): Promise<{ avgRating: number; updated: boolean } | null> {
-  const docRef = db.collection(BOOKS_COLLECTION).doc(bookId);
-  const { data } = await docRef.get();
-  if (!data || data.length === 0) return null;
-
-  const book = data[0] as BookDoc;
-  const reviews = book.reviews ?? [];
-  const existingIdx = reviews.findIndex((r) => r.authorUid === review.authorUid);
-
-  // Sanitize review inputs
-  const cleanAuthor = sanitizeInput(review.author, 200);
-  const cleanContent = sanitizeInput(review.content);
-  const sanitizedReview = { ...review, author: cleanAuthor, content: cleanContent };
-
-  const newReview = { ...sanitizedReview, date: new Date().toISOString() };
-  const updated = existingIdx >= 0;
-
-  // 基于去重后的完整数组计算 avgRating（toBook 读取时会从 reviews 实时重算，此字段仅作兼容缓存）
-  const updatedReviews = updated
-    ? reviews.map((r, i) => (i === existingIdx ? newReview : r))
-    : [...reviews, newReview];
-  const totalRating = updatedReviews.reduce((sum, r) => sum + r.rating, 0);
-  const avgRating = updatedReviews.length > 0 ? Math.round((totalRating / updatedReviews.length) * 10) / 10 : 0;
-
-  // 单次 update 同时写入 reviews 与 rating 缓存，避免两次更新中途失败导致不一致
-  if (updated) {
-    // 已评过：只更新自己的那条评价，不影响他人（路径更新避免并发覆盖）
-    await docRef.update({
-      [`reviews.${existingIdx}`]: newReview,
-      rating: avgRating,
-    });
-  } else {
-    // 未评过：原子追加，避免并发丢失
-    await docRef.update({
-      reviews: db.command.push([newReview]),
-      rating: avgRating,
-    });
-  }
-
-  return { avgRating, updated };
-}
-
-function getCurrentUid(): string {
-  return useAuthStore.getState().user?.uid ?? "";
+  const res = await app.callFunction({
+    name: "content-actions",
+    data: { action: "addBookReview", bookId, ...review },
+  });
+  const result = (res?.result ?? {}) as { ok?: boolean; data?: { avgRating: number; updated: boolean }; error?: string };
+  if (!result.ok) throw new Error(result.error || "评价失败");
+  return result.data ?? null;
 }
 
 /** 获取所有用户上传的书籍 */
@@ -130,6 +99,7 @@ export async function fetchBooks(): Promise<{ data: Book[]; error: boolean }> {
   };
 
   try {
+    await authReady; // #345 等匿名身份就绪，避免新访客首屏 401（避免触发重试分支）
     const books = await doFetch();
     return { data: books, error: false };
   } catch (firstErr) {
@@ -176,6 +146,9 @@ export async function createBook(params: {
   const uid = getCurrentUid();
   if (!uid) throw new Error("请先登录");
 
+  const banStatus = await checkCurrentUserBanned();
+  if (banStatus) throw new Error("您的账号已被封禁");
+
   // Sanitize inputs
   const cleanTitle = sanitizeTitle(params.title);
   const cleanAuthor = sanitizeInput(params.author, 200);
@@ -183,6 +156,11 @@ export async function createBook(params: {
   const cleanTags = params.tags.map(sanitizeTag);
   const cleanToc = (params.toc ?? []).map((t) => sanitizeInput(t, 500));
   const cleanLink = params.link ? sanitizeInput(params.link, 2000) : undefined;
+
+  const sensitiveCheck = containsSensitiveWord(cleanTitle + cleanSummary);
+  if (sensitiveCheck.found) {
+    throw new Error(`内容包含敏感词: ${sensitiveCheck.words.join(", ")}`);
+  }
 
   const doc: Omit<BookDoc, "_id"> = {
     title: cleanTitle,
@@ -213,6 +191,8 @@ export async function createBook(params: {
   // 登记标签计数（需等待完成）
   await ensureTags(cleanTags);
 
+  await awardReputation("createBook", newId);
+
   return {
     id: newId,
     title: doc.title,
@@ -223,6 +203,7 @@ export async function createBook(params: {
     accent: doc.accent,
     summary: doc.summary,
     favorites: 0,
+    downloads: 0,
     rating: 0,
     year: doc.year,
     pages: 0,
@@ -231,5 +212,81 @@ export async function createBook(params: {
     link: doc.link,
     fileUrl: doc.fileUrl,
     fileName: doc.fileName,
+    createdAt: doc.createdAt,
+    authorUid: doc.authorUid,
   };
+}
+
+/**
+ * #96 查询相关推荐（按 category 从数据库查，不再只查 mock）
+ * 排除当前资源，按收藏数倒序取前 limit 条
+ */
+export async function fetchRelatedBooks(category: BookCategory, excludeId: string, limit = 3): Promise<Book[]> {
+  try {
+    const _ = db.command;
+    const { data } = await db
+      .collection(BOOKS_COLLECTION)
+      .where({ category, _id: _.neq(excludeId) })
+      .orderBy("favorites", "desc")
+      .limit(limit)
+      .get();
+    return (data as BookDoc[]).map(toBook);
+  } catch {
+    return [];
+  }
+}
+
+/**
+ * #96 编辑资源（仅上传者可改）
+ */
+export async function updateBook(
+  id: string,
+  params: {
+    title?: string;
+    author?: string;
+    summary?: string;
+    tags?: string[];
+    difficulty?: 1 | 2 | 3 | 4 | 5;
+    link?: string;
+  }
+): Promise<boolean> {
+  const uid = getCurrentUid();
+  if (!uid) throw new Error("请先登录");
+
+  const docRef = db.collection(BOOKS_COLLECTION).doc(id);
+  const { data } = await docRef.get();
+  if (!data || data.length === 0) return false;
+
+  const book = data[0] as BookDoc;
+  if (book.authorUid !== uid) throw new Error("无权编辑他人资源");
+
+  const updateFields: Record<string, unknown> = {};
+  if (params.title !== undefined) updateFields.title = sanitizeTitle(params.title);
+  if (params.author !== undefined) updateFields.author = sanitizeInput(params.author, 200);
+  if (params.summary !== undefined) updateFields.summary = sanitizeInput(params.summary);
+  if (params.tags !== undefined) updateFields.tags = params.tags.map(sanitizeTag);
+  if (params.difficulty !== undefined) updateFields.difficulty = params.difficulty;
+  if (params.link !== undefined) updateFields.link = params.link ? sanitizeInput(params.link, 2000) : undefined;
+
+  if (Object.keys(updateFields).length === 0) return true;
+  await docRef.update(updateFields);
+  return true;
+}
+
+/**
+ * #96 删除资源（仅上传者可删）
+ */
+export async function deleteBook(id: string): Promise<boolean> {
+  const uid = getCurrentUid();
+  if (!uid) throw new Error("请先登录");
+
+  const docRef = db.collection(BOOKS_COLLECTION).doc(id);
+  const { data } = await docRef.get();
+  if (!data || data.length === 0) return false;
+
+  const book = data[0] as BookDoc;
+  if (book.authorUid !== uid) throw new Error("无权删除他人资源");
+
+  await docRef.remove();
+  return true;
 }

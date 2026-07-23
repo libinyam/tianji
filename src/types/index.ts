@@ -20,6 +20,7 @@ export interface Book {
   accent: string; // 封面主色
   summary: string;
   favorites: number;
+  downloads: number; // #96 下载数（详情页/书卡展示）
   rating: number;
   year: number;
   pages: number;
@@ -28,6 +29,8 @@ export interface Book {
   link?: string; // 外部链接
   fileUrl?: string; // 上传文件的临时下载 URL
   fileName?: string; // 上传文件的原始文件名
+  createdAt: string; // #96 创建时间（"最新"排序使用）
+  authorUid?: string; // #96 上传者 uid（编辑/删除权限校验）
 }
 
 export interface Comment {
@@ -72,6 +75,9 @@ export interface Question {
   createdAt: string;
   body: string; // 含 LaTeX 行间公式占位
   answerList: Answer[];
+  pinned?: boolean; // 置顶
+  locked?: boolean; // 锁定
+  featured?: boolean; // 加精
 }
 
 export interface IdeaComment {

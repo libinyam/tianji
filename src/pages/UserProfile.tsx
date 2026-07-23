@@ -8,11 +8,17 @@ import {
   Users,
   Eye,
   ThumbsUp,
+  UserPlus,
+  UserCheck,
+  Loader2,
 } from "lucide-react";
 import { PostDetailSkeleton } from "@/components/Skeleton";
 import { fetchPublicUser, fetchUserContent, type UserContent, type PublicUser } from "@/lib/profile";
+import { toggleFollow, isFollowing, fetchFollowingCount, fetchFollowersCount } from "@/lib/follows";
+import { rateLimiters } from "@/lib/security";
 import { useAuthStore } from "@/stores/auth";
-import { useDocumentTitle } from "@/hooks/useDocumentTitle";
+import { toast } from "@/stores/toast";
+import { useSEO } from "@/hooks/useSEO";
 
 function formatDate(s: string) {
   if (!s) return "";
@@ -24,27 +30,73 @@ export default function UserProfile() {
   const { uid } = useParams();
   const { user: currentUser } = useAuthStore();
   const [profile, setProfile] = useState<PublicUser | null>(null);
-  useDocumentTitle(profile ? profile.nickname || "匿名用户" : undefined);
+  // #150 动态 SEO
+  useSEO({
+    title: profile ? `${profile.nickname || "匿名用户"}的个人主页` : undefined,
+    description: profile ? `${profile.nickname || "匿名用户"}在天玑社区发布的帖子、回答、灵感与资源。` : undefined,
+    canonical: uid ? `https://tianjihub.cn/user/${uid}` : undefined,
+  });
   const [content, setContent] = useState<UserContent | null>(null);
   const [loading, setLoading] = useState(true);
+  // #149 关注体系
+  const [following, setFollowing] = useState(false);
+  const [followingCount, setFollowingCount] = useState(0);
+  const [followersCount, setFollowersCount] = useState(0);
+  const [followLoading, setFollowLoading] = useState(false);
 
   useEffect(() => {
     if (!uid) return;
     let mounted = true;
     (async () => {
       setLoading(true);
-      const [pub, cont] = await Promise.all([
+      const [pub, cont, fCount, fansCount, isFollow] = await Promise.all([
         fetchPublicUser(uid),
         fetchUserContent(uid),
+        fetchFollowingCount(uid),
+        fetchFollowersCount(uid),
+        isFollowing(uid),
       ]);
       if (mounted) {
         setProfile(pub);
         setContent(cont);
+        setFollowingCount(fCount);
+        setFollowersCount(fansCount);
+        setFollowing(isFollow);
         setLoading(false);
       }
     })();
     return () => { mounted = false; };
   }, [uid]);
+
+  // #149 关注 / 取消关注
+  const handleFollow = async () => {
+    if (!currentUser) {
+      window.dispatchEvent(new CustomEvent("tianji:open-auth"));
+      return;
+    }
+    if (!profile || !uid) return;
+    const rl = rateLimiters.follow.check();
+    if (!rl.allowed) {
+      toast.error(`操作太快，请等待 ${rl.remaining} 秒`);
+      return;
+    }
+    setFollowLoading(true);
+    try {
+      const newState = await toggleFollow({
+        targetUid: uid,
+        targetNickname: profile.nickname || "匿名用户",
+        targetAvatarUrl: profile.avatarUrl,
+      });
+      rateLimiters.follow.record();
+      setFollowing(newState);
+      setFollowersCount((c) => c + (newState ? 1 : -1));
+      toast.success(newState ? "已关注" : "已取消关注");
+    } catch (e) {
+      toast.error((e as Error).message || "操作失败");
+    } finally {
+      setFollowLoading(false);
+    }
+  };
 
   // 如果是自己，跳转到个人主页
   if (currentUser?.uid === uid) {
@@ -104,19 +156,41 @@ export default function UserProfile() {
               <h1 className="heading-display text-3xl text-parchment-50">{displayName}</h1>
               <div className="mt-2 flex items-center gap-2">
                 <span className="pill">公开主页</span>
+                {/* #149 关注/取消关注按钮 */}
+                {currentUser && currentUser.uid !== uid && (
+                  <button
+                    onClick={handleFollow}
+                    disabled={followLoading}
+                    className={`inline-flex items-center gap-1.5 rounded-md px-3 py-1 text-xs font-medium transition-all disabled:opacity-60 ${
+                      following
+                        ? "border border-void-600/50 bg-void-800/40 text-mist-300 hover:border-red-400/40 hover:text-red-300"
+                        : "bg-tian-400/15 text-tian-200 hover:bg-tian-400/25"
+                    }`}
+                  >
+                    {followLoading ? (
+                      <Loader2 size={12} className="animate-spin" />
+                    ) : following ? (
+                      <UserCheck size={12} />
+                    ) : (
+                      <UserPlus size={12} />
+                    )}
+                    {following ? "已关注" : "关注"}
+                  </button>
+                )}
               </div>
             </div>
           </div>
 
           {/* 统计 */}
-          {content && (
-            <div className="mt-8 grid grid-cols-2 gap-3 sm:grid-cols-4">
-              {[
-                { label: "帖子", value: content.posts.length, icon: MessageSquare },
-                { label: "灵感", value: content.ideas.length, icon: Lightbulb },
-                { label: "资源", value: content.books.length, icon: BookOpen },
-                { label: "协作", value: content.workshops.length, icon: Users },
-              ].map((s) => (
+          <div className="mt-8 grid grid-cols-2 gap-3 sm:grid-cols-4">
+            {[
+              { label: "帖子", value: content?.posts.length ?? 0, icon: MessageSquare },
+              { label: "灵感", value: content?.ideas.length ?? 0, icon: Lightbulb },
+              { label: "资源", value: content?.books.length ?? 0, icon: BookOpen },
+              { label: "协作", value: content?.workshops.length ?? 0, icon: Users },
+              { label: "关注", value: followingCount, icon: UserPlus },
+              { label: "粉丝", value: followersCount, icon: UserCheck },
+            ].map((s) => (
                 <div
                   key={s.label}
                   className="rounded-xl border border-void-600/40 bg-void-800/30 px-4 py-3"
@@ -129,7 +203,6 @@ export default function UserProfile() {
                 </div>
               ))}
             </div>
-          )}
         </div>
       </div>
 

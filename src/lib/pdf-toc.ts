@@ -1,7 +1,4 @@
-import * as pdfjsLib from "pdfjs-dist";
 import workerUrl from "pdfjs-dist/build/pdf.worker.min.mjs?url";
-
-pdfjsLib.GlobalWorkerOptions.workerSrc = workerUrl;
 
 interface OutlineItem {
   title: string;
@@ -69,6 +66,10 @@ function formatToc(nodes: NumberedNode[]): string[] {
  */
 export async function extractPdfToc(file: File): Promise<string[]> {
   try {
+    // 动态导入 pdfjs-dist，避免首屏加载 425kB 的 PDF 解析库 (#137)
+    const pdfjsLib = await import("pdfjs-dist");
+    pdfjsLib.GlobalWorkerOptions.workerSrc = workerUrl;
+
     const arrayBuffer = await file.arrayBuffer();
     const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
     const outline = (await pdf.getOutline()) as OutlineItem[] | null;

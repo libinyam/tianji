@@ -1,0 +1,228 @@
+{
+  "version": "1.0.0",
+  "description": "CloudBase NoSQL 集合 schema 定义 - 字段版本管理与迁移",
+  "lastUpdated": "2026-07-12",
+  "collections": {
+    "posts": {
+      "schemaVersion": 2,
+      "fields": {
+        "_id": "string",
+        "title": "string",
+        "excerpt": "string",
+        "body": "string",
+        "author": "string",
+        "authorUid": "string",
+        "avatarColor": "string",
+        "tags": "string[]",
+        "bounty": "number?",
+        "category": "string?",
+        "subCategory": "string?",
+        "views": "number",
+        "votes": "number",
+        "answersCount": "number",
+        "answerList": "array",
+        "isMock": "boolean?",
+        "pinned": "boolean?",
+        "locked": "boolean?",
+        "featured": "boolean?",
+        "createdAt": "string",
+        "ownerResolutionStatus": "string?"
+      },
+      "migrations": [
+        {
+          "from": 1,
+          "to": 2,
+          "description": "添加 authorUid 字段，缺失时标记 ownerResolutionStatus=unresolved",
+          "defaults": { "authorUid": "" }
+        }
+      ]
+    },
+    "ideas": {
+      "schemaVersion": 2,
+      "fields": {
+        "_id": "string",
+        "title": "string",
+        "summary": "string",
+        "author": "string",
+        "authorUid": "string",
+        "avatarColor": "string",
+        "topic": "string",
+        "tags": "string[]",
+        "resonance": "number",
+        "replies": "number",
+        "resonatedBy": "string[]",
+        "comments": "array?",
+        "createdAt": "string",
+        "ownerResolutionStatus": "string?"
+      },
+      "migrations": [
+        {
+          "from": 1,
+          "to": 2,
+          "description": "添加 authorUid 字段，缺失时标记 ownerResolutionStatus=unresolved",
+          "defaults": { "authorUid": "" }
+        }
+      ]
+    },
+    "books": {
+      "schemaVersion": 2,
+      "fields": {
+        "_id": "string",
+        "title": "string",
+        "author": "string",
+        "authorUid": "string",
+        "category": "string",
+        "difficulty": "number",
+        "tags": "string[]",
+        "accent": "string",
+        "summary": "string",
+        "favorites": "number",
+        "downloads": "number",
+        "rating": "number",
+        "year": "number",
+        "pages": "number",
+        "toc": "string[]",
+        "reviews": "array",
+        "link": "string?",
+        "fileUrl": "string?",
+        "fileName": "string?",
+        "createdAt": "string",
+        "ownerResolutionStatus": "string?"
+      },
+      "migrations": [
+        {
+          "from": 1,
+          "to": 2,
+          "description": "添加 authorUid 字段，缺失时标记 ownerResolutionStatus=unresolved",
+          "defaults": { "authorUid": "" }
+        }
+      ]
+    },
+    "workshops": {
+      "schemaVersion": 2,
+      "fields": {
+        "_id": "string",
+        "title": "string",
+        "creator": "string",
+        "creatorUid": "string",
+        "description": "string",
+        "participants": "string[]",
+        "status": "string",
+        "outline": "array",
+        "contributions": "array",
+        "annotations": "array",
+        "createdAt": "string",
+        "ownerResolutionStatus": "string?"
+      },
+      "migrations": [
+        {
+          "from": 1,
+          "to": 2,
+          "description": "添加 creatorUid 字段，缺失时标记 ownerResolutionStatus=unresolved",
+          "defaults": { "creatorUid": "" }
+        }
+      ]
+    },
+    "users_v2": {
+      "schemaVersion": 1,
+      "fields": {
+        "_id": "string",
+        "displayName": "string",
+        "reputation": "number",
+        "banned": "boolean",
+        "bannedReason": "string",
+        "bannedUntil": "string",
+        "badges": "string[]",
+        "createdAt": "string"
+      },
+      "migrations": []
+    },
+    "votes": {
+      "schemaVersion": 1,
+      "fields": {
+        "_id": "string",
+        "uid": "string",
+        "answerId": "string",
+        "postId": "string",
+        "createdAt": "number"
+      },
+      "migrations": []
+    },
+    "favorites": {
+      "schemaVersion": 1,
+      "fields": {
+        "_id": "string",
+        "uid": "string",
+        "bookId": "string",
+        "createdAt": "number"
+      },
+      "migrations": []
+    },
+    "reputation_events": {
+      "schemaVersion": 1,
+      "fields": {
+        "_id": "string",
+        "eventId": "string",
+        "uid": "string",
+        "points": "number",
+        "reason": "string",
+        "createdAt": "number"
+      },
+      "migrations": []
+    },
+    "notifications": {
+      "schemaVersion": 1,
+      "fields": {
+        "_id": "string",
+        "uid": "string",
+        "type": "string",
+        "title": "string",
+        "link": "string",
+        "read": "boolean",
+        "createdAt": "string"
+      },
+      "migrations": []
+    },
+    "reports": {
+      "schemaVersion": 1,
+      "fields": {
+        "_id": "string",
+        "reporterUid": "string",
+        "targetType": "string",
+        "targetId": "string",
+        "reason": "string",
+        "status": "string",
+        "createdAt": "string"
+      },
+      "migrations": []
+    },
+    "tags": {
+      "schemaVersion": 1,
+      "fields": {
+        "_id": "string",
+        "name": "string",
+        "count": "number"
+      },
+      "migrations": []
+    },
+    "announcements": {
+      "schemaVersion": 1,
+      "fields": {
+        "_id": "string",
+        "title": "string",
+        "content": "string",
+        "active": "boolean",
+        "createdAt": "string"
+      },
+      "migrations": []
+    },
+    "user_roles": {
+      "schemaVersion": 1,
+      "fields": {
+        "_id": "string",
+        "role": "string"
+      },
+      "migrations": []
+    }
+  }
+}

@@ -1,11 +1,12 @@
 import { useState, useEffect } from "react";
-import { Outlet } from "react-router-dom";
+import { Outlet, useNavigate } from "react-router-dom";
 import Navbar from "./Navbar";
 import Footer from "./Footer";
 import StarField from "./StarField";
 import AuthModal from "./AuthModal";
 import { useAuthStore } from "@/stores/auth";
 import { useThemeStore } from "@/stores/theme";
+import { resolvePendingAction, usePendingAction } from "@/lib/pending-action";
 
 /** 全局布局：深空背景 + 星点 + 导航 + 内容 + 页脚 + 登录弹窗。 */
 export default function Layout() {
@@ -13,19 +14,29 @@ export default function Layout() {
   const initSession = useAuthStore((s) => s.initSession);
   const initTheme = useThemeStore((s) => s.initTheme);
   const themeMode = useThemeStore((s) => s.mode);
+  const user = useAuthStore((s) => s.user);
+  const pending = usePendingAction((s) => s.pending);
+  const navigate = useNavigate();
 
-  // 应用启动时检查登录会话 + 初始化主题
   useEffect(() => {
     void initSession();
     initTheme();
   }, [initSession, initTheme]);
 
-  // 监听全局登录事件（发帖、回答等场景触发）
   useEffect(() => {
     const openAuth = () => setAuthOpen(true);
     window.addEventListener("tianji:open-auth", openAuth);
     return () => window.removeEventListener("tianji:open-auth", openAuth);
   }, []);
+
+  useEffect(() => {
+    if (user && pending) {
+      const route = resolvePendingAction();
+      if (route) {
+        navigate(route);
+      }
+    }
+  }, [user, pending, navigate]);
 
   return (
     <div className="grain relative min-h-screen bg-void-radial text-parchment-200">

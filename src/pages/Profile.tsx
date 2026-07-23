@@ -18,8 +18,10 @@ import { useAuthStore } from "@/stores/auth";
 import { toast } from "@/stores/toast";
 import { fetchUserContent, type UserContent } from "@/lib/profile";
 import { fetchMyFavorites, type FavoriteItem } from "@/lib/favorites";
+import { getCurrentUserReputation, getBadges, type ReputationInfo } from "@/lib/reputation";
 import { useDocumentTitle } from "@/hooks/useDocumentTitle";
-import { app } from "@/lib/cloudbase";
+import { uploadFile, getTempFileURL, deleteFile } from "@/lib/storage";
+import { ListSkeleton, PostCardSkeleton } from "@/components/Skeleton";
 
 // 星辰风格头像，契合天玑主题
 const DEFAULT_AVATARS = [
@@ -42,6 +44,7 @@ export default function Profile() {
   const { user, updateProfile } = useAuthStore();
   const [content, setContent] = useState<UserContent | null>(null);
   const [favorites, setFavorites] = useState<FavoriteItem[]>([]);
+  const [reputation, setReputation] = useState<ReputationInfo | null>(null);
   const [loading, setLoading] = useState(true);
   const [editing, setEditing] = useState(false);
   const [nickname, setNickname] = useState("");
@@ -68,6 +71,7 @@ export default function Profile() {
         // 极端情况下（SDK 初始化失败等）也要解除加载态
       })
       .finally(() => setLoading(false));
+    getCurrentUserReputation().then(setReputation);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user?.uid]);
 
@@ -98,15 +102,12 @@ export default function Profile() {
     try {
       const ext = file.name.split(".").pop() || "jpg";
       const cloudPath = `avatars/${user.uid}-${Date.now()}.${ext}`;
-      const res = await app.uploadFile({ cloudPath, filePath: file as unknown as string });
+      const fileID = await uploadFile(cloudPath, file as unknown as string);
       // 获取可访问的下载链接（有效期 1 年）
-      const urlRes = await app.getTempFileURL({
-        fileList: [{ fileID: res.fileID, maxAge: 365 * 24 * 60 * 60 * 1000 }],
-      });
-      const url = urlRes.fileList?.[0]?.tempFileURL;
+      const url = await getTempFileURL(fileID);
       if (url) {
         setAvatarUrl(url);
-        setNewAvatarFileId(res.fileID);
+        setNewAvatarFileId(fileID);
       }
     } catch {
       toast.error("上传失败，请重试");
@@ -234,7 +235,7 @@ export default function Profile() {
                       onClick={() => {
                         // 清理已上传但未保存的头像
                         if (newAvatarFileId) {
-                          app.deleteFile({ fileList: [newAvatarFileId] }).catch(() => {});
+                          deleteFile(newAvatarFileId).catch(() => {});
                         }
                         setNewAvatarFileId(null);
                         setEditing(false);
@@ -263,6 +264,28 @@ export default function Profile() {
               )}
             </div>
           </div>
+
+          {/* 声望/等级 */}
+          {reputation && (
+            <div className="mt-6 flex flex-wrap items-center gap-2">
+              <div className="flex items-center gap-1.5 rounded-lg border border-star-400/30 bg-star-400/5 px-3 py-1.5">
+                <span className="text-xs text-mist-400">声望</span>
+                <span className="heading-display text-lg text-parchment-50">{reputation.reputation}</span>
+              </div>
+              <div className="flex items-center gap-1.5 rounded-lg border border-void-600/40 bg-void-800/30 px-3 py-1.5">
+                <span className="text-xs text-mist-400">等级</span>
+                <span className="text-sm text-star-300">{reputation.levelName}</span>
+              </div>
+              {getBadges(reputation.reputation).map((badge) => (
+                <span
+                  key={badge}
+                  className="rounded-full border border-void-600/40 bg-void-800/40 px-2.5 py-1 text-xs text-mist-300"
+                >
+                  {badge}
+                </span>
+              ))}
+            </div>
+          )}
 
           {/* 统计 */}
           {!loading && content && (
@@ -293,7 +316,10 @@ export default function Profile() {
       {/* 内容区域 */}
       <div className="container-tj mt-8">
         {loading ? (
-          <div className="py-20 text-center text-mist-400">加载中...</div>
+          <div className="grid gap-6 lg:grid-cols-2">
+            <ListSkeleton count={3}><PostCardSkeleton /></ListSkeleton>
+            <ListSkeleton count={3}><PostCardSkeleton /></ListSkeleton>
+          </div>
         ) : (
           <div className="grid gap-6 lg:grid-cols-2">
             {tabs.map((tab) => {

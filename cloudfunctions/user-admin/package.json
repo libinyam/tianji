@@ -1,0 +1,9 @@
+{
+  "name": "user-admin",
+  "version": "1.0.0",
+  "description": "用户管理云函数（封禁/解禁/声望）",
+  "main": "index.js",
+  "dependencies": {
+    "@cloudbase/node-sdk": "^4.0.0"
+  }
+}

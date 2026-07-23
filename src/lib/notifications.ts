@@ -1,5 +1,5 @@
 import { app } from "@/lib/cloudbase";
-import { useAuthStore } from "@/stores/auth";
+import { getCurrentUid, getCurrentUserName } from "@/lib/current-user";
 
 const db = app.database();
 const COLLECTION = "notifications";
@@ -10,7 +10,8 @@ export type NotificationType =
   | "resonance" // 有人共鸣了你的灵感
   | "join"      // 有人加入了你的协作
   | "contribute" // 有人提交了协作贡献
-  | "accept";   // 你的回答被采纳
+  | "accept"   // 你的回答被采纳
+  | "follow";  // 有人关注了你 (#149)
 
 export interface NotificationDoc {
   _id?: string;
@@ -41,6 +42,7 @@ const TYPE_LABEL: Record<NotificationType, string> = {
   join: "加入了你的协作",
   contribute: "提交了协作贡献",
   accept: "采纳了你的回答",
+  follow: "关注了你",
 };
 
 export function getTypeLabel(type: NotificationType): string {
@@ -57,15 +59,6 @@ function toNotif(doc: NotificationDoc): NotificationItem {
     read: doc.read ?? false,
     createdAt: doc.createdAt,
   };
-}
-
-function getCurrentUid(): string {
-  return useAuthStore.getState().user?.uid ?? "";
-}
-
-function getCurrentUserName(): string {
-  const user = useAuthStore.getState().user;
-  return user?.nickname || user?.username || user?.email || "匿名用户";
 }
 
 /** 创建通知（供其他模块调用） */
@@ -149,4 +142,23 @@ export async function markAllRead(): Promise<void> {
   } catch (e) {
     console.warn("[notifications] markAllRead failed:", e);
   }
+}
+
+export function watchNotifications(
+  uid: string,
+  onChange: (docs: unknown[]) => void,
+  onError: (err: Error) => void,
+): { close: () => void } {
+  const watcher = db
+    .collection(COLLECTION)
+    .where({ uid })
+    .watch({
+      onChange: (snapshot) => onChange(Object.values(snapshot.docs ?? {})),
+      onError,
+    });
+  return {
+    close: () => {
+      watcher?.close?.();
+    },
+  };
 }

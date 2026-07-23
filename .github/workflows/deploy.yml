@@ -10,10 +10,10 @@ jobs:
 
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
 
       - name: Setup Node.js
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v6
         with:
           node-version: 22
           cache: npm
@@ -27,6 +27,9 @@ jobs:
       - name: Lint
         run: npm run lint
 
+      - name: Test
+        run: npm run test:coverage
+
       - name: Build project
         run: npm run build
         env:
@@ -35,16 +38,19 @@ jobs:
           VITE_CLOUDBASE_ACCESS_KEY: ${{ secrets.VITE_CLOUDBASE_ACCESS_KEY }}
 
       - name: Install CloudBase CLI
+        if: github.event_name == 'push'
         run: npm install -g @cloudbase/cli
 
       - name: Login CloudBase CLI
+        if: github.event_name == 'push'
         run: tcb login --apiKeyId ${{ secrets.TCB_SECRET_ID }} --apiKey ${{ secrets.TCB_SECRET_KEY }}
 
       # 分两步上传：先传全部资源，最后单独传 index.html。
       # 上传非原子，若 index.html 先生效而它引用的 chunk 还没传完，
-      # 访客会拿到「JS 路径 → 兜底 HTML」的 MIME 错误导致白屏。
+      # 访客会拿到「JS 路径 -> 兜底 HTML」的 MIME 错误导致白屏。
       # 旧文件不删除，窗口期内老 html + 老 chunk 仍可正常工作。
       - name: Deploy assets to CloudBase Hosting
+        if: github.event_name == 'push'
         run: |
           mkdir -p /tmp/dist-no-html
           cp -r dist/. /tmp/dist-no-html/
@@ -52,10 +58,41 @@ jobs:
           tcb hosting deploy /tmp/dist-no-html -e ${{ secrets.TCB_ENV_ID }}
 
       - name: Deploy index.html last
+        if: github.event_name == 'push'
         run: tcb hosting deploy dist/index.html index.html -e ${{ secrets.TCB_ENV_ID }}
 
       - name: Fix Content-Type charset for HTML files
+        if: github.event_name == 'push'
         env:
           TCB_SECRET_ID: ${{ secrets.TCB_SECRET_ID }}
           TCB_SECRET_KEY: ${{ secrets.TCB_SECRET_KEY }}
         run: node scripts/fix-charset.mjs
+
+      # 云函数目录有独立的 package.json，npm ci 只装根目录依赖，
+      # 必须先在各函数目录装依赖，否则 tcb fn deploy 上传的代码
+      # 缺少 node_modules，线上云函数会报 Cannot find module。
+      - name: Install cloud function dependencies
+        if: github.event_name == 'push'
+        run: |
+          for dir in cloudfunctions/*/; do
+            if [ -f "$dir/package.json" ]; then
+              echo "Installing deps for $dir"
+              (cd "$dir" && npm install --production)
+            fi
+          done
+
+      # 云函数随前端一起部署，避免前端调用到线上不存在/过期的 action (#244)。
+      # --force 覆盖同名函数，--all 部署 cloudbaserc.json 中列出的全部函数。
+      # 任一函数部署失败会使整个发布失败（无 continue-on-error）。
+      - name: Deploy cloud functions
+        if: github.event_name == 'push'
+        run: tcb fn deploy --all --force -e ${{ secrets.TCB_ENV_ID }}
+
+      # 安全规则是生产权限边界，部署失败必须让发布失败 (#245)，
+      # 不再使用 continue-on-error，避免代码与线上权限策略漂移。
+      - name: Deploy security rules
+        if: github.event_name == 'push'
+        env:
+          TCB_SECRET_ID: ${{ secrets.TCB_SECRET_ID }}
+          TCB_SECRET_KEY: ${{ secrets.TCB_SECRET_KEY }}
+        run: node scripts/deploy-security-rules.mjs --envId ${{ secrets.TCB_ENV_ID }}

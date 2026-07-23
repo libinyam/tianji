@@ -1,18 +1,9 @@
 import { app } from "@/lib/cloudbase";
-import { useAuthStore } from "@/stores/auth";
+import { getCurrentUid, getCurrentUserName } from "@/lib/current-user";
 import { assertAdmin } from "@/lib/admin";
 import { sanitizeInput } from "@/lib/sanitize";
 
 const db = app.database();
-
-function getCurrentUid(): string {
-  return useAuthStore.getState().user?.uid ?? "";
-}
-
-function getCurrentUserName(): string {
-  const user = useAuthStore.getState().user;
-  return user?.nickname || user?.username || user?.email || "匿名用户";
-}
 
 const COLLECTION = "reports";
 

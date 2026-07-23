@@ -1,0 +1,9 @@
+{
+  "name": "content-actions",
+  "version": "1.0.0",
+  "description": "内容操作云函数 - 非作者写操作的服务端代理",
+  "main": "index.js",
+  "dependencies": {
+    "@cloudbase/node-sdk": "^4.0.0"
+  }
+}

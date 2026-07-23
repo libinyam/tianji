@@ -1,7 +1,11 @@
-import { app } from "@/lib/cloudbase";
+import { app, authReady } from "@/lib/cloudbase";
 import { createNotification } from "@/lib/notifications";
 import { sanitizeInput, sanitizeTitle, sanitizeTag } from "@/lib/sanitize";
-import { useAuthStore } from "@/stores/auth";
+import { checkCurrentUserBanned } from "@/lib/ban";
+import { containsSensitiveWord } from "@/lib/sensitive-words";
+import { awardReputation } from "@/lib/reputation";
+import { getCurrentUid, getCurrentUserName } from "@/lib/current-user";
+import { AVATAR_COLORS } from "@/lib/avatar-colors";
 import type { Idea, IdeaComment } from "@/types";
 
 const db = app.database();
@@ -23,8 +27,6 @@ export interface IdeaDoc {
   comments?: IdeaComment[];
 }
 
-const AVATAR_COLORS = ["#7cc4ff", "#f3c969", "#5aa6f0", "#a78bfa", "#34d399", "#fb923c"];
-
 function toIdea(doc: IdeaDoc): Idea {
   return {
     id: doc._id ?? "",
@@ -43,18 +45,10 @@ function toIdea(doc: IdeaDoc): Idea {
   };
 }
 
-function getCurrentUserName(): string {
-  const user = useAuthStore.getState().user;
-  return user?.nickname || user?.username || user?.email || "匿名用户";
-}
-
-function getCurrentUid(): string {
-  return useAuthStore.getState().user?.uid ?? "";
-}
-
 /** 获取所有灵感（按共鸣数倒序） */
 export async function fetchIdeas(): Promise<Idea[]> {
   try {
+    await authReady; // #345 等匿名身份就绪，避免新访客首屏 401
     const { data } = await db
       .collection(IDEAS_COLLECTION)
       .orderBy("createdAt", "desc")
@@ -87,11 +81,19 @@ export async function createIdea(params: {
   const uid = getCurrentUid();
   if (!uid) throw new Error("请先登录");
 
+  const banStatus = await checkCurrentUserBanned();
+  if (banStatus) throw new Error("您的账号已被封禁");
+
   // Sanitize inputs
   const cleanTitle = sanitizeTitle(params.title);
   const cleanSummary = sanitizeInput(params.summary);
   const cleanTopic = sanitizeInput(params.topic, 100);
   const cleanTags = params.tags.map(sanitizeTag);
+
+  const sensitiveCheck = containsSensitiveWord(cleanTitle + cleanSummary);
+  if (sensitiveCheck.found) {
+    throw new Error(`内容包含敏感词: ${sensitiveCheck.words.join(", ")}`);
+  }
 
   const doc: Omit<IdeaDoc, "_id"> = {
     title: cleanTitle,
@@ -109,6 +111,8 @@ export async function createIdea(params: {
   const res = await db.collection(IDEAS_COLLECTION).add(doc);
   const resObj = res as unknown as Record<string, unknown>;
   const newId = (resObj.id as string) ?? (resObj._id as string) ?? "";
+
+  await awardReputation("createIdea", newId);
 
   return {
     id: newId,
@@ -129,31 +133,15 @@ export async function resonanceIdea(id: string): Promise<boolean> {
   const uid = getCurrentUid();
   if (!uid) throw new Error("请先登录");
 
-  const docRef = db.collection(IDEAS_COLLECTION).doc(id);
-  const { data } = await docRef.get();
-  if (!data || data.length === 0) throw new Error("灵感不存在");
+  const banStatus = await checkCurrentUserBanned();
+  if (banStatus) throw new Error("您的账号已被封禁");
 
-  const doc = data[0] as IdeaDoc;
-  const resonatedBy = doc.resonatedBy ?? [];
-
-  // 防重复共鸣
-  if (resonatedBy.includes(uid)) {
-    throw new Error("已共鸣过此灵感");
-  }
-
-  await docRef.update({
-    resonance: db.command.inc(1),
-    resonatedBy: db.command.addToSet(uid),
+  const res = await app.callFunction({
+    name: "content-actions",
+    data: { action: "resonanceIdea", id },
   });
-
-  // 通知灵感作者（通知失败不影响共鸣结果）
-  await createNotification({
-    uid: doc.authorUid,
-    type: "resonance",
-    title: doc.title,
-    link: `/ideas/${id}`,
-  }).catch(() => {});
-
+  const result = (res?.result ?? {}) as { ok?: boolean; error?: string };
+  if (!result.ok) throw new Error(result.error || "操作失败");
   return true;
 }
 
@@ -249,27 +237,16 @@ export async function deleteIdeaComment(ideaId: string, commentId: string): Prom
   return true;
 }
 
-/** 删除灵感（仅作者） */
+/** 删除灵感（仅作者，#374 改走云函数以 admin 权限级联清理） */
 export async function deleteIdea(ideaId: string): Promise<boolean> {
   const uid = getCurrentUid();
   if (!uid) throw new Error("请先登录");
 
-  const docRef = db.collection(IDEAS_COLLECTION).doc(ideaId);
-  const { data } = await docRef.get();
-  if (!data || data.length === 0) return false;
-
-  const idea = data[0] as IdeaDoc;
-  if (idea.authorUid !== uid) throw new Error("无权删除他人灵感");
-
-  await docRef.remove();
-
-  // 级联清理收藏和举报（不阻塞主流程）
-  try {
-    await db.collection("favorites").where({ targetId: ideaId }).remove();
-  } catch { /* 安全规则可能拦截，忽略 */ }
-  try {
-    await db.collection("reports").where({ targetId: ideaId }).remove();
-  } catch { /* 安全规则可能拦截，忽略 */ }
-
+  const res = await app.callFunction({
+    name: "content-actions",
+    data: { action: "deleteIdea", ideaId },
+  });
+  const result = (res?.result ?? {}) as { ok?: boolean; error?: string };
+  if (!result.ok) throw new Error(result.error || "删除失败，请稍后重试");
   return true;
 }

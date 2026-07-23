@@ -5,7 +5,8 @@ import WorkshopCreateModal from "@/components/WorkshopCreateModal";
 import { WorkshopCardSkeleton, ListSkeleton } from "@/components/Skeleton";
 import { fetchWorkshops, canViewContent, type WorkshopProject } from "@/lib/workshops";
 import { useAuthStore } from "@/stores/auth";
-import { useDocumentTitle } from "@/hooks/useDocumentTitle";
+import { dispatchAuthWithIntent } from "@/lib/pending-action";
+import { useSEO } from "@/hooks/useSEO";
 
 function formatUpdatedAt(iso: string): string {
   if (!iso) return "";
@@ -21,7 +22,12 @@ function formatUpdatedAt(iso: string): string {
 }
 
 export default function Workshop() {
-  useDocumentTitle("协作工坊");
+  // #150 SEO
+  useSEO({
+    title: "协作工坊",
+    description: "天玑协作工坊 -- 发起或加入 AI 项目协作，按章节分工贡献，在社区中共同产出实战项目。",
+    canonical: "https://tianjihub.cn/workshop",
+  });
   const [createOpen, setCreateOpen] = useState(false);
   const [realProjects, setRealProjects] = useState<WorkshopProject[]>([]);
   const [loading, setLoading] = useState(true);
@@ -44,7 +50,7 @@ export default function Workshop() {
 
   const handleCreateClick = () => {
     if (!user) {
-      window.dispatchEvent(new CustomEvent("tianji:open-auth"));
+      dispatchAuthWithIntent("create-workshop");
       return;
     }
     setCreateOpen(true);

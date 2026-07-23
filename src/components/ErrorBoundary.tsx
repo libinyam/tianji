@@ -1,4 +1,5 @@
 import { Component, type ReactNode } from "react";
+import { Sentry } from "../lib/sentry";
 
 interface Props {
   children: ReactNode;
@@ -34,7 +35,9 @@ export default class ErrorBoundary extends Component<Props, State> {
   componentDidCatch(error: Error, info: unknown) {
     console.error("应用崩溃:", error, info);
 
-    // 资源加载失败 → 自动刷新（10 秒内只刷新一次，防止无限循环）
+    Sentry.captureException(error, { extra: { reactInfo: info } });
+
+    // 资源加载失败 -> 自动刷新（10 秒内只刷新一次，防止无限循环）
     if (isChunkLoadError(error)) {
       const KEY = "tianji:reloaded";
       const now = Date.now();

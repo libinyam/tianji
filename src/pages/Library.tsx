@@ -6,7 +6,8 @@ import BookUploadModal from "@/components/BookUploadModal";
 
 import { fetchBooks } from "@/lib/books";
 import { useAuthStore } from "@/stores/auth";
-import { useDocumentTitle } from "@/hooks/useDocumentTitle";
+import { dispatchAuthWithIntent } from "@/lib/pending-action";
+import { useSEO } from "@/hooks/useSEO";
 import type { Book, BookCategory } from "@/types";
 
 const CATEGORIES: ("全部" | BookCategory)[] = [
@@ -22,7 +23,12 @@ type SortKey = "热度" | "最新" | "难度";
 const SORTS: SortKey[] = ["热度", "最新", "难度"];
 
 export default function Library() {
-  useDocumentTitle("资源库");
+  // #150 SEO
+  useSEO({
+    title: "资源库",
+    description: "天玑学习资源库 -- 精选 AI 工具实战、编程基础、项目实战与基础理论书单，支持上传分享与社区评价。",
+    canonical: "https://tianjihub.cn/library",
+  });
   const [query, setQuery] = useState("");
   const [category, setCategory] = useState<"全部" | BookCategory>("全部");
   const [sort, setSort] = useState<SortKey>("热度");
@@ -68,16 +74,19 @@ export default function Library() {
     let list = allBooks.filter((b) => {
       const matchCat = category === "全部" || b.category === category;
       const q = query.trim().toLowerCase();
+      // #96 搜索覆盖 summary 字段
       const matchQ =
         !q ||
         b.title.toLowerCase().includes(q) ||
         b.author.toLowerCase().includes(q) ||
+        b.summary.toLowerCase().includes(q) ||
         b.tags.some((t) => t.toLowerCase().includes(q));
       return matchCat && matchQ;
     });
     list = [...list].sort((a, b) => {
       if (sort === "热度") return b.favorites - a.favorites;
-      if (sort === "最新") return b.year - a.year;
+      // #96 "最新"排序改用 createdAt（之前用 year，用户上传资源 year 都是当前年，排序随机）
+      if (sort === "最新") return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
       return b.difficulty - a.difficulty;
     });
     return list;
@@ -85,7 +94,7 @@ export default function Library() {
 
   const handleUploadClick = () => {
     if (!user) {
-      window.dispatchEvent(new CustomEvent("tianji:open-auth"));
+      dispatchAuthWithIntent("upload-resource");
       return;
     }
     setUploadOpen(true);
@@ -102,7 +111,7 @@ export default function Library() {
         <div className="container-tj flex h-12 items-center justify-between">
           <div className="flex items-center gap-4">
             <h1 className="text-sm font-medium text-parchment-100">学习资源库</h1>
-            <span className="text-xs text-mist-500">{allBooks.length} 份资源</span>
+            <span className="text-xs text-mist-500">{filtered.length} 份资源{filtered.length !== allBooks.length && ` / 共 ${allBooks.length} 份`}</span>
           </div>
           <button onClick={handleUploadClick} className="inline-flex items-center gap-1.5 rounded-md bg-star-400/10 px-3 py-1.5 text-xs font-medium text-star-300 transition-colors hover:bg-star-400/20">
             <Plus size={13} /> 上传资源

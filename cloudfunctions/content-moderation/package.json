@@ -1,0 +1,7 @@
+{
+  "name": "content-moderation",
+  "version": "1.0.0",
+  "description": "UGC 文本审核云函数 - 调用腾讯云 TMS TextModeration API",
+  "main": "index.js",
+  "dependencies": {}
+}

@@ -9,17 +9,17 @@ export default defineConfig(({ command }) => {
   return {
     build: {
       sourcemap: false,
+      chunkSizeWarningLimit: 800,
       rollupOptions: {
         output: {
-          manualChunks: {
-            // React 核心
-            'react-vendor': ['react', 'react-dom', 'react-router-dom'],
-            // 动画
-            'motion': ['motion/react'],
-            // CloudBase SDK
-            'cloudbase': ['@cloudbase/js-sdk'],
-            // KaTeX 数学公式（已按需加载，但进一步拆分字体相关）
-            'katex': ['katex'],
+          manualChunks(id) {
+            if (id.includes('node_modules')) {
+              if (id.includes('@cloudbase/js-sdk')) return 'cloudbase';
+              // pdfjs 通过动态 import() 加载，不强制合并，让 Vite 自动拆分为独立 chunk
+              if (id.includes('katex')) return 'katex';
+              if (id.includes('motion')) return 'motion';
+              if (id.includes('react-router-dom') || id.includes('react-dom') || id.includes('/react/')) return 'react-vendor';
+            }
           },
         },
       },

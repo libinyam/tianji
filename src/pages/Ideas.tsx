@@ -6,16 +6,23 @@ import Dialog from "@/components/Dialog";
 import IdeaModal from "@/components/IdeaModal";
 import ReportModal from "@/components/ReportModal";
 import EmptyState from "@/components/EmptyState";
+import TagSelector from "@/components/TagSelector";
 
 import { fetchIdeas, resonanceIdea, updateIdea, deleteIdea } from "@/lib/ideas";
 import { toggleFavorite, getFavoritedIds } from "@/lib/favorites";
 import { useAuthStore } from "@/stores/auth";
+import { dispatchAuthWithIntent } from "@/lib/pending-action";
 import { isAuthor } from "@/lib/utils";
-import { useDocumentTitle } from "@/hooks/useDocumentTitle";
+import { useSEO } from "@/hooks/useSEO";
 import type { Idea } from "@/types";
 
 export default function Ideas() {
-  useDocumentTitle("灵感广场");
+  // #150 SEO
+  useSEO({
+    title: "灵感广场",
+    description: "天玑灵感广场 -- 分享跨专业 AI 转型路上的灵感与想法，寻找同频伙伴，碰撞协作火花。",
+    canonical: "https://tianjihub.cn/ideas",
+  });
   const [topic, setTopic] = useState("全部");
   const [sort, setSort] = useState<"最新" | "共鸣">("共鸣");
   const [ideaModalOpen, setIdeaModalOpen] = useState(false);
@@ -26,6 +33,7 @@ export default function Ideas() {
   const [editingIdea, setEditingIdea] = useState<Idea | null>(null);
   const [editTitle, setEditTitle] = useState("");
   const [editSummary, setEditSummary] = useState("");
+  const [editTags, setEditTags] = useState<string[]>([]);
   const [reportTarget, setReportTarget] = useState<{ id: string; title: string } | null>(null);
   const { user } = useAuthStore();
 
@@ -84,7 +92,7 @@ export default function Ideas() {
 
   const handleIdeaClick = () => {
     if (!user) {
-      window.dispatchEvent(new CustomEvent("tianji:open-auth"));
+      dispatchAuthWithIntent("share-idea");
       return;
     }
     setIdeaModalOpen(true);
@@ -145,13 +153,14 @@ export default function Ideas() {
     setEditingIdea(idea);
     setEditTitle(idea.title);
     setEditSummary(idea.summary);
+    setEditTags(idea.tags);
   };
 
   const handleSaveIdea = async () => {
     if (!editingIdea || !editTitle.trim() || !editSummary.trim()) return;
     try {
-      await updateIdea(editingIdea.id, { title: editTitle.trim(), summary: editSummary.trim(), tags: editingIdea.tags });
-      setRealIdeas((prev) => prev.map((i) => i.id === editingIdea.id ? { ...i, title: editTitle.trim(), summary: editSummary.trim() } : i));
+      await updateIdea(editingIdea.id, { title: editTitle.trim(), summary: editSummary.trim(), tags: editTags });
+      setRealIdeas((prev) => prev.map((i) => i.id === editingIdea.id ? { ...i, title: editTitle.trim(), summary: editSummary.trim(), tags: editTags } : i));
       setEditingIdea(null);
       toast.success("灵感已更新");
     } catch (e) {
@@ -327,6 +336,10 @@ export default function Ideas() {
               maxLength={500}
               placeholder="灵感内容"
             />
+            <div className="mt-3">
+              <label className="mb-1.5 block text-xs text-mist-400">标签</label>
+              <TagSelector value={editTags} onChange={setEditTags} />
+            </div>
             <div className="mt-4 flex justify-end gap-2">
               <button onClick={() => setEditingIdea(null)} className="btn-ghost text-sm">取消</button>
               <button onClick={handleSaveIdea} className="btn-gold text-sm">保存</button>

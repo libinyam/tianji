@@ -1,13 +1,25 @@
 const cloudbase = require("@cloudbase/node-sdk");
+const { withTiming, logError, logInfo } = require("./logger");
 
-const app = cloudbase.init({
-  env: cloudbase.SYMBOL_CURRENT_ENV,
-});
+let app;
+let db;
+let _;
 
-const db = app.database();
+function ensureApp() {
+  if (!app && !db) {
+    app = cloudbase.init({ env: cloudbase.SYMBOL_CURRENT_ENV });
+    db = app.database();
+    _ = db.command;
+  }
+  return app;
+}
 
-// 管理员 uid 列表从环境变量读取，逗号分隔；过渡期保留默认值
-const ADMIN_UIDS = (process.env.ADMIN_UIDS || "2068674931977097216")
+exports.__setTestDb = (fakeDb) => {
+  db = fakeDb;
+  _ = fakeDb.command;
+};
+
+const ADMIN_UIDS = (process.env.ADMIN_UIDS || "")
   .split(",")
   .map((s) => s.trim())
   .filter(Boolean);
@@ -29,11 +41,14 @@ exports.main = async (event, context) => {
   // --- 1. 身份验证（仅接受服务端身份源） ---
   let uid = "";
 
-  try {
-    const info = await app.auth().getEndUserInfo(context);
-    uid = info?.userInfo?.uid || info?.uid || "";
-  } catch (e) {
-    // getEndUserInfo 不可用时，回退到 context
+  const appInst = ensureApp();
+
+  if (appInst) {
+    try {
+      const info = await appInst.auth().getEndUserInfo();
+      uid = info?.userInfo?.uid || "";
+    } catch (e) {
+    }
   }
 
   if (!uid && context?.userInfo) {
@@ -45,8 +60,11 @@ exports.main = async (event, context) => {
   }
 
   if (!uid || !ADMIN_UIDS.includes(uid)) {
+    logInfo("admin-delete", uid, "unauthorized", { collection, docId });
     return { ok: false, error: "无管理员权限" };
   }
+
+  const timer = withTiming(`admin-delete:${action}`, uid);
 
   // --- 2. 参数校验 ---
   if (typeof collection !== "string" || typeof docId !== "string") {
@@ -75,20 +93,21 @@ exports.main = async (event, context) => {
       try {
         await db.collection("favorites").where({ targetId: docId }).remove();
       } catch (e) {
-        console.warn("清理 favorites 失败:", e);
+        logInfo("admin-delete", uid, "cleanup favorites failed", { docId, error: e.message });
       }
       try {
         await db.collection("reports").where({ targetId: docId }).remove();
       } catch (e) {
-        console.warn("清理 reports 失败:", e);
+        logInfo("admin-delete", uid, "cleanup reports failed", { docId, error: e.message });
       }
 
+      timer.end("success", { collection, docId });
       return { ok: true };
     }
 
     return { ok: false, error: "未知操作" };
   } catch (err) {
-    console.error("admin-delete error:", err);
+    logError(`admin-delete:${action}`, uid, err);
     return { ok: false, error: err.message || "操作失败" };
   }
 };

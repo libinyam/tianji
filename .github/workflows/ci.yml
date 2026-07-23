@@ -1,0 +1,37 @@
+name: CI
+
+on:
+  pull_request:
+    branches: [main, master]
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v7
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Type check
+        run: npx tsc -b --noEmit
+
+      - name: Lint
+        run: npm run lint
+
+      - name: Test
+        run: npm run test:coverage
+
+      - name: Check for known vulnerabilities
+        # #332 critical 漏洞阻止合并；high 暂时允许（@cloudbase/node-sdk 锁定 axios@0.27.2 无法升级）
+        # 使用官方 registry 确保能访问 audit endpoint（npmmirror 不支持）
+        # 不设 continue-on-error（默认 false），检出 critical 漏洞时 CI 失败、阻断合入
+        run: npm audit --audit-level=critical --registry=https://registry.npmjs.org

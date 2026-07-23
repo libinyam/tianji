@@ -1,0 +1,182 @@
+{
+  "version": "1.4.0",
+  "description": "CloudBase NoSQL 数据库安全规则 - 防止客户端越权访问",
+  "lastUpdated": "2026-07-14",
+  "collections": {
+    "posts": {
+      "permission": "CUSTOM",
+      "securityRule": {
+        "read": "auth.uid != null",
+        "create": "auth.uid != null",
+        "write": "auth.uid != null && doc.authorUid == auth.uid",
+        "update": "auth.uid != null && doc.authorUid == auth.uid",
+        "delete": "auth.uid != null && doc.authorUid == auth.uid"
+      },
+      "ownerField": "authorUid",
+      "note": "create 允许登录用户创建；update/delete 收紧为作者限定；管理员删除通过 admin-delete 云函数"
+    },
+    "ideas": {
+      "permission": "CUSTOM",
+      "securityRule": {
+        "read": "auth.uid != null",
+        "create": "auth.uid != null",
+        "write": "auth.uid != null && doc.authorUid == auth.uid",
+        "update": "auth.uid != null && doc.authorUid == auth.uid",
+        "delete": "auth.uid != null && doc.authorUid == auth.uid"
+      },
+      "ownerField": "authorUid",
+      "note": "create 允许登录用户创建；update/delete 收紧为作者限定；共鸣通过 content-actions 云函数执行"
+    },
+    "books": {
+      "permission": "CUSTOM",
+      "securityRule": {
+        "read": "auth.uid != null",
+        "create": "auth.uid != null",
+        "write": "auth.uid != null && doc.uploaderUid == auth.uid",
+        "update": "auth.uid != null && doc.uploaderUid == auth.uid",
+        "delete": "auth.uid != null && doc.uploaderUid == auth.uid"
+      },
+      "ownerField": "uploaderUid",
+      "note": "create 允许登录用户上传；update/delete 收紧为上传者限定；下载计数/收藏通过 content-actions 云函数执行"
+    },
+    "workshops": {
+      "permission": "CUSTOM",
+      "securityRule": {
+        "read": "auth.uid != null",
+        "create": "auth.uid != null",
+        "write": "auth.uid != null && doc.creatorUid == auth.uid",
+        "update": "auth.uid != null && doc.creatorUid == auth.uid",
+        "delete": "auth.uid != null && doc.creatorUid == auth.uid"
+      },
+      "ownerField": "creatorUid",
+      "note": "update 收紧为作者限定；参与者加入/批注通过 content-actions 云函数执行"
+    },
+    "votes": {
+      "permission": "CUSTOM",
+      "securityRule": {
+        "read": "auth.uid != null",
+        "write": "auth.uid != null && doc.uid == auth.uid",
+        "update": "auth.uid != null && doc.uid == auth.uid",
+        "delete": "auth.uid != null && doc.uid == auth.uid"
+      },
+      "ownerField": "uid",
+      "note": "用户只能改删自己的投票记录"
+    },
+    "favorites": {
+      "permission": "CUSTOM",
+      "securityRule": {
+        "read": "auth.uid != null",
+        "create": "auth.uid != null",
+        "write": "auth.uid != null && doc.uid == auth.uid",
+        "update": "auth.uid != null && doc.uid == auth.uid",
+        "delete": "auth.uid != null && doc.uid == auth.uid"
+      },
+      "ownerField": "uid"
+    },
+    "follows": {
+      "permission": "CUSTOM",
+      "securityRule": {
+        "read": "auth.uid != null",
+        "create": "auth.uid != null",
+        "write": "auth.uid != null && doc.uid == auth.uid",
+        "update": "auth.uid != null && doc.uid == auth.uid",
+        "delete": "auth.uid != null && doc.uid == auth.uid"
+      },
+      "ownerField": "uid",
+      "note": "用户关注关系，uid=关注者，targetUid=被关注者；用户只能管理自己的关注记录"
+    },
+    "tag_follows": {
+      "permission": "CUSTOM",
+      "securityRule": {
+        "read": "auth.uid != null",
+        "create": "auth.uid != null",
+        "write": "auth.uid != null && doc.uid == auth.uid",
+        "update": "auth.uid != null && doc.uid == auth.uid",
+        "delete": "auth.uid != null && doc.uid == auth.uid"
+      },
+      "ownerField": "uid",
+      "note": "标签关注关系，uid=关注者；用户只能管理自己的标签关注记录"
+    },
+    "notifications": {
+      "permission": "CUSTOM",
+      "securityRule": {
+        "read": "auth.uid != null && doc.uid == auth.uid",
+        "create": "auth.uid != null",
+        "write": "auth.uid != null && doc.uid == auth.uid",
+        "update": "auth.uid != null && doc.uid == auth.uid",
+        "delete": "auth.uid != null && doc.uid == auth.uid"
+      },
+      "ownerField": "uid",
+      "note": "通知由客户端创建，用户只能读/改/删自己的通知"
+    },
+    "reports": {
+      "permission": "CUSTOM",
+      "securityRule": {
+        "read": "auth.uid != null && doc.reporterUid == auth.uid",
+        "create": "auth.uid != null",
+        "write": "auth.uid != null",
+        "update": "auth.uid != null && doc.reporterUid == auth.uid",
+        "delete": "auth.uid != null && doc.reporterUid == auth.uid"
+      },
+      "ownerField": "reporterUid",
+      "note": "用户可创建举报；管理员处理通过云函数"
+    },
+    "tags": {
+      "permission": "ADMINWRITE",
+      "securityRule": null,
+      "note": "标签由云函数维护，前端只读"
+    },
+    "announcements": {
+      "permission": "ADMINWRITE",
+      "securityRule": null,
+      "note": "公告由服务端维护，前端只读"
+    },
+    "user_roles": {
+      "permission": "CUSTOM",
+      "securityRule": {
+        "read": "auth.uid != null && doc._id == auth.uid",
+        "write": "auth.uid == null"
+      },
+      "note": "角色集合，用户只能读自己的角色；写入由云函数管理"
+    },
+    "users_v2": {
+      "permission": "CUSTOM",
+      "securityRule": {
+        "read": "auth.uid != null && doc._id == auth.uid",
+        "create": "auth.uid != null && doc._id == auth.uid",
+        "write": "auth.uid == null"
+      },
+      "note": "用户可创建和读自己的资料；所有更新（banned/reputation/badges）通过 user-admin 云函数执行"
+    },
+    "reputation_events": {
+      "permission": "ADMINONLY",
+      "securityRule": null,
+      "note": "声望加分幂等事件，禁止前端访问，仅 content-actions 云函数写入 (#243)"
+    },
+    "_backups": {
+      "permission": "ADMINONLY",
+      "securityRule": null,
+      "note": "数据库备份集合，禁止前端访问，仅云函数可读写"
+    },
+    "sys_user": {
+      "permission": "ADMINONLY",
+      "securityRule": null,
+      "note": "系统集合，禁止前端访问"
+    },
+    "sys_department": {
+      "permission": "ADMINONLY",
+      "securityRule": null,
+      "note": "系统集合，禁止前端访问"
+    },
+    "relation_data_depart": {
+      "permission": "ADMINONLY",
+      "securityRule": null,
+      "note": "系统集合，禁止前端访问"
+    },
+    "moderation_logs": {
+      "permission": "ADMINONLY",
+      "securityRule": null,
+      "note": "UGC 文本审核日志，禁止前端访问，仅 content-actions 云函数写入 (#289)"
+    }
+  }
+}

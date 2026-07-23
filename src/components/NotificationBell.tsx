@@ -1,16 +1,18 @@
 import { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "motion/react";
-import { Bell, CheckCheck, MessageCircle, ThumbsUp, Users, CornerDownRight, Lightbulb, MessageSquare, CheckCircle } from "lucide-react";
+import { Bell, CheckCheck, MessageCircle, ThumbsUp, Users, CornerDownRight, Lightbulb, MessageSquare, CheckCircle, UserPlus } from "lucide-react";
 import {
   fetchNotifications,
   fetchUnreadCount,
   markAsRead,
   markAllRead,
   getTypeLabel,
+  watchNotifications,
   type NotificationItem,
   type NotificationType,
 } from "@/lib/notifications";
+import { useAuthStore } from "@/stores/auth";
 
 const TYPE_ICON: Record<NotificationType, typeof Bell> = {
   answer: MessageSquare,
@@ -19,6 +21,7 @@ const TYPE_ICON: Record<NotificationType, typeof Bell> = {
   join: Users,
   contribute: Lightbulb,
   accept: CheckCircle,
+  follow: UserPlus,
 };
 
 function formatTime(s: string): string {
@@ -49,16 +52,37 @@ export default function NotificationBell() {
     return () => { mountedRef.current = false; };
   }, []);
 
-  // 定时拉取未读数
+  const uid = useAuthStore((s) => s.user?.uid);
+
   useEffect(() => {
     let mounted = true;
     const safeSetUnread = (n: number) => { if (mounted) setUnread(n); };
     fetchUnreadCount().then(safeSetUnread);
+
     const timer = setInterval(() => {
       fetchUnreadCount().then(safeSetUnread);
-    }, 60000); // 每分钟刷新
-    return () => { mounted = false; clearInterval(timer); };
-  }, []);
+    }, 60000);
+
+    let unsubscribe: (() => void) | null = null;
+    if (uid) {
+      try {
+        const watcher = watchNotifications(
+          uid,
+          () => { fetchUnreadCount().then(safeSetUnread); },
+          () => {},
+        );
+        unsubscribe = () => { watcher.close(); };
+      } catch {
+        // watch not available, polling is fallback
+      }
+    }
+
+    return () => {
+      mounted = false;
+      clearInterval(timer);
+      if (unsubscribe) unsubscribe();
+    };
+  }, [uid]);
 
   // 打开时加载列表
   useEffect(() => {
@@ -127,7 +151,7 @@ export default function NotificationBell() {
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: -8, scale: 0.96 }}
             transition={{ duration: 0.15 }}
-            className="absolute right-0 top-11 z-50 w-80 overflow-hidden rounded-xl border border-void-600/60 bg-void-900/95 shadow-2xl backdrop-blur-xl"
+            className="absolute right-0 top-11 z-50 w-80 overflow-hidden rounded-xl border border-void-600/60 bg-void-900 shadow-2xl"
           >
             {/* 头部 */}
             <div className="flex items-center justify-between border-b border-void-600/40 px-4 py-2.5">

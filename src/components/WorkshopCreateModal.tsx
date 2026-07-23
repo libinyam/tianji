@@ -3,11 +3,22 @@ import { X, Loader2, Plus, Trash2, BookOpen, FileText } from "lucide-react";
 import { createWorkshop, type WorkshopType, type OutlineChapter } from "@/lib/workshops";
 import { ensureTags } from "@/lib/tags";
 import { rateLimiters } from "@/lib/security";
+import { useDraft } from "@/hooks/useDraft";
 import TagSelector from "@/components/TagSelector";
 import Dialog from "@/components/Dialog";
 import { useAuthStore } from "@/stores/auth";
 import { toast } from "@/stores/toast";
 import type { WorkshopProject } from "@/lib/workshops";
+
+// #98 草稿恢复的数据结构
+interface WorkshopDraft {
+  title: string;
+  type: WorkshopType;
+  description: string;
+  content: string;
+  outline: OutlineChapter[];
+  tags: string[];
+}
 
 interface WorkshopCreateModalProps {
   open: boolean;
@@ -16,25 +27,44 @@ interface WorkshopCreateModalProps {
 }
 
 export default function WorkshopCreateModal({ open, onClose, onCreated }: WorkshopCreateModalProps) {
-  const [title, setTitle] = useState("");
-  const [type, setType] = useState<WorkshopType>("教材");
-  const [description, setDescription] = useState("");
-  const [content, setContent] = useState("");
-  const [outline, setOutline] = useState<OutlineChapter[]>([
-    { id: "ch1", title: "", brief: "" },
-  ]);
-  const [tags, setTags] = useState<string[]>([]);
+  // #98 useDraft 草稿自动保存与恢复
+  const draft = useDraft<WorkshopDraft>("workshop-create-draft", {
+    title: "",
+    type: "教材" as WorkshopType,
+    description: "",
+    content: "",
+    outline: [{ id: "ch1", title: "", brief: "" }],
+    tags: [],
+  });
+  const { value: form, setValue: setForm, clearDraft, restored, dismissRestored } = draft;
+  const title = form.title;
+  const type = form.type;
+  const description = form.description;
+  const content = form.content;
+  const outline = form.outline;
+  const tags = form.tags;
+
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const { user } = useAuthStore();
 
+  const setTitle = (v: string) => setForm({ ...form, title: v });
+  const setType = (v: WorkshopType) => setForm({ ...form, type: v });
+  const setDescription = (v: string) => setForm({ ...form, description: v });
+  const setContent = (v: string) => setForm({ ...form, content: v });
+  const setTags = (v: string[]) => setForm({ ...form, tags: v });
+  const setOutline = (v: OutlineChapter[]) => setForm({ ...form, outline: v });
+
   const handleClose = () => {
-    setTitle("");
-    setType("教材");
-    setDescription("");
-    setContent("");
-    setOutline([{ id: "ch1", title: "", brief: "" }]);
-    setTags([]);
+    clearDraft();
+    setForm({
+      title: "",
+      type: "教材" as WorkshopType,
+      description: "",
+      content: "",
+      outline: [{ id: "ch1", title: "", brief: "" }],
+      tags: [],
+    });
     setError(null);
     onClose();
   };
@@ -86,6 +116,7 @@ export default function WorkshopCreateModal({ open, onClose, onCreated }: Worksh
         rateLimiters.workshop.record();
         ensureTags(tags.length > 0 ? tags : ["综合"]);
         toast.success("项目已创建");
+        clearDraft();
         onCreated(project);
         handleClose();
       }
@@ -104,7 +135,7 @@ export default function WorkshopCreateModal({ open, onClose, onCreated }: Worksh
       labelledById="workshop-create-dialog-title"
       maxWidthClass="max-w-xl"
     >
-      <div className="max-h-[90vh] overflow-y-auto">
+      <div className="flex max-h-[85vh] flex-col">
         <button
           onClick={handleClose}
           aria-label="关闭"
@@ -113,7 +144,7 @@ export default function WorkshopCreateModal({ open, onClose, onCreated }: Worksh
           <X size={18} />
         </button>
 
-        <div className="relative">
+        <div className="relative shrink-0">
           <span className="font-mono text-xs uppercase tracking-[0.25em] text-star-300">
             新建协作项目
           </span>
@@ -121,9 +152,23 @@ export default function WorkshopCreateModal({ open, onClose, onCreated }: Worksh
               <p className="mt-2 text-sm text-mist-400">
                 创建大纲，邀请其他学习者共同书写教材或论文。
               </p>
+              {/* #98 草稿恢复提示 */}
+              {restored && (
+                <div className="mt-3 flex items-center justify-between rounded-lg border border-tian-400/30 bg-tian-400/5 px-3 py-2 text-xs text-tian-200">
+                  <span>已恢复上次未完成的草稿</span>
+                  <button
+                    onClick={dismissRestored}
+                    className="text-tian-300 transition-colors hover:text-tian-100"
+                    aria-label="关闭提示"
+                  >
+                    <X size={12} />
+                  </button>
+                </div>
+              )}
             </div>
 
-            <form onSubmit={handleSubmit} className="relative mt-6 space-y-5">
+            <form onSubmit={handleSubmit} className="relative mt-6 flex flex-1 flex-col overflow-hidden">
+            <div className="flex-1 space-y-5 overflow-y-auto pr-1">
               {/* 类型选择 */}
               <div>
                 <label className="mb-1.5 block text-xs text-mist-400">项目类型</label>
@@ -265,8 +310,9 @@ export default function WorkshopCreateModal({ open, onClose, onCreated }: Worksh
                   {error}
                 </div>
               )}
+            </div>
 
-              <div className="flex justify-end gap-3">
+              <div className="flex shrink-0 justify-end gap-3 pt-4">
                 <button type="button" onClick={handleClose} className="btn-ghost">
                   取消
                 </button>
