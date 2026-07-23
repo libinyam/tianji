@@ -93,6 +93,14 @@ export default function Footer() {
             >
               鲁ICP备2026036314号
             </a>
+            <a
+              href="https://www.beian.mps.gov.cn/register/toRecord?recordcode=37021302001499"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-mist-500 transition-colors hover:text-mist-300"
+            >
+              鲁公网安备37021302001499号
+            </a>
           </div>
         </div>
       </div>
