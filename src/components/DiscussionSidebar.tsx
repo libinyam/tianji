@@ -92,10 +92,10 @@ export default function DiscussionSidebar({
   ];
 
   return (
-    <aside className="hidden w-[260px] shrink-0 lg:block">
-      <div className="sticky top-4 space-y-4">
+    <aside className="hidden w-[260px] shrink-0 self-start border-r border-void-600/40 pr-4 lg:block">
+      <div className="sticky top-20 max-h-[calc(100vh-6rem)] space-y-4 overflow-y-auto pb-8">
         {/* 品牌简介 */}
-        <div className="card-surface p-4">
+        <div className="p-1">
           <div className="flex items-center gap-2">
             <Sparkles className="h-4 w-4 text-star-400" strokeWidth={1.5} />
             <span className="heading-display text-base text-parchment-50">
@@ -115,7 +115,7 @@ export default function DiscussionSidebar({
         </div>
 
         {/* 分区切换 - Discourse 风左侧导航主项 */}
-        <nav className="card-surface overflow-hidden p-2">
+        <nav className="overflow-hidden py-1">
           <div className="px-2 py-1 text-[11px] font-semibold uppercase tracking-wide text-mist-500">
             分区
           </div>
@@ -141,7 +141,7 @@ export default function DiscussionSidebar({
 
         {/* 热门标签 - Discourse 风标签列表（仅学术区） */}
         {section === "academic" && hotTags.length > 0 && (
-          <nav className="card-surface p-2">
+          <nav className="py-1">
             <div className="px-2 py-1 text-[11px] font-semibold uppercase tracking-wide text-mist-500">
               热门标签
             </div>
@@ -178,7 +178,7 @@ export default function DiscussionSidebar({
 
         {/* 我关注的标签 */}
         {user && followedTags.length > 0 && (
-          <nav className="card-surface p-2">
+          <nav className="py-1">
             <div className="flex items-center gap-1.5 px-2 py-1 text-[11px] font-semibold uppercase tracking-wide text-mist-500">
               <Bookmark size={11} /> 关注的标签
             </div>
@@ -199,8 +199,8 @@ export default function DiscussionSidebar({
         )}
 
         {/* 新手引导 */}
-        <div className="card-surface px-4 py-3">
-          <div className="flex items-center gap-1.5 text-xs font-medium text-parchment-100">
+        <div className="py-1">
+          <div className="flex items-center gap-1.5 px-2 py-1 text-xs font-medium text-parchment-100">
             <Compass size={13} className="text-star-400" /> 第一次来天玑？
           </div>
           <ol className="mt-2 space-y-2">
@@ -221,7 +221,7 @@ export default function DiscussionSidebar({
         </div>
 
         {/* 模块入口 */}
-        <div className="card-surface px-2 py-1">
+        <div className="py-1">
           <div className="px-2 py-1 text-[11px] font-semibold uppercase tracking-wide text-mist-500">
             其他模块
           </div>
@@ -249,8 +249,8 @@ export default function DiscussionSidebar({
 
         {/* 热门讨论 */}
         {hot.length > 0 && (
-          <div className="card-surface px-4 py-3">
-            <div className="flex items-center gap-1.5 text-xs font-medium text-parchment-100">
+          <div className="py-1">
+            <div className="flex items-center gap-1.5 px-2 py-1 text-xs font-medium text-parchment-100">
               <Flame size={13} className="text-star-400" /> 热门讨论
             </div>
             <ul className="mt-2 space-y-2">

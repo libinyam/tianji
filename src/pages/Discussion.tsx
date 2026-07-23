@@ -329,35 +329,40 @@ export default function Discussion() {
 
         {/* 右侧主讨论区 */}
         <div className="min-w-0 flex-1">
-          {/* 顶部条：标题 + 排序 + 发起讨论 */}
-          <div className="mb-4 flex items-center justify-between border-b border-void-600/60 pb-3">
+          {/* 顶部条：标题 + 发起讨论 */}
+          <div className="mb-3 flex items-center justify-between pb-3">
             <h1 className="text-lg font-semibold text-parchment-50">
               {section === "academic" ? "学术区" : section === "casual" ? "闲聊区" : "关注"}
             </h1>
-            <div className="flex items-center gap-3">
-              {/* 排序 */}
-              <div className="flex items-center gap-1 text-xs">
-                {SORT_KEYS.map((s) => (
-                  <button
-                    key={s}
-                    onClick={() => updateFilters({ sort: s })}
-                    className={`rounded-md px-2.5 py-1.5 transition-colors ${
-                      sort === s
-                        ? "bg-tian-500/10 font-medium text-tian-500"
-                        : "text-mist-500 hover:bg-void-700/50 hover:text-parchment-100"
-                    }`}
-                  >
-                    {s}
-                  </button>
-                ))}
-              </div>
-              <button
-                onClick={handlePostClick}
-                className="inline-flex items-center gap-1.5 rounded-md bg-tian-500 px-3.5 py-2 text-sm font-semibold text-white shadow-sm transition-colors hover:bg-tian-600"
-              >
-                <Plus size={15} /> 发起讨论
-              </button>
-            </div>
+            <button
+              onClick={handlePostClick}
+              className="inline-flex items-center gap-1.5 rounded-md bg-tian-500 px-3.5 py-2 text-sm font-semibold text-white shadow-sm transition-colors hover:bg-tian-600"
+            >
+              <Plus size={15} /> 发起讨论
+            </button>
+          </div>
+
+          {/* 子导航：Discourse 风最新/热门/未读切换 */}
+          <div className="mb-4 flex items-center gap-1 border-b border-void-600/40 pb-2">
+            {(["最新", "热门", "未读"] as const).map((v) => {
+              const active =
+                sort === "最新" && v === "最新" ? true : sort === "热度" && v === "热门";
+              return (
+                <button
+                  key={v}
+                  onClick={() =>
+                    v !== "未读" && updateFilters({ sort: v === "热门" ? "热度" : "最新" })
+                  }
+                  className={`rounded-md px-3 py-1.5 text-sm transition-colors ${
+                    active
+                      ? "font-medium text-parchment-100"
+                      : "text-mist-500 hover:bg-void-700/50 hover:text-parchment-100"
+                  }`}
+                >
+                  {v}
+                </button>
+              );
+            })}
           </div>
 
           {/* 新访客欢迎横幅 */}
@@ -484,11 +489,12 @@ export default function Discussion() {
           {!loading && !error && filtered.length > 0 && (
             <div className="bg-void-900/40">
               {/* 表头 */}
-              <div className="grid grid-cols-[minmax(0,1fr)_56px_64px_200px] items-center gap-3 border-b border-void-600/40 px-4 py-2 text-xs font-medium text-mist-500">
+              <div className="grid grid-cols-[minmax(0,1fr)_64px_56px_56px_64px] items-center gap-2 border-b border-void-600/40 px-4 py-2 text-xs font-medium text-mist-500">
                 <span>话题</span>
-                <span className="text-right">回复</span>
-                <span className="text-right">浏览量</span>
-                <span className="text-right">活动</span>
+                <span className="text-center">参与者</span>
+                <span className="text-center">回复</span>
+                <span className="text-center">浏览量</span>
+                <span className="text-center">活动</span>
               </div>
               {filtered.map((q, i) => {
                 const lastActivity = getLastActivity(q);
@@ -503,7 +509,7 @@ export default function Discussion() {
                   <div
                     key={q.id}
                     onClick={() => navigate(`/discussion/${q.id}`)}
-                    className={`group grid cursor-pointer grid-cols-[minmax(0,1fr)_auto] items-center gap-4 px-4 py-3 transition-colors hover:bg-void-700/50 lg:grid-cols-[minmax(0,1fr)_56px_64px_200px] ${
+                    className={`group grid cursor-pointer grid-cols-[minmax(0,1fr)_64px_56px_56px_64px] items-center gap-2 px-4 py-3 transition-colors hover:bg-void-700/50 ${
                       i !== 0 ? "border-t border-void-600/40" : ""
                     }`}
                   >
@@ -556,35 +562,30 @@ export default function Discussion() {
                       </div>
                     </div>
 
-                    {/* 回复数 */}
-                    <div className="text-right">
-                      <span
-                        className={`text-sm font-semibold ${q.answers > 0 ? "text-parchment-100" : "text-mist-400"}`}
-                      >
-                        {formatCount(q.answers)}
-                      </span>
-                    </div>
-
-                    {/* 浏览数 */}
-                    <div className="hidden text-right text-sm text-mist-400 lg:block">
-                      {formatCount(q.views)}
-                    </div>
-
-                    {/* 活动列：最后回复者头像 + 时间（Discourse 标志） */}
-                    <div className="hidden items-center justify-end gap-2 lg:flex">
-                      {replier ? (
-                        <>
-                          <Avatar name={replier.author} color={replier.avatarColor} size={22} />
-                          <span className="shrink-0 text-xs text-mist-500">
-                            {formatShortTime(lastActivity)}
-                          </span>
-                        </>
-                      ) : (
-                        <span className="text-xs text-mist-500">
-                          {formatShortTime(lastActivity)}
-                        </span>
+                    {/* 头像列：发起人 + 最后回复者 并排（Discourse featuredUsers 风格） */}
+                    <div className="flex items-center justify-center gap-1">
+                      <Avatar name={q.author} color={q.avatarColor} size={22} />
+                      {replier && (
+                        <Avatar name={replier.author} color={replier.avatarColor} size={22} />
                       )}
                     </div>
+
+                    {/* 回复数 */}
+                    <span
+                      className={`text-center text-sm font-semibold ${q.answers > 0 ? "text-parchment-100" : "text-mist-400"}`}
+                    >
+                      {formatCount(q.answers)}
+                    </span>
+
+                    {/* 浏览数 */}
+                    <span className="text-center text-sm text-mist-400">
+                      {formatCount(q.views)}
+                    </span>
+
+                    {/* 活动时间 */}
+                    <span className="shrink-0 text-center text-xs text-mist-500">
+                      {formatShortTime(lastActivity)}
+                    </span>
                   </div>
                 );
               })}
