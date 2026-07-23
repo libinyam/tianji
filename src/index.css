@@ -5,8 +5,10 @@
 /* ========== 深色主题（默认） ========== */
 :root {
   --font-display: "Fraunces", "Noto Serif SC", serif;
-  --font-sans: system-ui, -apple-system, "Segoe UI", "Microsoft YaHei", "微软雅黑", "Noto Sans SC", sans-serif;
-  --font-content: "Noto Serif SC", "Source Han Serif SC", "Songti SC", "SimSun", "宋体", "Fraunces", serif;
+  --font-sans:
+    system-ui, -apple-system, "Segoe UI", "Microsoft YaHei", "微软雅黑", "Noto Sans SC", sans-serif;
+  --font-content:
+    "Noto Serif SC", "Source Han Serif SC", "Songti SC", "SimSun", "宋体", "Fraunces", serif;
   --font-mono: "Space Mono", monospace;
 
   /* 底色 */
@@ -47,13 +49,18 @@
   --c-mist-500: #76809f;
 
   /* 背景渐变 */
-  --bg-void-radial: radial-gradient(ellipse at 50% -10%, rgba(27,39,94,0.55) 0%, rgba(10,15,44,0.9) 45%, #060914 100%);
+  --bg-void-radial: radial-gradient(
+    ellipse at 50% -10%,
+    rgba(27, 39, 94, 0.55) 0%,
+    rgba(10, 15, 44, 0.9) 45%,
+    #060914 100%
+  );
   --bg-body: #060914;
   --color-body: #f1ede2;
   --bg-scrollbar-track: #0a0f2c;
   --bg-scrollbar-thumb: linear-gradient(#1b275e, #131d4a);
   --bg-scrollbar-thumb-hover: #2b66ab;
-  --shadow-card: 0 18px 40px -20px rgba(0,0,0,0.7);
+  --shadow-card: 0 18px 40px -20px rgba(0, 0, 0, 0.7);
   --selection-color: #fbf3df;
 
   font-family: var(--font-sans);
@@ -81,8 +88,8 @@
   --c-star-50: #fffbeb;
   --c-star-100: #6b4a06;
   --c-star-200: #855a10;
-  --c-star-300: #9A6400;
-  --c-star-400: #B58100;
+  --c-star-300: #9a6400;
+  --c-star-400: #b58100;
   --c-star-500: #c4881e;
   --c-star-600: #a36f15;
   --c-star-700: #855a10;
@@ -113,8 +120,87 @@
   --bg-scrollbar-track: #f3f4f6;
   --bg-scrollbar-thumb: linear-gradient(#e5e7eb, #d1d5db);
   --bg-scrollbar-thumb-hover: #9ca3af;
-  --shadow-card: 0 1px 3px rgba(0,0,0,0.06), 0 1px 2px rgba(0,0,0,0.04);
+  --shadow-card: 0 1px 3px rgba(0, 0, 0, 0.06), 0 1px 2px rgba(0, 0, 0, 0.04);
   --selection-color: #1f2937;
+}
+
+/* ========== 论坛两页强制浅色作用域（Discourse 风） ==========
+   无论全局主题是深是浅，论坛列表/详情两页始终走浅色变量。
+   变量值与 :root.light 保持同步。 */
+.forum-light {
+  --c-void-950: #ffffff;
+  --c-void-900: #ffffff;
+  --c-void-800: #ffffff;
+  --c-void-700: #f8f9fa;
+  --c-void-600: #e5e7eb;
+
+  --c-star-50: #fffbeb;
+  --c-star-100: #6b4a06;
+  --c-star-200: #855a10;
+  --c-star-300: #9a6400;
+  --c-star-400: #b58100;
+  --c-star-500: #c4881e;
+  --c-star-600: #a36f15;
+  --c-star-700: #855a10;
+
+  --c-tian-50: #eef7ff;
+  --c-tian-100: #d0e8ff;
+  --c-tian-200: #92c8ff;
+  --c-tian-300: #5aa6f0;
+  --c-tian-400: #3d86d6;
+  --c-tian-500: #2b66ab;
+  --c-tian-600: #1d4d80;
+
+  --c-parchment-50: #1a1a2e;
+  --c-parchment-100: #1f2937;
+  --c-parchment-200: #374151;
+  --c-parchment-300: #4b5563;
+
+  --c-mist-300: #4b5563;
+  --c-mist-400: #6b7280;
+  --c-mist-500: #9ca3af;
+
+  --bg-void-radial: none;
+  --bg-body: #ffffff;
+  --color-body: #111827;
+  --bg-scrollbar-track: #f3f4f6;
+  --bg-scrollbar-thumb: linear-gradient(#e5e7eb, #d1d5db);
+  --bg-scrollbar-thumb-hover: #9ca3af;
+  --shadow-card: 0 1px 3px rgba(0, 0, 0, 0.06), 0 1px 2px rgba(0, 0, 0, 0.04);
+  --selection-color: #1f2937;
+}
+
+/* 论坛两页：链接默认黑色，hover 才显蓝 */
+.forum-light a {
+  color: var(--c-parchment-100);
+}
+.forum-light a:hover {
+  color: var(--c-tian-500);
+}
+
+/* Discourse 风格分类纯色徽标：由 inline style 注入背景色，此处只管形状 */
+.discourse-cat {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 1px 8px;
+  border-radius: 9999px;
+  font-size: 12px;
+  font-weight: 500;
+  line-height: 1.4;
+  color: #fff;
+  white-space: nowrap;
+}
+
+/* Discourse 风格 topic-map 卡片：左侧色条 */
+.discourse-topic-map {
+  border: 1px solid var(--c-void-600);
+  border-radius: 8px;
+  background: var(--c-void-800);
+  overflow: hidden;
+}
+.discourse-topic-map__section + .discourse-topic-map__section {
+  border-top: 1px solid var(--c-void-600);
 }
 
 html {
@@ -126,7 +212,9 @@ body {
   min-height: 100vh;
   background-color: var(--bg-body);
   color: var(--color-body);
-  transition: background-color 0.3s ease, color 0.3s ease;
+  transition:
+    background-color 0.3s ease,
+    color 0.3s ease;
 }
 
 /* 自定义滚动条 */
@@ -190,13 +278,21 @@ body {
   .btn-gold {
     @apply inline-flex items-center justify-center gap-2 rounded-lg border px-5 py-2.5 text-sm font-medium transition-all;
     border-color: color-mix(in srgb, var(--c-star-400) 60%, transparent);
-    background-image: linear-gradient(to bottom, color-mix(in srgb, var(--c-star-500) 20%, transparent), color-mix(in srgb, var(--c-star-700) 10%, transparent));
+    background-image: linear-gradient(
+      to bottom,
+      color-mix(in srgb, var(--c-star-500) 20%, transparent),
+      color-mix(in srgb, var(--c-star-700) 10%, transparent)
+    );
     color: var(--c-star-100);
   }
   .btn-gold:hover {
     border-color: var(--c-star-400);
-    box-shadow: 0 0 24px -4px rgba(243,201,105,0.35);
-    background-image: linear-gradient(to bottom, color-mix(in srgb, var(--c-star-500) 30%, transparent), color-mix(in srgb, var(--c-star-700) 10%, transparent));
+    box-shadow: 0 0 24px -4px rgba(243, 201, 105, 0.35);
+    background-image: linear-gradient(
+      to bottom,
+      color-mix(in srgb, var(--c-star-500) 30%, transparent),
+      color-mix(in srgb, var(--c-star-700) 10%, transparent)
+    );
   }
 
   .btn-ghost {
@@ -252,7 +348,7 @@ body {
   color: #243044 !important;
 }
 :root.light .btn-gold {
-  border-color: #9A6400;
+  border-color: #9a6400;
   background-image: linear-gradient(to bottom, rgba(180, 120, 0, 0.22), rgba(168, 106, 0, 0.12));
   color: #805100;
   font-weight: 600;
@@ -264,36 +360,36 @@ body {
 }
 
 :root.light .btn-ghost {
-  border-color: #1D4ED8;
+  border-color: #1d4ed8;
   background-color: rgba(37, 99, 235, 0.11);
-  color: #1E40AF;
+  color: #1e40af;
   font-weight: 600;
 }
 :root.light .btn-ghost:hover {
-  border-color: #1E3A8A;
+  border-color: #1e3a8a;
   background-color: rgba(37, 99, 235, 0.18);
 }
 
 :root.light .pill-gold {
   border-color: rgba(168, 106, 0, 0.4);
   background-color: rgba(180, 120, 0, 0.08);
-  color: #A86A00;
+  color: #a86a00;
   font-weight: 500;
 }
 
 :root.light .pill-blue {
   border-color: rgba(37, 99, 235, 0.35);
   background-color: rgba(37, 99, 235, 0.06);
-  color: #1D4ED8;
+  color: #1d4ed8;
   font-weight: 500;
 }
 
 /* 浅色模式下 Tailwind 原生黄色文字加深，白底上不可读 */
 :root.light .text-yellow-300 {
-  color: #B58100;
+  color: #b58100;
 }
 :root.light .text-yellow-400 {
-  color: #9A6400;
+  color: #9a6400;
 }
 
 @layer utilities {
