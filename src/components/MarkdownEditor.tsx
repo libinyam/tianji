@@ -15,6 +15,7 @@ import {
 } from "lucide-react";
 import LazyMarkdownRenderer from "@/components/LazyMarkdownRenderer";
 import { uploadFile } from "@/lib/storage";
+import { compressImage, fileExt } from "@/lib/image-compress";
 import { useAuthStore } from "@/stores/auth";
 import { toast } from "@/stores/toast";
 
@@ -183,9 +184,10 @@ export default function MarkdownEditor({
 
       setUploading(true);
       try {
-        const ext = file.name.split(".").pop()?.toLowerCase() || "png";
-        const cloudPath = `post-images/${user.uid}-${Date.now()}.${ext}`;
-        const fileID = await uploadFile(cloudPath, file);
+        // #409 上传前客户端压缩（最长边 1600 / WebP 0.85），失败自动回退原图
+        const compressed = await compressImage(file);
+        const cloudPath = `post-images/${user.uid}-${Date.now()}.${fileExt(compressed, "png")}`;
+        const fileID = await uploadFile(cloudPath, compressed);
         // 插入 Markdown 图片语法，使用 cloud:// fileID（渲染时兑换）
         const altText = file.name.replace(/\.[^.]+$/, "").slice(0, 50) || "图片";
         const ta = textareaRef.current;

@@ -13,13 +13,18 @@ export default defineConfig({
     exclude: ["node_modules", "**/node_modules/**", ".claude/**", ".agents/**", ".closed-loop-workspace/**", "dist/**"],
     coverage: {
       provider: "v8",
-      reporter: ["text", "json", "html"],
-      include: ["src/lib/**/*.ts", "src/components/**/*.tsx"],
+      reporter: ["text-summary", "json", "json-summary", "html"],
+      // #425 把 src/pages 纳入统计：15 个页面此前不进覆盖率报告，
+      // 最大的盲区在数字上是隐形的，容易造成"覆盖率还行"的错觉
+      include: ["src/lib/**/*.ts", "src/components/**/*.tsx", "src/pages/**/*.tsx"],
       exclude: ["**/*.test.ts", "**/*.test.tsx", "src/lib/sentry.ts", "src/lib/cloudbase.ts", "src/components/**/*.test.tsx"],
+      // #425 阈值定在略低于当前实际值(ratcheting):纳入 src/pages 后由
+      // scripts/ratchet-coverage.mjs 依据 coverage-summary.json 自动回写,
+      // 覆盖率大幅倒退时 CI 变红,随覆盖增长逐步抬高
       thresholds: {
-        lines: 20,
-        branches: 15,
-        functions: 13,
+        lines: 13,
+        branches: 11,
+        functions: 11,
       },
     },
   },
