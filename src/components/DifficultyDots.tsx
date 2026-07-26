@@ -5,13 +5,12 @@ interface DifficultyDotsProps {
 }
 
 /** 难度以星点表示，已点亮为金色，未点亮为暗蓝。 */
-export default function DifficultyDots({
-  level,
-  max = 5,
-  className = "",
-}: DifficultyDotsProps) {
+export default function DifficultyDots({ level, max = 5, className = "" }: DifficultyDotsProps) {
   return (
-    <span className={`inline-flex items-center gap-1 ${className}`} aria-label={`难度 ${level}/${max}`}>
+    <span
+      className={`inline-flex items-center gap-1 ${className}`}
+      aria-label={`难度 ${level}/${max}`}
+    >
       {Array.from({ length: max }, (_, i) => (
         <span
           key={i}

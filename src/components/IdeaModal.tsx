@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { X, Loader2, Lightbulb, RotateCcw } from "lucide-react";
+import { X, Loader2, RotateCcw } from "lucide-react";
 import { createIdea } from "@/lib/ideas";
 import { ensureTags } from "@/lib/tags";
 import { rateLimiters } from "@/lib/security";
@@ -19,7 +19,13 @@ interface IdeaModalProps {
 const TOPIC_OPTIONS = ["入门项目", "AI 应用", "跨专业应用", "协作共创", "工具链", "科研辅助"];
 
 export default function IdeaModal({ open, onClose, onCreated }: IdeaModalProps) {
-  const { value: draft, setValue: setDraft, clearDraft, restored, dismissRestored } = useDraft("tianji-draft-idea", {
+  const {
+    value: draft,
+    setValue: setDraft,
+    clearDraft,
+    restored,
+    dismissRestored,
+  } = useDraft("tianji-draft-idea", {
     title: "",
     summary: "",
     topic: TOPIC_OPTIONS[0],
@@ -84,24 +90,26 @@ export default function IdeaModal({ open, onClose, onCreated }: IdeaModalProps) 
   };
 
   return (
-    <Dialog open={open} onClose={handleClose} preventClose={loading} labelledById="idea-dialog-title" maxWidthClass="max-w-xl">
+    <Dialog
+      open={open}
+      onClose={handleClose}
+      preventClose={loading}
+      labelledById="idea-dialog-title"
+      maxWidthClass="max-w-xl"
+    >
       <div className="max-h-[90vh] overflow-y-auto">
         <button
           onClick={handleClose}
-          className="absolute right-4 top-4 flex h-8 w-8 items-center justify-center rounded-md text-mist-400 transition-colors hover:bg-void-700/50 hover:text-parchment-100"
+          className="absolute right-4 top-4 flex h-8 w-8 items-center justify-center rounded-md text-mist-400 transition-colors hover:bg-void-700 hover:text-parchment-100"
           aria-label="关闭"
         >
           <X size={18} />
         </button>
 
         <div className="relative">
-          <div className="mb-2 flex items-center gap-2">
-            <Lightbulb size={14} className="text-star-400" />
-            <span className="font-mono text-xs uppercase tracking-[0.25em] text-star-300">
-              分享灵感
-            </span>
-          </div>
-          <h3 id="idea-dialog-title" className="heading-display text-2xl text-parchment-50">提出你的项目创意</h3>
+          <h3 id="idea-dialog-title" className="heading-display text-2xl text-parchment-50">
+            提出你的项目创意
+          </h3>
           <p className="mt-2 text-sm text-mist-400">
             把你的想法描述清楚，让其他人能理解、共鸣并加入。
           </p>
@@ -110,12 +118,15 @@ export default function IdeaModal({ open, onClose, onCreated }: IdeaModalProps) 
         <form onSubmit={handleSubmit} className="relative mt-6 space-y-5">
           {/* 草稿恢复提示 */}
           {restored && (
-            <div className="flex items-center justify-between rounded-lg border border-star-400/30 bg-star-400/10 px-3 py-2 text-xs text-star-200">
+            <div className="flex items-center justify-between rounded-lg border border-void-600 bg-void-700 px-3 py-2 text-xs text-parchment-200">
               <span>已恢复上次未发布的草稿</span>
               <div className="flex items-center gap-3">
                 <button
                   type="button"
-                  onClick={() => { setDraft({ title: "", summary: "", topic: TOPIC_OPTIONS[0], tags: [] }); clearDraft(); }}
+                  onClick={() => {
+                    setDraft({ title: "", summary: "", topic: TOPIC_OPTIONS[0], tags: [] });
+                    clearDraft();
+                  }}
                   className="flex items-center gap-1 text-mist-300 transition-colors hover:text-parchment-100"
                 >
                   <RotateCcw size={12} /> 清空
@@ -141,7 +152,7 @@ export default function IdeaModal({ open, onClose, onCreated }: IdeaModalProps) 
               value={title}
               onChange={(e) => setTitle(e.target.value)}
               placeholder="一句话描述你的项目创意"
-              className="w-full rounded-lg border border-void-600/50 bg-void-950/50 px-3 py-2.5 text-sm text-parchment-100 placeholder:text-mist-500 focus:border-star-400/50 focus:outline-none focus:ring-1 focus:ring-star-400/30"
+              className="w-full rounded-lg border border-void-600 bg-void-950 px-3 py-2.5 text-sm text-parchment-100 placeholder:text-mist-500 focus:border-tian-500 focus:outline-none"
             />
           </div>
 
@@ -156,7 +167,7 @@ export default function IdeaModal({ open, onClose, onCreated }: IdeaModalProps) 
               value={summary}
               onChange={(e) => setSummary(e.target.value)}
               placeholder="描述这个创意的背景、解决的问题、技术方案，以及为什么值得做…"
-              className="w-full resize-y rounded-lg border border-void-600/50 bg-void-950/50 p-3 text-sm leading-relaxed text-parchment-100 placeholder:text-mist-500 focus:border-star-400/50 focus:outline-none focus:ring-1 focus:ring-star-400/30"
+              className="w-full resize-y rounded-lg border border-void-600 bg-void-950 p-3 text-sm leading-relaxed text-parchment-100 placeholder:text-mist-500 focus:border-tian-500 focus:outline-none"
             />
           </div>
 
@@ -169,10 +180,10 @@ export default function IdeaModal({ open, onClose, onCreated }: IdeaModalProps) 
                   key={t}
                   type="button"
                   onClick={() => setTopic(t)}
-                  className={`rounded-full border px-3 py-1.5 text-xs transition-all ${
+                  className={`rounded-full border px-3 py-1.5 text-xs transition-colors ${
                     topic === t
-                      ? "border-star-400/60 bg-star-400/15 text-star-200"
-                      : "border-void-600/50 bg-void-800/40 text-mist-300 hover:border-mist-400/40"
+                      ? "border-tian-500 text-tian-500"
+                      : "border-void-600 bg-void-900 text-mist-300 hover:bg-void-700"
                   }`}
                 >
                   {t}
@@ -188,19 +199,19 @@ export default function IdeaModal({ open, onClose, onCreated }: IdeaModalProps) 
           </div>
 
           {error && (
-            <div className="rounded-lg border border-red-400/30 bg-red-400/10 px-3 py-2 text-xs text-red-300">
+            <div className="rounded-lg border border-red-300 bg-red-50 px-3 py-2 text-xs text-red-600">
               {error}
             </div>
           )}
 
           <div className="flex justify-end gap-3">
-            <button type="button" onClick={handleClose} className="btn-ghost">
+            <button type="button" onClick={handleClose} className="btn-secondary">
               取消
             </button>
             <button
               type="submit"
               disabled={loading || !title.trim() || !summary.trim()}
-              className="btn-gold disabled:cursor-not-allowed disabled:opacity-60"
+              className="btn-primary disabled:cursor-not-allowed disabled:opacity-60"
             >
               {loading ? (
                 <>

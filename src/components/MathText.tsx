@@ -107,7 +107,7 @@ export default function MathText({ content, className = "" }: MathTextProps) {
           return (
             <code
               key={i}
-              className="mx-0.5 rounded bg-void-700/70 px-1.5 py-0.5 font-mono text-[0.85em] text-tian-200"
+              className="mx-0.5 rounded bg-void-700 px-1.5 py-0.5 font-mono text-[0.85em] text-parchment-100"
             >
               {seg.value}
             </code>
@@ -117,7 +117,7 @@ export default function MathText({ content, className = "" }: MathTextProps) {
           return (
             <pre
               key={i}
-              className="my-3 overflow-x-auto rounded-lg border border-void-600/50 bg-void-950/70 p-3 font-mono text-xs leading-relaxed text-tian-100"
+              className="my-3 overflow-x-auto rounded-lg border border-void-600 bg-void-700 p-3 font-mono text-xs leading-relaxed text-parchment-100"
             >
               <code>{seg.value}</code>
             </pre>

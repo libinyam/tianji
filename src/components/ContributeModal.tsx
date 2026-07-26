@@ -67,10 +67,10 @@ export default function ContributeModal({
       maxWidthClass="max-w-2xl"
     >
       <div className="relative">
-        <span className="font-mono text-xs uppercase tracking-[0.25em] text-star-300">
-          贡献内容
-        </span>
-        <h3 id="contribute-title" className="mt-1 heading-display text-2xl text-parchment-50">{chapterTitle}</h3>
+        <span className="text-xs font-medium text-tian-500">贡献内容</span>
+        <h3 id="contribute-title" className="mt-1 heading-display text-2xl text-parchment-50">
+          {chapterTitle}
+        </h3>
         <p className="mt-2 text-sm text-mist-400">
           撰写你对这一章节的内容。支持 LaTeX：行内 $...$，行间 $$...$$
         </p>
@@ -83,24 +83,24 @@ export default function ContributeModal({
           value={content}
           onChange={(e) => setContent(e.target.value)}
           placeholder="撰写章节内容…"
-          className="w-full resize-y rounded-lg border border-void-600/50 bg-void-950/50 p-3 text-sm leading-relaxed text-parchment-100 placeholder:text-mist-500 focus:border-star-400/50 focus:outline-none focus:ring-1 focus:ring-star-400/30"
+          className="w-full resize-y rounded-lg border border-void-600 bg-void-900 p-3 text-sm leading-relaxed text-parchment-100 placeholder:text-mist-500 focus:border-tian-500 focus:outline-none focus:ring-1 focus:ring-tian-500/30"
           maxLength={15000}
         />
 
         {error && (
-          <div className="rounded-lg border border-red-400/30 bg-red-400/10 px-3 py-2 text-xs text-red-300">
+          <div className="rounded-lg border border-red-300 bg-red-50 px-3 py-2 text-xs text-red-600">
             {error}
           </div>
         )}
 
         <div className="flex justify-end gap-3">
-          <button type="button" onClick={handleClose} className="btn-ghost">
+          <button type="button" onClick={handleClose} className="btn-secondary">
             取消
           </button>
           <button
             type="submit"
             disabled={loading || !content.trim()}
-            className="btn-gold disabled:cursor-not-allowed disabled:opacity-60"
+            className="btn-primary disabled:cursor-not-allowed disabled:opacity-60"
           >
             {loading ? (
               <>

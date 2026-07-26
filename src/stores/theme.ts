@@ -13,11 +13,13 @@ const STORAGE_KEY = "tianji-theme";
 
 function applyTheme(mode: ThemeMode) {
   const root = document.documentElement;
-  if (mode === "light") {
-    root.classList.add("light");
+  if (mode === "dark") {
+    root.classList.add("dark");
   } else {
-    root.classList.remove("light");
+    root.classList.remove("dark");
   }
+  // 兼容历史遗留：旧版本用 .light 类标记浅色
+  root.classList.remove("light");
 }
 
 export const useThemeStore = create<ThemeState>((set, get) => ({

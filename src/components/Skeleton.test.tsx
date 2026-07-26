@@ -56,7 +56,7 @@ describe("Skeleton（#323）", () => {
     render(
       <ListSkeleton count={3}>
         <div data-testid="item">x</div>
-      </ListSkeleton>
+      </ListSkeleton>,
     );
     expect(screen.getAllByTestId("item")).toHaveLength(3);
   });
@@ -65,7 +65,7 @@ describe("Skeleton（#323）", () => {
     render(
       <ListSkeleton>
         <div data-testid="item">x</div>
-      </ListSkeleton>
+      </ListSkeleton>,
     );
     expect(screen.getAllByTestId("item")).toHaveLength(4);
   });

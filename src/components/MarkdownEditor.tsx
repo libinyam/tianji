@@ -1,7 +1,16 @@
 import { useRef, useState, useCallback } from "react";
 import {
-  Bold, Italic, Heading, Code, List, ListOrdered,
-  Link as LinkIcon, Image as ImageIcon, Sigma, Eye, Pencil,
+  Bold,
+  Italic,
+  Heading,
+  Code,
+  List,
+  ListOrdered,
+  Link as LinkIcon,
+  Image as ImageIcon,
+  Sigma,
+  Eye,
+  Pencil,
   Loader2,
 } from "lucide-react";
 import LazyMarkdownRenderer from "@/components/LazyMarkdownRenderer";
@@ -32,7 +41,14 @@ interface InsertResult {
 }
 
 /** 在选区两侧插入包裹符号（如 **、*、`） */
-function wrapSelection(text: string, start: number, end: number, before: string, after: string, placeholder: string): InsertResult {
+function wrapSelection(
+  text: string,
+  start: number,
+  end: number,
+  before: string,
+  after: string,
+  placeholder: string,
+): InsertResult {
   const selected = text.slice(start, end);
   const insertText = before + (selected || placeholder) + after;
   const newValue = text.slice(0, start) + insertText + text.slice(end);
@@ -95,84 +111,106 @@ export default function MarkdownEditor({
   const { user } = useAuthStore();
 
   /** 应用插入结果到 textarea，并恢复焦点/选区 */
-  const applyInsert = useCallback((result: InsertResult) => {
-    onChange(result.value);
-    requestAnimationFrame(() => {
-      const ta = textareaRef.current;
-      if (ta) {
-        ta.focus();
-        ta.setSelectionRange(result.selStart, result.selEnd);
-      }
-    });
-  }, [onChange]);
-
-  /** 获取当前选区并执行插入 */
-  const handleWrap = useCallback((before: string, after: string, placeholder: string) => {
-    const ta = textareaRef.current;
-    if (!ta) return;
-    const result = wrapSelection(value, ta.selectionStart, ta.selectionEnd, before, after, placeholder);
-    applyInsert(result);
-  }, [value, applyInsert]);
-
-  const handleLineStart = useCallback((prefix: string) => {
-    const ta = textareaRef.current;
-    if (!ta) return;
-    const result = insertAtLineStart(value, ta.selectionStart, prefix);
-    applyInsert(result);
-  }, [value, applyInsert]);
-
-  const handleBlock = useCallback((block: string) => {
-    const ta = textareaRef.current;
-    if (!ta) return;
-    const result = insertBlock(value, ta.selectionStart, ta.selectionEnd, block);
-    applyInsert(result);
-  }, [value, applyInsert]);
-
-  /** 图片上传：上传到 CloudBase 存储，插入 cloud:// fileID */
-  const handleImageUpload = useCallback(async (file: File) => {
-    if (!user) {
-      toast.error("请先登录后再上传图片");
-      return;
-    }
-    // 5MB 限制
-    if (file.size > 5 * 1024 * 1024) {
-      toast.error("图片大小不能超过 5MB");
-      return;
-    }
-    const allowedTypes = ["image/png", "image/jpeg", "image/jpg", "image/webp", "image/gif"];
-    if (!allowedTypes.includes(file.type)) {
-      toast.error("仅支持 PNG / JPEG / WebP / GIF 格式");
-      return;
-    }
-
-    setUploading(true);
-    try {
-      const ext = file.name.split(".").pop()?.toLowerCase() || "png";
-      const cloudPath = `post-images/${user.uid}-${Date.now()}.${ext}`;
-      const fileID = await uploadFile(cloudPath, file as unknown as string);
-      // 插入 Markdown 图片语法，使用 cloud:// fileID（渲染时兑换）
-      const altText = file.name.replace(/\.[^.]+$/, "").slice(0, 50) || "图片";
-      const ta = textareaRef.current;
-      if (!ta) return;
-      const insertText = `\n![${altText}](${fileID})\n`;
-      const start = ta.selectionStart;
-      const newValue = value.slice(0, start) + insertText + value.slice(start);
-      onChange(newValue);
+  const applyInsert = useCallback(
+    (result: InsertResult) => {
+      onChange(result.value);
       requestAnimationFrame(() => {
-        const t = textareaRef.current;
-        if (t) {
-          t.focus();
-          t.setSelectionRange(start + insertText.length, start + insertText.length);
+        const ta = textareaRef.current;
+        if (ta) {
+          ta.focus();
+          ta.setSelectionRange(result.selStart, result.selEnd);
         }
       });
-      toast.success("图片已上传");
-    } catch (e) {
-      console.error("图片上传失败:", e);
-      toast.error("图片上传失败，请重试");
-    } finally {
-      setUploading(false);
-    }
-  }, [user, value, onChange]);
+    },
+    [onChange],
+  );
+
+  /** 获取当前选区并执行插入 */
+  const handleWrap = useCallback(
+    (before: string, after: string, placeholder: string) => {
+      const ta = textareaRef.current;
+      if (!ta) return;
+      const result = wrapSelection(
+        value,
+        ta.selectionStart,
+        ta.selectionEnd,
+        before,
+        after,
+        placeholder,
+      );
+      applyInsert(result);
+    },
+    [value, applyInsert],
+  );
+
+  const handleLineStart = useCallback(
+    (prefix: string) => {
+      const ta = textareaRef.current;
+      if (!ta) return;
+      const result = insertAtLineStart(value, ta.selectionStart, prefix);
+      applyInsert(result);
+    },
+    [value, applyInsert],
+  );
+
+  const handleBlock = useCallback(
+    (block: string) => {
+      const ta = textareaRef.current;
+      if (!ta) return;
+      const result = insertBlock(value, ta.selectionStart, ta.selectionEnd, block);
+      applyInsert(result);
+    },
+    [value, applyInsert],
+  );
+
+  /** 图片上传：上传到 CloudBase 存储，插入 cloud:// fileID */
+  const handleImageUpload = useCallback(
+    async (file: File) => {
+      if (!user) {
+        toast.error("请先登录后再上传图片");
+        return;
+      }
+      // 5MB 限制
+      if (file.size > 5 * 1024 * 1024) {
+        toast.error("图片大小不能超过 5MB");
+        return;
+      }
+      const allowedTypes = ["image/png", "image/jpeg", "image/jpg", "image/webp", "image/gif"];
+      if (!allowedTypes.includes(file.type)) {
+        toast.error("仅支持 PNG / JPEG / WebP / GIF 格式");
+        return;
+      }
+
+      setUploading(true);
+      try {
+        const ext = file.name.split(".").pop()?.toLowerCase() || "png";
+        const cloudPath = `post-images/${user.uid}-${Date.now()}.${ext}`;
+        const fileID = await uploadFile(cloudPath, file as unknown as string);
+        // 插入 Markdown 图片语法，使用 cloud:// fileID（渲染时兑换）
+        const altText = file.name.replace(/\.[^.]+$/, "").slice(0, 50) || "图片";
+        const ta = textareaRef.current;
+        if (!ta) return;
+        const insertText = `\n![${altText}](${fileID})\n`;
+        const start = ta.selectionStart;
+        const newValue = value.slice(0, start) + insertText + value.slice(start);
+        onChange(newValue);
+        requestAnimationFrame(() => {
+          const t = textareaRef.current;
+          if (t) {
+            t.focus();
+            t.setSelectionRange(start + insertText.length, start + insertText.length);
+          }
+        });
+        toast.success("图片已上传");
+      } catch (e) {
+        console.error("图片上传失败:", e);
+        toast.error("图片上传失败，请重试");
+      } finally {
+        setUploading(false);
+      }
+    },
+    [user, value, onChange],
+  );
 
   const onFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -198,16 +236,20 @@ export default function MarkdownEditor({
         { icon: ListOrdered, title: "有序列表 (1.)", action: () => handleLineStart("1. ") },
         { icon: LinkIcon, title: "链接", action: () => handleWrap("[", "](https://)", "链接文字") },
         { icon: Sigma, title: "行内公式 ($...$)", action: () => handleWrap("$", "$", "E=mc^2") },
-        { icon: Sigma, title: "块级公式 ($$...$$)", action: () => handleBlock("$$\n{content}\n$$") },
+        {
+          icon: Sigma,
+          title: "块级公式 ($$...$$)",
+          action: () => handleBlock("$$\n{content}\n$$"),
+        },
       ];
 
   // compact 模式图片按钮单独处理（避免重复）
   const showImageButton = allowImageUpload && !disabled;
 
   return (
-    <div className={`overflow-hidden rounded-lg border border-void-600/50 bg-void-950/50 ${className}`}>
+    <div className={`overflow-hidden rounded-lg border border-void-600 bg-void-950 ${className}`}>
       {/* 工具栏 */}
-      <div className="flex items-center gap-0.5 border-b border-void-600/30 bg-void-800/30 px-2 py-1.5">
+      <div className="flex items-center gap-0.5 border-b border-void-600 bg-void-800 px-2 py-1.5">
         {toolbarButtons.map((btn, i) => {
           const Icon = btn.icon;
           return (
@@ -216,9 +258,12 @@ export default function MarkdownEditor({
               type="button"
               title={btn.title}
               aria-label={btn.title}
-              onMouseDown={(e) => { e.preventDefault(); btn.action(); }}
+              onMouseDown={(e) => {
+                e.preventDefault();
+                btn.action();
+              }}
               disabled={disabled || uploading}
-              className="flex h-7 w-7 items-center justify-center rounded text-mist-400 transition-colors hover:bg-void-700/60 hover:text-parchment-100 disabled:cursor-not-allowed disabled:opacity-40"
+              className="flex h-7 w-7 items-center justify-center rounded text-mist-400 transition-colors hover:bg-void-700 hover:text-parchment-100 disabled:cursor-not-allowed disabled:opacity-40"
             >
               <Icon size={14} />
             </button>
@@ -230,9 +275,12 @@ export default function MarkdownEditor({
             type="button"
             title="代码块"
             aria-label="代码块"
-            onMouseDown={(e) => { e.preventDefault(); handleBlock("```\n{content}\n```"); }}
+            onMouseDown={(e) => {
+              e.preventDefault();
+              handleBlock("```\n{content}\n```");
+            }}
             disabled={disabled || uploading}
-            className="flex h-7 items-center justify-center rounded px-1.5 text-[10px] font-mono text-mist-400 transition-colors hover:bg-void-700/60 hover:text-parchment-100 disabled:cursor-not-allowed disabled:opacity-40"
+            className="flex h-7 items-center justify-center rounded px-1.5 text-[10px] font-mono text-mist-400 transition-colors hover:bg-void-700 hover:text-parchment-100 disabled:cursor-not-allowed disabled:opacity-40"
           >
             {"</>"}
           </button>
@@ -243,9 +291,12 @@ export default function MarkdownEditor({
             type="button"
             title="上传图片"
             aria-label="上传图片"
-            onMouseDown={(e) => { e.preventDefault(); fileInputRef.current?.click(); }}
+            onMouseDown={(e) => {
+              e.preventDefault();
+              fileInputRef.current?.click();
+            }}
             disabled={disabled || uploading}
-            className="flex h-7 w-7 items-center justify-center rounded text-mist-400 transition-colors hover:bg-void-700/60 hover:text-parchment-100 disabled:cursor-not-allowed disabled:opacity-40"
+            className="flex h-7 w-7 items-center justify-center rounded text-mist-400 transition-colors hover:bg-void-700 hover:text-parchment-100 disabled:cursor-not-allowed disabled:opacity-40"
           >
             {uploading ? <Loader2 size={14} className="animate-spin" /> : <ImageIcon size={14} />}
           </button>
@@ -265,7 +316,9 @@ export default function MarkdownEditor({
               type="button"
               onClick={() => setMode("edit")}
               className={`flex h-7 items-center gap-1 rounded px-2 text-xs transition-colors ${
-                mode === "edit" ? "bg-void-700/60 text-parchment-100" : "text-mist-400 hover:text-parchment-100"
+                mode === "edit"
+                  ? "bg-void-700 text-parchment-100"
+                  : "text-mist-400 hover:text-parchment-100"
               }`}
             >
               <Pencil size={12} /> 编辑
@@ -274,7 +327,9 @@ export default function MarkdownEditor({
               type="button"
               onClick={() => setMode("preview")}
               className={`flex h-7 items-center gap-1 rounded px-2 text-xs transition-colors ${
-                mode === "preview" ? "bg-void-700/60 text-parchment-100" : "text-mist-400 hover:text-parchment-100"
+                mode === "preview"
+                  ? "bg-void-700 text-parchment-100"
+                  : "text-mist-400 hover:text-parchment-100"
               }`}
             >
               <Eye size={12} /> 预览

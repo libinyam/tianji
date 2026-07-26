@@ -51,14 +51,14 @@ describe("Dialog（#323 a11y）", () => {
     const { rerender } = render(
       <Dialog open={true} onClose={() => {}}>
         <div>x</div>
-      </Dialog>
+      </Dialog>,
     );
     expect(document.body.style.overflow).toBe("hidden");
 
     rerender(
       <Dialog open={false} onClose={() => {}}>
         <div>x</div>
-      </Dialog>
+      </Dialog>,
     );
     expect(document.body.style.overflow).toBe("");
   });
@@ -68,7 +68,7 @@ describe("Dialog（#323 a11y）", () => {
     render(
       <Dialog open={true} onClose={onClose}>
         <div>内容</div>
-      </Dialog>
+      </Dialog>,
     );
     // 点击内容容器（背景遮罩层）
     const overlay = screen.getByRole("dialog").parentElement?.parentElement;
@@ -85,7 +85,7 @@ describe("Dialog（#323 a11y）", () => {
     render(
       <Dialog open={true} onClose={onClose} preventClose>
         <div>内容</div>
-      </Dialog>
+      </Dialog>,
     );
     const overlay = screen.getByRole("dialog").parentElement?.parentElement;
     if (overlay) fireEvent.click(overlay);
@@ -97,7 +97,7 @@ describe("Dialog（#323 a11y）", () => {
     render(
       <Dialog open={true} onClose={onClose}>
         <div>内容</div>
-      </Dialog>
+      </Dialog>,
     );
     fireEvent.keyDown(document, { key: "Escape" });
     expect(onClose).toHaveBeenCalled();
@@ -108,7 +108,7 @@ describe("Dialog（#323 a11y）", () => {
     render(
       <Dialog open={true} onClose={onClose} preventClose>
         <div>内容</div>
-      </Dialog>
+      </Dialog>,
     );
     fireEvent.keyDown(document, { key: "Escape" });
     expect(onClose).not.toHaveBeenCalled();
@@ -123,7 +123,7 @@ describe("Dialog（#323 a11y）", () => {
         describedById="dialog-desc"
       >
         <div>内容</div>
-      </Dialog>
+      </Dialog>,
     );
     const dialog = screen.getByRole("dialog");
     expect(dialog).toHaveAttribute("aria-labelledby", "dialog-title");
@@ -134,7 +134,7 @@ describe("Dialog（#323 a11y）", () => {
     render(
       <Dialog open={true} onClose={() => {}}>
         <div>内容</div>
-      </Dialog>
+      </Dialog>,
     );
     const dialog = screen.getByRole("dialog");
     expect(dialog).toHaveAttribute("tabindex", "-1");
@@ -142,20 +142,14 @@ describe("Dialog（#323 a11y）", () => {
 
   it("合并 maxWidthClass / paddingClass / opaque", () => {
     render(
-      <Dialog
-        open={true}
-        onClose={() => {}}
-        maxWidthClass="max-w-2xl"
-        paddingClass="p-4"
-        opaque
-      >
+      <Dialog open={true} onClose={() => {}} maxWidthClass="max-w-2xl" paddingClass="p-4" opaque>
         <div>内容</div>
-      </Dialog>
+      </Dialog>,
     );
     const dialog = screen.getByRole("dialog");
     expect(dialog.className).toContain("max-w-2xl");
     expect(dialog.className).toContain("p-4");
-    // opaque 时应用背景色 style
-    expect(dialog.style.backgroundColor).not.toBe("");
+    // opaque 时应用不透明背景 class（card-surface 已是实色，此处为兼容加强）
+    expect(dialog.className).toContain("bg-void-900");
   });
 });

@@ -25,7 +25,8 @@ export default function Workshop() {
   // #150 SEO
   useSEO({
     title: "协作工坊",
-    description: "天玑协作工坊 -- 发起或加入 AI 项目协作，按章节分工贡献，在社区中共同产出实战项目。",
+    description:
+      "天玑协作工坊 -- 发起或加入 AI 项目协作，按章节分工贡献，在社区中共同产出实战项目。",
     canonical: "https://tianjihub.cn/workshop",
   });
   const [createOpen, setCreateOpen] = useState(false);
@@ -63,13 +64,16 @@ export default function Workshop() {
   return (
     <>
       {/* 顶部工具栏 */}
-      <div className="border-b border-void-600/30 bg-void-900/20">
+      <div className="border-b border-void-600 bg-void-900">
         <div className="container-tj flex h-12 items-center justify-between">
           <div className="flex items-center gap-4">
             <h1 className="text-sm font-medium text-parchment-100">协作工坊</h1>
             <span className="text-xs text-mist-500">{realProjects.length} 个项目</span>
           </div>
-          <button onClick={handleCreateClick} className="inline-flex items-center gap-1.5 rounded-md bg-star-400/10 px-3 py-1.5 text-xs font-medium text-star-300 transition-colors hover:bg-star-400/20">
+          <button
+            onClick={handleCreateClick}
+            className="inline-flex items-center gap-1.5 rounded-md bg-tian-500 px-3 py-1.5 text-xs font-medium text-white transition-colors hover:bg-tian-600"
+          >
             <Plus size={13} /> 新建项目
           </button>
         </div>
@@ -77,7 +81,6 @@ export default function Workshop() {
 
       {/* 项目列表 */}
       <section className="container-tj py-6">
-
         {loading && (
           <ListSkeleton count={3}>
             <WorkshopCardSkeleton />
@@ -92,7 +95,7 @@ export default function Workshop() {
                 <Link
                   key={p.id}
                   to={`/workshop/${p.id}`}
-                  className="group flex h-full flex-col rounded-lg border border-void-600/30 bg-void-800/20 p-5 transition-colors hover:bg-void-800/40"
+                  className="group flex h-full flex-col rounded-lg border border-void-600 bg-void-800 p-5 transition-colors hover:bg-void-700"
                 >
                   <div className="mb-2 flex items-center justify-between">
                     <span className="flex items-center gap-1.5 text-xs text-mist-400">
@@ -102,7 +105,7 @@ export default function Workshop() {
                     <span className="text-[11px] text-mist-500">{p.status}</span>
                   </div>
 
-                  <h3 className="heading-display text-base leading-snug text-parchment-50 transition-colors group-hover:text-star-300">
+                  <h3 className="heading-display text-base leading-snug text-parchment-50 transition-colors group-hover:text-tian-500">
                     {p.title}
                   </h3>
                   <p className="mt-1.5 line-clamp-2 flex-1 text-sm leading-relaxed text-mist-400">
@@ -110,18 +113,19 @@ export default function Workshop() {
                   </p>
 
                   {!canView && (
-                    <div className="mt-3 flex items-center gap-1.5 rounded-md border border-tian-400/20 bg-tian-400/5 px-2.5 py-1.5 text-xs text-tian-200">
+                    <div className="mt-3 flex items-center gap-1.5 rounded-md border border-void-600 bg-void-700 px-2.5 py-1.5 text-xs text-mist-400">
                       <Lock size={11} /> 加入后查看内容
                     </div>
                   )}
 
                   {canView && (
                     <div className="mt-3 text-xs text-mist-500">
-                      {p.content ? `${p.content.length} 字` : "空文档"} · {p.annotations.filter((a) => !a.resolved).length} 条批注
+                      {p.content ? `${p.content.length} 字` : "空文档"} ·{" "}
+                      {p.annotations.filter((a) => !a.resolved).length} 条批注
                     </div>
                   )}
 
-                  <div className="mt-3 flex items-center justify-between border-t border-void-600/20 pt-3 text-xs text-mist-400">
+                  <div className="mt-3 flex items-center justify-between border-t border-void-600 pt-3 text-xs text-mist-400">
                     <div className="flex items-center gap-2">
                       <span
                         className="flex h-5 w-5 items-center justify-center rounded-full text-[9px] font-medium text-void-900"
@@ -136,7 +140,9 @@ export default function Workshop() {
                         <Users size={11} /> {p.participants.length}
                       </span>
                       {p.updatedAt && (
-                        <span className="text-[10px] text-mist-500">{formatUpdatedAt(p.updatedAt)}</span>
+                        <span className="text-[10px] text-mist-500">
+                          {formatUpdatedAt(p.updatedAt)}
+                        </span>
                       )}
                     </div>
                   </div>
@@ -148,7 +154,7 @@ export default function Workshop() {
 
         {/* 空状态 */}
         {!loading && realProjects.length === 0 && (
-          <div className="rounded-lg border border-dashed border-void-600/30 bg-void-800/10 py-16 text-center">
+          <div className="rounded-lg border border-dashed border-void-600 bg-void-800 py-10 text-center">
             <PenLine size={24} className="mx-auto mb-3 text-mist-500" />
             <p className="text-sm text-mist-400">还没有协作项目</p>
             <p className="mt-1 text-xs text-mist-500">点击「新建项目」发起第一个共创文档</p>

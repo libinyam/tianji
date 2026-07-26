@@ -1,7 +1,18 @@
 import { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "motion/react";
-import { Bell, CheckCheck, MessageCircle, ThumbsUp, Users, CornerDownRight, Lightbulb, MessageSquare, CheckCircle, UserPlus } from "lucide-react";
+import {
+  Bell,
+  CheckCheck,
+  MessageCircle,
+  ThumbsUp,
+  Users,
+  CornerDownRight,
+  Lightbulb,
+  MessageSquare,
+  CheckCircle,
+  UserPlus,
+} from "lucide-react";
 import {
   fetchNotifications,
   fetchUnreadCount,
@@ -49,14 +60,18 @@ export default function NotificationBell() {
 
   useEffect(() => {
     mountedRef.current = true;
-    return () => { mountedRef.current = false; };
+    return () => {
+      mountedRef.current = false;
+    };
   }, []);
 
   const uid = useAuthStore((s) => s.user?.uid);
 
   useEffect(() => {
     let mounted = true;
-    const safeSetUnread = (n: number) => { if (mounted) setUnread(n); };
+    const safeSetUnread = (n: number) => {
+      if (mounted) setUnread(n);
+    };
     fetchUnreadCount().then(safeSetUnread);
 
     const timer = setInterval(() => {
@@ -68,10 +83,14 @@ export default function NotificationBell() {
       try {
         const watcher = watchNotifications(
           uid,
-          () => { fetchUnreadCount().then(safeSetUnread); },
+          () => {
+            fetchUnreadCount().then(safeSetUnread);
+          },
           () => {},
         );
-        unsubscribe = () => { watcher.close(); };
+        unsubscribe = () => {
+          watcher.close();
+        };
       } catch {
         // watch not available, polling is fallback
       }
@@ -94,7 +113,9 @@ export default function NotificationBell() {
       setList(items);
       setLoading(false);
     });
-    return () => { mounted = false; };
+    return () => {
+      mounted = false;
+    };
   }, [open]);
 
   // 点击外部关闭
@@ -132,7 +153,7 @@ export default function NotificationBell() {
     <div className="relative" ref={ref}>
       <button
         onClick={() => setOpen((v) => !v)}
-        className="relative flex h-9 w-9 items-center justify-center rounded-lg border border-void-600/50 bg-void-800/40 text-mist-400 transition-colors hover:border-star-400/40 hover:text-star-300"
+        className="relative flex h-9 w-9 items-center justify-center rounded-lg border border-void-600 bg-void-800 text-mist-400 transition-colors hover:bg-void-700 hover:text-tian-500"
         title="通知"
         aria-label="通知"
       >
@@ -151,15 +172,15 @@ export default function NotificationBell() {
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: -8, scale: 0.96 }}
             transition={{ duration: 0.15 }}
-            className="absolute right-0 top-11 z-50 w-80 overflow-hidden rounded-xl border border-void-600/60 bg-void-900 shadow-2xl"
+            className="absolute right-0 top-11 z-50 w-80 overflow-hidden rounded-lg border border-void-600 bg-void-900 shadow-sm"
           >
             {/* 头部 */}
-            <div className="flex items-center justify-between border-b border-void-600/40 px-4 py-2.5">
+            <div className="flex items-center justify-between border-b border-void-600 px-4 py-2.5">
               <span className="text-xs font-medium text-parchment-100">通知</span>
               {unread > 0 && (
                 <button
                   onClick={handleMarkAll}
-                  className="flex items-center gap-1 text-[10px] text-mist-400 transition-colors hover:text-star-300"
+                  className="flex items-center gap-1 text-[10px] text-mist-400 transition-colors hover:text-tian-500"
                 >
                   <CheckCheck size={11} /> 全部已读
                 </button>
@@ -182,13 +203,13 @@ export default function NotificationBell() {
                     <button
                       key={item.id}
                       onClick={() => handleClick(item)}
-                      className={`flex w-full items-start gap-2.5 border-b border-void-600/20 px-4 py-3 text-left transition-colors hover:bg-void-800/50 ${
-                        !item.read ? "bg-star-400/5" : ""
+                      className={`flex w-full items-start gap-2.5 border-b border-void-600 px-4 py-3 text-left transition-colors hover:bg-void-700 ${
+                        !item.read ? "bg-tian-500/5" : ""
                       }`}
                     >
                       <span
                         className={`mt-0.5 flex h-7 w-7 shrink-0 items-center justify-center rounded-lg ${
-                          !item.read ? "bg-star-400/15 text-star-300" : "bg-void-700/50 text-mist-400"
+                          !item.read ? "bg-tian-500/10 text-tian-500" : "bg-void-700 text-mist-400"
                         }`}
                       >
                         <Icon size={13} />
@@ -199,7 +220,9 @@ export default function NotificationBell() {
                           <span className="text-mist-400"> {getTypeLabel(item.type)}</span>
                         </p>
                         <p className="mt-0.5 truncate text-[11px] text-mist-500">{item.title}</p>
-                        <p className="mt-0.5 text-[10px] text-mist-600">{formatTime(item.createdAt)}</p>
+                        <p className="mt-0.5 text-[10px] text-mist-500">
+                          {formatTime(item.createdAt)}
+                        </p>
                       </div>
                       {!item.read && (
                         <span className="mt-1.5 h-2 w-2 shrink-0 rounded-full bg-red-500" />

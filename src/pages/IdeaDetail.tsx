@@ -1,13 +1,31 @@
 import { useEffect, useState } from "react";
 import { Link, useParams, useNavigate } from "react-router-dom";
-import { Lightbulb, ThumbsUp, Bookmark, Flag, ArrowLeft, Loader2, Send, MessageCircle, Trash2, Pencil, Check } from "lucide-react";
+import {
+  ThumbsUp,
+  Bookmark,
+  Flag,
+  ArrowLeft,
+  Loader2,
+  Send,
+  MessageCircle,
+  Trash2,
+  Pencil,
+  Check,
+} from "lucide-react";
 import { toast } from "@/stores/toast";
 import Avatar from "@/components/Avatar";
 import ReportModal from "@/components/ReportModal";
 import TagSelector from "@/components/TagSelector";
 import Dialog from "@/components/Dialog";
 import { PostDetailSkeleton } from "@/components/Skeleton";
-import { fetchIdeaById, resonanceIdea, addIdeaComment, deleteIdeaComment, updateIdea, deleteIdea } from "@/lib/ideas";
+import {
+  fetchIdeaById,
+  resonanceIdea,
+  addIdeaComment,
+  deleteIdeaComment,
+  updateIdea,
+  deleteIdea,
+} from "@/lib/ideas";
 import { toggleFavorite, isFavorited } from "@/lib/favorites";
 import { rateLimiters } from "@/lib/security";
 import { useAuthStore } from "@/stores/auth";
@@ -58,7 +76,9 @@ export default function IdeaDetail() {
         setResonated(!!data.resonatedBy?.includes(curUid));
       }
     })();
-    return () => { mounted = false; };
+    return () => {
+      mounted = false;
+    };
   }, [id]);
 
   // 登录状态变化时重新检查收藏与共鸣状态；登出时重置为未选中（#132）
@@ -83,13 +103,13 @@ export default function IdeaDetail() {
     if (resonated || !idea) return;
 
     setResonated(true);
-    setIdea((prev) => prev ? { ...prev, resonance: prev.resonance + 1 } : prev);
+    setIdea((prev) => (prev ? { ...prev, resonance: prev.resonance + 1 } : prev));
 
     try {
       await resonanceIdea(idea.id);
     } catch (err) {
       setResonated(false);
-      setIdea((prev) => prev ? { ...prev, resonance: Math.max(0, prev.resonance - 1) } : prev);
+      setIdea((prev) => (prev ? { ...prev, resonance: Math.max(0, prev.resonance - 1) } : prev));
       toast.error((err as Error).message || "操作失败，请重试");
     }
   };
@@ -134,7 +154,11 @@ export default function IdeaDetail() {
       const comment = await addIdeaComment(idea.id, commentText);
       if (comment) {
         rateLimiters.comment.record();
-        setIdea({ ...idea, comments: [comment, ...(idea.comments ?? [])], replies: idea.replies + 1 });
+        setIdea({
+          ...idea,
+          comments: [comment, ...(idea.comments ?? [])],
+          replies: idea.replies + 1,
+        });
         setCommentText("");
         toast.success("评论已发布");
       } else {
@@ -177,7 +201,11 @@ export default function IdeaDetail() {
     if (!idea || !editTitle.trim() || !editSummary.trim()) return;
     setEditSaving(true);
     try {
-      await updateIdea(idea.id, { title: editTitle.trim(), summary: editSummary.trim(), tags: editTags });
+      await updateIdea(idea.id, {
+        title: editTitle.trim(),
+        summary: editSummary.trim(),
+        tags: editTags,
+      });
       setIdea({ ...idea, title: editTitle.trim(), summary: editSummary.trim(), tags: editTags });
       setEditOpen(false);
       toast.success("灵感已更新");
@@ -215,10 +243,10 @@ export default function IdeaDetail() {
 
   if (!idea) {
     return (
-      <div className="container-tj py-40 text-center">
-        <p className="heading-display text-3xl text-parchment-50">灵感已消散</p>
-        <p className="mt-3 text-mist-400">这条灵感可能已被作者删除，或从未存在过。</p>
-        <Link to="/ideas" className="btn-ghost mt-6 inline-flex">
+      <div className="container-tj py-10 text-center">
+        <p className="heading-display text-3xl text-parchment-50">灵感不存在</p>
+        <p className="mt-3 text-mist-400">这条灵感可能已被作者删除，或链接有误。</p>
+        <Link to="/ideas" className="btn-secondary mt-6 inline-flex">
           <ArrowLeft size={16} className="mr-1.5" /> 返回灵感广场
         </Link>
       </div>
@@ -228,27 +256,30 @@ export default function IdeaDetail() {
   return (
     <>
       <div className="container-tj py-8">
-        <Link to="/ideas" className="mb-6 inline-flex items-center text-sm text-mist-400 transition-colors hover:text-star-300">
+        <Link
+          to="/ideas"
+          className="mb-6 inline-flex items-center text-sm text-mist-400 transition-colors hover:text-tian-500"
+        >
           <ArrowLeft size={15} className="mr-1.5" /> 返回灵感广场
         </Link>
 
-        <article className="rounded-2xl border border-void-600/40 bg-void-800/40 p-8 backdrop-blur-sm">
+        <article className="rounded-lg border border-void-600 bg-void-800 p-6">
           <div className="flex items-center gap-2.5">
-            <span className="flex h-10 w-10 items-center justify-center rounded-lg border border-star-400/30 bg-star-400/10 text-star-300">
-              <Lightbulb size={19} />
-            </span>
             <span className="pill-blue">{idea.topic}</span>
             <span className="text-xs text-mist-500">{formatRelativeTime(idea.createdAt)}</span>
           </div>
 
-          <h1 className="mt-5 heading-display text-2xl leading-snug text-parchment-50 md:text-3xl">
+          <h1 className="mt-4 heading-display text-2xl leading-snug text-parchment-50 md:text-3xl">
             {idea.title}
           </h1>
 
           <div className="mt-3 flex items-center gap-2.5">
             <Avatar name={idea.author} color={idea.avatarColor} size={28} />
             {idea.authorUid ? (
-              <Link to={`/user/${idea.authorUid}`} className="text-sm text-mist-300 transition-colors hover:text-star-300">
+              <Link
+                to={`/user/${idea.authorUid}`}
+                className="text-sm text-mist-300 transition-colors hover:text-tian-500"
+              >
                 {idea.author}
               </Link>
             ) : (
@@ -256,7 +287,7 @@ export default function IdeaDetail() {
             )}
           </div>
 
-          <div className="mt-6 text-base leading-relaxed text-mist-200 whitespace-pre-wrap">
+          <div className="mt-6 text-base leading-relaxed text-parchment-200 whitespace-pre-wrap">
             {idea.summary}
           </div>
 
@@ -266,7 +297,7 @@ export default function IdeaDetail() {
                 <Link
                   key={tag}
                   to={`/tags/${encodeURIComponent(tag)}`}
-                  className="rounded-full border border-void-600/50 bg-void-700/30 px-3 py-1 text-xs text-mist-300 transition-colors hover:border-star-400/40 hover:text-star-200"
+                  className="rounded-full border border-void-600 bg-void-700 px-3 py-1 text-xs text-mist-300 transition-colors hover:text-tian-500"
                 >
                   #{tag}
                 </Link>
@@ -274,28 +305,28 @@ export default function IdeaDetail() {
             </div>
           )}
 
-          <div className="mt-8 flex items-center gap-4 border-t border-void-600/30 pt-6">
+          <div className="mt-6 flex items-center gap-4 border-t border-void-600 pt-5">
             <button
               onClick={handleResonance}
-              className={`flex items-center gap-2 rounded-lg border px-4 py-2 text-sm transition-all ${
+              className={`flex items-center gap-2 rounded-lg border px-4 py-2 text-sm transition-colors ${
                 resonated
-                  ? "border-star-400/60 bg-star-400/15 text-star-200"
-                  : "border-void-600/50 bg-void-700/30 text-mist-300 hover:border-star-400/40 hover:text-star-300"
+                  ? "border-tian-500 text-tian-500"
+                  : "border-void-600 text-mist-300 hover:bg-void-700 hover:text-tian-500"
               }`}
             >
-              <ThumbsUp size={15} className={resonated ? "fill-star-400" : ""} />
+              <ThumbsUp size={15} className={resonated ? "fill-tian-500" : ""} />
               {idea.resonance} 共鸣
             </button>
 
             <button
               onClick={handleFav}
-              className={`flex items-center gap-2 rounded-lg border px-4 py-2 text-sm transition-all ${
+              className={`flex items-center gap-2 rounded-lg border px-4 py-2 text-sm transition-colors ${
                 faved
-                  ? "border-star-400/60 bg-star-400/15 text-star-200"
-                  : "border-void-600/50 bg-void-700/30 text-mist-300 hover:border-star-400/40 hover:text-star-300"
+                  ? "border-tian-500 text-tian-500"
+                  : "border-void-600 text-mist-300 hover:bg-void-700 hover:text-tian-500"
               }`}
             >
-              <Bookmark size={15} className={faved ? "fill-star-400" : ""} />
+              <Bookmark size={15} className={faved ? "fill-tian-500" : ""} />
               {faved ? "已收藏" : "收藏"}
             </button>
 
@@ -308,7 +339,7 @@ export default function IdeaDetail() {
                   }
                   setReportOpen(true);
                 }}
-                className="flex items-center gap-2 rounded-lg border border-void-600/50 bg-void-700/30 px-4 py-2 text-sm text-mist-400 transition-colors hover:text-red-300"
+                className="flex items-center gap-2 rounded-lg border border-void-600 px-4 py-2 text-sm text-mist-400 transition-colors hover:bg-void-700 hover:text-red-500"
               >
                 <Flag size={15} /> 举报
               </button>
@@ -319,19 +350,23 @@ export default function IdeaDetail() {
               <>
                 <button
                   onClick={handleStartEdit}
-                  className="flex items-center gap-2 rounded-lg border border-void-600/50 bg-void-700/30 px-4 py-2 text-sm text-mist-300 transition-colors hover:text-star-300"
+                  className="flex items-center gap-2 rounded-lg border border-void-600 px-4 py-2 text-sm text-mist-300 transition-colors hover:bg-void-700 hover:text-tian-500"
                 >
                   <Pencil size={15} /> 编辑
                 </button>
                 {deleteConfirm ? (
                   <span className="flex items-center gap-2">
-                    <span className="text-xs text-red-300">确定删除？</span>
+                    <span className="text-xs text-red-600">确定删除？</span>
                     <button
                       onClick={handleDelete}
                       disabled={deleting}
-                      className="flex items-center gap-1.5 rounded-lg border border-red-500/40 bg-red-500/20 px-3 py-1.5 text-xs text-red-300 hover:bg-red-500/30 disabled:opacity-60"
+                      className="flex items-center gap-1.5 rounded-lg border border-red-300 bg-red-50 px-3 py-1.5 text-xs text-red-600 hover:bg-red-100 disabled:opacity-60"
                     >
-                      {deleting ? <Loader2 size={12} className="animate-spin" /> : <Trash2 size={12} />}
+                      {deleting ? (
+                        <Loader2 size={12} className="animate-spin" />
+                      ) : (
+                        <Trash2 size={12} />
+                      )}
                       确认
                     </button>
                     <button
@@ -345,7 +380,7 @@ export default function IdeaDetail() {
                 ) : (
                   <button
                     onClick={() => setDeleteConfirm(true)}
-                    className="flex items-center gap-2 rounded-lg border border-void-600/50 bg-void-700/30 px-4 py-2 text-sm text-mist-400 transition-colors hover:text-red-300"
+                    className="flex items-center gap-2 rounded-lg border border-void-600 px-4 py-2 text-sm text-mist-400 transition-colors hover:bg-void-700 hover:text-red-500"
                   >
                     <Trash2 size={15} /> 删除
                   </button>
@@ -358,12 +393,12 @@ export default function IdeaDetail() {
         {/* 评论区 */}
         <div className="mt-8">
           <h2 className="heading-display text-xl text-parchment-50 flex items-center gap-2">
-            <MessageCircle size={20} className="text-star-400" />
+            <MessageCircle size={20} className="text-mist-400" />
             评论 {(idea.comments ?? []).length > 0 && `(${(idea.comments ?? []).length})`}
           </h2>
 
           {/* 评论输入 */}
-          <div className="mt-4 rounded-xl border border-void-600/40 bg-void-800/30 p-4">
+          <div className="mt-4 rounded-lg border border-void-600 bg-void-800 p-4">
             <textarea
               value={commentText}
               onChange={(e) => setCommentText(e.target.value)}
@@ -371,16 +406,20 @@ export default function IdeaDetail() {
               maxLength={1000}
               placeholder="写下你的想法…"
               aria-label="评论内容"
-              className="w-full resize-none rounded-lg border border-void-600/50 bg-void-950/50 p-3 text-sm text-parchment-100 focus:border-star-400/50 focus:outline-none"
+              className="w-full resize-none rounded-lg border border-void-600 bg-void-950 p-3 text-sm text-parchment-100 focus:border-tian-500 focus:outline-none"
             />
             <div className="mt-3 flex items-center justify-between">
               <span className="text-xs text-mist-500">{commentText.length}/1000</span>
               <button
                 onClick={handleComment}
                 disabled={commentSubmitting || !commentText.trim()}
-                className="btn-gold text-sm disabled:opacity-50"
+                className="btn-primary text-sm disabled:opacity-50"
               >
-                {commentSubmitting ? <Loader2 size={14} className="animate-spin" /> : <Send size={14} />}
+                {commentSubmitting ? (
+                  <Loader2 size={14} className="animate-spin" />
+                ) : (
+                  <Send size={14} />
+                )}
                 发布评论
               </button>
             </div>
@@ -389,35 +428,46 @@ export default function IdeaDetail() {
           {/* 评论列表 */}
           <div className="mt-4 space-y-4">
             {(idea.comments ?? []).length === 0 ? (
-              <p className="py-8 text-center text-sm text-mist-500">还没有评论，第一个来分享你的想法吧</p>
+              <p className="py-8 text-center text-sm text-mist-500">
+                还没有评论，第一个来分享你的想法吧
+              </p>
             ) : (
-              [...(idea.comments ?? [])].sort((x, y) => (y.createdAt > x.createdAt ? 1 : -1)).map((c) => (
-                <div key={c.id} className="rounded-xl border border-void-600/40 bg-void-800/30 p-4">
-                  <div className="flex items-center justify-between gap-2.5">
-                    <div className="flex items-center gap-2.5">
-                      <Avatar name={c.author} color={c.avatarColor} size={28} />
-                      {c.authorUid ? (
-                        <Link to={`/user/${c.authorUid}`} className="text-sm text-mist-300 transition-colors hover:text-star-300">
-                          {c.author}
-                        </Link>
-                      ) : (
-                        <span className="text-sm text-mist-300">{c.author}</span>
+              [...(idea.comments ?? [])]
+                .sort((x, y) => (y.createdAt > x.createdAt ? 1 : -1))
+                .map((c) => (
+                  <div key={c.id} className="rounded-lg border border-void-600 bg-void-800 p-4">
+                    <div className="flex items-center justify-between gap-2.5">
+                      <div className="flex items-center gap-2.5">
+                        <Avatar name={c.author} color={c.avatarColor} size={28} />
+                        {c.authorUid ? (
+                          <Link
+                            to={`/user/${c.authorUid}`}
+                            className="text-sm text-mist-300 transition-colors hover:text-tian-500"
+                          >
+                            {c.author}
+                          </Link>
+                        ) : (
+                          <span className="text-sm text-mist-300">{c.author}</span>
+                        )}
+                        <span className="text-xs text-mist-500">
+                          {formatRelativeTime(c.createdAt)}
+                        </span>
+                      </div>
+                      {isAuthor(user?.uid, c.authorUid) && (
+                        <button
+                          onClick={() => handleDeleteComment(c.id)}
+                          aria-label="删除评论"
+                          className="flex h-7 w-7 items-center justify-center rounded-md text-mist-500 transition-colors hover:bg-void-700 hover:text-red-500"
+                        >
+                          <Trash2 size={13} />
+                        </button>
                       )}
-                      <span className="text-xs text-mist-500">{formatRelativeTime(c.createdAt)}</span>
                     </div>
-                    {isAuthor(user?.uid, c.authorUid) && (
-                      <button
-                        onClick={() => handleDeleteComment(c.id)}
-                        aria-label="删除评论"
-                        className="flex h-7 w-7 items-center justify-center rounded-md text-mist-500 transition-colors hover:bg-red-400/10 hover:text-red-300"
-                      >
-                        <Trash2 size={13} />
-                      </button>
-                    )}
+                    <p className="mt-2.5 text-sm leading-relaxed text-parchment-200 whitespace-pre-wrap">
+                      {c.content}
+                    </p>
                   </div>
-                  <p className="mt-2.5 text-sm leading-relaxed text-mist-200 whitespace-pre-wrap">{c.content}</p>
-                </div>
-              ))
+                ))
             )}
           </div>
         </div>
@@ -430,7 +480,7 @@ export default function IdeaDetail() {
           name="title"
           value={editTitle}
           onChange={(e) => setEditTitle(e.target.value)}
-          className="mb-3 w-full rounded-lg border border-void-600/50 bg-void-950/50 px-3 py-2.5 text-sm text-parchment-100 focus:border-star-400/50 focus:outline-none"
+          className="mb-3 w-full rounded-lg border border-void-600 bg-void-950 px-3 py-2.5 text-sm text-parchment-100 focus:border-tian-500 focus:outline-none"
           placeholder="标题"
           maxLength={200}
         />
@@ -439,7 +489,7 @@ export default function IdeaDetail() {
           rows={5}
           value={editSummary}
           onChange={(e) => setEditSummary(e.target.value)}
-          className="w-full resize-none rounded-lg border border-void-600/50 bg-void-950/50 p-3 text-sm text-parchment-100 focus:border-star-400/50 focus:outline-none"
+          className="w-full resize-none rounded-lg border border-void-600 bg-void-950 p-3 text-sm text-parchment-100 focus:border-tian-500 focus:outline-none"
           maxLength={500}
           placeholder="灵感内容"
         />
@@ -448,11 +498,13 @@ export default function IdeaDetail() {
           <TagSelector value={editTags} onChange={setEditTags} />
         </div>
         <div className="mt-4 flex justify-end gap-2">
-          <button onClick={() => setEditOpen(false)} className="btn-ghost text-sm">取消</button>
+          <button onClick={() => setEditOpen(false)} className="btn-secondary text-sm">
+            取消
+          </button>
           <button
             onClick={handleSaveEdit}
             disabled={editSaving || !editTitle.trim() || !editSummary.trim()}
-            className="btn-gold text-sm disabled:opacity-60"
+            className="btn-primary text-sm disabled:opacity-60"
           >
             {editSaving ? <Loader2 size={14} className="animate-spin" /> : <Check size={14} />}
             保存

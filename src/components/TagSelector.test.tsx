@@ -119,7 +119,7 @@ describe("TagSelector（#191）", () => {
       <div>
         <TagSelector value={[]} onChange={() => {}} />
         <button data-testid="outside">外部按钮</button>
-      </div>
+      </div>,
     );
     const input = screen.getByRole("combobox") as HTMLInputElement;
     fireEvent.focus(input);

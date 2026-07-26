@@ -1,5 +1,4 @@
-import { motion } from "motion/react";
-import { Sparkles } from "lucide-react";
+import { Inbox } from "lucide-react";
 
 interface EmptyStateProps {
   icon?: React.ReactNode;
@@ -17,24 +16,17 @@ export default function EmptyState({
   onAction,
 }: EmptyStateProps) {
   return (
-    <motion.div
-      initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.5 }}
-      className="flex flex-col items-center justify-center rounded-xl border border-dashed border-void-600/50 bg-void-800/20 px-6 py-20 text-center"
-    >
-      <div className="mb-5 flex h-16 w-16 items-center justify-center rounded-full bg-void-700/50 text-mist-400">
-        {icon ?? <Sparkles size={28} strokeWidth={1.5} />}
+    <div className="flex flex-col items-center justify-center rounded-lg border border-dashed border-void-600 bg-void-800 px-6 py-10 text-center">
+      <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-void-700 text-mist-400">
+        {icon ?? <Inbox size={24} strokeWidth={1.5} />}
       </div>
-      <h3 className="heading-display text-xl text-parchment-50">{title}</h3>
-      <p className="mt-2 max-w-sm text-sm leading-relaxed text-mist-400">
-        {description}
-      </p>
+      <h3 className="heading-display text-lg text-parchment-50">{title}</h3>
+      <p className="mt-2 max-w-sm text-sm leading-relaxed text-mist-400">{description}</p>
       {actionText && onAction && (
-        <button onClick={onAction} className="btn-gold mt-6 text-sm">
+        <button onClick={onAction} className="btn-primary mt-5 text-sm">
           {actionText}
         </button>
       )}
-    </motion.div>
+    </div>
   );
 }
