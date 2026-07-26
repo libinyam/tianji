@@ -18,12 +18,14 @@ function ensureApp() {
 }
 
 // 仅供测试注入假数据库，生产代码不应调用
-exports.__setTestDb = (fakeDb) => {
+// #415 opts.callFunction 可注入自定义实现，用于测试审核 block/fail-closed 分支；
+// 缺省保持恒放行，兼容既有测试
+exports.__setTestDb = (fakeDb, opts = {}) => {
   db = fakeDb;
   _ = fakeDb.command;
-  // #315 测试模式下注入 mock app，moderateText 调用 callFunction 时返回放行
   app = {
-    callFunction: async () => ({ result: { ok: true, suggestion: "pass" } }),
+    callFunction:
+      opts.callFunction || (async () => ({ result: { ok: true, suggestion: "pass" } })),
   };
 };
 
@@ -358,6 +360,68 @@ async function deleteIdea(event, uid) {
   try { await db.collection("reports").where({ targetId: ideaId }).remove(); } catch {}
 
   return ok({ deleted: true });
+}
+
+/** #404 创建灵感（迁自客户端直写，接入服务端审核） */
+async function createIdea(event, uid) {
+  const { title, summary, topic, tags, author } = event;
+  if (!title || !summary) return fail("缺少参数");
+
+  if (await isBanned(uid)) return fail("您的账号已被封禁");
+
+  const fullText = title + "\n" + summary;
+  const modResult = await moderateText(fullText, uid, "createIdea");
+  await logModeration({ uid, action: "createIdea", suggestion: modResult.suggestion, label: modResult.label, score: modResult.score, textPreview: String(fullText).slice(0, 200) });
+  if (!modResult.passed) return fail(moderationRejectMessage(modResult));
+
+  const doc = {
+    title: String(title).trim().slice(0, 200),
+    summary: String(summary).slice(0, 10000),
+    author: String(author || "").slice(0, 50) || "匿名用户",
+    authorUid: uid,
+    avatarColor: AVATAR_COLORS[Math.floor(Math.random() * AVATAR_COLORS.length)],
+    topic: String(topic || "").slice(0, 100),
+    tags: Array.isArray(tags)
+      ? tags.map((t) => String(t).trim().slice(0, 20)).filter(Boolean).slice(0, 5)
+      : [],
+    resonance: 0,
+    replies: 0,
+    createdAt: new Date().toISOString(),
+  };
+
+  const res = await db.collection("ideas").add(doc);
+  const resObj = res || {};
+  return ok({ ...doc, id: resObj.id || resObj._id || "" });
+}
+
+/** #404 编辑灵感（仅作者，接入服务端审核，防止通过编辑绕过） */
+async function updateIdea(event, uid) {
+  const { ideaId, title, summary, tags } = event;
+  if (!ideaId || !title || !summary) return fail("缺少参数");
+
+  if (await isBanned(uid)) return fail("您的账号已被封禁");
+
+  const fullText = title + "\n" + summary;
+  const modResult = await moderateText(fullText, uid, "updateIdea");
+  await logModeration({ uid, action: "updateIdea", ideaId, suggestion: modResult.suggestion, label: modResult.label, score: modResult.score, textPreview: String(fullText).slice(0, 200) });
+  if (!modResult.passed) return fail(moderationRejectMessage(modResult));
+
+  const docRef = db.collection("ideas").doc(ideaId);
+  const { data } = await docRef.get();
+  if (!data || data.length === 0) return fail("灵感不存在");
+
+  const idea = data[0];
+  if (idea.authorUid !== uid) return fail("无权编辑他人灵感");
+
+  await docRef.update({
+    title: String(title).trim().slice(0, 200),
+    summary: String(summary).slice(0, 10000),
+    tags: Array.isArray(tags)
+      ? tags.map((t) => String(t).trim().slice(0, 20)).filter(Boolean).slice(0, 5)
+      : [],
+  });
+
+  return ok({ updated: true });
 }
 
 /**
@@ -914,6 +978,86 @@ async function joinWorkshop(event, uid) {
   return ok({ joined: true });
 }
 
+/** #404 创建协作项目（迁自客户端直写，接入服务端审核） */
+async function createWorkshop(event, uid) {
+  const { title, type, description, content, outline, tags, creator } = event;
+  if (!title || !description) return fail("缺少参数");
+
+  if (await isBanned(uid)) return fail("您的账号已被封禁");
+
+  const cleanOutline = Array.isArray(outline)
+    ? outline.slice(0, 50).map((ch) => ({
+        ...ch,
+        title: String((ch && ch.title) || "").slice(0, 200),
+        brief: String((ch && ch.brief) || "").slice(0, 1000),
+      }))
+    : [];
+
+  const outlineText = cleanOutline.map((ch) => `${ch.title}\n${ch.brief}`).join("\n");
+  const fullText = `${title}\n${description}\n${content || ""}\n${outlineText}`;
+  const modResult = await moderateText(fullText, uid, "createWorkshop");
+  await logModeration({ uid, action: "createWorkshop", suggestion: modResult.suggestion, label: modResult.label, score: modResult.score, textPreview: String(fullText).slice(0, 200) });
+  if (!modResult.passed) return fail(moderationRejectMessage(modResult));
+
+  const now = new Date().toISOString();
+  const doc = {
+    title: String(title).trim().slice(0, 200),
+    type: String(type || "").slice(0, 50),
+    description: String(description).slice(0, 10000),
+    content: String(content || "").slice(0, 30000),
+    outline: cleanOutline,
+    creator: String(creator || "").slice(0, 50) || "匿名用户",
+    creatorUid: uid,
+    avatarColor: AVATAR_COLORS[Math.floor(Math.random() * AVATAR_COLORS.length)],
+    participants: [uid],
+    contributions: [],
+    annotations: [],
+    tags: Array.isArray(tags)
+      ? tags.map((t) => String(t).trim().slice(0, 20)).filter(Boolean).slice(0, 5)
+      : [],
+    status: "招募中",
+    createdAt: now,
+    updatedAt: now,
+  };
+
+  const res = await db.collection("workshops").add(doc);
+  const resObj = res || {};
+  return ok({ ...doc, id: resObj.id || resObj._id || "" });
+}
+
+/** #404 编辑工坊元信息（仅创建者：标题/简介/状态，接入服务端审核） */
+async function updateWorkshopMeta(event, uid) {
+  const { workshopId, title, description, status } = event;
+  if (!workshopId) return fail("缺少参数");
+  if (title === undefined && description === undefined && status === undefined) {
+    return fail("缺少可更新字段");
+  }
+
+  if (await isBanned(uid)) return fail("您的账号已被封禁");
+
+  const textToModerate = [title, description].filter((v) => v !== undefined).join("\n");
+  if (textToModerate) {
+    const modResult = await moderateText(textToModerate, uid, "updateWorkshopMeta");
+    await logModeration({ uid, action: "updateWorkshopMeta", workshopId, suggestion: modResult.suggestion, label: modResult.label, score: modResult.score, textPreview: String(textToModerate).slice(0, 200) });
+    if (!modResult.passed) return fail(moderationRejectMessage(modResult));
+  }
+
+  const docRef = db.collection("workshops").doc(workshopId);
+  const { data } = await docRef.get();
+  if (!data || data.length === 0) return fail("工坊不存在");
+
+  const workshop = data[0];
+  if (workshop.creatorUid !== uid) return fail("仅创建者可编辑标题、简介和状态");
+
+  const patch = { updatedAt: new Date().toISOString() };
+  if (title !== undefined) patch.title = String(title).trim().slice(0, 200);
+  if (description !== undefined) patch.description = String(description).slice(0, 10000);
+  if (status !== undefined) patch.status = String(status).slice(0, 20);
+
+  await docRef.update(patch);
+  return ok({ updated: true });
+}
+
 async function submitWorkshopContribution(event, uid) {
   const { workshopId, chapterId, content } = event;
   if (!workshopId || !chapterId || !content) return fail("缺少参数");
@@ -1081,6 +1225,15 @@ async function updateWorkshopContent(event, uid) {
   if (!workshopId) return fail("缺少参数");
   if (content === undefined) return fail("缺少 content");
 
+  if (await isBanned(uid)) return fail("您的账号已被封禁");
+
+  // #404 正文接入文本审核（此前唯一漏审的工坊写路径）；清空内容无需审核
+  if (content) {
+    const modResult = await moderateText(content, uid, "updateWorkshopContent");
+    await logModeration({ uid, action: "updateWorkshopContent", workshopId, suggestion: modResult.suggestion, label: modResult.label, score: modResult.score, textPreview: String(content).slice(0, 200) });
+    if (!modResult.passed) return fail(moderationRejectMessage(modResult));
+  }
+
   const sanitized = String(content).slice(0, 30000);
 
   const docRef = db.collection("workshops").doc(workshopId);
@@ -1103,11 +1256,46 @@ async function updateWorkshopContent(event, uid) {
 }
 
 
+const NOTIFICATION_TYPES = [
+  "answer", "comment", "resonance", "join", "contribute", "accept", "follow", "workshop",
+];
+
+/**
+ * #40 通知服务端化：actorUid 取自登录态不可伪造，显示名优先取端用户信息；
+ * link 限制为站内路径。此前 create 规则允许任意登录用户（含匿名）给任何人
+ * 写入任意 actor/link 的通知，可冒充管理员做仿冒骚扰。
+ */
+async function createNotificationAction(event, uid, endUserName) {
+  const { targetUid, type, title, link, actor } = event;
+  if (!targetUid || !type || !link) return fail("缺少参数");
+  if (!NOTIFICATION_TYPES.includes(type)) return fail("非法通知类型");
+  if (typeof link !== "string" || !link.startsWith("/") || link.startsWith("//")) {
+    return fail("非法链接");
+  }
+  if (targetUid === uid) return ok({ skipped: true });
+
+  if (await isBanned(uid)) return fail("您的账号已被封禁");
+
+  await db.collection("notifications").add({
+    uid: String(targetUid),
+    actor: String(endUserName || actor || "").slice(0, 50) || "匿名用户",
+    actorUid: uid,
+    type,
+    title: String(title || "").slice(0, 200),
+    link: String(link).slice(0, 300),
+    read: false,
+    createdAt: new Date().toISOString(),
+  });
+
+  return ok({ created: true });
+}
+
 const RATE_LIMIT_RULES = {
   voteAnswer: { max: 30, windowMs: 60_000 },
   acceptAnswer: { max: 20, windowMs: 60_000 },
   incrementPostViews: { max: 120, windowMs: 60_000 },
   incrementBookDownloads: { max: 60, windowMs: 60_000 },
+  createNotification: { max: 20, windowMs: 60_000 },
   _default: { max: 15, windowMs: 60_000 },
 };
 
@@ -1151,11 +1339,14 @@ exports.main = async (event, context) => {
   const appInst = ensureApp();
 
   let uid = "";
+  let endUserName = "";
   // 测试注入 db 时 appInst 为空，直接走 context.userInfo 回退
   if (appInst) {
     try {
       const info = await appInst.auth().getEndUserInfo();
       uid = info?.userInfo?.uid || "";
+      // #40 服务端可信显示名，用于通知 actor，防冒充
+      endUserName = info?.userInfo?.nickName || "";
     } catch {}
   }
   if (!uid && context?.userInfo) {
@@ -1200,6 +1391,16 @@ exports.main = async (event, context) => {
           return await addIdeaComment(event, uid);
         case "deleteIdeaComment":
           return await deleteIdeaComment(event, uid);
+        case "createIdea":
+          return await createIdea(event, uid);
+        case "updateIdea":
+          return await updateIdea(event, uid);
+        case "createWorkshop":
+          return await createWorkshop(event, uid);
+        case "updateWorkshopMeta":
+          return await updateWorkshopMeta(event, uid);
+        case "createNotification":
+          return await createNotificationAction(event, uid, endUserName);
         case "updatePost":
           return await updatePost(event, uid);
         case "updateAnswer":

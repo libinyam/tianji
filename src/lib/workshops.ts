@@ -4,7 +4,6 @@ import { checkCurrentUserBanned } from "@/lib/ban";
 import { containsSensitiveWord } from "@/lib/sensitive-words";
 import { awardReputation } from "@/lib/reputation";
 import { getCurrentUid, getCurrentUserName } from "@/lib/current-user";
-import { AVATAR_COLORS } from "@/lib/avatar-colors";
 
 const db = app.database();
 const COLLECTION = "workshops";
@@ -167,28 +166,29 @@ export async function createWorkshop(params: {
     throw new Error(`内容包含敏感词: ${sensitiveCheck.words.join(", ")}`);
   }
 
-  const now = new Date().toISOString();
-  const doc: Omit<WorkshopDoc, "_id"> = {
-    title: cleanTitle,
-    type: params.type,
-    description: cleanDescription,
-    content: cleanContent,
-    outline: cleanOutline,
-    creator: getCurrentUserName(),
-    creatorUid: uid,
-    avatarColor: AVATAR_COLORS[Math.floor(Math.random() * AVATAR_COLORS.length)],
-    participants: [uid],
-    contributions: [],
-    annotations: [],
-    tags: cleanTags,
-    status: "招募中",
-    createdAt: now,
-    updatedAt: now,
+  // #404 走云函数写入，接入服务端审核（上方本地校验仅为快速反馈）
+  const res = await app.callFunction({
+    name: "content-actions",
+    data: {
+      action: "createWorkshop",
+      title: cleanTitle,
+      type: params.type,
+      description: cleanDescription,
+      content: cleanContent,
+      outline: cleanOutline,
+      tags: cleanTags,
+      creator: getCurrentUserName(),
+    },
+  });
+  const result = (res?.result ?? {}) as {
+    ok?: boolean;
+    error?: string;
+    data?: WorkshopDoc & { id?: string };
   };
-
-  const res = await db.collection(COLLECTION).add(doc);
-  const resObj = res as unknown as Record<string, unknown>;
-  const newId = (resObj.id as string) ?? (resObj._id as string) ?? "";
+  if (!result.ok) throw new Error(result.error || "创建失败，请重试");
+  const doc = result.data;
+  if (!doc) return null;
+  const newId = doc.id ?? "";
 
   await awardReputation("createWorkshop", newId);
 
@@ -198,15 +198,15 @@ export async function createWorkshop(params: {
     type: doc.type,
     description: doc.description,
     content: doc.content,
-    outline: doc.outline,
+    outline: doc.outline ?? [],
     creator: doc.creator,
     creatorUid: doc.creatorUid,
     avatarColor: doc.avatarColor,
-    participants: doc.participants,
+    participants: doc.participants ?? [uid],
     contributions: [],
     annotations: [],
-    tags: doc.tags,
-    status: doc.status,
+    tags: doc.tags ?? [],
+    status: normalizeStatus(doc.status),
     createdAt: doc.createdAt,
     updatedAt: doc.updatedAt,
   };
@@ -292,23 +292,41 @@ export async function updateWorkshop(
       if (!result.ok) throw new Error(result.error || "保存失败");
     }
 
-    // title/description/status 仅创建者可改（直写 DB）
-    const metaFields: Record<string, unknown> = {};
-    if (params.title !== undefined) metaFields.title = sanitizeTitle(params.title);
-    if (params.description !== undefined) metaFields.description = sanitizeInput(params.description);
-    if (params.status !== undefined) metaFields.status = params.status;
-
-    if (Object.keys(metaFields).length > 0) {
+    // title/description/status 仅创建者可改（#404 走云函数，接入服务端审核）
+    if (
+      params.title !== undefined ||
+      params.description !== undefined ||
+      params.status !== undefined
+    ) {
       if (!isCreator) {
         throw new Error("仅创建者可编辑标题、简介和状态");
       }
-      metaFields.updatedAt = new Date().toISOString();
-      await docRef.update(metaFields);
+      const metaRes = await app.callFunction({
+        name: "content-actions",
+        data: {
+          action: "updateWorkshopMeta",
+          workshopId: id,
+          ...(params.title !== undefined ? { title: sanitizeTitle(params.title) } : {}),
+          ...(params.description !== undefined
+            ? { description: sanitizeInput(params.description) }
+            : {}),
+          ...(params.status !== undefined ? { status: params.status } : {}),
+        },
+      });
+      const metaResult = (metaRes?.result ?? {}) as { ok?: boolean; error?: string };
+      if (!metaResult.ok) throw new Error(metaResult.error || "保存失败");
     }
 
     return true;
   } catch (err) {
-    if (err instanceof Error && (err.message.includes("仅创建者") || err.message.includes("无权"))) throw err;
+    if (
+      err instanceof Error &&
+      (err.message.includes("仅创建者") ||
+        err.message.includes("无权") ||
+        err.message.includes("敏感词") ||
+        err.message.includes("审核"))
+    )
+      throw err;
     return false;
   }
 }

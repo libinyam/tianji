@@ -225,6 +225,7 @@ describe("workshops", () => {
   });
 
   describe("createWorkshop", () => {
+    // #404 改走云函数：服务端审核 + creatorUid 由服务端取自登录态
     const validParams = {
       title: "新项目",
       type: "教材" as const,
@@ -234,8 +235,28 @@ describe("workshops", () => {
       tags: ["AI"],
     };
 
-    it("成功：创建文档并调用 awardReputation", async () => {
+    const cloudDoc = {
+      id: "new-id",
+      title: "新项目",
+      type: "教材",
+      description: "描述",
+      content: "内容",
+      outline: [{ id: "ch1", title: "第一章", brief: "简介" }],
+      creator: "Tester",
+      creatorUid: "u1",
+      avatarColor: "#7cc4ff",
+      participants: ["u1"],
+      contributions: [],
+      annotations: [],
+      tags: ["AI"],
+      status: "招募中",
+      createdAt: "2026-07-26T00:00:00.000Z",
+      updatedAt: "2026-07-26T00:00:00.000Z",
+    };
+
+    it("成功：调用云函数并调用 awardReputation", async () => {
       mockAuth.user = { uid: "u1", nickname: "Tester" };
+      mockCallFunction.mockResolvedValue({ result: { ok: true, data: cloudDoc } });
 
       const result = await createWorkshop(validParams);
 
@@ -245,26 +266,36 @@ describe("workshops", () => {
       expect(result?.creatorUid).toBe("u1");
       expect(result?.participants).toEqual(["u1"]);
       expect(result?.status).toBe("招募中");
-      expect(mockDb._chain.add).toHaveBeenCalled();
+      expect(mockCallFunction).toHaveBeenCalledWith({
+        name: "content-actions",
+        data: expect.objectContaining({
+          action: "createWorkshop",
+          title: "新项目",
+          description: "描述",
+          creator: "Tester",
+        }),
+      });
+      // 不再直写数据库
+      expect(mockDb._chain.add).not.toHaveBeenCalled();
       expect(mockReputation.awardReputation).toHaveBeenCalledWith("createWorkshop", "new-id");
     });
 
-    it("未登录：抛出错误", async () => {
+    it("未登录：抛出错误且不调用云函数", async () => {
       mockAuth.user = null;
 
       await expect(createWorkshop(validParams)).rejects.toThrow("请先登录");
-      expect(mockDb._chain.add).not.toHaveBeenCalled();
+      expect(mockCallFunction).not.toHaveBeenCalled();
     });
 
-    it("被封禁：抛出错误", async () => {
+    it("被封禁：抛出错误且不调用云函数", async () => {
       mockAuth.user = { uid: "u1" };
       mockBan.checkCurrentUserBanned.mockResolvedValue(true);
 
       await expect(createWorkshop(validParams)).rejects.toThrow("已被封禁");
-      expect(mockDb._chain.add).not.toHaveBeenCalled();
+      expect(mockCallFunction).not.toHaveBeenCalled();
     });
 
-    it("含敏感词：抛出错误", async () => {
+    it("含敏感词：本地快筛抛错且不调用云函数", async () => {
       mockAuth.user = { uid: "u1" };
       mockSensitive.containsSensitiveWord.mockReturnValue({
         found: true,
@@ -272,16 +303,32 @@ describe("workshops", () => {
       });
 
       await expect(createWorkshop(validParams)).rejects.toThrow("敏感词");
-      expect(mockDb._chain.add).not.toHaveBeenCalled();
+      expect(mockCallFunction).not.toHaveBeenCalled();
     });
 
-    it("用户信息缺失时使用匿名用户名", async () => {
+    it("云函数返回失败（如服务端审核拦截）：抛出错误", async () => {
       mockAuth.user = { uid: "u1" };
+      mockCallFunction.mockResolvedValue({
+        result: { ok: false, error: "内容包含广告信息，请修改后重试" },
+      });
+
+      await expect(createWorkshop(validParams)).rejects.toThrow("广告");
+      expect(mockReputation.awardReputation).not.toHaveBeenCalled();
+    });
+
+    it("用户信息缺失时以匿名用户名传给云函数", async () => {
+      mockAuth.user = { uid: "u1" };
+      mockCallFunction.mockResolvedValue({
+        result: { ok: true, data: { ...cloudDoc, creator: "匿名用户" } },
+      });
 
       await createWorkshop(validParams);
 
-      const callArgs = mockDb._chain.add.mock.calls[0][0];
-      expect(callArgs.creator).toBe("匿名用户");
+      expect(mockCallFunction).toHaveBeenCalledWith(
+        expect.objectContaining({
+          data: expect.objectContaining({ creator: "匿名用户" }),
+        })
+      );
     });
   });
 
@@ -436,9 +483,11 @@ describe("workshops", () => {
   });
 
   describe("updateWorkshop", () => {
-    it("成功：创建者更新字段", async () => {
+    // #404 meta 编辑改走云函数（updateWorkshopMeta），接入服务端审核
+    it("成功：创建者更新字段（走云函数）", async () => {
       mockAuth.user = { uid: "creator-1" };
       mockDb._docRef.get.mockResolvedValue({ data: [workshopDoc] });
+      mockCallFunction.mockResolvedValue({ result: { ok: true, data: { updated: true } } });
 
       const result = await updateWorkshop("w1", {
         title: "新标题",
@@ -446,11 +495,27 @@ describe("workshops", () => {
       });
 
       expect(result).toBe(true);
-      expect(mockDb._docRef.update).toHaveBeenCalled();
-      const updateArgs = mockDb._docRef.update.mock.calls[0][0];
-      expect(updateArgs.title).toBe("新标题");
-      expect(updateArgs.status).toBe("已完成");
-      expect(updateArgs.updatedAt).toBeDefined();
+      expect(mockCallFunction).toHaveBeenCalledWith({
+        name: "content-actions",
+        data: {
+          action: "updateWorkshopMeta",
+          workshopId: "w1",
+          title: "新标题",
+          status: "已完成",
+        },
+      });
+      // 不再直写数据库
+      expect(mockDb._docRef.update).not.toHaveBeenCalled();
+    });
+
+    it("服务端审核拦截：抛出错误", async () => {
+      mockAuth.user = { uid: "creator-1" };
+      mockDb._docRef.get.mockResolvedValue({ data: [workshopDoc] });
+      mockCallFunction.mockResolvedValue({
+        result: { ok: false, error: "内容包含敏感词: 广告" },
+      });
+
+      await expect(updateWorkshop("w1", { title: "新标题" })).rejects.toThrow("敏感词");
     });
 
     it("未找到：返回 false", async () => {

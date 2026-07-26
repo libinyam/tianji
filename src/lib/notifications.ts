@@ -61,7 +61,7 @@ function toNotif(doc: NotificationDoc): NotificationItem {
   };
 }
 
-/** 创建通知（供其他模块调用） */
+/** 创建通知（供其他模块调用；#40 走云函数，actorUid 由服务端取自登录态防冒充） */
 export async function createNotification(params: {
   uid: string;          // 接收者
   type: NotificationType;
@@ -72,18 +72,18 @@ export async function createNotification(params: {
   // 不通知自己
   if (actorUid === params.uid) return;
 
-  const doc: Omit<NotificationDoc, "_id"> = {
-    uid: params.uid,
-    actor: getCurrentUserName(),
-    actorUid,
-    type: params.type,
-    title: params.title,
-    link: params.link,
-    read: false,
-    createdAt: new Date().toISOString(),
-  };
   try {
-    await db.collection(COLLECTION).add(doc);
+    await app.callFunction({
+      name: "content-actions",
+      data: {
+        action: "createNotification",
+        targetUid: params.uid,
+        type: params.type,
+        title: params.title,
+        link: params.link,
+        actor: getCurrentUserName(),
+      },
+    });
   } catch {
     // 静默失败，通知不影响核心流程
   }
