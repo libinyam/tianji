@@ -1,6 +1,6 @@
 // @vitest-environment jsdom
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
-import { render, screen, fireEvent, cleanup } from "@testing-library/react";
+import { render, screen, fireEvent, cleanup, waitFor } from "@testing-library/react";
 import ErrorBoundary from "./ErrorBoundary";
 
 // vi.mock 会被提升到顶部，必须用 vi.hoisted 才能在工厂中引用
@@ -52,13 +52,14 @@ describe("ErrorBoundary（#191）", () => {
     expect(screen.getByText("渲染失败")).toBeInTheDocument();
   });
 
-  it("崩溃时调用 Sentry.captureException", () => {
+  it("崩溃时调用 Sentry.captureException", async () => {
     render(
       <ErrorBoundary>
         <Boom message="sentinel-error" />
       </ErrorBoundary>,
     );
-    expect(captureException).toHaveBeenCalledTimes(1);
+    // #424 上报改为动态 import(避免把 Sentry 拽回静态模块图),断言需等待异步链
+    await waitFor(() => expect(captureException).toHaveBeenCalledTimes(1));
     const captured = captureException.mock.calls[0][0] as Error;
     expect(captured.message).toBe("sentinel-error");
   });
