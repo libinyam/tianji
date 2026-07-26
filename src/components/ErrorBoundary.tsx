@@ -1,5 +1,4 @@
 import { Component, type ReactNode } from "react";
-import { Sentry } from "../lib/sentry";
 
 interface Props {
   children: ReactNode;
@@ -35,7 +34,14 @@ export default class ErrorBoundary extends Component<Props, State> {
   componentDidCatch(error: Error, info: unknown) {
     console.error("应用崩溃:", error, info);
 
-    Sentry.captureException(error, { extra: { reactInfo: info } });
+    // #424 动态导入:此前这里的静态 import 把 Sentry 拽回静态模块图,
+    // 让 main.tsx 的空闲延迟加载完全失效(构建器 INEFFECTIVE_DYNAMIC_IMPORT 警告)。
+    // 崩溃路径本就罕见,且空闲回调通常早已把 sentry chunk 载入(命中缓存)
+    void import("../lib/sentry")
+      .then(({ Sentry }) => {
+        Sentry.captureException(error, { extra: { reactInfo: info } });
+      })
+      .catch(() => {});
 
     // 资源加载失败 -> 自动刷新（10 秒内只刷新一次，防止无限循环）
     if (isChunkLoadError(error)) {
