@@ -1,4 +1,4 @@
-import { app } from "@/lib/cloudbase";
+import { app, callAction } from "@/lib/cloudbase";
 import { getCurrentUid, getCurrentUserName } from "@/lib/current-user";
 
 const db = app.database();
@@ -75,16 +75,12 @@ export async function createNotification(params: {
   if (actorUid === params.uid) return;
 
   try {
-    await app.callFunction({
-      name: "content-actions",
-      data: {
-        action: "createNotification",
-        targetUid: params.uid,
-        type: params.type,
-        title: params.title,
-        link: params.link,
-        actor: getCurrentUserName(),
-      },
+    await callAction("createNotification", {
+      targetUid: params.uid,
+      type: params.type,
+      title: params.title,
+      link: params.link,
+      actor: getCurrentUserName(),
     });
   } catch {
     // 静默失败，通知不影响核心流程

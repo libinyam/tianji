@@ -1,4 +1,4 @@
-import { app } from "@/lib/cloudbase";
+import { app, callCloudFunction } from "@/lib/cloudbase";
 import { assertAdmin } from "@/lib/admin";
 
 const db = app.database();
@@ -40,45 +40,32 @@ export async function fetchActiveAnnouncements(): Promise<Announcement[]> {
 /** 获取所有公告（管理后台用，走云函数确保管理员权限） */
 export async function fetchAllAnnouncements(): Promise<Announcement[]> {
   await assertAdmin();
-  const res = await app.callFunction({
-    name: "manage-announcements",
-    data: { action: "list" },
-  });
-  const result = (res?.result ?? {}) as { ok?: boolean; data?: Announcement[]; error?: string };
-  if (!result.ok) throw new Error(result.error || "获取公告列表失败");
-  return result.data ?? [];
+  const data = await callCloudFunction<Announcement[] | undefined>(
+    "manage-announcements",
+    { action: "list" },
+    "获取公告列表失败",
+  );
+  return data ?? [];
 }
 
 /** 发布公告（管理员，走云函数） */
 export async function createAnnouncement(title: string, content: string): Promise<Announcement> {
   await assertAdmin();
-  const res = await app.callFunction({
-    name: "manage-announcements",
-    data: { action: "create", title, content },
-  });
-  const result = (res?.result ?? {}) as { ok?: boolean; data?: Announcement; error?: string };
-  if (!result.ok) throw new Error(result.error || "发布失败");
-  return result.data as Announcement;
+  return await callCloudFunction<Announcement>(
+    "manage-announcements",
+    { action: "create", title, content },
+    "发布失败",
+  );
 }
 
 /** 切换公告状态（管理员，走云函数） */
 export async function toggleAnnouncement(id: string, active: boolean): Promise<void> {
   await assertAdmin();
-  const res = await app.callFunction({
-    name: "manage-announcements",
-    data: { action: "toggle", id, active },
-  });
-  const result = (res?.result ?? {}) as { ok?: boolean; error?: string };
-  if (!result.ok) throw new Error(result.error || "操作失败");
+  await callCloudFunction("manage-announcements", { action: "toggle", id, active });
 }
 
 /** 删除公告（管理员，走云函数） */
 export async function deleteAnnouncement(id: string): Promise<void> {
   await assertAdmin();
-  const res = await app.callFunction({
-    name: "manage-announcements",
-    data: { action: "delete", id },
-  });
-  const result = (res?.result ?? {}) as { ok?: boolean; error?: string };
-  if (!result.ok) throw new Error(result.error || "删除失败");
+  await callCloudFunction("manage-announcements", { action: "delete", id }, "删除失败");
 }

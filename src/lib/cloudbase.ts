@@ -64,4 +64,37 @@ async function ensureAuthReady() {
 
 void ensureAuthReady();
 
+/** 云函数统一返回信封 { ok, error?, data? } */
+interface ActionResult<T> {
+  ok?: boolean;
+  error?: string;
+  data?: T;
+}
+
+/**
+ * #418 统一 RPC 封装:调用云函数并解包信封,失败抛 Error(message)。
+ * 此前 43 处调用点各自内联 `(res?.result ?? {}) as {...}` 样板,
+ * 协议变化(错误码/登录态过期/上报)需要横扫 11 个文件。
+ * 需要"目标不存在返回 null/false"等语义的调用方,catch 后按 e.message 匹配。
+ */
+export async function callCloudFunction<T = unknown>(
+  name: string,
+  data: Record<string, unknown>,
+  fallbackError = "操作失败，请重试",
+): Promise<T> {
+  const res = await app.callFunction({ name, data });
+  const result = (res?.result ?? {}) as ActionResult<T>;
+  if (!result.ok) throw new Error(result.error || fallbackError);
+  return result.data as T;
+}
+
+/** content-actions(全站唯一内容写入口)的便捷封装 */
+export function callAction<T = unknown>(
+  action: string,
+  data: Record<string, unknown> = {},
+  fallbackError?: string,
+): Promise<T> {
+  return callCloudFunction<T>("content-actions", { action, ...data }, fallbackError);
+}
+
 export { app, auth, ENV_ID };

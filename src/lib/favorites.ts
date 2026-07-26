@@ -1,4 +1,4 @@
-import { app } from "@/lib/cloudbase";
+import { app, callAction } from "@/lib/cloudbase";
 import { getCurrentUid } from "@/lib/current-user";
 import { sanitizeInput } from "@/lib/sanitize";
 import { checkCurrentUserBanned } from "@/lib/ban";
@@ -75,21 +75,11 @@ export async function toggleFavorite(params: {
     }
     if (!directDeleted) {
       // 回退到云函数以 admin 权限删除
-      const cfRes = await app.callFunction({
-        name: "content-actions",
-        data: { action: "removeFavorite", targetId: params.targetId },
-      });
-      const cfResult = (cfRes?.result ?? {}) as { ok?: boolean; error?: string };
-      if (!cfResult.ok) throw new Error(cfResult.error || "取消收藏失败，请稍后重试");
+      await callAction("removeFavorite", { targetId: params.targetId }, "取消收藏失败，请稍后重试");
     }
     // 更新对应集合的 favorites 计数
     if (params.type === "book") {
-      app
-        .callFunction({
-          name: "content-actions",
-          data: { action: "adjustBookFavorites", bookId: params.targetId, delta: -1 },
-        })
-        .catch(() => {});
+      callAction("adjustBookFavorites", { bookId: params.targetId, delta: -1 }).catch(() => {});
     }
     return false;
   }
@@ -111,12 +101,7 @@ export async function toggleFavorite(params: {
   }
   // 更新对应集合的 favorites 计数
   if (params.type === "book") {
-    app
-      .callFunction({
-        name: "content-actions",
-        data: { action: "adjustBookFavorites", bookId: params.targetId, delta: 1 },
-      })
-      .catch(() => {});
+    callAction("adjustBookFavorites", { bookId: params.targetId, delta: 1 }).catch(() => {});
   }
   return true;
 }

@@ -1,4 +1,4 @@
-import { app, authReady } from "@/lib/cloudbase";
+import { app, authReady, callAction } from "@/lib/cloudbase";
 import { createNotification } from "@/lib/notifications";
 import { sanitizeInput, sanitizeTitle, sanitizeTag } from "@/lib/sanitize";
 import { checkCurrentUserBanned } from "@/lib/ban";
@@ -96,34 +96,30 @@ export async function createIdea(params: {
   }
 
   // #404 走云函数写入，接入服务端审核（上方本地校验仅为快速反馈）
-  const res = await app.callFunction({
-    name: "content-actions",
-    data: {
-      action: "createIdea",
+  const doc = await callAction<
+    | {
+        id?: string;
+        title: string;
+        summary: string;
+        author: string;
+        authorUid: string;
+        avatarColor: string;
+        topic: string;
+        tags: string[];
+        createdAt: string;
+      }
+    | undefined
+  >(
+    "createIdea",
+    {
       title: cleanTitle,
       summary: cleanSummary,
       topic: cleanTopic,
       tags: cleanTags,
       author: getCurrentUserName(),
     },
-  });
-  const result = (res?.result ?? {}) as {
-    ok?: boolean;
-    error?: string;
-    data?: {
-      id?: string;
-      title: string;
-      summary: string;
-      author: string;
-      authorUid: string;
-      avatarColor: string;
-      topic: string;
-      tags: string[];
-      createdAt: string;
-    };
-  };
-  if (!result.ok) throw new Error(result.error || "发布失败，请重试");
-  const doc = result.data;
+    "发布失败，请重试",
+  );
   if (!doc) return null;
   const newId = doc.id ?? "";
 
@@ -152,12 +148,7 @@ export async function resonanceIdea(id: string): Promise<boolean> {
   const banStatus = await checkCurrentUserBanned();
   if (banStatus) throw new Error("您的账号已被封禁");
 
-  const res = await app.callFunction({
-    name: "content-actions",
-    data: { action: "resonanceIdea", id },
-  });
-  const result = (res?.result ?? {}) as { ok?: boolean; error?: string };
-  if (!result.ok) throw new Error(result.error || "操作失败");
+  await callAction("resonanceIdea", { id });
   return true;
 }
 
@@ -174,21 +165,16 @@ export async function updateIdea(
   const cleanSummary = sanitizeInput(params.summary);
   const cleanTags = params.tags.map(sanitizeTag);
 
-  const res = await app.callFunction({
-    name: "content-actions",
-    data: {
-      action: "updateIdea",
-      ideaId,
-      title: cleanTitle,
-      summary: cleanSummary,
-      tags: cleanTags,
-    },
-  });
-  const result = (res?.result ?? {}) as { ok?: boolean; error?: string };
-  if (!result.ok) {
+  try {
+    await callAction(
+      "updateIdea",
+      { ideaId, title: cleanTitle, summary: cleanSummary, tags: cleanTags },
+      "保存失败，请重试",
+    );
+  } catch (e) {
     // 与旧实现一致：灵感不存在返回 false，越权/审核拦截抛出
-    if (result.error === "灵感不存在") return false;
-    throw new Error(result.error || "保存失败，请重试");
+    if (e instanceof Error && e.message === "灵感不存在") return false;
+    throw e;
   }
   return true;
 }
@@ -202,30 +188,30 @@ export async function addIdeaComment(ideaId: string, content: string): Promise<I
   // Sanitize input
   const cleanContent = sanitizeInput(content.trim());
 
-  const res = await app.callFunction({
-    name: "content-actions",
-    data: { action: "addIdeaComment", ideaId, content: cleanContent, author: getCurrentUserName() },
-  });
-  const result = (res?.result ?? {}) as {
-    ok?: boolean;
-    error?: string;
-    data?: { comment?: IdeaComment; ideaTitle?: string; ideaAuthorUid?: string };
-  };
-  if (!result.ok) {
+  let data: { comment?: IdeaComment; ideaTitle?: string; ideaAuthorUid?: string } | undefined;
+  try {
+    data = await callAction<
+      { comment?: IdeaComment; ideaTitle?: string; ideaAuthorUid?: string } | undefined
+    >(
+      "addIdeaComment",
+      { ideaId, content: cleanContent, author: getCurrentUserName() },
+      "评论失败，请重试",
+    );
+  } catch (e) {
     // 与旧实现一致：灵感已被删除时返回 null，由调用方给出友好提示
-    if (result.error === "灵感不存在") return null;
-    throw new Error(result.error || "评论失败，请重试");
+    if (e instanceof Error && e.message === "灵感不存在") return null;
+    throw e;
   }
-  const comment = result.data?.comment;
+  const comment = data?.comment;
   if (!comment) return null;
 
   // 通知灵感作者（legacy 灵感缺 authorUid 时不写无主通知 #115）
-  const ideaAuthorUid = result.data?.ideaAuthorUid;
+  const ideaAuthorUid = data?.ideaAuthorUid;
   if (ideaAuthorUid && ideaAuthorUid !== uid) {
     await createNotification({
       uid: ideaAuthorUid,
       type: "comment",
-      title: result.data?.ideaTitle ?? "",
+      title: data?.ideaTitle ?? "",
       link: `/ideas/${ideaId}`,
     }).catch(() => {});
   }
@@ -238,15 +224,13 @@ export async function deleteIdeaComment(ideaId: string, commentId: string): Prom
   const uid = getCurrentUid();
   if (!uid) throw new Error("请先登录");
 
-  const res = await app.callFunction({
-    name: "content-actions",
-    data: { action: "deleteIdeaComment", ideaId, commentId },
-  });
-  const result = (res?.result ?? {}) as { ok?: boolean; error?: string };
-  if (!result.ok) {
+  try {
+    await callAction("deleteIdeaComment", { ideaId, commentId }, "删除失败，请重试");
+  } catch (e) {
     // 与旧实现一致：目标不存在返回 false，越权等其余错误抛出
-    if (result.error === "灵感不存在" || result.error === "评论不存在") return false;
-    throw new Error(result.error || "删除失败，请重试");
+    if (e instanceof Error && (e.message === "灵感不存在" || e.message === "评论不存在"))
+      return false;
+    throw e;
   }
   return true;
 }
@@ -256,11 +240,6 @@ export async function deleteIdea(ideaId: string): Promise<boolean> {
   const uid = getCurrentUid();
   if (!uid) throw new Error("请先登录");
 
-  const res = await app.callFunction({
-    name: "content-actions",
-    data: { action: "deleteIdea", ideaId },
-  });
-  const result = (res?.result ?? {}) as { ok?: boolean; error?: string };
-  if (!result.ok) throw new Error(result.error || "删除失败，请稍后重试");
+  await callAction("deleteIdea", { ideaId }, "删除失败，请稍后重试");
   return true;
 }

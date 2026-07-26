@@ -1,4 +1,4 @@
-import { app } from "@/lib/cloudbase";
+import { app, callCloudFunction } from "@/lib/cloudbase";
 import { useAuthStore } from "@/stores/auth";
 
 const db = app.database();
@@ -37,16 +37,12 @@ export async function checkCurrentUserBanned(): Promise<boolean> {
   return status.banned;
 }
 
+// #418 此前不检查返回信封,云函数拒绝(如非管理员)时静默"成功"——
+// 改经 callCloudFunction 失败抛错,Admin.tsx 的 try/catch 会 toast 提示
 export async function banUser(uid: string, reason: string, days?: number): Promise<void> {
-  await app.callFunction({
-    name: "user-admin",
-    data: { action: "banUser", uid, reason, days },
-  });
+  await callCloudFunction("user-admin", { action: "banUser", uid, reason, days }, "封禁失败");
 }
 
 export async function unbanUser(uid: string): Promise<void> {
-  await app.callFunction({
-    name: "user-admin",
-    data: { action: "unbanUser", uid },
-  });
+  await callCloudFunction("user-admin", { action: "unbanUser", uid }, "解封失败");
 }

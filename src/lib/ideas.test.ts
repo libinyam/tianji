@@ -65,6 +65,17 @@ const mockNotifications = vi.hoisted(() => ({
 vi.mock("@/lib/cloudbase", () => ({
   app: { database: () => mockDb, callFunction: mockCallFunction },
   authReady: Promise.resolve(),
+  // #418 真实 callAction 的等价转发,payload 断言保持有效
+  callAction: async (
+    action: string,
+    data: Record<string, unknown> = {},
+    fallbackError = "操作失败，请重试",
+  ) => {
+    const res = await mockCallFunction({ name: "content-actions", data: { action, ...data } });
+    const result = (res?.result ?? {}) as { ok?: boolean; error?: string; data?: unknown };
+    if (!result.ok) throw new Error(result.error || fallbackError);
+    return result.data;
+  },
 }));
 
 vi.mock("@/stores/auth", () => ({
