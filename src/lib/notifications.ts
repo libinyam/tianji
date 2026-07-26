@@ -11,7 +11,8 @@ export type NotificationType =
   | "join" // 有人加入了你的协作
   | "contribute" // 有人提交了协作贡献
   | "accept" // 你的回答被采纳
-  | "follow"; // 有人关注了你 (#149)
+  | "follow" // 有人关注了你 (#149)
+  | "mention"; // 有人 @提及了你 (#154)
 
 export interface NotificationDoc {
   _id?: string;
@@ -43,6 +44,7 @@ const TYPE_LABEL: Record<NotificationType, string> = {
   contribute: "提交了协作贡献",
   accept: "采纳了你的回答",
   follow: "关注了你",
+  mention: "在内容中提到了你",
 };
 
 export function getTypeLabel(type: NotificationType): string {
