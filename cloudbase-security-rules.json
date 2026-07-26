@@ -25,7 +25,7 @@
         "delete": "auth.uid != null && doc.authorUid == auth.uid"
       },
       "ownerField": "authorUid",
-      "note": "create 允许登录用户创建；update/delete 收紧为作者限定；共鸣通过 content-actions 云函数执行"
+      "note": "create 允许登录用户创建；update/delete 收紧为作者限定；共鸣/评论通过 content-actions 云函数执行 (#400)"
     },
     "books": {
       "permission": "CUSTOM",

@@ -472,76 +472,83 @@ describe("ideas", () => {
   });
 
   describe("addIdeaComment", () => {
-    it("成功：返回评论并更新 comments 与 replies", async () => {
+    // #400 改走云函数：非作者评论他人灵感曾被安全规则（update 仅作者）拒绝
+    const cloudComment = {
+      id: "c_123_abc",
+      author: "Tester",
+      authorUid: "test-uid",
+      avatarColor: "#7cc4ff",
+      content: "评论内容",
+      createdAt: "2026-07-26T00:00:00.000Z",
+    };
+
+    it("成功：调用云函数并返回服务端生成的评论", async () => {
       mockAuth.user = { uid: "test-uid", nickname: "Tester" };
-      mockDb._docRef.get.mockResolvedValue({
-        data: [
-          {
-            _id: "i1",
-            authorUid: "test-uid",
-            title: "灵感",
-            comments: [],
-          },
-        ],
+      mockCallFunction.mockResolvedValue({
+        result: {
+          ok: true,
+          data: { comment: cloudComment, ideaTitle: "灵感", ideaAuthorUid: "test-uid" },
+        },
       });
 
       const result = await addIdeaComment("i1", "评论内容");
 
-      expect(result).not.toBeNull();
-      expect(result?.id).toMatch(/^c_/);
-      expect(result?.author).toBe("Tester");
-      expect(result?.authorUid).toBe("test-uid");
-      expect(result?.content).toBe("评论内容");
-      expect(mockDb.command.push).toHaveBeenCalledTimes(1);
-      expect(mockDb.command.push).toHaveBeenCalledWith([
-        expect.objectContaining({ content: "评论内容", author: "Tester" }),
-      ]);
-      expect(mockDb.command.inc).toHaveBeenCalledWith(1);
-      expect(mockDb._docRef.update).toHaveBeenCalledWith({
-        comments: { __push: true },
-        replies: { __inc: 1 },
+      expect(result).toEqual(cloudComment);
+      expect(mockCallFunction).toHaveBeenCalledWith({
+        name: "content-actions",
+        data: { action: "addIdeaComment", ideaId: "i1", content: "评论内容", author: "Tester" },
       });
+      // 不再直写数据库
+      expect(mockDb._docRef.update).not.toHaveBeenCalled();
     });
 
-    it("评论内容为空：抛出'评论内容不能为空'", async () => {
+    it("评论内容为空：抛出'评论内容不能为空'且不调用云函数", async () => {
       mockAuth.user = { uid: "test-uid" };
 
       await expect(addIdeaComment("i1", "   ")).rejects.toThrow(
         "评论内容不能为空"
       );
 
-      expect(mockDb._docRef.update).not.toHaveBeenCalled();
+      expect(mockCallFunction).not.toHaveBeenCalled();
     });
 
-    it("未登录：抛出'请先登录'", async () => {
+    it("未登录：抛出'请先登录'且不调用云函数", async () => {
       mockAuth.user = null;
 
       await expect(addIdeaComment("i1", "内容")).rejects.toThrow("请先登录");
 
-      expect(mockDb._docRef.update).not.toHaveBeenCalled();
+      expect(mockCallFunction).not.toHaveBeenCalled();
     });
 
     it("灵感不存在：返回 null", async () => {
       mockAuth.user = { uid: "test-uid" };
-      mockDb._docRef.get.mockResolvedValue({ data: [] });
+      mockCallFunction.mockResolvedValue({
+        result: { ok: false, error: "灵感不存在" },
+      });
 
       const result = await addIdeaComment("missing", "内容");
 
       expect(result).toBeNull();
-      expect(mockDb._docRef.update).not.toHaveBeenCalled();
+    });
+
+    it("云函数返回失败（如审核拦截）：抛出错误", async () => {
+      mockAuth.user = { uid: "test-uid" };
+      mockCallFunction.mockResolvedValue({
+        result: { ok: false, error: "内容包含敏感词: 广告" },
+      });
+
+      await expect(addIdeaComment("i1", "内容")).rejects.toThrow(
+        "内容包含敏感词"
+      );
     });
 
     it("评论他人灵感：向作者发送通知", async () => {
       mockAuth.user = { uid: "test-uid", nickname: "Tester" };
-      mockDb._docRef.get.mockResolvedValue({
-        data: [
-          {
-            _id: "i1",
-            authorUid: "other-uid",
-            title: "他人灵感",
-            comments: [],
-          },
-        ],
+      mockCallFunction.mockResolvedValue({
+        result: {
+          ok: true,
+          data: { comment: cloudComment, ideaTitle: "他人灵感", ideaAuthorUid: "other-uid" },
+        },
       });
 
       await addIdeaComment("i1", "评论");
@@ -557,15 +564,11 @@ describe("ideas", () => {
 
     it("评论自己灵感：不发送通知", async () => {
       mockAuth.user = { uid: "test-uid", nickname: "Tester" };
-      mockDb._docRef.get.mockResolvedValue({
-        data: [
-          {
-            _id: "i1",
-            authorUid: "test-uid",
-            title: "自己灵感",
-            comments: [],
-          },
-        ],
+      mockCallFunction.mockResolvedValue({
+        result: {
+          ok: true,
+          data: { comment: cloudComment, ideaTitle: "自己灵感", ideaAuthorUid: "test-uid" },
+        },
       });
 
       await addIdeaComment("i1", "评论");
@@ -575,79 +578,61 @@ describe("ideas", () => {
   });
 
   describe("deleteIdeaComment", () => {
-    it("成功：删除自己评论并更新 replies", async () => {
+    // #400 改走云函数（与 addIdeaComment 同批迁移）
+    it("成功：调用云函数删除评论并返回 true", async () => {
       mockAuth.user = { uid: "test-uid" };
-      mockDb._docRef.get.mockResolvedValue({
-        data: [
-          {
-            _id: "i1",
-            authorUid: "other-uid",
-            comments: [
-              { id: "c1", authorUid: "test-uid", content: "x" },
-              { id: "c2", authorUid: "other-uid", content: "y" },
-            ],
-          },
-        ],
-      });
+      mockCallFunction.mockResolvedValue({ result: { ok: true, data: { deleted: true } } });
 
       const result = await deleteIdeaComment("i1", "c1");
 
       expect(result).toBe(true);
-      expect(mockDb.command.pull).toHaveBeenCalledWith({ id: "c1" });
-      expect(mockDb.command.inc).toHaveBeenCalledWith(-1);
-      expect(mockDb._docRef.update).toHaveBeenCalledWith({
-        comments: { __pull: true },
-        replies: { __inc: 1 },
+      expect(mockCallFunction).toHaveBeenCalledWith({
+        name: "content-actions",
+        data: { action: "deleteIdeaComment", ideaId: "i1", commentId: "c1" },
       });
+      // 不再直写数据库
+      expect(mockDb._docRef.update).not.toHaveBeenCalled();
     });
 
     it("灵感不存在：返回 false", async () => {
       mockAuth.user = { uid: "test-uid" };
-      mockDb._docRef.get.mockResolvedValue({ data: [] });
+      mockCallFunction.mockResolvedValue({
+        result: { ok: false, error: "灵感不存在" },
+      });
 
       const result = await deleteIdeaComment("missing", "c1");
 
       expect(result).toBe(false);
-      expect(mockDb._docRef.update).not.toHaveBeenCalled();
     });
 
     it("评论不存在：返回 false", async () => {
       mockAuth.user = { uid: "test-uid" };
-      mockDb._docRef.get.mockResolvedValue({
-        data: [{ _id: "i1", authorUid: "test-uid", comments: [] }],
+      mockCallFunction.mockResolvedValue({
+        result: { ok: false, error: "评论不存在" },
       });
 
       const result = await deleteIdeaComment("i1", "missing-comment");
 
       expect(result).toBe(false);
-      expect(mockDb._docRef.update).not.toHaveBeenCalled();
     });
 
     it("非评论作者：抛出'无权删除他人评论'", async () => {
       mockAuth.user = { uid: "test-uid" };
-      mockDb._docRef.get.mockResolvedValue({
-        data: [
-          {
-            _id: "i1",
-            authorUid: "test-uid",
-            comments: [{ id: "c1", authorUid: "other-uid", content: "x" }],
-          },
-        ],
+      mockCallFunction.mockResolvedValue({
+        result: { ok: false, error: "无权删除他人评论" },
       });
 
       await expect(deleteIdeaComment("i1", "c1")).rejects.toThrow(
         "无权删除他人评论"
       );
-
-      expect(mockDb._docRef.update).not.toHaveBeenCalled();
     });
 
-    it("未登录：抛出'请先登录'", async () => {
+    it("未登录：抛出'请先登录'且不调用云函数", async () => {
       mockAuth.user = null;
 
       await expect(deleteIdeaComment("i1", "c1")).rejects.toThrow("请先登录");
 
-      expect(mockDb._docRef.update).not.toHaveBeenCalled();
+      expect(mockCallFunction).not.toHaveBeenCalled();
     });
   });
 

@@ -324,3 +324,133 @@ describe("服务端限流（issue #277）", () => {
     expect(res.ok).toBe(true);
   });
 });
+
+describe("灵感评论（issue #400）", () => {
+  // 核心回归：评论走直写 DB 时曾被安全规则（ideas update 仅作者）拒绝，
+  // 迁移到云函数后非作者必须能正常评论他人灵感。
+  function seedIdea(overrides = {}) {
+    store.ideas = new Map([
+      [
+        "i1",
+        {
+          _id: "i1",
+          authorUid: "author1",
+          title: "灵感标题",
+          comments: [],
+          replies: 0,
+          ...overrides,
+        },
+      ],
+    ]);
+  }
+
+  it("非作者可以评论他人灵感，并返回作者信息供发通知", async () => {
+    seedIdea();
+
+    const res = await main(
+      { action: "addIdeaComment", ideaId: "i1", content: "很有启发", author: "评论者" },
+      ctx("commenter")
+    );
+
+    expect(res.ok).toBe(true);
+    expect(res.data.comment).toMatchObject({
+      author: "评论者",
+      authorUid: "commenter",
+      content: "很有启发",
+    });
+    expect(res.data.ideaAuthorUid).toBe("author1");
+    expect(res.data.ideaTitle).toBe("灵感标题");
+
+    const idea = store.ideas.get("i1");
+    expect(idea.comments).toHaveLength(1);
+    expect(idea.comments[0].authorUid).toBe("commenter");
+    expect(idea.replies).toBe(1);
+  });
+
+  it("内容含敏感词被本地快筛拦截，数据未写入", async () => {
+    seedIdea();
+
+    const res = await main(
+      { action: "addIdeaComment", ideaId: "i1", content: "这是广告内容", author: "评论者" },
+      ctx("commenter")
+    );
+
+    expect(res.ok).toBe(false);
+    expect(res.error).toContain("敏感词");
+    expect(store.ideas.get("i1").comments).toHaveLength(0);
+  });
+
+  it("被封禁用户评论被拒", async () => {
+    seedIdea();
+    store.users_v2 = new Map([["banned-user", { _id: "banned-user", banned: true }]]);
+
+    const res = await main(
+      { action: "addIdeaComment", ideaId: "i1", content: "评论", author: "封禁者" },
+      ctx("banned-user")
+    );
+
+    expect(res.ok).toBe(false);
+    expect(res.error).toContain("封禁");
+    expect(store.ideas.get("i1").comments).toHaveLength(0);
+  });
+
+  it("未登录被拒", async () => {
+    seedIdea();
+
+    const res = await main({ action: "addIdeaComment", ideaId: "i1", content: "评论" }, {});
+
+    expect(res.ok).toBe(false);
+    expect(res.error).toContain("请先登录");
+  });
+
+  it("灵感不存在返回失败", async () => {
+    store.ideas = new Map();
+
+    const res = await main(
+      { action: "addIdeaComment", ideaId: "missing", content: "评论", author: "评论者" },
+      ctx("commenter")
+    );
+
+    expect(res.ok).toBe(false);
+    expect(res.error).toBe("灵感不存在");
+  });
+
+  it("评论作者可删除自己的评论，replies 相应减一", async () => {
+    seedIdea({
+      comments: [
+        { id: "c1", authorUid: "commenter", content: "我的评论" },
+        { id: "c2", authorUid: "other", content: "别人的评论" },
+      ],
+      replies: 2,
+    });
+
+    const res = await main(
+      { action: "deleteIdeaComment", ideaId: "i1", commentId: "c1" },
+      ctx("commenter")
+    );
+
+    expect(res.ok).toBe(true);
+    const idea = store.ideas.get("i1");
+    expect(idea.comments).toHaveLength(1);
+    expect(idea.comments[0].id).toBe("c2");
+    expect(idea.replies).toBe(1);
+  });
+
+  it("非评论作者删除被拒且数据未变", async () => {
+    seedIdea({
+      comments: [{ id: "c1", authorUid: "commenter", content: "评论" }],
+      replies: 1,
+    });
+
+    const res = await main(
+      { action: "deleteIdeaComment", ideaId: "i1", commentId: "c1" },
+      ctx("intruder")
+    );
+
+    expect(res.ok).toBe(false);
+    expect(res.error).toBe("无权删除他人评论");
+    const idea = store.ideas.get("i1");
+    expect(idea.comments).toHaveLength(1);
+    expect(idea.replies).toBe(1);
+  });
+});
