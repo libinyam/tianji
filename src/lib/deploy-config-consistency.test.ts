@@ -38,7 +38,10 @@ describe("生产部署配置一致性 (#244)", () => {
     const declared = new Set((rc.functions ?? []).map((f) => f.name));
     const onDisk = listFunctionDirs();
     const missing = onDisk.filter((name) => !declared.has(name));
-    expect(missing, `以下云函数未登记到 cloudbaserc.json，将不会随生产部署上线: ${missing.join(", ")}`).toEqual([]);
+    expect(
+      missing,
+      `以下云函数未登记到 cloudbaserc.json，将不会随生产部署上线: ${missing.join(", ")}`,
+    ).toEqual([]);
   });
 
   it("functions 列表中不存在磁盘上已删除的云函数", () => {

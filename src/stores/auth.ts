@@ -96,7 +96,7 @@ function extractUser(session: unknown): TianjiUser | null {
  */
 async function ensureDefaultNickname(
   user: TianjiUser | null,
-  set: (partial: Partial<AuthState>) => void
+  set: (partial: Partial<AuthState>) => void,
 ): Promise<void> {
   if (!user) return;
   if (user.nickname) return;
@@ -137,7 +137,12 @@ export const useAuthStore = create<AuthState>((set) => ({
       // 已有真实登录会话
       const extractedUser = extractUser(data.session);
       // 匿名用户的 session 也当做未登录（刷新后恢复匿名会话的情况）
-      if (extractedUser && !extractedUser.email && !extractedUser.phone && !extractedUser.username) {
+      if (
+        extractedUser &&
+        !extractedUser.email &&
+        !extractedUser.phone &&
+        !extractedUser.username
+      ) {
         set({ user: null, loading: false });
         return;
       }
@@ -393,8 +398,7 @@ export const useAuthStore = create<AuthState>((set) => ({
     }
   },
 
-  clearPendingSignUp: () =>
-    set({ pendingSignUpEmail: null, pendingSignUpVerifier: null }),
+  clearPendingSignUp: () => set({ pendingSignUpEmail: null, pendingSignUpVerifier: null }),
 
   clearError: () => set({ error: null }),
 }));

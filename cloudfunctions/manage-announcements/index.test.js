@@ -67,7 +67,7 @@ describe("manage-announcements admin 门控（issue #416）", () => {
   it("非管理员 create 被拒且未落库", async () => {
     const res = await main(
       { action: "create", title: "公告", content: "内容" },
-      ctx("normal-user")
+      ctx("normal-user"),
     );
     expect(res.ok).toBe(false);
     expect(res.error).toContain("仅管理员");
@@ -97,7 +97,7 @@ describe("manage-announcements admin 门控（issue #416）", () => {
   it("管理员 create 成功", async () => {
     const res = await main(
       { action: "create", title: "新公告", content: "正文", authorName: "站长" },
-      ctx("admin-001")
+      ctx("admin-001"),
     );
     expect(res.ok).toBe(true);
     expect(res.data.id).toBe("gen_1");
@@ -136,7 +136,7 @@ describe("manage-announcements admin 门控（issue #416）", () => {
   it("create 对超长标题/正文截断", async () => {
     const res = await main(
       { action: "create", title: "长".repeat(300), content: "文".repeat(6000) },
-      ctx("admin-001")
+      ctx("admin-001"),
     );
     expect(res.ok).toBe(true);
     const doc = store.announcements.get("gen_1");

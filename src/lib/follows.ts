@@ -13,10 +13,10 @@ const TAG_FOLLOWS_COLLECTION = "tag_follows";
 
 export interface FollowDoc {
   _id?: string;
-  uid: string;          // 关注者
-  targetUid: string;    // 被关注者
-  nickname: string;     // 被关注者昵称快照（避免反查 posts/ideas）
-  avatarUrl: string;    // 被关注者头像快照
+  uid: string; // 关注者
+  targetUid: string; // 被关注者
+  nickname: string; // 被关注者昵称快照（避免反查 posts/ideas）
+  avatarUrl: string; // 被关注者头像快照
   createdAt: string;
 }
 
@@ -68,9 +68,7 @@ export async function toggleFollow(params: {
   const col = db.collection(FOLLOWS_COLLECTION);
 
   // 查询是否已关注
-  const { data: existing } = await col
-    .where({ uid, targetUid: params.targetUid })
-    .get();
+  const { data: existing } = await col.where({ uid, targetUid: params.targetUid }).get();
   const list = existing ?? [];
 
   if (list.length > 0) {
@@ -113,10 +111,7 @@ export async function isFollowing(targetUid: string): Promise<boolean> {
   const uid = getCurrentUid();
   if (!uid) return false;
   try {
-    const { data } = await db
-      .collection(FOLLOWS_COLLECTION)
-      .where({ uid, targetUid })
-      .get();
+    const { data } = await db.collection(FOLLOWS_COLLECTION).where({ uid, targetUid }).get();
     return (data ?? []).length > 0;
   } catch {
     return false;
@@ -156,10 +151,7 @@ export async function fetchFollowers(uid: string, limit = 100): Promise<FollowIt
 /** 获取某用户的关注数 */
 export async function fetchFollowingCount(uid: string): Promise<number> {
   try {
-    const { total } = await db
-      .collection(FOLLOWS_COLLECTION)
-      .where({ uid })
-      .count();
+    const { total } = await db.collection(FOLLOWS_COLLECTION).where({ uid }).count();
     return total ?? 0;
   } catch {
     return 0;
@@ -169,10 +161,7 @@ export async function fetchFollowingCount(uid: string): Promise<number> {
 /** 获取某用户的粉丝数 */
 export async function fetchFollowersCount(uid: string): Promise<number> {
   try {
-    const { total } = await db
-      .collection(FOLLOWS_COLLECTION)
-      .where({ targetUid: uid })
-      .count();
+    const { total } = await db.collection(FOLLOWS_COLLECTION).where({ targetUid: uid }).count();
     return total ?? 0;
   } catch {
     return 0;
@@ -213,9 +202,7 @@ export async function toggleTagFollow(tagName: string): Promise<boolean> {
 
   const col = db.collection(TAG_FOLLOWS_COLLECTION);
 
-  const { data: existing } = await col
-    .where({ uid, tagName })
-    .get();
+  const { data: existing } = await col.where({ uid, tagName }).get();
   const list = existing ?? [];
 
   if (list.length > 0) {
@@ -243,10 +230,7 @@ export async function isTagFollowing(tagName: string): Promise<boolean> {
   const uid = getCurrentUid();
   if (!uid) return false;
   try {
-    const { data } = await db
-      .collection(TAG_FOLLOWS_COLLECTION)
-      .where({ uid, tagName })
-      .get();
+    const { data } = await db.collection(TAG_FOLLOWS_COLLECTION).where({ uid, tagName }).get();
     return (data ?? []).length > 0;
   } catch {
     return false;

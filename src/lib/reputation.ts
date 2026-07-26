@@ -59,14 +59,16 @@ export async function fetchReputation(uid: string): Promise<ReputationInfo> {
  */
 export async function awardReputation(
   reason: keyof typeof REPUTATION_RULES,
-  entityId: string
+  entityId: string,
 ): Promise<void> {
   if (!REPUTATION_RULES[reason] || !entityId) return;
 
-  await app.callFunction({
-    name: "content-actions",
-    data: { action: "awardCreateReputation", reason, entityId },
-  }).catch(() => {});
+  await app
+    .callFunction({
+      name: "content-actions",
+      data: { action: "awardCreateReputation", reason, entityId },
+    })
+    .catch(() => {});
 }
 
 export async function checkReputationThreshold(uid: string, minLevel: number): Promise<boolean> {

@@ -50,9 +50,10 @@ const mockBan = vi.hoisted(() => ({
 }));
 
 const mockSensitive = vi.hoisted(() => ({
-  containsSensitiveWord: vi.fn<(text: string) => { found: boolean; words: string[] }>(
-    () => ({ found: false, words: [] })
-  ),
+  containsSensitiveWord: vi.fn<(text: string) => { found: boolean; words: string[] }>(() => ({
+    found: false,
+    words: [],
+  })),
 }));
 
 vi.mock("@/lib/cloudbase", () => ({
@@ -327,7 +328,7 @@ describe("workshops", () => {
       expect(mockCallFunction).toHaveBeenCalledWith(
         expect.objectContaining({
           data: expect.objectContaining({ creator: "匿名用户" }),
-        })
+        }),
       );
     });
   });

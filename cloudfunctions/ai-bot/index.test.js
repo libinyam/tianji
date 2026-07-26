@@ -216,7 +216,7 @@ describe("ai-bot", () => {
             text: "这是一个有用的回答",
             source: "ai-bot",
           }),
-        })
+        }),
       );
     });
 
@@ -279,7 +279,7 @@ describe("ai-bot", () => {
 
       const res = await main(
         { postId: "p1", replyType: "comment", answerId: "a1", userComment: "谢谢" },
-        ctx("u1")
+        ctx("u1"),
       );
 
       expect(res.ok).toBe(true);
@@ -310,7 +310,7 @@ describe("ai-bot", () => {
 
       const res = await main(
         { postId: "p1", replyType: "comment", answerId: "nonexistent", userComment: "谢谢" },
-        ctx("u1")
+        ctx("u1"),
       );
 
       expect(res.ok).toBe(false);
@@ -328,7 +328,7 @@ describe("ai-bot", () => {
 
       const res = await main(
         { postId: "p1", replyType: "comment", answerId: "a1", userComment: "谢谢" },
-        ctx("u1")
+        ctx("u1"),
       );
 
       expect(res.ok).toBe(false);
@@ -371,7 +371,12 @@ describe("ai-bot", () => {
             authorUid: "ai-bot-001",
             content: "原回答",
             comments: [
-              { id: "botc_old", authorUid: "ai-bot-001", content: "最近的 bot 评论", date: recentDate },
+              {
+                id: "botc_old",
+                authorUid: "ai-bot-001",
+                content: "最近的 bot 评论",
+                date: recentDate,
+              },
             ],
           },
         ],
@@ -379,7 +384,7 @@ describe("ai-bot", () => {
 
       const res = await main(
         { postId: "p1", replyType: "comment", answerId: "a1", userComment: "再次评论" },
-        ctx("u1")
+        ctx("u1"),
       );
 
       expect(res.ok).toBe(false);
@@ -461,7 +466,7 @@ describe("ai-bot", () => {
       global.fetch = vi.fn().mockResolvedValue({
         ok: true,
         json: async () => ({
-          choices: [{ message: { content: '<script>alert(1)</script>安全内容' } }],
+          choices: [{ message: { content: "<script>alert(1)</script>安全内容" } }],
         }),
       });
 
@@ -494,7 +499,7 @@ describe("ai-bot", () => {
       global.fetch = vi.fn().mockResolvedValue({
         ok: true,
         json: async () => ({
-          choices: [{ message: { content: '点击 javascript:alert(1) 这里' } }],
+          choices: [{ message: { content: "点击 javascript:alert(1) 这里" } }],
         }),
       });
 

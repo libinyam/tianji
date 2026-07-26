@@ -49,7 +49,6 @@ import Avatar from "@/components/Avatar";
 import LazyMathText from "@/components/LazyMathText";
 import RelatedContent from "@/components/RelatedContent";
 
-
 export default function WorkshopDetail() {
   const { id } = useParams();
   const { user } = useAuthStore();
@@ -956,7 +955,9 @@ function AnnotationCard({
           </span>
           <span className="text-xs text-mist-300">{annotation.author}</span>
         </div>
-        <span className="text-[10px] text-mist-500">{formatRelativeTime(annotation.createdAt)}</span>
+        <span className="text-[10px] text-mist-500">
+          {formatRelativeTime(annotation.createdAt)}
+        </span>
       </div>
       <LazyMathText
         content={annotation.content}

@@ -24,11 +24,14 @@ export function getTempFileURL(fileID: string): Promise<string> {
         pendingBatch = null;
         void app
           .getTempFileURL({
-            fileList: Array.from(batch.keys()).map((id) => ({ fileID: id, maxAge: TEMP_URL_MAX_AGE })),
+            fileList: Array.from(batch.keys()).map((id) => ({
+              fileID: id,
+              maxAge: TEMP_URL_MAX_AGE,
+            })),
           })
           .then((res: { fileList?: { fileID: string; tempFileURL?: string }[] }) => {
             const urlById = new Map(
-              (res?.fileList ?? []).map((f) => [f.fileID, f.tempFileURL ?? ""])
+              (res?.fileList ?? []).map((f) => [f.fileID, f.tempFileURL ?? ""]),
             );
             for (const [id, waiters] of batch) {
               const url = urlById.get(id) ?? "";

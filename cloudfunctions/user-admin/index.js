@@ -41,8 +41,7 @@ exports.main = async (event, context) => {
     try {
       const info = await appInst.auth().getEndUserInfo();
       callerUid = info?.userInfo?.uid || "";
-    } catch (e) {
-    }
+    } catch (e) {}
   }
 
   if (!callerUid && context?.userInfo) {
@@ -70,9 +69,7 @@ exports.main = async (event, context) => {
       }
       const update = { banned: true, bannedReason: reason };
       if (typeof days === "number" && days > 0) {
-        update.bannedUntil = new Date(
-          Date.now() + days * 86400000
-        ).toISOString();
+        update.bannedUntil = new Date(Date.now() + days * 86400000).toISOString();
       } else {
         update.bannedUntil = "";
       }
@@ -117,9 +114,13 @@ exports.main = async (event, context) => {
       }
       // #314 转义正则特殊字符，防止 keyword 构造恶意正则导致 ReDoS 或注入
       const escaped = keyword.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
-      const { data } = await db.collection("users_v2").where({
-        displayName: db.RegExp({ regexp: escaped, options: "i" })
-      }).limit(20).get();
+      const { data } = await db
+        .collection("users_v2")
+        .where({
+          displayName: db.RegExp({ regexp: escaped, options: "i" }),
+        })
+        .limit(20)
+        .get();
       return { ok: true, data: data || [] };
     }
 

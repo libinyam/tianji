@@ -52,9 +52,10 @@ const mockBan = vi.hoisted(() => ({
 }));
 
 const mockSensitive = vi.hoisted(() => ({
-  containsSensitiveWord: vi.fn(
-    (): { found: boolean; words: string[] } => ({ found: false, words: [] })
-  ),
+  containsSensitiveWord: vi.fn((): { found: boolean; words: string[] } => ({
+    found: false,
+    words: [],
+  })),
 }));
 
 const mockNotifications = vi.hoisted(() => ({
@@ -297,17 +298,14 @@ describe("ideas", () => {
       });
       // 不再直写数据库
       expect(mockDb._chain.add).not.toHaveBeenCalled();
-      expect(mockReputation.awardReputation).toHaveBeenCalledWith(
-        "createIdea",
-        "new-idea-id"
-      );
+      expect(mockReputation.awardReputation).toHaveBeenCalledWith("createIdea", "new-idea-id");
     });
 
     it("未登录：抛出'请先登录'且不调用云函数", async () => {
       mockAuth.user = null;
 
       await expect(
-        createIdea({ title: "标题", summary: "摘要", topic: "话题", tags: [] })
+        createIdea({ title: "标题", summary: "摘要", topic: "话题", tags: [] }),
       ).rejects.toThrow("请先登录");
 
       expect(mockCallFunction).not.toHaveBeenCalled();
@@ -319,7 +317,7 @@ describe("ideas", () => {
       mockBan.checkCurrentUserBanned.mockResolvedValue(true);
 
       await expect(
-        createIdea({ title: "标题", summary: "摘要", topic: "话题", tags: [] })
+        createIdea({ title: "标题", summary: "摘要", topic: "话题", tags: [] }),
       ).rejects.toThrow("您的账号已被封禁");
 
       expect(mockCallFunction).not.toHaveBeenCalled();
@@ -333,7 +331,7 @@ describe("ideas", () => {
       });
 
       await expect(
-        createIdea({ title: "标题", summary: "摘要", topic: "话题", tags: [] })
+        createIdea({ title: "标题", summary: "摘要", topic: "话题", tags: [] }),
       ).rejects.toThrow("内容包含敏感词: bad");
 
       expect(mockCallFunction).not.toHaveBeenCalled();
@@ -343,7 +341,7 @@ describe("ideas", () => {
       mockAuth.user = { uid: "test-uid" };
 
       await expect(
-        createIdea({ title: "   ", summary: "正文", topic: "话题", tags: [] })
+        createIdea({ title: "   ", summary: "正文", topic: "话题", tags: [] }),
       ).rejects.toThrow("标题不能为空");
 
       expect(mockCallFunction).not.toHaveBeenCalled();
@@ -356,7 +354,7 @@ describe("ideas", () => {
       });
 
       await expect(
-        createIdea({ title: "标题", summary: "摘要", topic: "话题", tags: [] })
+        createIdea({ title: "标题", summary: "摘要", topic: "话题", tags: [] }),
       ).rejects.toThrow("涉黄");
 
       expect(mockReputation.awardReputation).not.toHaveBeenCalled();
@@ -378,7 +376,7 @@ describe("ideas", () => {
       expect(mockCallFunction).toHaveBeenCalledWith(
         expect.objectContaining({
           data: expect.objectContaining({ author: "uname" }),
-        })
+        }),
       );
       expect(result?.author).toBe("uname");
     });
@@ -488,9 +486,9 @@ describe("ideas", () => {
         result: { ok: false, error: "无权编辑他人灵感" },
       });
 
-      await expect(
-        updateIdea("i1", { title: "新", summary: "新", tags: [] })
-      ).rejects.toThrow("无权编辑他人灵感");
+      await expect(updateIdea("i1", { title: "新", summary: "新", tags: [] })).rejects.toThrow(
+        "无权编辑他人灵感",
+      );
     });
 
     it("服务端审核拦截：抛出错误", async () => {
@@ -499,17 +497,17 @@ describe("ideas", () => {
         result: { ok: false, error: "内容包含敏感词: 广告" },
       });
 
-      await expect(
-        updateIdea("i1", { title: "新", summary: "新", tags: [] })
-      ).rejects.toThrow("敏感词");
+      await expect(updateIdea("i1", { title: "新", summary: "新", tags: [] })).rejects.toThrow(
+        "敏感词",
+      );
     });
 
     it("未登录：抛出'请先登录'且不调用云函数", async () => {
       mockAuth.user = null;
 
-      await expect(
-        updateIdea("i1", { title: "新", summary: "新", tags: [] })
-      ).rejects.toThrow("请先登录");
+      await expect(updateIdea("i1", { title: "新", summary: "新", tags: [] })).rejects.toThrow(
+        "请先登录",
+      );
 
       expect(mockCallFunction).not.toHaveBeenCalled();
     });
@@ -549,9 +547,7 @@ describe("ideas", () => {
     it("评论内容为空：抛出'评论内容不能为空'且不调用云函数", async () => {
       mockAuth.user = { uid: "test-uid" };
 
-      await expect(addIdeaComment("i1", "   ")).rejects.toThrow(
-        "评论内容不能为空"
-      );
+      await expect(addIdeaComment("i1", "   ")).rejects.toThrow("评论内容不能为空");
 
       expect(mockCallFunction).not.toHaveBeenCalled();
     });
@@ -581,9 +577,7 @@ describe("ideas", () => {
         result: { ok: false, error: "内容包含敏感词: 广告" },
       });
 
-      await expect(addIdeaComment("i1", "内容")).rejects.toThrow(
-        "内容包含敏感词"
-      );
+      await expect(addIdeaComment("i1", "内容")).rejects.toThrow("内容包含敏感词");
     });
 
     it("评论他人灵感：向作者发送通知", async () => {
@@ -666,9 +660,7 @@ describe("ideas", () => {
         result: { ok: false, error: "无权删除他人评论" },
       });
 
-      await expect(deleteIdeaComment("i1", "c1")).rejects.toThrow(
-        "无权删除他人评论"
-      );
+      await expect(deleteIdeaComment("i1", "c1")).rejects.toThrow("无权删除他人评论");
     });
 
     it("未登录：抛出'请先登录'且不调用云函数", async () => {

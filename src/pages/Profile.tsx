@@ -118,10 +118,7 @@ export default function Profile() {
       <div className="container-tj flex min-h-[60vh] flex-col items-center justify-center gap-4 py-10 text-center">
         <p className="text-lg text-parchment-100">请先登录查看个人主页</p>
         <p className="mt-1 text-sm text-mist-500">登录后即可管理你的资料、帖子和收藏</p>
-        <button
-          onClick={() => openAuthModal()}
-          className="btn-primary mt-4"
-        >
+        <button onClick={() => openAuthModal()} className="btn-primary mt-4">
           登录 / 注册
         </button>
       </div>

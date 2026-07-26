@@ -8,7 +8,7 @@ interface OutlineItem {
 /** 检测标题是否已包含章节编号 */
 function hasChapterNumber(title: string): boolean {
   return /^(第[一二三四五六七八九十百\d]+[章节回卷]|Chapter\s*\d+|Ch\.?\s*\d+|\d+\.\s|\d+\s)/i.test(
-    title.trim()
+    title.trim(),
   );
 }
 
@@ -23,7 +23,7 @@ function buildNumberedTree(
   items: OutlineItem[],
   depth: number,
   parentNumber: number[],
-  result: NumberedNode[]
+  result: NumberedNode[],
 ): void {
   let index = 0;
   for (const item of items) {

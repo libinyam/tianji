@@ -122,8 +122,21 @@ export async function fetchPosts(
     if (subCategory) whereCond.subCategory = subCategory;
     if (tag && tag !== "全部") whereCond.tags = tag;
     const { data } = Object.keys(whereCond).length
-      ? await col.where(whereCond).field(LIST_FIELDS).orderBy("pinned", "desc").orderBy("createdAt", "desc").skip(skip).limit(page).get()
-      : await col.field(LIST_FIELDS).orderBy("pinned", "desc").orderBy("createdAt", "desc").skip(skip).limit(page).get();
+      ? await col
+          .where(whereCond)
+          .field(LIST_FIELDS)
+          .orderBy("pinned", "desc")
+          .orderBy("createdAt", "desc")
+          .skip(skip)
+          .limit(page)
+          .get()
+      : await col
+          .field(LIST_FIELDS)
+          .orderBy("pinned", "desc")
+          .orderBy("createdAt", "desc")
+          .skip(skip)
+          .limit(page)
+          .get();
 
     const realPosts = ((data as PostDoc[]) ?? []).map(toQuestion);
     return { data: realPosts, error: null, hasMore: realPosts.length === page };
@@ -180,10 +193,7 @@ export async function fetchHotPosts(limit = 5): Promise<Question[]> {
 export async function fetchPostById(id: string): Promise<Question | null> {
   try {
     await authReady; // #345/#402 等匿名身份就绪，避免新访客深链 401 误报"帖子不存在"
-    const { data } = await db
-      .collection(POSTS_COLLECTION)
-      .doc(id)
-      .get();
+    const { data } = await db.collection(POSTS_COLLECTION).doc(id).get();
 
     if (!data || data.length === 0) return null;
     return toQuestion(data[0] as PostDoc);
@@ -225,7 +235,11 @@ export async function createPost(params: {
       author: getCurrentUserName(),
     },
   });
-  const result = (res?.result ?? {}) as { ok?: boolean; data?: PostDoc & { id: string }; error?: string };
+  const result = (res?.result ?? {}) as {
+    ok?: boolean;
+    data?: PostDoc & { id: string };
+    error?: string;
+  };
   if (!result.ok) throw new Error(result.error || "发帖失败");
 
   const d = result.data!;
@@ -264,10 +278,7 @@ export async function incrementViews(id: string): Promise<void> {
 }
 
 /** 提交回答 */
-export async function submitAnswer(
-  postId: string,
-  content: string
-): Promise<Answer | null> {
+export async function submitAnswer(postId: string, content: string): Promise<Answer | null> {
   const cleanContent = sanitizeInput(content);
 
   const uid = getCurrentUid();
@@ -295,7 +306,7 @@ export async function submitComment(
   postId: string,
   answerId: string,
   content: string,
-  replyTo?: string
+  replyTo?: string,
 ): Promise<Comment | null> {
   const cleanContent = sanitizeInput(content);
 
@@ -312,7 +323,14 @@ export async function submitComment(
 
   const res = await app.callFunction({
     name: "content-actions",
-    data: { action: "submitComment", postId, answerId, content: cleanContent, replyTo, author: getCurrentUserName() },
+    data: {
+      action: "submitComment",
+      postId,
+      answerId,
+      content: cleanContent,
+      replyTo,
+      author: getCurrentUserName(),
+    },
   });
   const result = (res?.result ?? {}) as { ok?: boolean; data?: Comment; error?: string };
   if (!result.ok) throw new Error(result.error || "操作失败");
@@ -322,7 +340,7 @@ export async function submitComment(
 /** 编辑帖子（仅作者，走云函数绕过安全规则 + 文本审核） */
 export async function updatePost(
   postId: string,
-  params: { title: string; body: string; tags: string[] }
+  params: { title: string; body: string; tags: string[] },
 ): Promise<boolean> {
   const uid = getCurrentUid();
   if (!uid) throw new Error("请先登录");
@@ -365,7 +383,7 @@ export async function deletePost(postId: string): Promise<boolean> {
 export async function updateAnswer(
   postId: string,
   answerId: string,
-  content: string
+  content: string,
 ): Promise<boolean> {
   const cleanContent = sanitizeInput(content);
 
@@ -378,10 +396,7 @@ export async function updateAnswer(
 }
 
 /** 删除回答（仅作者，通过云函数绕过安全规则） */
-export async function deleteAnswer(
-  postId: string,
-  answerId: string
-): Promise<boolean> {
+export async function deleteAnswer(postId: string, answerId: string): Promise<boolean> {
   const res = await app.callFunction({
     name: "content-actions",
     data: { action: "deleteAnswer", postId, answerId },
@@ -394,7 +409,7 @@ export async function deleteAnswer(
 export async function deleteComment(
   postId: string,
   answerId: string,
-  commentId: string
+  commentId: string,
 ): Promise<boolean> {
   const res = await app.callFunction({
     name: "content-actions",
@@ -409,7 +424,7 @@ export async function updateComment(
   postId: string,
   answerId: string,
   commentId: string,
-  content: string
+  content: string,
 ): Promise<boolean> {
   const cleanContent = sanitizeInput(content);
 
@@ -425,7 +440,7 @@ export async function updateComment(
 export async function acceptAnswer(
   postId: string,
   answerId: string,
-  accept: boolean
+  accept: boolean,
 ): Promise<boolean> {
   const uid = getCurrentUid();
   if (!uid) throw new Error("请先登录");
@@ -443,10 +458,7 @@ export async function acceptAnswer(
 export async function hasVoted(answerId: string): Promise<boolean> {
   const uid = getCurrentUid();
   if (!uid) return false;
-  const { data } = await db
-    .collection("votes")
-    .where({ answerId, uid })
-    .get();
+  const { data } = await db.collection("votes").where({ answerId, uid }).get();
   return (data ?? []).length > 0;
 }
 
@@ -467,7 +479,7 @@ export async function getVotedAnswerIds(answerIds: string[]): Promise<Set<string
 export async function voteAnswer(
   postId: string,
   answerId: string,
-  isUpvote: boolean
+  isUpvote: boolean,
 ): Promise<{ changed: boolean }> {
   const uid = getCurrentUid();
   if (!uid) throw new Error("请先登录");
@@ -476,7 +488,11 @@ export async function voteAnswer(
     name: "content-actions",
     data: { action: "voteAnswer", postId, answerId, isUpvote },
   });
-  const result = (res?.result ?? {}) as { ok?: boolean; error?: string; data?: { changed?: boolean } };
+  const result = (res?.result ?? {}) as {
+    ok?: boolean;
+    error?: string;
+    data?: { changed?: boolean };
+  };
   if (!result.ok) throw new Error(result.error || "操作失败");
   return { changed: result.data?.changed !== false };
 }

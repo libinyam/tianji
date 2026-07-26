@@ -58,9 +58,7 @@ export async function toggleFavorite(params: {
   const favCol = db.collection(COLLECTION);
 
   // 查询是否已收藏
-  const { data: existing } = await favCol
-    .where({ uid, targetId: params.targetId })
-    .get();
+  const { data: existing } = await favCol.where({ uid, targetId: params.targetId }).get();
   const list = existing ?? [];
 
   if (list.length > 0) {
@@ -86,7 +84,12 @@ export async function toggleFavorite(params: {
     }
     // 更新对应集合的 favorites 计数
     if (params.type === "book") {
-      app.callFunction({ name: "content-actions", data: { action: "adjustBookFavorites", bookId: params.targetId, delta: -1 } }).catch(() => {});
+      app
+        .callFunction({
+          name: "content-actions",
+          data: { action: "adjustBookFavorites", bookId: params.targetId, delta: -1 },
+        })
+        .catch(() => {});
     }
     return false;
   }
@@ -108,7 +111,12 @@ export async function toggleFavorite(params: {
   }
   // 更新对应集合的 favorites 计数
   if (params.type === "book") {
-    app.callFunction({ name: "content-actions", data: { action: "adjustBookFavorites", bookId: params.targetId, delta: 1 } }).catch(() => {});
+    app
+      .callFunction({
+        name: "content-actions",
+        data: { action: "adjustBookFavorites", bookId: params.targetId, delta: 1 },
+      })
+      .catch(() => {});
   }
   return true;
 }
@@ -118,10 +126,7 @@ export async function isFavorited(targetId: string): Promise<boolean> {
   const uid = getCurrentUid();
   if (!uid) return false;
   try {
-    const { data } = await db
-      .collection(COLLECTION)
-      .where({ uid, targetId })
-      .get();
+    const { data } = await db.collection(COLLECTION).where({ uid, targetId }).get();
     return (data ?? []).length > 0;
   } catch {
     return false;

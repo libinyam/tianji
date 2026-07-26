@@ -25,10 +25,10 @@ describe("escapeHtml", () => {
 
   it("组合 XSS 攻击", () => {
     expect(escapeHtml('<img src="x" onerror="alert(1)">')).toBe(
-      "&lt;img src=&quot;x&quot; onerror=&quot;alert(1)&quot;&gt;"
+      "&lt;img src=&quot;x&quot; onerror=&quot;alert(1)&quot;&gt;",
     );
     expect(escapeHtml("<script>alert('xss')</script>")).toBe(
-      "&lt;script&gt;alert(&#x27;xss&#x27;)&lt;/script&gt;"
+      "&lt;script&gt;alert(&#x27;xss&#x27;)&lt;/script&gt;",
     );
   });
 

@@ -164,7 +164,7 @@ export async function resonanceIdea(id: string): Promise<boolean> {
 /** 编辑灵感（仅作者，#404 走云函数，接入服务端审核） */
 export async function updateIdea(
   ideaId: string,
-  params: { title: string; summary: string; tags: string[] }
+  params: { title: string; summary: string; tags: string[] },
 ): Promise<boolean> {
   const uid = getCurrentUid();
   if (!uid) throw new Error("请先登录");
@@ -176,7 +176,13 @@ export async function updateIdea(
 
   const res = await app.callFunction({
     name: "content-actions",
-    data: { action: "updateIdea", ideaId, title: cleanTitle, summary: cleanSummary, tags: cleanTags },
+    data: {
+      action: "updateIdea",
+      ideaId,
+      title: cleanTitle,
+      summary: cleanSummary,
+      tags: cleanTags,
+    },
   });
   const result = (res?.result ?? {}) as { ok?: boolean; error?: string };
   if (!result.ok) {

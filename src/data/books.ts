@@ -32,7 +32,8 @@ export const books: Book[] = [
       {
         author: "林照夜",
         rating: 5,
-        content: "作为数学专业第一次接触这些工具，跟着配置一遍 Claude Code 就跑通了，门槛比想象中低很多。",
+        content:
+          "作为数学专业第一次接触这些工具，跟着配置一遍 Claude Code 就跑通了，门槛比想象中低很多。",
         date: "2025-06-10",
       },
       {

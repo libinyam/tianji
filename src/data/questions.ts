@@ -15,8 +15,7 @@ export const questions: Question[] = [
     votes: 142,
     bounty: 30,
     createdAt: "2025-06-11",
-    body:
-      "我是数学专业，第一次用 Windows 配置 AI 编程工具。按视频装了 Node 和 Claude Code，但在 PowerShell 里输入 `claude` 提示「不是内部或外部命令」。\n\n我已经检查过：\n1. Node 版本是 v20+，`node -v` 能正常输出\n2. npm 全局包目录似乎没加进 PATH\n3. PowerShell 执行策略可能限制了脚本运行\n\n希望有人能给一份 Windows 下从零到跑通 Claude Code 的完整步骤。",
+    body: "我是数学专业，第一次用 Windows 配置 AI 编程工具。按视频装了 Node 和 Claude Code，但在 PowerShell 里输入 `claude` 提示「不是内部或外部命令」。\n\n我已经检查过：\n1. Node 版本是 v20+，`node -v` 能正常输出\n2. npm 全局包目录似乎没加进 PATH\n3. PowerShell 执行策略可能限制了脚本运行\n\n希望有人能给一份 Windows 下从零到跑通 Claude Code 的完整步骤。",
     answerList: [
       {
         id: "a1",
@@ -56,8 +55,7 @@ export const questions: Question[] = [
     votes: 218,
     bounty: 50,
     createdAt: "2025-06-09",
-    body:
-      "我是数学系大三，想转向 AI 方向。理论课学得还行，概率论、线性代数、最优化都有基础，但代码能力几乎为零，GitHub、部署这些更是一窍不通。\n\n我想知道：\n1. 第一步到底学 Python 还是直接上手 AI 工具？\n2. 理论基础好，怎么最快转化成能跑的项目？\n3. 有没有适合数学背景的「第一个项目」推荐？\n\n希望有过来人分享一条清晰的路线，不要让我再在各种视频里反复试错了。",
+    body: "我是数学系大三，想转向 AI 方向。理论课学得还行，概率论、线性代数、最优化都有基础，但代码能力几乎为零，GitHub、部署这些更是一窍不通。\n\n我想知道：\n1. 第一步到底学 Python 还是直接上手 AI 工具？\n2. 理论基础好，怎么最快转化成能跑的项目？\n3. 有没有适合数学背景的「第一个项目」推荐？\n\n希望有过来人分享一条清晰的路线，不要让我再在各种视频里反复试错了。",
     answerList: [
       {
         id: "a1",
@@ -96,8 +94,7 @@ export const questions: Question[] = [
     views: 1986,
     votes: 88,
     createdAt: "2025-06-07",
-    body:
-      "第一次用 GitHub，本地 `git init` 后 commit 了，远程也建了空仓库。`git push -u origin main` 时报：\n\n```\n! [rejected] main -> main (fetch first)\n```\n\n网上说要 force push，但我怕把东西搞没。求一个新人能理解的安全流程。",
+    body: "第一次用 GitHub，本地 `git init` 后 commit 了，远程也建了空仓库。`git push -u origin main` 时报：\n\n```\n! [rejected] main -> main (fetch first)\n```\n\n网上说要 force push，但我怕把东西搞没。求一个新人能理解的安全流程。",
     answerList: [
       {
         id: "a1",
@@ -125,8 +122,7 @@ export const questions: Question[] = [
     views: 1432,
     votes: 76,
     createdAt: "2025-06-05",
-    body:
-      "React + Vite 项目，本地 `npm run dev` 一切正常。推上 GitHub 后 Vercel 自动构建显示成功，但访问域名是白屏。\n\n控制台报：\n- `Failed to load resource: 404 /assets/index.js`\n- 资源路径像是绝对的 `/assets/...`\n\n查了说是 base 路径问题，但不知道怎么改，求大佬指点。",
+    body: "React + Vite 项目，本地 `npm run dev` 一切正常。推上 GitHub 后 Vercel 自动构建显示成功，但访问域名是白屏。\n\n控制台报：\n- `Failed to load resource: 404 /assets/index.js`\n- 资源路径像是绝对的 `/assets/...`\n\n查了说是 base 路径问题，但不知道怎么改，求大佬指点。",
     answerList: [
       {
         id: "a1",
@@ -154,8 +150,7 @@ export const questions: Question[] = [
     views: 2184,
     votes: 156,
     createdAt: "2025-06-02",
-    body:
-      "深度学习中损失函数 $L(\\theta)$ 通常是高度非凸的，但经验上随机梯度下降（SGD）仍能找到泛化良好的解。我的疑问是：\n\n1. 在高维参数空间中，局部极小值是否在某种意义下接近全局最优？\n2. 鞍点与局部极小的分布如何影响收敛？\n\n我了解凸优化中梯度下降的收敛率 $O(1/t)$，但非凸情形似乎缺乏类似理论。希望从数学视角得到解答。",
+    body: "深度学习中损失函数 $L(\\theta)$ 通常是高度非凸的，但经验上随机梯度下降（SGD）仍能找到泛化良好的解。我的疑问是：\n\n1. 在高维参数空间中，局部极小值是否在某种意义下接近全局最优？\n2. 鞍点与局部极小的分布如何影响收敛？\n\n我了解凸优化中梯度下降的收敛率 $O(1/t)$，但非凸情形似乎缺乏类似理论。希望从数学视角得到解答。",
     answerList: [
       {
         id: "a1",
@@ -184,8 +179,7 @@ export const questions: Question[] = [
     votes: 134,
     bounty: 40,
     createdAt: "2025-05-28",
-    body:
-      "非计算机专业，想转 AI 应用方向找工作。已经能用 Claude Code 和 Trae 写简单前端。想用一个月做出 2-3 个能写进简历的项目。\n\n希望项目：\n1. 难度由浅入深，第一个能快速出成果建立信心\n2. 最好能体现「用 AI 解决实际问题」的能力\n3. 可部署、可分享、能写好 README\n\n求过来人给个方向清单。",
+    body: "非计算机专业，想转 AI 应用方向找工作。已经能用 Claude Code 和 Trae 写简单前端。想用一个月做出 2-3 个能写进简历的项目。\n\n希望项目：\n1. 难度由浅入深，第一个能快速出成果建立信心\n2. 最好能体现「用 AI 解决实际问题」的能力\n3. 可部署、可分享、能写好 README\n\n求过来人给个方向清单。",
     answerList: [
       {
         id: "a1",

@@ -86,8 +86,15 @@ function ctx(uid) {
 describe("createIdea（issue #404）", () => {
   it("成功：文档落库，authorUid 取自登录态", async () => {
     const res = await main(
-      { action: "createIdea", title: "标题", summary: "摘要", topic: "话题", tags: ["t1"], author: "作者名" },
-      ctx("u1")
+      {
+        action: "createIdea",
+        title: "标题",
+        summary: "摘要",
+        topic: "话题",
+        tags: ["t1"],
+        author: "作者名",
+      },
+      ctx("u1"),
     );
 
     expect(res.ok).toBe(true);
@@ -108,7 +115,7 @@ describe("createIdea（issue #404）", () => {
   it("敏感词被本地快筛拦截，未落库", async () => {
     const res = await main(
       { action: "createIdea", title: "标题", summary: "这是广告", author: "a" },
-      ctx("u1")
+      ctx("u1"),
     );
     expect(res.ok).toBe(false);
     expect(res.error).toContain("敏感词");
@@ -117,10 +124,7 @@ describe("createIdea（issue #404）", () => {
 
   it("被封禁用户被拒", async () => {
     store.users_v2 = new Map([["banned", { _id: "banned", banned: true }]]);
-    const res = await main(
-      { action: "createIdea", title: "标题", summary: "摘要" },
-      ctx("banned")
-    );
+    const res = await main({ action: "createIdea", title: "标题", summary: "摘要" }, ctx("banned"));
     expect(res.ok).toBe(false);
     expect(res.error).toContain("封禁");
   });
@@ -143,7 +147,7 @@ describe("updateIdea（issue #404）", () => {
     seedIdea();
     const res = await main(
       { action: "updateIdea", ideaId: "i1", title: "篡改", summary: "篡改" },
-      ctx("intruder")
+      ctx("intruder"),
     );
     expect(res.ok).toBe(false);
     expect(res.error).toBe("无权编辑他人灵感");
@@ -154,7 +158,7 @@ describe("updateIdea（issue #404）", () => {
     seedIdea();
     const res = await main(
       { action: "updateIdea", ideaId: "i1", title: "新标题", summary: "新摘要", tags: ["t"] },
-      ctx("owner")
+      ctx("owner"),
     );
     expect(res.ok).toBe(true);
     const doc = store.ideas.get("i1");
@@ -172,7 +176,7 @@ describe("updateIdea（issue #404）", () => {
     seedIdea();
     const res = await main(
       { action: "updateIdea", ideaId: "i1", title: "新标题", summary: "新摘要" },
-      ctx("owner")
+      ctx("owner"),
     );
     expect(res.ok).toBe(false);
     expect(res.error).toContain("涉黄");
@@ -193,7 +197,7 @@ describe("createWorkshop（issue #404）", () => {
         tags: ["AI"],
         creator: "创建者",
       },
-      ctx("u1")
+      ctx("u1"),
     );
 
     expect(res.ok).toBe(true);
@@ -216,7 +220,7 @@ describe("createWorkshop（issue #404）", () => {
         description: "描述",
         outline: [{ id: "ch1", title: "赌博攻略", brief: "x" }],
       },
-      ctx("u1")
+      ctx("u1"),
     );
     expect(res.ok).toBe(false);
     expect(res.error).toContain("敏感词");
@@ -245,7 +249,7 @@ describe("updateWorkshopMeta（issue #404）", () => {
     seedWorkshop();
     const res = await main(
       { action: "updateWorkshopMeta", workshopId: "w1", title: "篡改" },
-      ctx("p1")
+      ctx("p1"),
     );
     expect(res.ok).toBe(false);
     expect(res.error).toContain("仅创建者");
@@ -256,7 +260,7 @@ describe("updateWorkshopMeta（issue #404）", () => {
     seedWorkshop();
     const res = await main(
       { action: "updateWorkshopMeta", workshopId: "w1", title: "新标题", status: "创作中" },
-      ctx("creator")
+      ctx("creator"),
     );
     expect(res.ok).toBe(true);
     const doc = store.workshops.get("w1");
@@ -270,7 +274,10 @@ describe("updateWorkshopMeta（issue #404）", () => {
 describe("updateWorkshopContent 接入审核（issue #404）", () => {
   function seedWorkshop() {
     store.workshops = new Map([
-      ["w1", { _id: "w1", creatorUid: "creator", participants: ["creator", "p1"], content: "旧内容" }],
+      [
+        "w1",
+        { _id: "w1", creatorUid: "creator", participants: ["creator", "p1"], content: "旧内容" },
+      ],
     ]);
   }
 
@@ -278,7 +285,7 @@ describe("updateWorkshopContent 接入审核（issue #404）", () => {
     seedWorkshop();
     const res = await main(
       { action: "updateWorkshopContent", workshopId: "w1", content: "新内容" },
-      ctx("p1")
+      ctx("p1"),
     );
     expect(res.ok).toBe(true);
     expect(store.workshops.get("w1").content).toBe("新内容");
@@ -288,7 +295,7 @@ describe("updateWorkshopContent 接入审核（issue #404）", () => {
     seedWorkshop();
     const res = await main(
       { action: "updateWorkshopContent", workshopId: "w1", content: "x" },
-      ctx("outsider")
+      ctx("outsider"),
     );
     expect(res.ok).toBe(false);
     expect(res.error).toContain("请先加入项目");
@@ -298,7 +305,7 @@ describe("updateWorkshopContent 接入审核（issue #404）", () => {
     seedWorkshop();
     const res = await main(
       { action: "updateWorkshopContent", workshopId: "w1", content: "这是诈骗内容" },
-      ctx("p1")
+      ctx("p1"),
     );
     expect(res.ok).toBe(false);
     expect(res.error).toContain("敏感词");
@@ -317,7 +324,7 @@ describe("createNotification 服务端化（issue #40）", () => {
         link: "/discussion/p1",
         actor: "触发者",
       },
-      ctx("actor-uid")
+      ctx("actor-uid"),
     );
 
     expect(res.ok).toBe(true);
@@ -342,7 +349,7 @@ describe("createNotification 服务端化（issue #40）", () => {
         title: "x",
         link: "https://evil.example.com",
       },
-      ctx("actor-uid")
+      ctx("actor-uid"),
     );
     expect(res.ok).toBe(false);
     expect(res.error).toBe("非法链接");
@@ -351,8 +358,14 @@ describe("createNotification 服务端化（issue #40）", () => {
 
   it("协议相对链接 // 被拒", async () => {
     const res = await main(
-      { action: "createNotification", targetUid: "t", type: "answer", title: "x", link: "//evil.com" },
-      ctx("actor-uid")
+      {
+        action: "createNotification",
+        targetUid: "t",
+        type: "answer",
+        title: "x",
+        link: "//evil.com",
+      },
+      ctx("actor-uid"),
     );
     expect(res.ok).toBe(false);
     expect(res.error).toBe("非法链接");
@@ -361,7 +374,7 @@ describe("createNotification 服务端化（issue #40）", () => {
   it("白名单外的通知类型被拒", async () => {
     const res = await main(
       { action: "createNotification", targetUid: "t", type: "hacked", title: "x", link: "/p" },
-      ctx("actor-uid")
+      ctx("actor-uid"),
     );
     expect(res.ok).toBe(false);
     expect(res.error).toBe("非法通知类型");
@@ -370,7 +383,7 @@ describe("createNotification 服务端化（issue #40）", () => {
   it("给自己发通知被静默跳过", async () => {
     const res = await main(
       { action: "createNotification", targetUid: "me", type: "answer", title: "x", link: "/p" },
-      ctx("me")
+      ctx("me"),
     );
     expect(res.ok).toBe(true);
     expect(res.data.skipped).toBe(true);
@@ -380,7 +393,7 @@ describe("createNotification 服务端化（issue #40）", () => {
   it("未登录被拒", async () => {
     const res = await main(
       { action: "createNotification", targetUid: "t", type: "answer", title: "x", link: "/p" },
-      {}
+      {},
     );
     expect(res.ok).toBe(false);
     expect(res.error).toContain("请先登录");
@@ -397,7 +410,7 @@ describe("审核 fail-closed（issue #315/#415）", () => {
 
     const res = await main(
       { action: "createPost", title: "标题", body: "正文", author: "a" },
-      ctx("u1")
+      ctx("u1"),
     );
 
     expect(res.ok).toBe(false);
@@ -414,7 +427,7 @@ describe("审核 fail-closed（issue #315/#415）", () => {
 
     const res = await main(
       { action: "createPost", title: "标题", body: "正文", author: "a" },
-      ctx("u1")
+      ctx("u1"),
     );
 
     expect(res.ok).toBe(false);
@@ -425,7 +438,7 @@ describe("审核 fail-closed（issue #315/#415）", () => {
   it("默认注入仍为放行，兼容既有测试", async () => {
     const res = await main(
       { action: "createPost", title: "标题", body: "正文", author: "a" },
-      ctx("u1")
+      ctx("u1"),
     );
     expect(res.ok).toBe(true);
     expect(store.posts.size).toBe(1);

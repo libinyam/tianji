@@ -79,11 +79,7 @@ async function pruneOldBackups() {
     const all = [];
     let offset = 0;
     while (true) {
-      const { data } = await db
-        .collection("_backups")
-        .skip(offset)
-        .limit(MAX_BATCH)
-        .get();
+      const { data } = await db.collection("_backups").skip(offset).limit(MAX_BATCH).get();
       if (!data || data.length === 0) break;
       all.push(...data);
       if (data.length < MAX_BATCH) break;
@@ -100,9 +96,7 @@ async function pruneOldBackups() {
     }
 
     const sorted = [...batches].sort(); // 时间戳字典序升序，旧的在前
-    const toDelete = new Set(
-      sorted.slice(0, Math.max(0, sorted.length - MAX_BACKUPS_TO_KEEP))
-    );
+    const toDelete = new Set(sorted.slice(0, Math.max(0, sorted.length - MAX_BACKUPS_TO_KEEP)));
     if (toDelete.size === 0) return { pruned: 0 };
 
     let pruned = 0;
@@ -152,11 +146,7 @@ exports.main = async (event = {}, context = {}) => {
       let offset = 0;
 
       while (true) {
-        const { data } = await db
-          .collection(collectionName)
-          .skip(offset)
-          .limit(MAX_BATCH)
-          .get();
+        const { data } = await db.collection(collectionName).skip(offset).limit(MAX_BATCH).get();
 
         if (!data || data.length === 0) break;
         allDocs.push(...data);
@@ -188,9 +178,7 @@ exports.main = async (event = {}, context = {}) => {
     }
   }
 
-  const totalDocs = results
-    .filter((r) => r.status === "ok")
-    .reduce((sum, r) => sum + r.count, 0);
+  const totalDocs = results.filter((r) => r.status === "ok").reduce((sum, r) => sum + r.count, 0);
 
   const prune = await pruneOldBackups();
   const durationMs = Date.now() - startedAt;

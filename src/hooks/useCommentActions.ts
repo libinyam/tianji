@@ -9,10 +9,7 @@ import type { Question, Comment } from "@/types";
 
 type SetQuestion = React.Dispatch<React.SetStateAction<Question | null>>;
 
-export function useCommentActions(
-  question: Question | null,
-  setQuestion: SetQuestion
-) {
+export function useCommentActions(question: Question | null, setQuestion: SetQuestion) {
   const { user } = useAuthStore();
 
   const [commentingAnswerId, setCommentingAnswerId] = useState<string | null>(null);
@@ -62,7 +59,7 @@ export function useCommentActions(
         question.id,
         answerId,
         commentText.trim(),
-        replyTarget?.commentId
+        replyTarget?.commentId,
       );
       if (comment) {
         rateLimiters.comment.record();
@@ -147,7 +144,7 @@ export function useCommentActions(
           return {
             ...a,
             comments: (a.comments ?? []).map((c) =>
-              c.id === commentId ? { ...c, content: editCommentText.trim() } : c
+              c.id === commentId ? { ...c, content: editCommentText.trim() } : c,
             ),
           };
         }

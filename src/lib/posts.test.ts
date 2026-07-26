@@ -158,20 +158,17 @@ describe("posts", () => {
             tags: ["t1"],
             author: "Tester",
           }),
-        })
+        }),
       );
-      expect(mockReputation.awardReputation).toHaveBeenCalledWith(
-        "createPost",
-        "new-post-id"
-      );
+      expect(mockReputation.awardReputation).toHaveBeenCalledWith("createPost", "new-post-id");
     });
 
     it("未登录：抛出'请先登录'且不调用云函数", async () => {
       mockAuth.user = null;
 
-      await expect(
-        createPost({ title: "标题", body: "正文", tags: [] })
-      ).rejects.toThrow("请先登录");
+      await expect(createPost({ title: "标题", body: "正文", tags: [] })).rejects.toThrow(
+        "请先登录",
+      );
 
       expect(mockCallFunction).not.toHaveBeenCalled();
       expect(mockReputation.awardReputation).not.toHaveBeenCalled();
@@ -180,9 +177,9 @@ describe("posts", () => {
     it("标题为空：抛出校验错误且不调用云函数", async () => {
       mockAuth.user = { uid: "test-uid" };
 
-      await expect(
-        createPost({ title: "   ", body: "正文", tags: [] })
-      ).rejects.toThrow("标题不能为空");
+      await expect(createPost({ title: "   ", body: "正文", tags: [] })).rejects.toThrow(
+        "标题不能为空",
+      );
 
       expect(mockCallFunction).not.toHaveBeenCalled();
     });
@@ -193,9 +190,9 @@ describe("posts", () => {
         result: { ok: false, error: "内容包含涉黄信息，请修改后重试" },
       });
 
-      await expect(
-        createPost({ title: "标题", body: "违规内容", tags: [] })
-      ).rejects.toThrow("内容包含涉黄信息，请修改后重试");
+      await expect(createPost({ title: "标题", body: "违规内容", tags: [] })).rejects.toThrow(
+        "内容包含涉黄信息，请修改后重试",
+      );
 
       expect(mockReputation.awardReputation).not.toHaveBeenCalled();
     });

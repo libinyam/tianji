@@ -8,7 +8,6 @@ import { PostCardSkeleton } from "@/components/Skeleton";
 import { fetchPortfolioWorks, type WorkshopProject } from "@/lib/workshops";
 import { useSEO } from "@/hooks/useSEO";
 
-
 export default function Portfolio() {
   useSEO({
     title: "作品集",

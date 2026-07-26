@@ -16,9 +16,9 @@ const ACCESS_KEY = import.meta.env.VITE_CLOUDBASE_ACCESS_KEY as string;
 if (!ENV_ID || !ACCESS_KEY) {
   console.error(
     "CloudBase 环境变量未配置！请在 Vercel/GitHub Secrets 中设置:\n" +
-    "VITE_CLOUDBASE_ENV_ID\n" +
-    "VITE_CLOUDBASE_ACCESS_KEY\n" +
-    "VITE_CLOUDBASE_REGION=ap-shanghai"
+      "VITE_CLOUDBASE_ENV_ID\n" +
+      "VITE_CLOUDBASE_ACCESS_KEY\n" +
+      "VITE_CLOUDBASE_REGION=ap-shanghai",
   );
 }
 

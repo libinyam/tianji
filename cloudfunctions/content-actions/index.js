@@ -24,15 +24,11 @@ exports.__setTestDb = (fakeDb, opts = {}) => {
   db = fakeDb;
   _ = fakeDb.command;
   app = {
-    callFunction:
-      opts.callFunction || (async () => ({ result: { ok: true, suggestion: "pass" } })),
+    callFunction: opts.callFunction || (async () => ({ result: { ok: true, suggestion: "pass" } })),
   };
 };
 
-const SENSITIVE_WORDS = [
-  "垃圾", "广告", "色情", "赌博", "毒品", "诈骗",
-  "fuck", "shit", "bitch",
-];
+const SENSITIVE_WORDS = ["垃圾", "广告", "色情", "赌博", "毒品", "诈骗", "fuck", "shit", "bitch"];
 
 function containsSensitiveWord(text) {
   const lower = String(text || "").toLowerCase();
@@ -54,7 +50,13 @@ async function moderateText(text, uid, source) {
   // 先做本地敏感词快筛（零延迟兜底）
   const sc = containsSensitiveWord(text);
   if (sc.found) {
-    return { passed: false, suggestion: "block", label: "LocalFilter", score: 100, words: sc.words };
+    return {
+      passed: false,
+      suggestion: "block",
+      label: "LocalFilter",
+      score: 100,
+      words: sc.words,
+    };
   }
 
   // 调用数据万象 CI 文本审核
@@ -74,7 +76,14 @@ async function moderateText(text, uid, source) {
     };
   } catch (err) {
     // #315 审核服务不可用时拒绝，要求用户稍后重试
-    return { passed: false, suggestion: "block", label: "ServiceError", score: 0, error: err.message, failOpen: false };
+    return {
+      passed: false,
+      suggestion: "block",
+      label: "ServiceError",
+      score: 0,
+      error: err.message,
+      failOpen: false,
+    };
   }
 }
 
@@ -104,7 +113,12 @@ function moderationRejectMessage(result) {
     return "内容审核服务暂时不可用，请稍后重试";
   }
   const labelMap = {
-    Porn: "涉黄", Ad: "广告", Illegal: "违法", Abuse: "辱骂", Polity: "涉政", Terrorist: "暴恐",
+    Porn: "涉黄",
+    Ad: "广告",
+    Illegal: "违法",
+    Abuse: "辱骂",
+    Polity: "涉政",
+    Terrorist: "暴恐",
   };
   const label = labelMap[result.label] || result.label || "违规";
   return `内容包含${label}信息，请修改后重试`;
@@ -143,17 +157,19 @@ async function awardReputationOnce(uid, points, eventId, reason) {
 
   let isNewEvent = false;
   try {
-    const result = await db.collection("reputation_events").doc(eventId).set({
-      eventId,
-      uid,
-      points,
-      reason: reason || "",
-      createdAt: Date.now(),
-    });
+    const result = await db
+      .collection("reputation_events")
+      .doc(eventId)
+      .set({
+        eventId,
+        uid,
+        points,
+        reason: reason || "",
+        createdAt: Date.now(),
+      });
     const r = result || {};
     // 首次写入为 upsert；重放请求命中已存在文档会是 replaced/updated
-    isNewEvent =
-      (r.upserted || 0) > 0 && (r.replaced || 0) === 0 && (r.updated || 0) === 0;
+    isNewEvent = (r.upserted || 0) > 0 && (r.replaced || 0) === 0 && (r.updated || 0) === 0;
   } catch {
     // 事件登记失败时不加分，避免无记录的加分
     return false;
@@ -162,9 +178,12 @@ async function awardReputationOnce(uid, points, eventId, reason) {
   if (!isNewEvent) return false;
 
   try {
-    await db.collection("users_v2").doc(uid).update({
-      reputation: _.inc(points),
-    });
+    await db
+      .collection("users_v2")
+      .doc(uid)
+      .update({
+        reputation: _.inc(points),
+      });
   } catch {}
 
   return true;
@@ -182,13 +201,23 @@ async function createPost(event, uid) {
   // #289 文本审核（标题+正文一起审核）
   const fullText = title + "\n" + body;
   const modResult = await moderateText(fullText, uid, "createPost");
-  await logModeration({ uid, action: "createPost", suggestion: modResult.suggestion, label: modResult.label, score: modResult.score, textPreview: String(fullText).slice(0, 200) });
+  await logModeration({
+    uid,
+    action: "createPost",
+    suggestion: modResult.suggestion,
+    label: modResult.label,
+    score: modResult.score,
+    textPreview: String(fullText).slice(0, 200),
+  });
   if (!modResult.passed) return fail(moderationRejectMessage(modResult));
 
   const cleanTitle = String(title).trim().slice(0, 200);
   const cleanBody = String(body).slice(0, 50000);
   const cleanTags = Array.isArray(tags)
-    ? tags.map((t) => String(t).trim().slice(0, 20)).filter(Boolean).slice(0, 5)
+    ? tags
+        .map((t) => String(t).trim().slice(0, 20))
+        .filter(Boolean)
+        .slice(0, 5)
     : [];
   const excerpt = cleanBody.length > 120 ? cleanBody.slice(0, 120) + "…" : cleanBody;
 
@@ -214,7 +243,24 @@ async function createPost(event, uid) {
   const resObj = res || {};
   const newId = resObj.id || resObj._id || "";
 
-  return ok({ id: newId, title: doc.title, excerpt: doc.excerpt, author: doc.author, authorUid: uid, avatarColor: doc.avatarColor, tags: doc.tags, category: doc.category, subCategory: doc.subCategory, bounty: doc.bounty, views: 0, votes: 0, answersCount: 0, answerList: [], createdAt: doc.createdAt, body: doc.body });
+  return ok({
+    id: newId,
+    title: doc.title,
+    excerpt: doc.excerpt,
+    author: doc.author,
+    authorUid: uid,
+    avatarColor: doc.avatarColor,
+    tags: doc.tags,
+    category: doc.category,
+    subCategory: doc.subCategory,
+    bounty: doc.bounty,
+    views: 0,
+    votes: 0,
+    answersCount: 0,
+    answerList: [],
+    createdAt: doc.createdAt,
+    body: doc.body,
+  });
 }
 
 async function submitAnswer(event, uid) {
@@ -225,7 +271,15 @@ async function submitAnswer(event, uid) {
 
   // #289 文本审核
   const modResult = await moderateText(content, uid, "submitAnswer");
-  await logModeration({ uid, action: "submitAnswer", postId, suggestion: modResult.suggestion, label: modResult.label, score: modResult.score, textPreview: String(content).slice(0, 200) });
+  await logModeration({
+    uid,
+    action: "submitAnswer",
+    postId,
+    suggestion: modResult.suggestion,
+    label: modResult.label,
+    score: modResult.score,
+    textPreview: String(content).slice(0, 200),
+  });
   if (!modResult.passed) return fail(moderationRejectMessage(modResult));
 
   const docRef = db.collection("posts").doc(postId);
@@ -278,7 +332,16 @@ async function submitComment(event, uid) {
 
   // #289 文本审核
   const modResult = await moderateText(content, uid, "submitComment");
-  await logModeration({ uid, action: "submitComment", postId, answerId, suggestion: modResult.suggestion, label: modResult.label, score: modResult.score, textPreview: String(content).slice(0, 200) });
+  await logModeration({
+    uid,
+    action: "submitComment",
+    postId,
+    answerId,
+    suggestion: modResult.suggestion,
+    label: modResult.label,
+    score: modResult.score,
+    textPreview: String(content).slice(0, 200),
+  });
   if (!modResult.passed) return fail(moderationRejectMessage(modResult));
 
   const docRef = db.collection("posts").doc(postId);
@@ -329,11 +392,22 @@ async function deletePost(event, uid) {
   await docRef.remove();
 
   // 级联清理收藏、举报、投票和通知（不阻塞主流程）
-  try { await db.collection("favorites").where({ targetId: postId }).remove(); } catch {}
-  try { await db.collection("reports").where({ targetId: postId }).remove(); } catch {}
-  try { await db.collection("votes").where({ postId }).remove(); } catch {}
+  try {
+    await db.collection("favorites").where({ targetId: postId }).remove();
+  } catch {}
+  try {
+    await db.collection("reports").where({ targetId: postId }).remove();
+  } catch {}
+  try {
+    await db.collection("votes").where({ postId }).remove();
+  } catch {}
   // #373 清理该帖子相关的通知，避免删帖后通知中心出现死链
-  try { await db.collection("notifications").where({ link: `/discussion/${postId}` }).remove(); } catch {}
+  try {
+    await db
+      .collection("notifications")
+      .where({ link: `/discussion/${postId}` })
+      .remove();
+  } catch {}
 
   return ok({ deleted: true });
 }
@@ -356,8 +430,12 @@ async function deleteIdea(event, uid) {
   await docRef.remove();
 
   // 级联清理收藏和举报（不阻塞主流程）
-  try { await db.collection("favorites").where({ targetId: ideaId }).remove(); } catch {}
-  try { await db.collection("reports").where({ targetId: ideaId }).remove(); } catch {}
+  try {
+    await db.collection("favorites").where({ targetId: ideaId }).remove();
+  } catch {}
+  try {
+    await db.collection("reports").where({ targetId: ideaId }).remove();
+  } catch {}
 
   return ok({ deleted: true });
 }
@@ -371,7 +449,14 @@ async function createIdea(event, uid) {
 
   const fullText = title + "\n" + summary;
   const modResult = await moderateText(fullText, uid, "createIdea");
-  await logModeration({ uid, action: "createIdea", suggestion: modResult.suggestion, label: modResult.label, score: modResult.score, textPreview: String(fullText).slice(0, 200) });
+  await logModeration({
+    uid,
+    action: "createIdea",
+    suggestion: modResult.suggestion,
+    label: modResult.label,
+    score: modResult.score,
+    textPreview: String(fullText).slice(0, 200),
+  });
   if (!modResult.passed) return fail(moderationRejectMessage(modResult));
 
   const doc = {
@@ -382,7 +467,10 @@ async function createIdea(event, uid) {
     avatarColor: AVATAR_COLORS[Math.floor(Math.random() * AVATAR_COLORS.length)],
     topic: String(topic || "").slice(0, 100),
     tags: Array.isArray(tags)
-      ? tags.map((t) => String(t).trim().slice(0, 20)).filter(Boolean).slice(0, 5)
+      ? tags
+          .map((t) => String(t).trim().slice(0, 20))
+          .filter(Boolean)
+          .slice(0, 5)
       : [],
     resonance: 0,
     replies: 0,
@@ -403,7 +491,15 @@ async function updateIdea(event, uid) {
 
   const fullText = title + "\n" + summary;
   const modResult = await moderateText(fullText, uid, "updateIdea");
-  await logModeration({ uid, action: "updateIdea", ideaId, suggestion: modResult.suggestion, label: modResult.label, score: modResult.score, textPreview: String(fullText).slice(0, 200) });
+  await logModeration({
+    uid,
+    action: "updateIdea",
+    ideaId,
+    suggestion: modResult.suggestion,
+    label: modResult.label,
+    score: modResult.score,
+    textPreview: String(fullText).slice(0, 200),
+  });
   if (!modResult.passed) return fail(moderationRejectMessage(modResult));
 
   const docRef = db.collection("ideas").doc(ideaId);
@@ -417,7 +513,10 @@ async function updateIdea(event, uid) {
     title: String(title).trim().slice(0, 200),
     summary: String(summary).slice(0, 10000),
     tags: Array.isArray(tags)
-      ? tags.map((t) => String(t).trim().slice(0, 20)).filter(Boolean).slice(0, 5)
+      ? tags
+          .map((t) => String(t).trim().slice(0, 20))
+          .filter(Boolean)
+          .slice(0, 5)
       : [],
   });
 
@@ -436,7 +535,15 @@ async function addIdeaComment(event, uid) {
 
   // #289 文本审核
   const modResult = await moderateText(content, uid, "addIdeaComment");
-  await logModeration({ uid, action: "addIdeaComment", ideaId, suggestion: modResult.suggestion, label: modResult.label, score: modResult.score, textPreview: String(content).slice(0, 200) });
+  await logModeration({
+    uid,
+    action: "addIdeaComment",
+    ideaId,
+    suggestion: modResult.suggestion,
+    label: modResult.label,
+    score: modResult.score,
+    textPreview: String(content).slice(0, 200),
+  });
   if (!modResult.passed) return fail(moderationRejectMessage(modResult));
 
   const docRef = db.collection("ideas").doc(ideaId);
@@ -557,7 +664,15 @@ async function updatePost(event, uid) {
   // 文本审核（标题+正文）
   const fullText = title + "\n" + body;
   const modResult = await moderateText(fullText, uid, "updatePost");
-  await logModeration({ uid, action: "updatePost", postId, suggestion: modResult.suggestion, label: modResult.label, score: modResult.score, textPreview: String(fullText).slice(0, 200) });
+  await logModeration({
+    uid,
+    action: "updatePost",
+    postId,
+    suggestion: modResult.suggestion,
+    label: modResult.label,
+    score: modResult.score,
+    textPreview: String(fullText).slice(0, 200),
+  });
   if (!modResult.passed) return fail(moderationRejectMessage(modResult));
 
   const docRef = db.collection("posts").doc(postId);
@@ -570,7 +685,10 @@ async function updatePost(event, uid) {
   const cleanTitle = String(title).trim().slice(0, 200);
   const cleanBody = String(body).slice(0, 50000);
   const cleanTags = Array.isArray(tags)
-    ? tags.map((t) => String(t).trim().slice(0, 20)).filter(Boolean).slice(0, 5)
+    ? tags
+        .map((t) => String(t).trim().slice(0, 20))
+        .filter(Boolean)
+        .slice(0, 5)
     : [];
   const excerpt = cleanBody.length > 120 ? cleanBody.slice(0, 120) + "…" : cleanBody;
 
@@ -593,7 +711,16 @@ async function updateAnswer(event, uid) {
 
   // #289 文本审核
   const modResult = await moderateText(content, uid, "updateAnswer");
-  await logModeration({ uid, action: "updateAnswer", postId, answerId, suggestion: modResult.suggestion, label: modResult.label, score: modResult.score, textPreview: String(content).slice(0, 200) });
+  await logModeration({
+    uid,
+    action: "updateAnswer",
+    postId,
+    answerId,
+    suggestion: modResult.suggestion,
+    label: modResult.label,
+    score: modResult.score,
+    textPreview: String(content).slice(0, 200),
+  });
   if (!modResult.passed) return fail(moderationRejectMessage(modResult));
 
   const docRef = db.collection("posts").doc(postId);
@@ -622,7 +749,17 @@ async function updateComment(event, uid) {
 
   // #289 文本审核
   const modResult = await moderateText(content, uid, "updateComment");
-  await logModeration({ uid, action: "updateComment", postId, answerId, commentId, suggestion: modResult.suggestion, label: modResult.label, score: modResult.score, textPreview: String(content).slice(0, 200) });
+  await logModeration({
+    uid,
+    action: "updateComment",
+    postId,
+    answerId,
+    commentId,
+    suggestion: modResult.suggestion,
+    label: modResult.label,
+    score: modResult.score,
+    textPreview: String(content).slice(0, 200),
+  });
   if (!modResult.passed) return fail(moderationRejectMessage(modResult));
 
   const docRef = db.collection("posts").doc(postId);
@@ -664,7 +801,10 @@ async function voteAnswer(event, uid) {
       return ok({ changed: false });
     }
     await votesCol.doc(voteDocId).set({
-      answerId, uid, postId, createdAt: Date.now(),
+      answerId,
+      uid,
+      postId,
+      createdAt: Date.now(),
     });
     shouldInc = true;
   } else {
@@ -713,7 +853,7 @@ async function voteAnswer(event, uid) {
         answerAuthor,
         10,
         `vote:answer:${answerId}:${uid}:up`,
-        "answerVoted"
+        "answerVoted",
       );
     }
   }
@@ -746,7 +886,7 @@ async function acceptAnswer(event, uid) {
         answerAuthor,
         15,
         `accept:answer:${postId}:${answerId}`,
-        "answerAccepted"
+        "answerAccepted",
       );
     }
   }
@@ -758,18 +898,24 @@ async function acceptAnswer(event, uid) {
 async function incrementPostViews(event) {
   const { postId } = event;
   if (!postId) return fail("缺少参数");
-  await db.collection("posts").doc(postId).update({
-    views: _.inc(1),
-  });
+  await db
+    .collection("posts")
+    .doc(postId)
+    .update({
+      views: _.inc(1),
+    });
   return ok({ incremented: true });
 }
 
 async function incrementBookDownloads(event) {
   const { bookId } = event;
   if (!bookId) return fail("缺少参数");
-  await db.collection("books").doc(bookId).update({
-    downloads: _.inc(1),
-  });
+  await db
+    .collection("books")
+    .doc(bookId)
+    .update({
+      downloads: _.inc(1),
+    });
   return ok({ incremented: true });
 }
 
@@ -781,9 +927,12 @@ async function adjustBookFavorites(event, uid) {
 
   // #372 favorites 记录由前端 toggleFavorite 的 add/remove 管理，
   // 此函数仅负责更新 books.favorites 计数，避免重复写入产生孤儿记录
-  await db.collection("books").doc(bookId).update({
-    favorites: _.inc(d),
-  });
+  await db
+    .collection("books")
+    .doc(bookId)
+    .update({
+      favorites: _.inc(d),
+    });
 
   return ok({ adjusted: true });
 }
@@ -829,12 +978,7 @@ async function resonanceIdea(event, uid) {
 
   // eventId 以「灵感+共鸣者」为唯一键，与上方 resonatedBy 去重双重保险
   if (doc.authorUid && doc.authorUid !== uid) {
-    await awardReputationOnce(
-      doc.authorUid,
-      1,
-      `resonate:idea:${id}:${uid}`,
-      "ideaResonated"
-    );
+    await awardReputationOnce(doc.authorUid, 1, `resonate:idea:${id}:${uid}`, "ideaResonated");
   }
 
   return ok({ resonated: true });
@@ -891,12 +1035,7 @@ async function awardCreateReputation(event, uid) {
 
   if (!docExists) return fail("内容不存在或非作者");
 
-  const awarded = await awardReputationOnce(
-    uid,
-    points,
-    `create:${reason}:${entityId}`,
-    reason
-  );
+  const awarded = await awardReputationOnce(uid, points, `create:${reason}:${entityId}`, reason);
   return ok({ awarded });
 }
 
@@ -907,7 +1046,15 @@ async function addBookReview(event, uid) {
   // #289 文本审核（仅审核有内容的情况）
   if (content) {
     const modResult = await moderateText(content, uid || authorUid, "addBookReview");
-    await logModeration({ uid: uid || authorUid, action: "addBookReview", bookId, suggestion: modResult.suggestion, label: modResult.label, score: modResult.score, textPreview: String(content).slice(0, 200) });
+    await logModeration({
+      uid: uid || authorUid,
+      action: "addBookReview",
+      bookId,
+      suggestion: modResult.suggestion,
+      label: modResult.label,
+      score: modResult.score,
+      textPreview: String(content).slice(0, 200),
+    });
     if (!modResult.passed) return fail(moderationRejectMessage(modResult));
   }
 
@@ -923,7 +1070,9 @@ async function addBookReview(event, uid) {
     author: author || "",
     authorUid: authorUid || "",
     rating: Number(rating) || 0,
-    content: String(content || "").trim().slice(0, 5000),
+    content: String(content || "")
+      .trim()
+      .slice(0, 5000),
     date: new Date().toISOString(),
   };
 
@@ -996,7 +1145,14 @@ async function createWorkshop(event, uid) {
   const outlineText = cleanOutline.map((ch) => `${ch.title}\n${ch.brief}`).join("\n");
   const fullText = `${title}\n${description}\n${content || ""}\n${outlineText}`;
   const modResult = await moderateText(fullText, uid, "createWorkshop");
-  await logModeration({ uid, action: "createWorkshop", suggestion: modResult.suggestion, label: modResult.label, score: modResult.score, textPreview: String(fullText).slice(0, 200) });
+  await logModeration({
+    uid,
+    action: "createWorkshop",
+    suggestion: modResult.suggestion,
+    label: modResult.label,
+    score: modResult.score,
+    textPreview: String(fullText).slice(0, 200),
+  });
   if (!modResult.passed) return fail(moderationRejectMessage(modResult));
 
   const now = new Date().toISOString();
@@ -1013,7 +1169,10 @@ async function createWorkshop(event, uid) {
     contributions: [],
     annotations: [],
     tags: Array.isArray(tags)
-      ? tags.map((t) => String(t).trim().slice(0, 20)).filter(Boolean).slice(0, 5)
+      ? tags
+          .map((t) => String(t).trim().slice(0, 20))
+          .filter(Boolean)
+          .slice(0, 5)
       : [],
     status: "招募中",
     createdAt: now,
@@ -1038,7 +1197,15 @@ async function updateWorkshopMeta(event, uid) {
   const textToModerate = [title, description].filter((v) => v !== undefined).join("\n");
   if (textToModerate) {
     const modResult = await moderateText(textToModerate, uid, "updateWorkshopMeta");
-    await logModeration({ uid, action: "updateWorkshopMeta", workshopId, suggestion: modResult.suggestion, label: modResult.label, score: modResult.score, textPreview: String(textToModerate).slice(0, 200) });
+    await logModeration({
+      uid,
+      action: "updateWorkshopMeta",
+      workshopId,
+      suggestion: modResult.suggestion,
+      label: modResult.label,
+      score: modResult.score,
+      textPreview: String(textToModerate).slice(0, 200),
+    });
     if (!modResult.passed) return fail(moderationRejectMessage(modResult));
   }
 
@@ -1064,10 +1231,20 @@ async function submitWorkshopContribution(event, uid) {
 
   // #289 文本审核
   const modResult = await moderateText(content, uid, "submitWorkshopContribution");
-  await logModeration({ uid, action: "submitWorkshopContribution", workshopId, suggestion: modResult.suggestion, label: modResult.label, score: modResult.score, textPreview: String(content).slice(0, 200) });
+  await logModeration({
+    uid,
+    action: "submitWorkshopContribution",
+    workshopId,
+    suggestion: modResult.suggestion,
+    label: modResult.label,
+    score: modResult.score,
+    textPreview: String(content).slice(0, 200),
+  });
   if (!modResult.passed) return fail(moderationRejectMessage(modResult));
 
-  const sanitized = String(content || "").trim().slice(0, 10000);
+  const sanitized = String(content || "")
+    .trim()
+    .slice(0, 10000);
 
   const docRef = db.collection("workshops").doc(workshopId);
   const { data } = await docRef.get();
@@ -1109,12 +1286,24 @@ async function addWorkshopAnnotation(event, uid) {
 
   // #289 文本审核
   const modResult = await moderateText(content, uid, "addWorkshopAnnotation");
-  await logModeration({ uid, action: "addWorkshopAnnotation", workshopId, suggestion: modResult.suggestion, label: modResult.label, score: modResult.score, textPreview: String(content).slice(0, 200) });
+  await logModeration({
+    uid,
+    action: "addWorkshopAnnotation",
+    workshopId,
+    suggestion: modResult.suggestion,
+    label: modResult.label,
+    score: modResult.score,
+    textPreview: String(content).slice(0, 200),
+  });
   if (!modResult.passed) return fail(moderationRejectMessage(modResult));
 
-  const sanitized = String(content || "").trim().slice(0, 5000);
+  const sanitized = String(content || "")
+    .trim()
+    .slice(0, 5000);
   // #27 选中文本快照，截断到 200 字符
-  const selectedSnapshot = String(selectedText || "").trim().slice(0, 200);
+  const selectedSnapshot = String(selectedText || "")
+    .trim()
+    .slice(0, 200);
 
   const docRef = db.collection("workshops").doc(workshopId);
   const { data } = await docRef.get();
@@ -1230,7 +1419,15 @@ async function updateWorkshopContent(event, uid) {
   // #404 正文接入文本审核（此前唯一漏审的工坊写路径）；清空内容无需审核
   if (content) {
     const modResult = await moderateText(content, uid, "updateWorkshopContent");
-    await logModeration({ uid, action: "updateWorkshopContent", workshopId, suggestion: modResult.suggestion, label: modResult.label, score: modResult.score, textPreview: String(content).slice(0, 200) });
+    await logModeration({
+      uid,
+      action: "updateWorkshopContent",
+      workshopId,
+      suggestion: modResult.suggestion,
+      label: modResult.label,
+      score: modResult.score,
+      textPreview: String(content).slice(0, 200),
+    });
     if (!modResult.passed) return fail(moderationRejectMessage(modResult));
   }
 
@@ -1255,9 +1452,15 @@ async function updateWorkshopContent(event, uid) {
   return ok({ updated: true });
 }
 
-
 const NOTIFICATION_TYPES = [
-  "answer", "comment", "resonance", "join", "contribute", "accept", "follow", "workshop",
+  "answer",
+  "comment",
+  "resonance",
+  "join",
+  "contribute",
+  "accept",
+  "follow",
+  "workshop",
 ];
 
 /**
@@ -1313,10 +1516,13 @@ async function checkRateLimit(uid, action) {
         const retryAfter = Math.ceil((rule.windowMs - (now - windowStart)) / 1000);
         return { allowed: false, retryAfter };
       }
-      await db.collection("rate_limits").doc(docId).update({
-        count: _.inc(1),
-        updatedAt: now,
-      });
+      await db
+        .collection("rate_limits")
+        .doc(docId)
+        .update({
+          count: _.inc(1),
+          updatedAt: now,
+        });
     } else {
       await db.collection("rate_limits").doc(docId).set({
         count: 1,

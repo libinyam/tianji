@@ -46,7 +46,9 @@ function fail(error) {
 }
 
 function sanitizeText(text, maxLen = 5000) {
-  return String(text || "").trim().slice(0, maxLen);
+  return String(text || "")
+    .trim()
+    .slice(0, maxLen);
 }
 
 async function createAnnouncement(event, uid) {

@@ -46,13 +46,13 @@ describe("isAuthor", () => {
 describe("friendlyErrorMessage", () => {
   it("CloudBase 安全规则错误翻译成中文", () => {
     expect(friendlyErrorMessage(new Error("Permission denied by security rules"))).toBe(
-      "操作失败：权限不足或登录已过期，请刷新后重试"
+      "操作失败：权限不足或登录已过期，请刷新后重试",
     );
   });
 
   it("大小写不敏感匹配", () => {
     expect(friendlyErrorMessage(new Error("PERMISSION DENIED"))).toBe(
-      "操作失败：权限不足或登录已过期，请刷新后重试"
+      "操作失败：权限不足或登录已过期，请刷新后重试",
     );
   });
 

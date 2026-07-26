@@ -4,7 +4,13 @@ const db = app.database();
 
 /** 用户的创作内容概览 */
 export interface UserContent {
-  posts: Array<{ id: string; title: string; createdAt: string; views: number; answersCount: number }>;
+  posts: Array<{
+    id: string;
+    title: string;
+    createdAt: string;
+    views: number;
+    answersCount: number;
+  }>;
   ideas: Array<{ id: string; title: string; createdAt: string; resonance: number; link: string }>;
   books: Array<{ id: string; title: string; createdAt: string; category: string }>;
   workshops: Array<{ id: string; title: string; createdAt: string; type: string }>;
@@ -23,11 +29,7 @@ export async function fetchPublicUser(uid: string): Promise<PublicUser | null> {
   try {
     await authReady; // #345/#348 等匿名身份就绪，避免新访客首次访问用户主页 401
     // 尝试从 posts 集合获取作者信息
-    const { data } = await db
-      .collection("posts")
-      .where({ authorUid: uid })
-      .limit(1)
-      .get();
+    const { data } = await db.collection("posts").where({ authorUid: uid }).limit(1).get();
 
     if (data && data.length > 0) {
       const post = data[0] as Record<string, unknown>;
@@ -88,7 +90,12 @@ export async function fetchUserContent(uid: string): Promise<UserContent> {
       db.collection("posts").where({ authorUid: uid }).orderBy("createdAt", "desc").limit(50).get(),
       db.collection("ideas").where({ authorUid: uid }).orderBy("createdAt", "desc").limit(50).get(),
       db.collection("books").where({ authorUid: uid }).orderBy("createdAt", "desc").limit(50).get(),
-      db.collection("workshops").where({ creatorUid: uid }).orderBy("createdAt", "desc").limit(50).get(),
+      db
+        .collection("workshops")
+        .where({ creatorUid: uid })
+        .orderBy("createdAt", "desc")
+        .limit(50)
+        .get(),
     ]);
 
     return {

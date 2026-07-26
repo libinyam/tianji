@@ -29,11 +29,14 @@ vi.stubGlobal("matchMedia", (query: string) => ({
 }));
 
 // jsdom 不实现 ResizeObserver
-vi.stubGlobal("ResizeObserver", class {
-  observe() {}
-  unobserve() {}
-  disconnect() {}
-});
+vi.stubGlobal(
+  "ResizeObserver",
+  class {
+    observe() {}
+    unobserve() {}
+    disconnect() {}
+  },
+);
 
 // jsdom 不实现 requestAnimationFrame 的下一帧
 vi.stubGlobal("requestAnimationFrame", (cb: FrameRequestCallback) => {

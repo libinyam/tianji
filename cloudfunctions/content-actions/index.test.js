@@ -161,7 +161,10 @@ describe("声望加分幂等（issue #243）", () => {
       ["accept:answer:p1:a1", { eventId: "accept:answer:p1:a1", uid: "answerer", points: 15 }],
     ]);
 
-    await main({ action: "acceptAnswer", postId: "p1", answerId: "a1", accept: true }, ctx("asker"));
+    await main(
+      { action: "acceptAnswer", postId: "p1", answerId: "a1", accept: true },
+      ctx("asker"),
+    );
 
     // 事件已存在，不应再加分
     expect(repOf("answerer")).toBe(0);
@@ -197,7 +200,10 @@ describe("声望加分幂等（issue #243）", () => {
     ]);
     store.users_v2 = new Map();
 
-    await main({ action: "voteAnswer", postId: "p1", answerId: "a1", isUpvote: true }, ctx("voter-1"));
+    await main(
+      { action: "voteAnswer", postId: "p1", answerId: "a1", isUpvote: true },
+      ctx("voter-1"),
+    );
 
     expect(repOf("voter-1")).toBe(0);
   });
@@ -210,7 +216,7 @@ describe("awardCreateReputation", () => {
 
     const res = await main(
       { action: "awardCreateReputation", reason: "createPost", entityId: "p1" },
-      ctx("user1")
+      ctx("user1"),
     );
 
     expect(res.ok).toBe(true);
@@ -223,7 +229,7 @@ describe("awardCreateReputation", () => {
 
     const res = await main(
       { action: "awardCreateReputation", reason: "createPost", entityId: "no-exist" },
-      ctx("user1")
+      ctx("user1"),
     );
 
     expect(res.ok).toBe(false);
@@ -236,7 +242,7 @@ describe("awardCreateReputation", () => {
 
     const res = await main(
       { action: "awardCreateReputation", reason: "createPost", entityId: "p1" },
-      ctx("user2")
+      ctx("user2"),
     );
 
     expect(res.ok).toBe(false);
@@ -245,10 +251,7 @@ describe("awardCreateReputation", () => {
   it("缺少 entityId 时返回失败", async () => {
     store.users_v2 = new Map();
 
-    const res = await main(
-      { action: "awardCreateReputation", reason: "createPost" },
-      ctx("user1")
-    );
+    const res = await main({ action: "awardCreateReputation", reason: "createPost" }, ctx("user1"));
 
     expect(res.ok).toBe(false);
   });
@@ -272,7 +275,7 @@ describe("awardCreateReputation", () => {
 
     const res = await main(
       { action: "awardCreateReputation", reason: "createBook", entityId: "b1" },
-      ctx("user1")
+      ctx("user1"),
     );
 
     expect(res.ok).toBe(true);
@@ -287,7 +290,10 @@ describe("服务端限流（issue #277）", () => {
     store.users_v2 = new Map();
 
     for (let i = 0; i < 15; i++) {
-      const res = await main({ action: "submitAnswer", postId: "p1", content: `回答${i}` }, ctx("user1"));
+      const res = await main(
+        { action: "submitAnswer", postId: "p1", content: `回答${i}` },
+        ctx("user1"),
+      );
       expect(res.ok).toBe(true);
     }
 
@@ -304,7 +310,10 @@ describe("服务端限流（issue #277）", () => {
       await main({ action: "submitAnswer", postId: "p1", content: `u1-${i}` }, ctx("user1"));
     }
 
-    const res = await main({ action: "submitAnswer", postId: "p1", content: "user2回答" }, ctx("user2"));
+    const res = await main(
+      { action: "submitAnswer", postId: "p1", content: "user2回答" },
+      ctx("user2"),
+    );
     expect(res.ok).toBe(true);
   });
 
@@ -319,7 +328,7 @@ describe("服务端限流（issue #277）", () => {
     store.posts.set("p2", { _id: "p2", authorUid: "user1" });
     const res = await main(
       { action: "awardCreateReputation", reason: "createPost", entityId: "p2" },
-      ctx("user1")
+      ctx("user1"),
     );
     expect(res.ok).toBe(true);
   });
@@ -349,7 +358,7 @@ describe("灵感评论（issue #400）", () => {
 
     const res = await main(
       { action: "addIdeaComment", ideaId: "i1", content: "很有启发", author: "评论者" },
-      ctx("commenter")
+      ctx("commenter"),
     );
 
     expect(res.ok).toBe(true);
@@ -372,7 +381,7 @@ describe("灵感评论（issue #400）", () => {
 
     const res = await main(
       { action: "addIdeaComment", ideaId: "i1", content: "这是广告内容", author: "评论者" },
-      ctx("commenter")
+      ctx("commenter"),
     );
 
     expect(res.ok).toBe(false);
@@ -386,7 +395,7 @@ describe("灵感评论（issue #400）", () => {
 
     const res = await main(
       { action: "addIdeaComment", ideaId: "i1", content: "评论", author: "封禁者" },
-      ctx("banned-user")
+      ctx("banned-user"),
     );
 
     expect(res.ok).toBe(false);
@@ -408,7 +417,7 @@ describe("灵感评论（issue #400）", () => {
 
     const res = await main(
       { action: "addIdeaComment", ideaId: "missing", content: "评论", author: "评论者" },
-      ctx("commenter")
+      ctx("commenter"),
     );
 
     expect(res.ok).toBe(false);
@@ -426,7 +435,7 @@ describe("灵感评论（issue #400）", () => {
 
     const res = await main(
       { action: "deleteIdeaComment", ideaId: "i1", commentId: "c1" },
-      ctx("commenter")
+      ctx("commenter"),
     );
 
     expect(res.ok).toBe(true);
@@ -444,7 +453,7 @@ describe("灵感评论（issue #400）", () => {
 
     const res = await main(
       { action: "deleteIdeaComment", ideaId: "i1", commentId: "c1" },
-      ctx("intruder")
+      ctx("intruder"),
     );
 
     expect(res.ok).toBe(false);
@@ -523,7 +532,7 @@ describe("删除/编辑的权限校验分支（issue #414）", () => {
       seedPost();
       const res = await main(
         { action: "deleteAnswer", postId: "p1", answerId: "a1" },
-        ctx("intruder")
+        ctx("intruder"),
       );
       expect(res.ok).toBe(false);
       expect(res.error).toBe("无权删除他人回答");
@@ -534,7 +543,7 @@ describe("删除/编辑的权限校验分支（issue #414）", () => {
       seedPost();
       const res = await main(
         { action: "deleteAnswer", postId: "p1", answerId: "a1" },
-        ctx("answerer")
+        ctx("answerer"),
       );
       expect(res.ok).toBe(true);
       const post = store.posts.get("p1");
@@ -548,7 +557,7 @@ describe("删除/编辑的权限校验分支（issue #414）", () => {
       seedPost();
       const res = await main(
         { action: "deleteComment", postId: "p1", answerId: "a1", commentId: "c1" },
-        ctx("intruder")
+        ctx("intruder"),
       );
       expect(res.ok).toBe(false);
       expect(res.error).toBe("无权删除他人评论");
@@ -559,7 +568,7 @@ describe("删除/编辑的权限校验分支（issue #414）", () => {
       seedPost();
       const res = await main(
         { action: "deleteComment", postId: "p1", answerId: "a1", commentId: "c1" },
-        ctx("commenter")
+        ctx("commenter"),
       );
       expect(res.ok).toBe(true);
       expect(store.posts.get("p1").answerList[0].comments).toHaveLength(0);
@@ -571,7 +580,7 @@ describe("删除/编辑的权限校验分支（issue #414）", () => {
       seedPost();
       const res = await main(
         { action: "updatePost", postId: "p1", title: "篡改标题", body: "篡改正文" },
-        ctx("intruder")
+        ctx("intruder"),
       );
       expect(res.ok).toBe(false);
       expect(res.error).toBe("无权编辑他人帖子");
@@ -583,7 +592,7 @@ describe("删除/编辑的权限校验分支（issue #414）", () => {
       seedPost();
       const res = await main(
         { action: "updatePost", postId: "p1", title: "新标题", body: "新正文", tags: ["新标签"] },
-        ctx("owner")
+        ctx("owner"),
       );
       expect(res.ok).toBe(true);
       const post = store.posts.get("p1");
@@ -598,7 +607,7 @@ describe("删除/编辑的权限校验分支（issue #414）", () => {
       store.users_v2 = new Map([["owner", { _id: "owner", banned: true }]]);
       const res = await main(
         { action: "updatePost", postId: "p1", title: "新标题", body: "新正文" },
-        ctx("owner")
+        ctx("owner"),
       );
       expect(res.ok).toBe(false);
       expect(res.error).toContain("封禁");
@@ -611,7 +620,7 @@ describe("删除/编辑的权限校验分支（issue #414）", () => {
       seedPost();
       const res = await main(
         { action: "updateAnswer", postId: "p1", answerId: "a1", content: "篡改回答" },
-        ctx("intruder")
+        ctx("intruder"),
       );
       expect(res.ok).toBe(false);
       expect(res.error).toBe("无权编辑他人回答");
@@ -622,7 +631,7 @@ describe("删除/编辑的权限校验分支（issue #414）", () => {
       seedPost();
       const res = await main(
         { action: "updateAnswer", postId: "p1", answerId: "a1", content: "新回答" },
-        ctx("answerer")
+        ctx("answerer"),
       );
       expect(res.ok).toBe(true);
       expect(store.posts.get("p1").answerList[0].content).toBe("新回答");
@@ -640,7 +649,7 @@ describe("删除/编辑的权限校验分支（issue #414）", () => {
           commentId: "c1",
           content: "篡改评论",
         },
-        ctx("intruder")
+        ctx("intruder"),
       );
       expect(res.ok).toBe(false);
       expect(res.error).toBe("无权编辑他人评论");
@@ -657,7 +666,7 @@ describe("删除/编辑的权限校验分支（issue #414）", () => {
           commentId: "c1",
           content: "新评论",
         },
-        ctx("commenter")
+        ctx("commenter"),
       );
       expect(res.ok).toBe(true);
       expect(store.posts.get("p1").answerList[0].comments[0].content).toBe("新评论");
