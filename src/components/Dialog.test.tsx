@@ -1,6 +1,6 @@
 // @vitest-environment jsdom
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
-import { render, screen, fireEvent } from "@testing-library/react";
+import { render, screen, fireEvent, cleanup } from "@testing-library/react";
 import { useState } from "react";
 import Dialog from "./Dialog";
 
@@ -22,11 +22,15 @@ function DialogWrapper({ initialOpen = false }: { initialOpen?: boolean }) {
 
 describe("Dialog（#323 a11y）", () => {
   beforeEach(() => {
-    document.body.innerHTML = "";
     document.body.style.overflow = "";
   });
 
   afterEach(() => {
+    // globals:false 时 RTL 不会自动注册 cleanup，必须手动卸载。
+    // 此前用 innerHTML="" 擦 DOM 但 React 树仍泄漏存活：前序测试的 Dialog
+    // 还挂着 document 级 Escape 监听，被后续测试触发后对已消失的门户节点
+    // 执行卸载，抛 NotFoundError（motion 时代被其退场容错掩盖）
+    cleanup();
     document.body.style.overflow = "";
   });
 

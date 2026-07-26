@@ -1,6 +1,5 @@
 import { useEffect, useRef, useCallback, type ReactNode } from "react";
 import { createPortal } from "react-dom";
-import { motion, AnimatePresence } from "motion/react";
 
 interface DialogProps {
   open: boolean;
@@ -79,6 +78,11 @@ export default function Dialog({
     }
   }, []);
 
+  // #424 motion 移除后无 onExitComplete 钩子，关闭即恢复焦点
+  useEffect(() => {
+    if (!open) restoreFocus();
+  }, [open, restoreFocus]);
+
   // Escape 关闭
   useEffect(() => {
     if (!open) return;
@@ -120,42 +124,30 @@ export default function Dialog({
     }
   };
 
+  if (!open) return null;
+
+  // #424 进场动画由 CSS keyframes 实现（见 index.css），替代 motion 依赖（43KB gzip 首屏）
   return createPortal(
-    <AnimatePresence onExitComplete={restoreFocus}>
-      {open && (
-        <>
-          {/* 背景遮罩：独立 fixed 元素，始终全屏覆盖 */}
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            transition={{ duration: 0.2 }}
-            className="fixed inset-0 z-[100] bg-black/40"
-            aria-hidden
-          />
-          {/* 内容容器：可滚动，内容短时居中，长时从顶部开始 */}
-          <div className="fixed inset-0 z-[101] overflow-y-auto" onClick={handleBackdropClick}>
-            <div className="flex min-h-full items-start justify-center px-4 py-8 sm:items-center sm:py-12">
-              <motion.div
-                ref={dialogRef}
-                role="dialog"
-                aria-modal="true"
-                aria-labelledby={labelledById}
-                aria-describedby={describedById}
-                tabIndex={-1}
-                initial={{ opacity: 0, scale: 0.94, y: 16 }}
-                animate={{ opacity: 1, scale: 1, y: 0 }}
-                exit={{ opacity: 0, scale: 0.96, y: 8 }}
-                transition={{ duration: 0.25 }}
-                className={`card-surface relative w-full ${maxWidthClass} ${paddingClass} outline-none ${opaque ? "!bg-void-900" : ""}`}
-              >
-                {children}
-              </motion.div>
-            </div>
+    <>
+      {/* 背景遮罩：独立 fixed 元素，始终全屏覆盖 */}
+      <div className="tj-animate-fade-in fixed inset-0 z-[100] bg-black/40" aria-hidden />
+      {/* 内容容器：可滚动，内容短时居中，长时从顶部开始 */}
+      <div className="fixed inset-0 z-[101] overflow-y-auto" onClick={handleBackdropClick}>
+        <div className="flex min-h-full items-start justify-center px-4 py-8 sm:items-center sm:py-12">
+          <div
+            ref={dialogRef}
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby={labelledById}
+            aria-describedby={describedById}
+            tabIndex={-1}
+            className={`tj-animate-dialog-in card-surface relative w-full ${maxWidthClass} ${paddingClass} outline-none ${opaque ? "!bg-void-900" : ""}`}
+          >
+            {children}
           </div>
-        </>
-      )}
-    </AnimatePresence>,
+        </div>
+      </div>
+    </>,
     document.body,
   );
 }

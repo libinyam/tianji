@@ -17,7 +17,6 @@ export default defineConfig(({ command }) => {
               if (id.includes('@cloudbase/js-sdk')) return 'cloudbase';
               // pdfjs 通过动态 import() 加载，不强制合并，让 Vite 自动拆分为独立 chunk
               if (id.includes('katex')) return 'katex';
-              if (id.includes('motion')) return 'motion';
               if (id.includes('react-router-dom') || id.includes('react-dom') || id.includes('/react/')) return 'react-vendor';
             }
           },

@@ -4,8 +4,38 @@ import remarkMath from "remark-math";
 import remarkGfm from "remark-gfm";
 import rehypeKatex from "rehype-katex";
 import rehypeHighlight from "rehype-highlight";
+// #424 语言裁剪：默认 common 集打包约 37 种语言（fortran/perl 等纯属死重），
+// 按社区实际内容注册常用集，MarkdownRenderer chunk 预计减 30-40KB gzip。
+// 未注册语言的代码块正常渲染、仅无高亮；需要新语言时在此补注册。
+import langJavascript from "highlight.js/lib/languages/javascript";
+import langTypescript from "highlight.js/lib/languages/typescript";
+import langPython from "highlight.js/lib/languages/python";
+import langBash from "highlight.js/lib/languages/bash";
+import langJson from "highlight.js/lib/languages/json";
+import langMarkdown from "highlight.js/lib/languages/markdown";
+import langXml from "highlight.js/lib/languages/xml";
+import langCss from "highlight.js/lib/languages/css";
+import langSql from "highlight.js/lib/languages/sql";
+import langJava from "highlight.js/lib/languages/java";
+import langCpp from "highlight.js/lib/languages/cpp";
+import langPlaintext from "highlight.js/lib/languages/plaintext";
 import "katex/dist/katex.min.css";
 import "highlight.js/styles/github.css";
+
+const HIGHLIGHT_LANGUAGES = {
+  javascript: langJavascript,
+  typescript: langTypescript,
+  python: langPython,
+  bash: langBash,
+  json: langJson,
+  markdown: langMarkdown,
+  xml: langXml,
+  css: langCss,
+  sql: langSql,
+  java: langJava,
+  cpp: langCpp,
+  plaintext: langPlaintext,
+};
 import { getTempFileURL } from "@/lib/storage";
 
 // #148 cloud:// fileID 兑换缓存，避免同一图片重复兑换
@@ -172,7 +202,10 @@ function MarkdownRenderer({ content, className = "" }: MarkdownRendererProps) {
     <div className={`markdown-body break-words ${className}`}>
       <ReactMarkdown
         remarkPlugins={[remarkMath, remarkGfm]}
-        rehypePlugins={[[rehypeKatex, { strict: false, throwOnError: false }], rehypeHighlight]}
+        rehypePlugins={[
+          [rehypeKatex, { strict: false, throwOnError: false }],
+          [rehypeHighlight, { languages: HIGHLIGHT_LANGUAGES }],
+        ]}
         components={components}
       >
         {content}
