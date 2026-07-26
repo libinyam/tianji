@@ -10,7 +10,16 @@
     { "name": "check-admin", "handler": "index.main", "timeout": 20, "ignore": ["*.test.js"] },
     { "name": "ai-bot", "handler": "index.main", "timeout": 60, "ignore": ["*.test.js"] },
     { "name": "db-backup", "handler": "index.main", "timeout": 60, "ignore": ["*.test.js"] },
-    { "name": "manage-announcements", "handler": "index.main", "timeout": 20, "ignore": ["*.test.js"] }
+    { "name": "manage-announcements", "handler": "index.main", "timeout": 20, "ignore": ["*.test.js"] },
+    {
+      "name": "sitemap-generator",
+      "handler": "index.main",
+      "timeout": 60,
+      "ignore": ["*.test.js"],
+      "triggers": [
+        { "name": "daily-sitemap", "type": "timer", "config": "0 0 4 * * * *" }
+      ]
+    }
   ],
   "hosting": {
     "rewrites": [

@@ -1,0 +1,10 @@
+{
+  "name": "sitemap-generator",
+  "version": "1.0.0",
+  "description": "定时生成含内容详情页的 sitemap.xml 并写入静态托管 (#333)",
+  "main": "index.js",
+  "dependencies": {
+    "@cloudbase/node-sdk": "^4.0.0",
+    "@cloudbase/manager-node": "^4.2.0"
+  }
+}
