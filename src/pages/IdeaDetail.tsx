@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { openAuthModal } from "@/lib/pending-action";
 import { Link, useParams, useNavigate } from "react-router-dom";
 import {
   ThumbsUp,
@@ -97,7 +98,7 @@ export default function IdeaDetail() {
 
   const handleResonance = async () => {
     if (!user) {
-      window.dispatchEvent(new CustomEvent("tianji:open-auth"));
+      openAuthModal();
       return;
     }
     if (resonated || !idea) return;
@@ -116,7 +117,7 @@ export default function IdeaDetail() {
 
   const handleFav = async () => {
     if (!user) {
-      window.dispatchEvent(new CustomEvent("tianji:open-auth"));
+      openAuthModal();
       return;
     }
     if (!idea) return;
@@ -137,7 +138,7 @@ export default function IdeaDetail() {
 
   const handleComment = async () => {
     if (!user) {
-      window.dispatchEvent(new CustomEvent("tianji:open-auth"));
+      openAuthModal();
       return;
     }
     if (!idea || !commentText.trim()) return;
@@ -334,7 +335,7 @@ export default function IdeaDetail() {
               <button
                 onClick={() => {
                   if (!user) {
-                    window.dispatchEvent(new CustomEvent("tianji:open-auth"));
+                    openAuthModal();
                     return;
                   }
                   setReportOpen(true);

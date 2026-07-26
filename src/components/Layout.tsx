@@ -5,7 +5,7 @@ import Footer from "./Footer";
 import AuthModal from "./AuthModal";
 import { useAuthStore } from "@/stores/auth";
 import { useThemeStore } from "@/stores/theme";
-import { resolvePendingAction, usePendingAction } from "@/lib/pending-action";
+import { resolvePendingAction, usePendingAction, OPEN_AUTH_EVENT } from "@/lib/pending-action";
 
 /** 全局布局：导航 + 内容 + 页脚 + 登录弹窗。 */
 export default function Layout() {
@@ -23,8 +23,8 @@ export default function Layout() {
 
   useEffect(() => {
     const openAuth = () => setAuthOpen(true);
-    window.addEventListener("tianji:open-auth", openAuth);
-    return () => window.removeEventListener("tianji:open-auth", openAuth);
+    window.addEventListener(OPEN_AUTH_EVENT, openAuth);
+    return () => window.removeEventListener(OPEN_AUTH_EVENT, openAuth);
   }, []);
 
   useEffect(() => {

@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { openAuthModal } from "@/lib/pending-action";
 import { toast } from "@/stores/toast";
 import {
   updateAnswer,
@@ -78,7 +79,7 @@ export function useAnswerActions(
 
   const toggleVote = async (aid: string) => {
     if (!user) {
-      window.dispatchEvent(new CustomEvent("tianji:open-auth"));
+      openAuthModal();
       return;
     }
     if (!question) return;

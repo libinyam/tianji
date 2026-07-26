@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from "react";
+import { formatRelativeTime } from "@/lib/format";
 import { useNavigate } from "react-router-dom";
 import {
   Bell,
@@ -34,19 +35,6 @@ const TYPE_ICON: Record<NotificationType, typeof Bell> = {
   follow: UserPlus,
 };
 
-function formatTime(s: string): string {
-  const d = new Date(s);
-  const now = new Date();
-  const diff = now.getTime() - d.getTime();
-  const min = Math.floor(diff / 60000);
-  if (min < 1) return "刚刚";
-  if (min < 60) return `${min} 分钟前`;
-  const hr = Math.floor(min / 60);
-  if (hr < 24) return `${hr} 小时前`;
-  const day = Math.floor(hr / 24);
-  if (day < 30) return `${day} 天前`;
-  return d.toISOString().slice(0, 10);
-}
 
 export default function NotificationBell() {
   const navigate = useNavigate();
@@ -216,7 +204,7 @@ export default function NotificationBell() {
                         </p>
                         <p className="mt-0.5 truncate text-[11px] text-mist-500">{item.title}</p>
                         <p className="mt-0.5 text-[10px] text-mist-500">
-                          {formatTime(item.createdAt)}
+                          {formatRelativeTime(item.createdAt)}
                         </p>
                       </div>
                       {!item.read && (

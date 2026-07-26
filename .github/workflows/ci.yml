@@ -27,8 +27,23 @@ jobs:
       - name: Lint
         run: npm run lint
 
+      - name: Format check
+        # #426 Prettier 配置早已完整但 CI 不执行，格式约定无强制力;
+        # 存量代码已在同 PR 内全量格式化（style commit）
+        run: npm run format:check
+
       - name: Test
         run: npm run test:coverage
+
+      - name: Build
+        # #417 tsc 抓不住 Vite 构建期错误（rollup chunk/动态 import/asset 引用），
+        # 此前只有 push main 的 deploy.yml 会构建，PR 全绿合入后才暴露、破坏主干可发布。
+        # 同仓分支 PR 可读 secrets；fork PR secrets 为空时用占位值，构建校验不要求真值
+        run: npm run build
+        env:
+          VITE_CLOUDBASE_ENV_ID: ${{ secrets.VITE_CLOUDBASE_ENV_ID || 'ci-placeholder' }}
+          VITE_CLOUDBASE_REGION: ap-shanghai
+          VITE_CLOUDBASE_ACCESS_KEY: ${{ secrets.VITE_CLOUDBASE_ACCESS_KEY || 'ci-placeholder' }}
 
       - name: Check for known vulnerabilities
         # #332 critical 漏洞阻止合并；high 暂时允许——react-router 的 RSC CSRF

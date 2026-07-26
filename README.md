@@ -46,7 +46,7 @@
 | **管理后台** | 帖子管理、举报处理、用户封禁 |
 | **SEO 基础** | 动态 meta + OG tags + JSON-LD 结构化数据 |
 | **工程规范** | CI/CD（lint + tsc + test + audit）、分支保护、CODEOWNERS |
-| **版本** | v0.3.0 已发布 |
+| **版本** | 见 [CHANGELOG](CHANGELOG.md) |
 
 ICP 备案已完成，自定义域名 `tianjihub.cn` 正式运行。
 
@@ -64,7 +64,6 @@ ICP 备案已完成，自定义域名 `tianjihub.cn` 正式运行。
 | --- |
 | ![天玑产品概览](docs/images/tianji-about.jpg) |
 
-> demo GIF 录制中，将在比赛提交前替换静态截图。
 
 ## 技术栈
 
@@ -112,7 +111,7 @@ ICP 备案已完成，自定义域名 `tianjihub.cn` 正式运行。
 - **无障碍弹窗**：共享 Dialog 组件，焦点陷阱、ESC 关闭、焦点恢复、滚动锁定
 - **减弱动画**：支持 `prefers-reduced-motion`，自动禁用装饰动画
 - **键盘可访问的标签选择器**：combobox 语义，↑↓ 导航，Enter 选择，Escape 关闭
-- **移动端优化**：StarField 移动端降级，路由懒加载
+- **移动端优化**：路由懒加载，移动端分区 Tab 与标签筛选条
 
 ## 本地启动
 
@@ -134,6 +133,8 @@ VITE_CLOUDBASE_ACCESS_KEY=你的访问密钥
 ```
 
 ## 部署
+
+> **⚠️ 生产部署已全自动化**：push 到 `main` 即由 GitHub Actions 完成全量部署——前端构建与静态资源两阶段上传、8 个云函数依赖安装与部署、数据库安全规则部署（规则失败会中断整个发布），见 [.github/workflows/deploy.yml](.github/workflows/deploy.yml)。**合并 PR 即触达生产**。下述手动步骤仅用于本地调试或流水线故障时的应急操作，日常请勿手动部署以免与 CI 竞态。
 
 ### Vercel 部署
 
@@ -221,7 +222,7 @@ npm run deploy:rules
 ```
 .
 ├── src/
-│   ├── components/   # 通用组件（Dialog、TagSelector、StarField 等）
+│   ├── components/   # 通用组件（Dialog、TagSelector、MarkdownRenderer 等）
 │   ├── pages/        # 路由页面
 │   ├── lib/          # CloudBase 封装与业务逻辑
 │   ├── stores/       # Zustand 状态管理
@@ -237,9 +238,9 @@ npm run deploy:rules
 - **路由懒加载**：所有页面级组件使用 `React.lazy` 动态导入
 - **KaTeX 懒加载**：数学公式渲染库按需加载，不阻塞首页
 - **PDF.js 懒加载**：仅在上传 PDF 文件时加载解析器
-- **代码分割**：React、Motion、CloudBase SDK、KaTeX 独立 chunk
+- **代码分割**：React、CloudBase SDK、KaTeX 独立 chunk，路由级懒加载
 - **生产构建优化**：移除 Trae inspector 元数据，不泄露源码路径
-- **StarField 降级**：移动端减少星星数量，浅色模式不渲染
+- **列表查询投影**：帖子正文与回答不随列表传输，payload 不随社区活跃度膨胀
 
 ## License
 

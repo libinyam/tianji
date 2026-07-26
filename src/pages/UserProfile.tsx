@@ -1,4 +1,6 @@
 import { useEffect, useState } from "react";
+import { openAuthModal } from "@/lib/pending-action";
+import { formatDate } from "@/lib/format";
 import { Link, Navigate, useParams } from "react-router-dom";
 import {
   ArrowLeft,
@@ -24,14 +26,6 @@ import { rateLimiters } from "@/lib/security";
 import { useAuthStore } from "@/stores/auth";
 import { toast } from "@/stores/toast";
 import { useSEO } from "@/hooks/useSEO";
-
-function formatDate(s: string) {
-  if (!s) return "";
-  const d = new Date(s);
-  return isNaN(d.getTime())
-    ? s
-    : `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
-}
 
 export default function UserProfile() {
   const { uid } = useParams();
@@ -82,7 +76,7 @@ export default function UserProfile() {
   // #149 关注 / 取消关注
   const handleFollow = async () => {
     if (!currentUser) {
-      window.dispatchEvent(new CustomEvent("tianji:open-auth"));
+      openAuthModal();
       return;
     }
     if (!profile || !uid) return;

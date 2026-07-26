@@ -1,4 +1,6 @@
 import { useState, useEffect, useRef } from "react";
+import { openAuthModal } from "@/lib/pending-action";
+import { formatRelativeTime } from "@/lib/format";
 import { Link, useParams, useNavigate } from "react-router-dom";
 import {
   ArrowLeft,
@@ -47,18 +49,6 @@ import Avatar from "@/components/Avatar";
 import LazyMathText from "@/components/LazyMathText";
 import RelatedContent from "@/components/RelatedContent";
 
-function formatTime(iso: string): string {
-  if (!iso) return "";
-  const d = new Date(iso);
-  if (isNaN(d.getTime())) return iso;
-  const now = new Date();
-  const diff = now.getTime() - d.getTime();
-  if (diff < 60000) return "刚刚";
-  if (diff < 3600000) return `${Math.floor(diff / 60000)} 分钟前`;
-  if (diff < 86400000) return `${Math.floor(diff / 3600000)} 小时前`;
-  if (diff < 604800000) return `${Math.floor(diff / 86400000)} 天前`;
-  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
-}
 
 export default function WorkshopDetail() {
   const { id } = useParams();
@@ -151,7 +141,7 @@ export default function WorkshopDetail() {
 
   const handleJoin = async () => {
     if (!user) {
-      window.dispatchEvent(new CustomEvent("tianji:open-auth"));
+      openAuthModal();
       return;
     }
     setJoining(true);
@@ -349,7 +339,7 @@ export default function WorkshopDetail() {
   const handleAddAnnotation = async () => {
     if (!id || !annotInput.trim()) return;
     if (!user) {
-      window.dispatchEvent(new CustomEvent("tianji:open-auth"));
+      openAuthModal();
       return;
     }
     setAnnotSubmitting(true);
@@ -375,7 +365,7 @@ export default function WorkshopDetail() {
   const handleResolve = async (annotId: string) => {
     if (!id || !project) return;
     if (!user) {
-      window.dispatchEvent(new CustomEvent("tianji:open-auth"));
+      openAuthModal();
       return;
     }
     try {
@@ -538,7 +528,7 @@ export default function WorkshopDetail() {
           {project.updatedAt && (
             <>
               <span>·</span>
-              <span>更新于 {formatTime(project.updatedAt)}</span>
+              <span>更新于 {formatRelativeTime(project.updatedAt)}</span>
             </>
           )}
         </div>
@@ -711,7 +701,7 @@ export default function WorkshopDetail() {
                               <span className="text-xs text-mist-300">{c.author}</span>
                             </div>
                             <span className="text-[10px] text-mist-500">
-                              {formatTime(c.createdAt)}
+                              {formatRelativeTime(c.createdAt)}
                             </span>
                           </div>
                           <LazyMathText
@@ -966,7 +956,7 @@ function AnnotationCard({
           </span>
           <span className="text-xs text-mist-300">{annotation.author}</span>
         </div>
-        <span className="text-[10px] text-mist-500">{formatTime(annotation.createdAt)}</span>
+        <span className="text-[10px] text-mist-500">{formatRelativeTime(annotation.createdAt)}</span>
       </div>
       <LazyMathText
         content={annotation.content}

@@ -1,4 +1,6 @@
 import { useEffect, useRef, useState } from "react";
+import { openAuthModal } from "@/lib/pending-action";
+import { formatDate } from "@/lib/format";
 import { Link } from "react-router-dom";
 import {
   Edit3,
@@ -33,14 +35,6 @@ const DEFAULT_AVATARS = [
   "https://api.dicebear.com/7.x/identicon/svg?seed=Polaris&backgroundColor=1a1a2e,533483,e94560",
 ];
 
-function formatDate(s: string) {
-  if (!s) return "";
-  const d = new Date(s);
-  return isNaN(d.getTime())
-    ? s
-    : `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
-}
-
 export default function Profile() {
   useDocumentTitle("个人主页");
   const { user, updateProfile } = useAuthStore();
@@ -59,7 +53,7 @@ export default function Profile() {
   useEffect(() => {
     if (!user) {
       // 不静默跳转，而是弹出登录弹窗并保留返回意图
-      window.dispatchEvent(new CustomEvent("tianji:open-auth"));
+      openAuthModal();
       return;
     }
     setNickname(user.nickname ?? "");
@@ -104,7 +98,7 @@ export default function Profile() {
     try {
       const ext = file.name.split(".").pop() || "jpg";
       const cloudPath = `avatars/${user.uid}-${Date.now()}.${ext}`;
-      const fileID = await uploadFile(cloudPath, file as unknown as string);
+      const fileID = await uploadFile(cloudPath, file);
       // 获取可访问的下载链接（有效期 1 年）
       const url = await getTempFileURL(fileID);
       if (url) {
@@ -125,7 +119,7 @@ export default function Profile() {
         <p className="text-lg text-parchment-100">请先登录查看个人主页</p>
         <p className="mt-1 text-sm text-mist-500">登录后即可管理你的资料、帖子和收藏</p>
         <button
-          onClick={() => window.dispatchEvent(new CustomEvent("tianji:open-auth"))}
+          onClick={() => openAuthModal()}
           className="btn-primary mt-4"
         >
           登录 / 注册

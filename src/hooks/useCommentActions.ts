@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { openAuthModal } from "@/lib/pending-action";
 import { toast } from "@/stores/toast";
 import { submitComment, deleteComment, updateComment } from "@/lib/posts";
 import { rateLimiters } from "@/lib/security";
@@ -27,7 +28,7 @@ export function useCommentActions(
 
   const openComment = (answerId: string) => {
     if (!user) {
-      window.dispatchEvent(new CustomEvent("tianji:open-auth"));
+      openAuthModal();
       return;
     }
     setCommentingAnswerId(commentingAnswerId === answerId ? null : answerId);
@@ -37,7 +38,7 @@ export function useCommentActions(
 
   const openReply = (answerId: string, comment: Comment) => {
     if (!user) {
-      window.dispatchEvent(new CustomEvent("tianji:open-auth"));
+      openAuthModal();
       return;
     }
     setCommentingAnswerId(answerId);

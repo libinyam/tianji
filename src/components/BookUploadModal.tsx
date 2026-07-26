@@ -77,7 +77,7 @@ export default function BookUploadModal({ open, onClose, onCreated }: BookUpload
     try {
       const ext = file.name.split(".").pop() || "pdf";
       const cloudPath = `books/${user.uid}-${Date.now()}.${ext}`;
-      const res = await uploadFile(cloudPath, file as unknown as string);
+      const res = await uploadFile(cloudPath, file);
       setUploadedFileId(res);
       setUploadedFileName(file.name);
 

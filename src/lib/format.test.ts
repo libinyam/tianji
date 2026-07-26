@@ -1,5 +1,19 @@
 import { describe, it, expect, vi, afterEach } from "vitest";
-import { formatRelativeTime } from "./format";
+import { formatRelativeTime, formatDate } from "./format";
+
+describe("formatDate（#427 自 Profile/UserProfile 下沉）", () => {
+  it("格式化为 YYYY-MM-DD", () => {
+    expect(formatDate("2026-07-26T08:30:00Z")).toMatch(/^2026-07-2[56]$/);
+  });
+
+  it("空串返回空串", () => {
+    expect(formatDate("")).toBe("");
+  });
+
+  it("无效日期原样返回", () => {
+    expect(formatDate("invalid-date")).toBe("invalid-date");
+  });
+});
 
 describe("formatRelativeTime", () => {
   afterEach(() => {

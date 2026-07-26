@@ -1,6 +1,6 @@
 {
-  "version": "1.5.0",
-  "description": "CloudBase NoSQL 数据库安全规则 - 防止客户端越权访问",
+  "version": "1.5.1",
+  "description": "CloudBase NoSQL 数据库安全规则 - 防止客户端越权访问。注意（#427）：deploy-security-rules.mjs 实际部署的是 read/create/update/delete 四个键（create 映射为 CloudBase 的 write 动作），各集合 securityRule 里的 write 键从不部署、仅作历史文档保留——评审以 create/update/delete 为准",
   "lastUpdated": "2026-07-26",
   "collections": {
     "posts": {

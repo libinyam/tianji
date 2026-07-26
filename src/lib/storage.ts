@@ -1,7 +1,9 @@
 import { app } from "@/lib/cloudbase";
 
-export async function uploadFile(cloudPath: string, filePath: string): Promise<string> {
-  const res = await app.uploadFile({ cloudPath, filePath });
+// #427 Web 端 SDK 实际接受 File/Blob；此前签名误写为 string，
+// 迫使三个调用点用 `file as unknown as string` 双重断言绕过检查
+export async function uploadFile(cloudPath: string, file: File | Blob): Promise<string> {
+  const res = await app.uploadFile({ cloudPath, filePath: file as unknown as string });
   return res.fileID;
 }
 
