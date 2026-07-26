@@ -1,4 +1,4 @@
-import { app, authReady } from "@/lib/cloudbase";
+import { app, authReady, callAction } from "@/lib/cloudbase";
 import { sanitizeInput, sanitizeTitle, sanitizeTag } from "@/lib/sanitize";
 import { checkCurrentUserBanned } from "@/lib/ban";
 import { containsSensitiveWord } from "@/lib/sensitive-words";
@@ -163,10 +163,9 @@ export async function createWorkshop(params: {
   }
 
   // #404 走云函数写入，接入服务端审核（上方本地校验仅为快速反馈）
-  const res = await app.callFunction({
-    name: "content-actions",
-    data: {
-      action: "createWorkshop",
+  const doc = await callAction<(WorkshopDoc & { id?: string }) | undefined>(
+    "createWorkshop",
+    {
       title: cleanTitle,
       type: params.type,
       description: cleanDescription,
@@ -175,14 +174,8 @@ export async function createWorkshop(params: {
       tags: cleanTags,
       creator: getCurrentUserName(),
     },
-  });
-  const result = (res?.result ?? {}) as {
-    ok?: boolean;
-    error?: string;
-    data?: WorkshopDoc & { id?: string };
-  };
-  if (!result.ok) throw new Error(result.error || "创建失败，请重试");
-  const doc = result.data;
+    "创建失败，请重试",
+  );
   if (!doc) return null;
   const newId = doc.id ?? "";
 
@@ -213,12 +206,8 @@ export async function joinWorkshop(id: string): Promise<boolean> {
   const uid = getCurrentUid();
   if (!uid) throw new Error("请先登录");
   try {
-    const res = await app.callFunction({
-      name: "content-actions",
-      data: { action: "joinWorkshop", workshopId: id },
-    });
-    const result = (res?.result ?? {}) as { ok?: boolean; error?: string };
-    return result.ok === true;
+    await callAction("joinWorkshop", { workshopId: id });
+    return true;
   } catch {
     return false;
   }
@@ -234,13 +223,12 @@ export async function submitContribution(
   if (!uid) throw new Error("请先登录");
   const cleanContent = sanitizeInput(content);
   try {
-    const res = await app.callFunction({
-      name: "content-actions",
-      data: { action: "submitWorkshopContribution", workshopId, chapterId, content: cleanContent },
+    const data = await callAction<Contribution | undefined>("submitWorkshopContribution", {
+      workshopId,
+      chapterId,
+      content: cleanContent,
     });
-    const result = (res?.result ?? {}) as { ok?: boolean; data?: Contribution; error?: string };
-    if (!result.ok) return null;
-    return result.data ?? null;
+    return data ?? null;
   } catch {
     return null;
   }
@@ -280,12 +268,11 @@ export async function updateWorkshop(
 
     // content 走云函数（参与者也能编辑）
     if (params.content !== undefined) {
-      const res = await app.callFunction({
-        name: "content-actions",
-        data: { action: "updateWorkshopContent", workshopId: id, content: params.content },
-      });
-      const result = (res?.result ?? {}) as { ok?: boolean; error?: string };
-      if (!result.ok) throw new Error(result.error || "保存失败");
+      await callAction(
+        "updateWorkshopContent",
+        { workshopId: id, content: params.content },
+        "保存失败",
+      );
     }
 
     // title/description/status 仅创建者可改（#404 走云函数，接入服务端审核）
@@ -297,10 +284,9 @@ export async function updateWorkshop(
       if (!isCreator) {
         throw new Error("仅创建者可编辑标题、简介和状态");
       }
-      const metaRes = await app.callFunction({
-        name: "content-actions",
-        data: {
-          action: "updateWorkshopMeta",
+      await callAction(
+        "updateWorkshopMeta",
+        {
           workshopId: id,
           ...(params.title !== undefined ? { title: sanitizeTitle(params.title) } : {}),
           ...(params.description !== undefined
@@ -308,9 +294,8 @@ export async function updateWorkshop(
             : {}),
           ...(params.status !== undefined ? { status: params.status } : {}),
         },
-      });
-      const metaResult = (metaRes?.result ?? {}) as { ok?: boolean; error?: string };
-      if (!metaResult.ok) throw new Error(metaResult.error || "保存失败");
+        "保存失败",
+      );
     }
 
     return true;
@@ -371,18 +356,12 @@ export async function addAnnotation(
   // #27 选中文本截断到 200 字符，避免过长
   const cleanSelectedText = selectedText ? sanitizeInput(selectedText.trim(), 200) : undefined;
   try {
-    const res = await app.callFunction({
-      name: "content-actions",
-      data: {
-        action: "addWorkshopAnnotation",
-        workshopId: id,
-        content: cleanContent,
-        ...(cleanSelectedText ? { selectedText: cleanSelectedText } : {}),
-      },
+    const data = await callAction<Annotation | undefined>("addWorkshopAnnotation", {
+      workshopId: id,
+      content: cleanContent,
+      ...(cleanSelectedText ? { selectedText: cleanSelectedText } : {}),
     });
-    const result = (res?.result ?? {}) as { ok?: boolean; data?: Annotation; error?: string };
-    if (!result.ok) return null;
-    return result.data ?? null;
+    return data ?? null;
   } catch {
     return null;
   }
@@ -397,15 +376,8 @@ export async function resolveAnnotation(id: string, annotationId: string): Promi
   const uid = getCurrentUid();
   if (!uid) throw new Error("请先登录");
   try {
-    const res = await app.callFunction({
-      name: "content-actions",
-      data: { action: "resolveWorkshopAnnotation", workshopId: id, annotationId },
-    });
-    const result = (res?.result ?? {}) as { ok?: boolean; error?: string };
-    if (result.error?.includes("仅创建者或批注作者")) {
-      throw new Error(result.error);
-    }
-    return result.ok === true;
+    await callAction("resolveWorkshopAnnotation", { workshopId: id, annotationId });
+    return true;
   } catch (err) {
     if (err instanceof Error && err.message.includes("仅创建者或批注作者")) throw err;
     return false;
@@ -418,18 +390,8 @@ export async function resolveAnnotation(id: string, annotationId: string): Promi
 export async function leaveWorkshop(id: string): Promise<boolean> {
   const uid = getCurrentUid();
   if (!uid) throw new Error("请先登录");
-  try {
-    const res = await app.callFunction({
-      name: "content-actions",
-      data: { action: "leaveWorkshop", workshopId: id },
-    });
-    const result = (res?.result ?? {}) as { ok?: boolean; error?: string };
-    if (!result.ok) throw new Error(result.error || "退出失败");
-    return true;
-  } catch (err) {
-    if (err instanceof Error && err.message) throw err;
-    return false;
-  }
+  await callAction("leaveWorkshop", { workshopId: id }, "退出失败");
+  return true;
 }
 
 /**
@@ -438,18 +400,8 @@ export async function leaveWorkshop(id: string): Promise<boolean> {
 export async function deleteAnnotation(id: string, annotationId: string): Promise<boolean> {
   const uid = getCurrentUid();
   if (!uid) throw new Error("请先登录");
-  try {
-    const res = await app.callFunction({
-      name: "content-actions",
-      data: { action: "deleteWorkshopAnnotation", workshopId: id, annotationId },
-    });
-    const result = (res?.result ?? {}) as { ok?: boolean; error?: string };
-    if (!result.ok) throw new Error(result.error || "删除失败");
-    return true;
-  } catch (err) {
-    if (err instanceof Error && err.message) throw err;
-    return false;
-  }
+  await callAction("deleteWorkshopAnnotation", { workshopId: id, annotationId }, "删除失败");
+  return true;
 }
 
 // ==================== 作品集（#312） ====================

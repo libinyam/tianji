@@ -1,4 +1,4 @@
-import { app, auth, authReady } from "@/lib/cloudbase";
+import { app, auth, authReady, callAction } from "@/lib/cloudbase";
 import { sanitizeInput, sanitizeTitle, sanitizeTag } from "@/lib/sanitize";
 import { checkCurrentUserBanned } from "@/lib/ban";
 import { containsSensitiveWord } from "@/lib/sensitive-words";
@@ -68,10 +68,7 @@ function toBook(doc: BookDoc): Book {
 /** 资源被下载时，下载数 +1 */
 export async function incrementBookDownloads(id: string): Promise<void> {
   try {
-    await app.callFunction({
-      name: "content-actions",
-      data: { action: "incrementBookDownloads", bookId: id },
-    });
+    await callAction("incrementBookDownloads", { bookId: id });
   } catch {
     void 0;
   }
@@ -82,17 +79,12 @@ export async function addReview(
   bookId: string,
   review: { author: string; authorUid: string; rating: number; content: string },
 ): Promise<{ avgRating: number; updated: boolean } | null> {
-  const res = await app.callFunction({
-    name: "content-actions",
-    data: { action: "addBookReview", bookId, ...review },
-  });
-  const result = (res?.result ?? {}) as {
-    ok?: boolean;
-    data?: { avgRating: number; updated: boolean };
-    error?: string;
-  };
-  if (!result.ok) throw new Error(result.error || "评价失败");
-  return result.data ?? null;
+  const data = await callAction<{ avgRating: number; updated: boolean } | undefined>(
+    "addBookReview",
+    { bookId, ...review },
+    "评价失败",
+  );
+  return data ?? null;
 }
 
 /** 获取所有用户上传的书籍 */

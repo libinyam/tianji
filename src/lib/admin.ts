@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { app } from "@/lib/cloudbase";
+import { app, callCloudFunction } from "@/lib/cloudbase";
 import { useAuthStore } from "@/stores/auth";
 
 // 按 uid 缓存管理员判定结果，避免重复调用云函数
@@ -48,6 +48,7 @@ export async function assertAdmin(): Promise<void> {
     if (!adminCache.isAdmin) throw new Error("无权限");
     return;
   }
+  // check-admin 返回扁平 { isAdmin } 而非 {ok,data} 信封,不适用 callCloudFunction
   const res = await app.callFunction({ name: "check-admin" });
   const result = (res?.result ?? {}) as { isAdmin?: boolean };
   adminCache = { uid, isAdmin: !!result.isAdmin };
@@ -88,31 +89,33 @@ export async function fetchAdminStats(): Promise<{
   };
 }
 
-export async function fetchAdminList(collection: string, limit = 50): Promise<unknown[]> {
+// #418 泛型化:调用方声明各集合的条目类型,SDK 边界断言收敛在此一处
+export async function fetchAdminList<T = unknown>(collection: string, limit = 50): Promise<T[]> {
   const { data } = await db.collection(collection).orderBy("createdAt", "desc").limit(limit).get();
+  return (data ?? []) as T[];
+}
+
+// #418 此前三个函数返回 Promise<unknown>,把类型检查整体放弃,调用方(Admin.tsx)
+// 只能 as unknown as 二次断言;改为信封解包 + 泛型,失败直接抛错
+
+export async function fetchAdminUsers<T = unknown>(page = 1, pageSize = 50): Promise<T[]> {
+  const data = await callCloudFunction<T[] | undefined>(
+    "user-admin",
+    { action: "listUsers", page, pageSize },
+    "获取用户列表失败",
+  );
   return data ?? [];
 }
 
-export async function fetchAdminUsers(page = 1, pageSize = 50): Promise<unknown> {
-  const res = await app.callFunction({
-    name: "user-admin",
-    data: { action: "listUsers", page, pageSize },
-  });
-  return res?.result;
+export async function searchAdminUsers<T = unknown>(keyword: string): Promise<T[]> {
+  const data = await callCloudFunction<T[] | undefined>(
+    "user-admin",
+    { action: "searchUsers", keyword },
+    "搜索失败",
+  );
+  return data ?? [];
 }
 
-export async function searchAdminUsers(keyword: string): Promise<unknown> {
-  const res = await app.callFunction({
-    name: "user-admin",
-    data: { action: "searchUsers", keyword },
-  });
-  return res?.result;
-}
-
-export async function adminDelete(collection: string, docId: string): Promise<unknown> {
-  const res = await app.callFunction({
-    name: "admin-delete",
-    data: { collection, docId, action: "delete" },
-  });
-  return res?.result;
+export async function adminDelete(collection: string, docId: string): Promise<void> {
+  await callCloudFunction("admin-delete", { collection, docId, action: "delete" }, "删除失败");
 }

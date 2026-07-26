@@ -1,4 +1,4 @@
-import { app, authReady } from "@/lib/cloudbase";
+import { app, authReady, callAction } from "@/lib/cloudbase";
 import { awardReputation } from "@/lib/reputation";
 import { sanitizeInput, sanitizeTitle, sanitizeTag } from "@/lib/sanitize";
 import { checkCurrentUserBanned } from "@/lib/ban";
@@ -222,10 +222,9 @@ export async function createPost(params: {
   if (banStatus) throw new Error("您的账号已被封禁");
 
   // #289 调用云函数写入（含数据万象 CI 文本审核）
-  const res = await app.callFunction({
-    name: "content-actions",
-    data: {
-      action: "createPost",
+  const d = await callAction<PostDoc & { id: string }>(
+    "createPost",
+    {
       title: cleanTitle,
       body: cleanBody,
       tags: cleanTags,
@@ -234,15 +233,8 @@ export async function createPost(params: {
       bounty: params.bounty,
       author: getCurrentUserName(),
     },
-  });
-  const result = (res?.result ?? {}) as {
-    ok?: boolean;
-    data?: PostDoc & { id: string };
-    error?: string;
-  };
-  if (!result.ok) throw new Error(result.error || "发帖失败");
-
-  const d = result.data!;
+    "发帖失败",
+  );
   await awardReputation("createPost", d.id);
   return {
     id: d.id,
@@ -268,10 +260,7 @@ export async function createPost(params: {
  *  非作者浏览时直接 update 会 403，改由 content-actions 云函数以 admin 权限自增） */
 export async function incrementViews(id: string): Promise<void> {
   try {
-    await app.callFunction({
-      name: "content-actions",
-      data: { action: "incrementPostViews", postId: id },
-    });
+    await callAction("incrementPostViews", { postId: id });
   } catch {
     // 静默失败，浏览量不影响核心体验
   }
@@ -292,13 +281,12 @@ export async function submitAnswer(postId: string, content: string): Promise<Ans
     throw new Error(`内容包含敏感词: ${sensitiveCheck.words.join(", ")}`);
   }
 
-  const res = await app.callFunction({
-    name: "content-actions",
-    data: { action: "submitAnswer", postId, content: cleanContent, author: getCurrentUserName() },
+  const data = await callAction<Answer | undefined>("submitAnswer", {
+    postId,
+    content: cleanContent,
+    author: getCurrentUserName(),
   });
-  const result = (res?.result ?? {}) as { ok?: boolean; data?: Answer; error?: string };
-  if (!result.ok) throw new Error(result.error || "操作失败");
-  return result.data ?? null;
+  return data ?? null;
 }
 
 /** 对某个回答添加评论/回复 */
@@ -321,20 +309,14 @@ export async function submitComment(
     throw new Error(`内容包含敏感词: ${sensitiveCheck.words.join(", ")}`);
   }
 
-  const res = await app.callFunction({
-    name: "content-actions",
-    data: {
-      action: "submitComment",
-      postId,
-      answerId,
-      content: cleanContent,
-      replyTo,
-      author: getCurrentUserName(),
-    },
+  const data = await callAction<Comment | undefined>("submitComment", {
+    postId,
+    answerId,
+    content: cleanContent,
+    replyTo,
+    author: getCurrentUserName(),
   });
-  const result = (res?.result ?? {}) as { ok?: boolean; data?: Comment; error?: string };
-  if (!result.ok) throw new Error(result.error || "操作失败");
-  return result.data ?? null;
+  return data ?? null;
 }
 
 /** 编辑帖子（仅作者，走云函数绕过安全规则 + 文本审核） */
@@ -345,20 +327,11 @@ export async function updatePost(
   const uid = getCurrentUid();
   if (!uid) throw new Error("请先登录");
 
-  const res = await app.callFunction({
-    name: "content-actions",
-    data: {
-      action: "updatePost",
-      postId,
-      title: params.title,
-      body: params.body,
-      tags: params.tags,
-    },
-  });
-  const result = (res?.result ?? {}) as { ok?: boolean; error?: string };
-  if (!result.ok) {
-    throw new Error(result.error || "编辑失败，请稍后重试");
-  }
+  await callAction(
+    "updatePost",
+    { postId, title: params.title, body: params.body, tags: params.tags },
+    "编辑失败，请稍后重试",
+  );
   return true;
 }
 
@@ -368,14 +341,7 @@ export async function deletePost(postId: string): Promise<boolean> {
   if (!uid) throw new Error("请先登录");
 
   // 走云函数绕过安全规则（直写 DB 会被拦截 "Permission denied by security rules"）
-  const res = await app.callFunction({
-    name: "content-actions",
-    data: { action: "deletePost", postId },
-  });
-  const result = (res?.result ?? {}) as { ok?: boolean; error?: string };
-  if (!result.ok) {
-    throw new Error(result.error || "删除失败，请稍后重试");
-  }
+  await callAction("deletePost", { postId }, "删除失败，请稍后重试");
   return true;
 }
 
@@ -387,21 +353,13 @@ export async function updateAnswer(
 ): Promise<boolean> {
   const cleanContent = sanitizeInput(content);
 
-  const res = await app.callFunction({
-    name: "content-actions",
-    data: { action: "updateAnswer", postId, answerId, content: cleanContent },
-  });
-  if (!res?.result?.ok) throw new Error(res?.result?.error || "编辑失败");
+  await callAction("updateAnswer", { postId, answerId, content: cleanContent }, "编辑失败");
   return true;
 }
 
 /** 删除回答（仅作者，通过云函数绕过安全规则） */
 export async function deleteAnswer(postId: string, answerId: string): Promise<boolean> {
-  const res = await app.callFunction({
-    name: "content-actions",
-    data: { action: "deleteAnswer", postId, answerId },
-  });
-  if (!res?.result?.ok) throw new Error(res?.result?.error || "删除失败");
+  await callAction("deleteAnswer", { postId, answerId }, "删除失败");
   return true;
 }
 
@@ -411,11 +369,7 @@ export async function deleteComment(
   answerId: string,
   commentId: string,
 ): Promise<boolean> {
-  const res = await app.callFunction({
-    name: "content-actions",
-    data: { action: "deleteComment", postId, answerId, commentId },
-  });
-  if (!res?.result?.ok) throw new Error(res?.result?.error || "删除失败");
+  await callAction("deleteComment", { postId, answerId, commentId }, "删除失败");
   return true;
 }
 
@@ -428,11 +382,11 @@ export async function updateComment(
 ): Promise<boolean> {
   const cleanContent = sanitizeInput(content);
 
-  const res = await app.callFunction({
-    name: "content-actions",
-    data: { action: "updateComment", postId, answerId, commentId, content: cleanContent },
-  });
-  if (!res?.result?.ok) throw new Error(res?.result?.error || "编辑失败");
+  await callAction(
+    "updateComment",
+    { postId, answerId, commentId, content: cleanContent },
+    "编辑失败",
+  );
   return true;
 }
 
@@ -445,12 +399,7 @@ export async function acceptAnswer(
   const uid = getCurrentUid();
   if (!uid) throw new Error("请先登录");
 
-  const res = await app.callFunction({
-    name: "content-actions",
-    data: { action: "acceptAnswer", postId, answerId, accept },
-  });
-  const result = (res?.result ?? {}) as { ok?: boolean; error?: string };
-  if (!result.ok) throw new Error(result.error || "操作失败");
+  await callAction("acceptAnswer", { postId, answerId, accept });
   return true;
 }
 
@@ -484,15 +433,10 @@ export async function voteAnswer(
   const uid = getCurrentUid();
   if (!uid) throw new Error("请先登录");
 
-  const res = await app.callFunction({
-    name: "content-actions",
-    data: { action: "voteAnswer", postId, answerId, isUpvote },
+  const data = await callAction<{ changed?: boolean } | undefined>("voteAnswer", {
+    postId,
+    answerId,
+    isUpvote,
   });
-  const result = (res?.result ?? {}) as {
-    ok?: boolean;
-    error?: string;
-    data?: { changed?: boolean };
-  };
-  if (!result.ok) throw new Error(result.error || "操作失败");
-  return { changed: result.data?.changed !== false };
+  return { changed: data?.changed !== false };
 }

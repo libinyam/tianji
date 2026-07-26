@@ -158,8 +158,7 @@ export default function Admin() {
   const fetchPosts = async () => {
     setLoadingData(true);
     try {
-      const data = await fetchAdminList("posts");
-      setPosts(data as unknown as PostItem[]);
+      setPosts(await fetchAdminList<PostItem>("posts"));
     } catch (err) {
       console.error("fetchPosts error:", err);
     } finally {
@@ -170,8 +169,7 @@ export default function Admin() {
   const fetchIdeas = async () => {
     setLoadingData(true);
     try {
-      const data = await fetchAdminList("ideas");
-      setIdeas(data as unknown as IdeaItem[]);
+      setIdeas(await fetchAdminList<IdeaItem>("ideas"));
     } catch (err) {
       console.error("fetchIdeas error:", err);
     } finally {
@@ -182,8 +180,7 @@ export default function Admin() {
   const fetchBooks = async () => {
     setLoadingData(true);
     try {
-      const data = await fetchAdminList("books");
-      setBooks(data as unknown as BookItem[]);
+      setBooks(await fetchAdminList<BookItem>("books"));
     } catch (err) {
       console.error("fetchBooks error:", err);
     } finally {
@@ -194,8 +191,7 @@ export default function Admin() {
   const fetchWorkshops = async () => {
     setLoadingData(true);
     try {
-      const data = await fetchAdminList("workshops");
-      setWorkshops(data as unknown as WorkshopItem[]);
+      setWorkshops(await fetchAdminList<WorkshopItem>("workshops"));
     } catch (err) {
       console.error("fetchWorkshops error:", err);
     } finally {
@@ -266,16 +262,8 @@ export default function Admin() {
   const fetchUsers = async () => {
     setLoadingData(true);
     try {
-      const result = (await fetchAdminUsers()) as {
-        ok: boolean;
-        data?: UserItem[];
-        error?: string;
-      };
-      if (result?.ok && result.data) {
-        setUserList(result.data);
-      } else {
-        toast.error(result?.error || "获取用户列表失败");
-      }
+      // #418 lib 层已解包信封并抛错,不再需要 as unknown as 二次断言
+      setUserList(await fetchAdminUsers<UserItem>());
     } catch (err) {
       toast.error((err as Error).message || "获取用户列表失败");
     } finally {
@@ -290,16 +278,7 @@ export default function Admin() {
     }
     setLoadingData(true);
     try {
-      const result = (await searchAdminUsers(searchKeyword.trim())) as {
-        ok: boolean;
-        data?: UserItem[];
-        error?: string;
-      };
-      if (result?.ok && result.data) {
-        setUserList(result.data);
-      } else {
-        toast.error(result?.error || "搜索失败");
-      }
+      setUserList(await searchAdminUsers<UserItem>(searchKeyword.trim()));
     } catch (err) {
       toast.error((err as Error).message || "搜索失败");
     } finally {
@@ -351,14 +330,7 @@ export default function Admin() {
         const col = colMap[report.targetType];
         if (col) {
           try {
-            const result = (await adminDelete(col, report.targetId)) as {
-              ok?: boolean;
-              error?: string;
-            };
-            if (!result?.ok) {
-              toast.error(result?.error || "内容删除失败");
-              return;
-            }
+            await adminDelete(col, report.targetId);
           } catch (e) {
             console.warn("删除被举报内容失败：", e);
             toast.error("内容删除失败，可能需要手动处理");
@@ -379,11 +351,7 @@ export default function Admin() {
   const handleDelete = async (collection: string, id: string) => {
     if (!confirm("确定删除这条内容？此操作不可撤销。")) return;
     try {
-      const result = (await adminDelete(collection, id)) as { ok?: boolean; error?: string };
-      if (!result?.ok) {
-        toast.error(result?.error || "删除失败");
-        return;
-      }
+      await adminDelete(collection, id);
       toast.success("内容已删除");
       if (tab === "posts") fetchPosts();
       else if (tab === "ideas") fetchIdeas();
