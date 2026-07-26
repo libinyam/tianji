@@ -55,7 +55,7 @@ describe("sitemap-generator", () => {
     const res = await main(TIMER, {});
 
     expect(res.ok).toBe(true);
-    expect(res.data.urls).toBe(7 + 5);
+    expect(res.data.urls).toBe(8 + 5);
     expect(uploaded).toContain("<loc>https://tianjihub.cn/</loc>");
     expect(uploaded).toContain("<loc>https://tianjihub.cn/discussion/p1</loc>");
     expect(uploaded).toContain("<loc>https://tianjihub.cn/discussion/p2</loc>");

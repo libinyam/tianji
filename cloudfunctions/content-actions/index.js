@@ -1546,6 +1546,73 @@ async function updateWorkshopContent(event, uid) {
   return ok({ updated: true });
 }
 
+/**
+ * #172 声望排行榜(公开只读):users_v2 按声望取 top-N,显示名与头像色从
+ * 内容快照解析(users_v2 不存昵称,与 fetchPublicUser 同法);封禁用户剔除。
+ */
+async function getLeaderboard() {
+  const LIMIT = 20;
+  const { data } = await db
+    .collection("users_v2")
+    .field({ reputation: true, banned: true })
+    .orderBy("reputation", "desc")
+    .limit(LIMIT * 2)
+    .get();
+  const users = (data || [])
+    .filter((u) => u && u._id && (u.reputation || 0) > 0 && !u.banned)
+    .slice(0, LIMIT);
+  if (users.length === 0) return ok({ entries: [] });
+
+  const uids = users.map((u) => u._id);
+  const nameMap = new Map();
+  const colorMap = new Map();
+  const collect = (rows, nameKey, uidKey) => {
+    for (const r of rows || []) {
+      const id = r[uidKey];
+      if (!id || nameMap.has(id)) continue;
+      if (r[nameKey] && r[nameKey] !== "匿名用户") {
+        nameMap.set(id, r[nameKey]);
+        if (r.avatarColor) colorMap.set(id, r.avatarColor);
+      }
+    }
+  };
+  try {
+    const { data: posts } = await db
+      .collection("posts")
+      .where({ authorUid: _.in(uids) })
+      .field({ author: true, authorUid: true, avatarColor: true })
+      .limit(100)
+      .get();
+    collect(posts, "author", "authorUid");
+  } catch {}
+  try {
+    const { data: ideas } = await db
+      .collection("ideas")
+      .where({ authorUid: _.in(uids) })
+      .field({ author: true, authorUid: true, avatarColor: true })
+      .limit(100)
+      .get();
+    collect(ideas, "author", "authorUid");
+  } catch {}
+  try {
+    const { data: ws } = await db
+      .collection("workshops")
+      .where({ creatorUid: _.in(uids) })
+      .field({ creator: true, creatorUid: true, avatarColor: true })
+      .limit(100)
+      .get();
+    collect(ws, "creator", "creatorUid");
+  } catch {}
+
+  const entries = users.map((u) => ({
+    uid: u._id,
+    name: nameMap.get(u._id) || "天玑成员",
+    avatarColor: colorMap.get(u._id) || "",
+    reputation: u.reputation || 0,
+  }));
+  return ok({ entries });
+}
+
 const NOTIFICATION_TYPES = [
   "answer",
   "comment",
@@ -1659,7 +1726,7 @@ exports.main = async (event, context) => {
 
   const timer = withTiming(action, uid);
 
-  const PUBLIC_ACTIONS = ["incrementPostViews", "incrementBookDownloads"];
+  const PUBLIC_ACTIONS = ["incrementPostViews", "incrementBookDownloads", "getLeaderboard"];
   if (!uid && !PUBLIC_ACTIONS.includes(action)) {
     timer.end("unauthorized");
     return fail("请先登录");
@@ -1702,6 +1769,8 @@ exports.main = async (event, context) => {
           return await updateWorkshopMeta(event, uid);
         case "createNotification":
           return await createNotificationAction(event, uid, endUserName);
+        case "getLeaderboard":
+          return await getLeaderboard();
         case "updatePost":
           return await updatePost(event, uid);
         case "updateAnswer":
