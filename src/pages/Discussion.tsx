@@ -1,6 +1,17 @@
 import { useMemo, useState, useEffect } from "react";
 import { useNavigate, useLocation, useSearchParams } from "react-router-dom";
-import { Plus, Search, Megaphone, X, AlertCircle, RefreshCw } from "lucide-react";
+import {
+  Plus,
+  Search,
+  Megaphone,
+  X,
+  AlertCircle,
+  RefreshCw,
+  GraduationCap,
+  Coffee,
+  Heart,
+  Hash,
+} from "lucide-react";
 import PostModal from "@/components/PostModal";
 import EmptyState from "@/components/EmptyState";
 import WelcomeBanner from "@/components/WelcomeBanner";
@@ -48,6 +59,13 @@ function getLastActivity(q: Question): string {
 
 /** 分区类型：在 PostCategory 基础上扩展「关注」分区（个性化 Feed，#149） */
 type Section = "academic" | "casual" | "following";
+
+/** #401 移动端分区 Tab（<lg 侧边栏隐藏，这里是唯一的分区入口） */
+const MOBILE_SECTIONS: { key: Section; label: string; icon: typeof GraduationCap }[] = [
+  { key: "academic", label: "学术区", icon: GraduationCap },
+  { key: "casual", label: "闲聊区", icon: Coffee },
+  { key: "following", label: "关注", icon: Heart },
+];
 
 /** 闲聊区子分类 emoji */
 const SUB_CATEGORY_EMOJI: Record<string, string> = {
@@ -329,6 +347,68 @@ export default function Discussion() {
 
         {/* 右侧主讨论区 */}
         <div className="min-w-0 flex-1">
+          {/* #401 移动端分区切换 + 标签筛选：<lg 时侧边栏整体隐藏，若无此入口，
+              手机用户将永远无法进入闲聊区/关注 Feed 或按标签筛选 */}
+          <div className="mb-4 space-y-3 lg:hidden">
+            <div className="flex items-center gap-1 rounded-md border border-void-600 bg-void-800 p-1">
+              {MOBILE_SECTIONS.map((s) => {
+                const Icon = s.icon;
+                const isActive = section === s.key;
+                return (
+                  <button
+                    key={s.key}
+                    onClick={() =>
+                      updateFilters({ section: s.key, cat: "全部", tag: "全部", sort: "最新" })
+                    }
+                    aria-pressed={isActive}
+                    className={`flex flex-1 items-center justify-center gap-1.5 rounded px-2 py-1.5 text-sm transition-colors ${
+                      isActive
+                        ? "bg-void-700 font-medium text-tian-500"
+                        : "text-mist-400 hover:text-parchment-100"
+                    }`}
+                  >
+                    <Icon size={14} className={isActive ? "text-tian-500" : "text-mist-500"} />
+                    {s.label}
+                  </button>
+                );
+              })}
+            </div>
+            {section === "academic" && hotTags.length > 0 && (
+              <div className="flex gap-1.5 overflow-x-auto pb-1" aria-label="热门标签筛选">
+                <button
+                  onClick={() => updateFilters({ tag: "全部" })}
+                  aria-pressed={activeTag === "全部"}
+                  className={`inline-flex shrink-0 items-center gap-1 rounded-full border px-2.5 py-1 text-xs transition-colors ${
+                    activeTag === "全部"
+                      ? "border-tian-500/40 bg-void-700 font-medium text-tian-500"
+                      : "border-void-600 text-mist-400 hover:text-parchment-100"
+                  }`}
+                >
+                  <Hash size={11} />
+                  全部
+                </button>
+                {hotTags.map((t) => (
+                  <button
+                    key={t}
+                    onClick={() => updateFilters({ tag: t })}
+                    aria-pressed={activeTag === t}
+                    className={`inline-flex shrink-0 items-center gap-1.5 rounded-full border px-2.5 py-1 text-xs transition-colors ${
+                      activeTag === t
+                        ? "border-tian-500/40 bg-void-700 font-medium text-tian-500"
+                        : "border-void-600 text-mist-400 hover:text-parchment-100"
+                    }`}
+                  >
+                    <span
+                      className="h-1.5 w-1.5 shrink-0 rounded-full"
+                      style={{ backgroundColor: categoryColor(t) }}
+                    />
+                    {t}
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
+
           {/* 顶部条：标题 + 排序 + 发起讨论 */}
           <div className="mb-4 flex items-center justify-between border-b border-void-600 pb-3">
             <h1 className="text-lg font-semibold text-parchment-50">
