@@ -23,6 +23,7 @@ import { fetchMyFavorites, type FavoriteItem } from "@/lib/favorites";
 import { getCurrentUserReputation, getBadges, type ReputationInfo } from "@/lib/reputation";
 import { useDocumentTitle } from "@/hooks/useDocumentTitle";
 import { uploadFile, getTempFileURL, deleteFile } from "@/lib/storage";
+import { compressAvatar, fileExt } from "@/lib/image-compress";
 import { ListSkeleton, PostCardSkeleton } from "@/components/Skeleton";
 
 // 默认头像备选
@@ -96,9 +97,10 @@ export default function Profile() {
 
     setUploading(true);
     try {
-      const ext = file.name.split(".").pop() || "jpg";
-      const cloudPath = `avatars/${user.uid}-${Date.now()}.${ext}`;
-      const fileID = await uploadFile(cloudPath, file);
+      // #409 头像居中裁剪并缩放到 256×256（渲染位最大 96px），失败自动回退原图
+      const compressed = await compressAvatar(file);
+      const cloudPath = `avatars/${user.uid}-${Date.now()}.${fileExt(compressed)}`;
+      const fileID = await uploadFile(cloudPath, compressed);
       // 获取可访问的下载链接（有效期 1 年）
       const url = await getTempFileURL(fileID);
       if (url) {
