@@ -52,17 +52,17 @@ ICP 备案已完成，自定义域名 `tianjihub.cn` 正式运行。
 
 ## 界面预览
 
-| 产品概览 | 资源库 |
+| 首页讨论区 | 资源库 |
 | --- | --- |
-| ![天玑产品概览](docs/images/tianji-about.jpg) | ![天玑资源库](docs/images/tianji-library.jpg) |
+| ![天玑首页讨论区](docs/images/tianji-home.jpg) | ![天玑资源库](docs/images/tianji-library.jpg) |
 
 | 灵感广场 | 协作工坊 |
 | --- | --- |
 | ![天玑灵感广场](docs/images/tianji-ideas.jpg) | ![天玑协作工坊](docs/images/tianji-workshop.jpg) |
 
-| 登录与行动入口 |
+| 关于页 · 产品概览 |
 | --- |
-| ![天玑登录与行动入口](docs/images/tianji-action-modal.jpg) |
+| ![天玑产品概览](docs/images/tianji-about.jpg) |
 
 > demo GIF 录制中，将在比赛提交前替换静态截图。
 
