@@ -1,7 +1,24 @@
 const cloudbase = require("@cloudbase/node-sdk");
 
-const app = cloudbase.init({ env: cloudbase.SYMBOL_CURRENT_ENV });
-const db = app.database();
+// #416 延迟初始化：真实运行时首次调用才连接 CloudBase；测试通过 __setTestDb
+// 注入假数据库（与 content-actions/user-admin 同模式）。此前顶层同步 init
+// 在无凭据环境 require 即抛错，导致本函数是 8 个云函数中唯一无法测试的。
+let app;
+let db;
+
+function ensureApp() {
+  // 测试注入 db 后跳过真实初始化
+  if (!app && !db) {
+    app = cloudbase.init({ env: cloudbase.SYMBOL_CURRENT_ENV });
+    db = app.database();
+  }
+  return app;
+}
+
+// 仅供测试注入假数据库，生产代码不应调用
+exports.__setTestDb = (fakeDb) => {
+  db = fakeDb;
+};
 
 const ADMIN_UIDS = (process.env.ADMIN_UIDS || "")
   .split(",")
@@ -9,10 +26,12 @@ const ADMIN_UIDS = (process.env.ADMIN_UIDS || "")
   .filter(Boolean);
 
 async function getCallerUid(context) {
-  try {
-    const info = await app.auth().getEndUserInfo();
-    if (info?.userInfo?.uid) return info.userInfo.uid;
-  } catch {}
+  if (app) {
+    try {
+      const info = await app.auth().getEndUserInfo();
+      if (info?.userInfo?.uid) return info.userInfo.uid;
+    } catch {}
+  }
   if (context?.userInfo?.uid) return context.userInfo.uid;
   if (context?.identifier) return context.identifier;
   return "";
@@ -27,7 +46,9 @@ function fail(error) {
 }
 
 function sanitizeText(text, maxLen = 5000) {
-  return String(text || "").trim().slice(0, maxLen);
+  return String(text || "")
+    .trim()
+    .slice(0, maxLen);
 }
 
 async function createAnnouncement(event, uid) {
@@ -101,6 +122,7 @@ exports.main = async (event, context) => {
   const { action } = event;
   if (!action) return fail("缺少 action 参数");
 
+  ensureApp();
   const uid = await getCallerUid(context);
   const isAdmin = !!uid && ADMIN_UIDS.includes(uid);
 

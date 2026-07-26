@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { openAuthModal } from "@/lib/pending-action";
 import { Link, useParams } from "react-router-dom";
 import { toast } from "@/stores/toast";
 import {
@@ -123,7 +124,7 @@ export default function DiscussionDetail() {
     targetTitle: string,
   ) => {
     if (!user) {
-      window.dispatchEvent(new CustomEvent("tianji:open-auth"));
+      openAuthModal();
       return;
     }
     setReportTarget({ targetType, targetId, targetTitle });
@@ -131,7 +132,7 @@ export default function DiscussionDetail() {
 
   const handleToggleFav = async () => {
     if (!user) {
-      window.dispatchEvent(new CustomEvent("tianji:open-auth"));
+      openAuthModal();
       return;
     }
     if (!question) return;
@@ -153,7 +154,7 @@ export default function DiscussionDetail() {
 
   const handleSubmitAnswer = async () => {
     if (!user) {
-      window.dispatchEvent(new CustomEvent("tianji:open-auth"));
+      openAuthModal();
       return;
     }
     if (!answerText.trim() || !question) return;

@@ -18,7 +18,7 @@ export async function fetchPaginated<T>(
     orderDirection?: "asc" | "desc";
     cursor?: string;
     pageSize?: number;
-  } = {}
+  } = {},
 ): Promise<PaginatedResult<T>> {
   const {
     where,
@@ -44,7 +44,7 @@ export async function fetchPaginated<T>(
   const items = (result.data ?? []) as T[];
   const hasMore = items.length === pageSize;
   const nextCursor = hasMore
-    ? (items[items.length - 1] as Record<string, unknown>)?._id as string | undefined
+    ? ((items[items.length - 1] as Record<string, unknown>)?._id as string | undefined)
     : undefined;
 
   return { items, hasMore, nextCursor };

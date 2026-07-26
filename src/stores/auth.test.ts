@@ -107,7 +107,10 @@ describe("useAuthStore", () => {
 
   describe("signInWithEmail", () => {
     it("成功：设置 user 并返回 true", async () => {
-      mockAuth.signInWithPassword.mockResolvedValue({ data: { session: validSession }, error: null });
+      mockAuth.signInWithPassword.mockResolvedValue({
+        data: { session: validSession },
+        error: null,
+      });
       const result = await useAuthStore.getState().signInWithEmail("a@b.com", "pass");
       expect(result).toBe(true);
       const state = useAuthStore.getState();

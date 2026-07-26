@@ -55,9 +55,10 @@ const mockBan = vi.hoisted(() => ({
 }));
 
 const mockSensitive = vi.hoisted(() => ({
-  containsSensitiveWord: vi.fn<(text: string) => { found: boolean; words: string[] }>(
-    () => ({ found: false, words: [] })
-  ),
+  containsSensitiveWord: vi.fn<(text: string) => { found: boolean; words: string[] }>(() => ({
+    found: false,
+    words: [],
+  })),
 }));
 
 const mockTags = vi.hoisted(() => ({
@@ -104,13 +105,7 @@ vi.mock("@/lib/tags", () => ({
   ensureTags: mockTags.ensureTags,
 }));
 
-import {
-  fetchBooks,
-  fetchBookById,
-  createBook,
-  incrementBookDownloads,
-  addReview,
-} from "./books";
+import { fetchBooks, fetchBookById, createBook, incrementBookDownloads, addReview } from "./books";
 
 const bookDoc = {
   _id: "b1",
@@ -291,7 +286,7 @@ describe("books", () => {
           accent: expect.any(String),
           year: expect.any(Number),
           createdAt: expect.any(String),
-        })
+        }),
       );
       expect(mockTags.ensureTags).toHaveBeenCalledWith(["AI", "工具"]);
       expect(mockReputation.awardReputation).toHaveBeenCalledWith("createBook", "new-book-id");
@@ -308,7 +303,7 @@ describe("books", () => {
           difficulty: 3,
           tags: [],
           summary: "摘要",
-        })
+        }),
       ).rejects.toThrow("请先登录");
 
       expect(mockDb._chain.add).not.toHaveBeenCalled();
@@ -328,7 +323,7 @@ describe("books", () => {
           difficulty: 3,
           tags: [],
           summary: "摘要",
-        })
+        }),
       ).rejects.toThrow("您的账号已被封禁");
 
       expect(mockDb._chain.add).not.toHaveBeenCalled();
@@ -349,7 +344,7 @@ describe("books", () => {
           difficulty: 3,
           tags: [],
           summary: "包含敏感词的内容",
-        })
+        }),
       ).rejects.toThrow("内容包含敏感词: 敏感词");
 
       expect(mockDb._chain.add).not.toHaveBeenCalled();
@@ -411,7 +406,7 @@ describe("books", () => {
           authorUid: "u1",
           rating: 5,
           content: "很好",
-        })
+        }),
       ).rejects.toThrow("已封禁不能评价");
     });
   });

@@ -4,10 +4,7 @@ import { isFavorited } from "@/lib/favorites";
 import { useAuthStore } from "@/stores/auth";
 import type { Question } from "@/types";
 
-export function useDiscussionDetail(
-  id: string | undefined,
-  mockQuestion?: Question
-) {
+export function useDiscussionDetail(id: string | undefined, mockQuestion?: Question) {
   const { user } = useAuthStore();
 
   const [question, setQuestion] = useState<Question | null>(mockQuestion ?? null);

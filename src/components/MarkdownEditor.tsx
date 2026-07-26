@@ -185,7 +185,7 @@ export default function MarkdownEditor({
       try {
         const ext = file.name.split(".").pop()?.toLowerCase() || "png";
         const cloudPath = `post-images/${user.uid}-${Date.now()}.${ext}`;
-        const fileID = await uploadFile(cloudPath, file as unknown as string);
+        const fileID = await uploadFile(cloudPath, file);
         // 插入 Markdown 图片语法，使用 cloud:// fileID（渲染时兑换）
         const altText = file.name.replace(/\.[^.]+$/, "").slice(0, 50) || "图片";
         const ta = textareaRef.current;

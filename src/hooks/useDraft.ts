@@ -25,7 +25,7 @@ export function useDraft<T>(key: string, initial: T) {
         // 只有非空内容才恢复
         if (parsed && typeof parsed === "object") {
           const hasContent = Object.values(parsed).some(
-            (v) => typeof v === "string" && v.trim().length > 0
+            (v) => typeof v === "string" && v.trim().length > 0,
           );
           if (hasContent) {
             setValue(parsed);
@@ -44,9 +44,7 @@ export function useDraft<T>(key: string, initial: T) {
     // 检查是否有实际内容才保存
     const hasContent =
       typeof value === "object" && value !== null
-        ? Object.values(value).some(
-            (v) => typeof v === "string" && v.trim().length > 0
-          )
+        ? Object.values(value).some((v) => typeof v === "string" && v.trim().length > 0)
         : true;
 
     if (!hasContent) return;

@@ -5,23 +5,23 @@ const db = app.database();
 const COLLECTION = "notifications";
 
 export type NotificationType =
-  | "answer"    // 有人回答了你的帖子
-  | "comment"   // 有人回复了你的回答
+  | "answer" // 有人回答了你的帖子
+  | "comment" // 有人回复了你的回答
   | "resonance" // 有人共鸣了你的灵感
-  | "join"      // 有人加入了你的协作
+  | "join" // 有人加入了你的协作
   | "contribute" // 有人提交了协作贡献
-  | "accept"   // 你的回答被采纳
-  | "follow";  // 有人关注了你 (#149)
+  | "accept" // 你的回答被采纳
+  | "follow"; // 有人关注了你 (#149)
 
 export interface NotificationDoc {
   _id?: string;
-  uid: string;          // 接收者 uid
-  actor: string;        // 触发者名称
-  actorUid: string;     // 触发者 uid
+  uid: string; // 接收者 uid
+  actor: string; // 触发者名称
+  actorUid: string; // 触发者 uid
   type: NotificationType;
-  title: string;        // 相关内容标题
-  link: string;         // 跳转链接
-  read: boolean;        // 是否已读
+  title: string; // 相关内容标题
+  link: string; // 跳转链接
+  read: boolean; // 是否已读
   createdAt: string;
 }
 
@@ -63,7 +63,7 @@ function toNotif(doc: NotificationDoc): NotificationItem {
 
 /** 创建通知（供其他模块调用；#40 走云函数，actorUid 由服务端取自登录态防冒充） */
 export async function createNotification(params: {
-  uid: string;          // 接收者
+  uid: string; // 接收者
   type: NotificationType;
   title: string;
   link: string;
@@ -111,10 +111,7 @@ export async function fetchUnreadCount(): Promise<number> {
   const uid = getCurrentUid();
   if (!uid) return 0;
   try {
-    const { data } = await db
-      .collection(COLLECTION)
-      .where({ uid, read: false })
-      .get();
+    const { data } = await db.collection(COLLECTION).where({ uid, read: false }).get();
     return (data ?? []).length;
   } catch {
     return 0;

@@ -277,7 +277,7 @@ describe("notifications", () => {
           type: "answer",
           title: "x",
           link: "/p/1",
-        })
+        }),
       ).resolves.toBeUndefined();
     });
 
@@ -294,7 +294,7 @@ describe("notifications", () => {
       expect(mockCallFunction).toHaveBeenCalledWith(
         expect.objectContaining({
           data: expect.objectContaining({ actor: "user1" }),
-        })
+        }),
       );
     });
 
@@ -311,7 +311,7 @@ describe("notifications", () => {
       expect(mockCallFunction).toHaveBeenCalledWith(
         expect.objectContaining({
           data: expect.objectContaining({ actor: "a@b.com" }),
-        })
+        }),
       );
     });
 
@@ -328,14 +328,18 @@ describe("notifications", () => {
       expect(mockCallFunction).toHaveBeenCalledWith(
         expect.objectContaining({
           data: expect.objectContaining({ actor: "匿名用户" }),
-        })
+        }),
       );
     });
   });
 
   describe("watchNotifications", () => {
     it("返回包含 close 函数的对象", () => {
-      const result = watchNotifications("u1", () => {}, () => {});
+      const result = watchNotifications(
+        "u1",
+        () => {},
+        () => {},
+      );
 
       expect(result).toHaveProperty("close");
       expect(typeof result.close).toBe("function");
@@ -345,7 +349,11 @@ describe("notifications", () => {
     });
 
     it("close 调用 watcher.close", () => {
-      const result = watchNotifications("u1", () => {}, () => {});
+      const result = watchNotifications(
+        "u1",
+        () => {},
+        () => {},
+      );
 
       result.close();
 
@@ -365,9 +373,7 @@ describe("notifications", () => {
       opts.onChange({ docs: { a: { _id: "a" }, b: { _id: "b" } } });
 
       expect(onChange).toHaveBeenCalledTimes(1);
-      expect(onChange).toHaveBeenCalledWith(
-        expect.arrayContaining([{ _id: "a" }, { _id: "b" }])
-      );
+      expect(onChange).toHaveBeenCalledWith(expect.arrayContaining([{ _id: "a" }, { _id: "b" }]));
     });
 
     it("snapshot.docs 为空时回调空数组", () => {

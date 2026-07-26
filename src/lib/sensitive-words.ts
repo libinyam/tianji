@@ -1,7 +1,4 @@
-const SENSITIVE_WORDS = [
-  "垃圾", "广告", "色情", "赌博", "毒品", "诈骗",
-  "fuck", "shit", "bitch",
-];
+const SENSITIVE_WORDS = ["垃圾", "广告", "色情", "赌博", "毒品", "诈骗", "fuck", "shit", "bitch"];
 
 export function containsSensitiveWord(text: string): { found: boolean; words: string[] } {
   const lower = text.toLowerCase();

@@ -1,8 +1,8 @@
-import { clsx, type ClassValue } from "clsx"
-import { twMerge } from "tailwind-merge"
+import { clsx, type ClassValue } from "clsx";
+import { twMerge } from "tailwind-merge";
 
 export function cn(...inputs: ClassValue[]) {
-  return twMerge(clsx(inputs))
+  return twMerge(clsx(inputs));
 }
 
 /**
@@ -12,10 +12,7 @@ export function cn(...inputs: ClassValue[]) {
  * 会得到 `undefined === undefined` → true，导致未登录用户被误判为作者，
  * 从而看到编辑/删除/采纳等破坏性操作按钮（issue #107）。
  */
-export function isAuthor(
-  uid: string | null | undefined,
-  authorUid?: string
-): boolean {
+export function isAuthor(uid: string | null | undefined, authorUid?: string): boolean {
   return Boolean(uid && authorUid && uid === authorUid);
 }
 

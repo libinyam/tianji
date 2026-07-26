@@ -62,7 +62,7 @@ export async function searchAll(
   keyword: string,
   signal?: AbortSignal,
   filters?: SearchFilters,
-  pagination?: SearchPagination
+  pagination?: SearchPagination,
 ): Promise<PaginatedSearchResult> {
   if (!keyword.trim()) return { results: [], hasMore: false, totalCount: 0 };
 
@@ -100,7 +100,7 @@ export async function searchAll(
         .then(({ data }) => {
           (data as Record<string, unknown>[]).forEach((d) => {
             const itemTags = (d.tags as string[]) ?? [];
-            if (filterTags.length > 0 && !filterTags.some(t => itemTags.includes(t))) return;
+            if (filterTags.length > 0 && !filterTags.some((t) => itemTags.includes(t))) return;
             const views = Number(d.views ?? 0);
             const votes = Number(d.votes ?? 0);
             const answers = Number(d.answersCount ?? 0);
@@ -117,7 +117,9 @@ export async function searchAll(
             });
           });
         })
-        .catch(() => { errors.push("posts"); })
+        .catch(() => {
+          errors.push("posts");
+        }),
     );
   }
 
@@ -131,7 +133,7 @@ export async function searchAll(
         .then(({ data }) => {
           (data as Record<string, unknown>[]).forEach((d) => {
             const itemTags = (d.tags as string[]) ?? [];
-            if (filterTags.length > 0 && !filterTags.some(t => itemTags.includes(t))) return;
+            if (filterTags.length > 0 && !filterTags.some((t) => itemTags.includes(t))) return;
             const resonance = Number(d.resonance ?? 0);
             const replies = Number(d.replies ?? 0);
             results.push({
@@ -147,7 +149,9 @@ export async function searchAll(
             });
           });
         })
-        .catch(() => { errors.push("ideas"); })
+        .catch(() => {
+          errors.push("ideas");
+        }),
     );
   }
 
@@ -161,7 +165,7 @@ export async function searchAll(
         .then(({ data }) => {
           (data as Record<string, unknown>[]).forEach((d) => {
             const itemTags = (d.tags as string[]) ?? [];
-            if (filterTags.length > 0 && !filterTags.some(t => itemTags.includes(t))) return;
+            if (filterTags.length > 0 && !filterTags.some((t) => itemTags.includes(t))) return;
             const favorites = Number(d.favorites ?? 0);
             const rating = Number(d.rating ?? 0);
             results.push({
@@ -177,7 +181,9 @@ export async function searchAll(
             });
           });
         })
-        .catch(() => { errors.push("books"); })
+        .catch(() => {
+          errors.push("books");
+        }),
     );
   }
 
@@ -191,7 +197,7 @@ export async function searchAll(
         .then(({ data }) => {
           (data as Record<string, unknown>[]).forEach((d) => {
             const itemTags = (d.tags as string[]) ?? [];
-            if (filterTags.length > 0 && !filterTags.some(t => itemTags.includes(t))) return;
+            if (filterTags.length > 0 && !filterTags.some((t) => itemTags.includes(t))) return;
             const participants = (d.participants as string[]) ?? [];
             const contributions = (d.contributions as unknown[]) ?? [];
             results.push({
@@ -207,7 +213,9 @@ export async function searchAll(
             });
           });
         })
-        .catch(() => { errors.push("workshops"); })
+        .catch(() => {
+          errors.push("workshops");
+        }),
     );
   }
 
@@ -235,7 +243,12 @@ export async function searchAll(
   const pagedResults = results.slice(startIndex, startIndex + pageSize);
   const hasMore = startIndex + pageSize < totalCount;
 
-  return { results: pagedResults, hasMore, totalCount, errors: errors.length > 0 ? errors : undefined };
+  return {
+    results: pagedResults,
+    hasMore,
+    totalCount,
+    errors: errors.length > 0 ? errors : undefined,
+  };
 }
 
 /** 获取全站热门内容榜单（按热度排序，取前 10）。

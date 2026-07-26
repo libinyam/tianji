@@ -29,8 +29,7 @@ export const useThemeStore = create<ThemeState>((set, get) => ({
     const saved = localStorage.getItem(STORAGE_KEY) as ThemeMode | null;
     // #421 无存储偏好时跟随系统配色，而非写死 light
     const mode =
-      saved ??
-      (window.matchMedia?.("(prefers-color-scheme: dark)").matches ? "dark" : "light");
+      saved ?? (window.matchMedia?.("(prefers-color-scheme: dark)").matches ? "dark" : "light");
     applyTheme(mode);
     set({ mode });
   },

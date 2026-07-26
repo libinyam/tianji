@@ -21,7 +21,8 @@ loadEnv();
 const args = process.argv.slice(2);
 const dryRun = args.includes("--dry-run");
 const maxDocsArg = args.indexOf("--maxDocs");
-const maxDocs = maxDocsArg !== -1 && maxDocsArg + 1 < args.length ? parseInt(args[maxDocsArg + 1], 10) : 0;
+const maxDocs =
+  maxDocsArg !== -1 && maxDocsArg + 1 < args.length ? parseInt(args[maxDocsArg + 1], 10) : 0;
 const collectionArg = args.find((a) => !a.startsWith("--"));
 const envIdIndex = args.indexOf("--envId");
 const envIdArg = envIdIndex !== -1 && envIdIndex + 1 < args.length ? args[envIdIndex + 1] : null;
@@ -120,7 +121,11 @@ for (const collectionName of targets) {
 
   try {
     while (hasMore) {
-      const { data: docs } = await db.collection(collectionName).skip(offset).limit(PAGE_SIZE).get();
+      const { data: docs } = await db
+        .collection(collectionName)
+        .skip(offset)
+        .limit(PAGE_SIZE)
+        .get();
 
       if (!docs || docs.length === 0) {
         hasMore = false;
@@ -184,7 +189,9 @@ for (const collectionName of targets) {
       }
     }
 
-    console.log(`  ✅ 扫描: ${colScanned} / 迁移: ${colMigrated} / 跳过: ${colSkipped} / owner待修复: ${colUnresolved} / 错误: ${colErrors}`);
+    console.log(
+      `  ✅ 扫描: ${colScanned} / 迁移: ${colMigrated} / 跳过: ${colSkipped} / owner待修复: ${colUnresolved} / 错误: ${colErrors}`,
+    );
   } catch (e) {
     console.error(`❌ ${collectionName} 迁移失败: ${e.message}`);
     totalErrors++;
@@ -205,7 +212,9 @@ if (failedDocs.length > 0) {
 }
 
 if (totalUnresolved > 0) {
-  console.log(`\n⚠️  ${totalUnresolved} 个文档的 owner 字段缺失，已标记为 ownerResolutionStatus: "unresolved"`);
+  console.log(
+    `\n⚠️  ${totalUnresolved} 个文档的 owner 字段缺失，已标记为 ownerResolutionStatus: "unresolved"`,
+  );
   console.log(`   这些文档的安全规则 owner 校验会失败，需要管理员手动补录 owner`);
 }
 

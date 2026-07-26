@@ -25,9 +25,18 @@ const INTENT_ROUTES: Record<string, string> = {
   "create-workshop": "/workshop/new",
 };
 
+/** 登录弹窗事件名（Layout 监听）。#427 组件请勿直接 dispatch 魔法字符串——
+ *  无续接需求用 openAuthModal()，登录后要继续原操作用 dispatchAuthWithIntent() */
+export const OPEN_AUTH_EVENT = "tianji:open-auth";
+
+/** 打开登录弹窗 */
+export function openAuthModal() {
+  window.dispatchEvent(new CustomEvent(OPEN_AUTH_EVENT));
+}
+
 export function dispatchAuthWithIntent(intent: string, targetId?: string) {
   usePendingAction.getState().setPending({ intent, targetId, createdAt: Date.now() });
-  window.dispatchEvent(new CustomEvent("tianji:open-auth"));
+  openAuthModal();
 }
 
 export function resolvePendingAction(): string | null {

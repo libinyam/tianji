@@ -176,7 +176,16 @@ describe("content-moderation 云函数（#321）", () => {
           statusCode: 200,
           on(event, handler) {
             if (event === "data") {
-              setTimeout(() => handler(Buffer.from(`<Response><JobsDetail><Result>0</Result><Section><Suggestion>pass</Suggestion></Section></JobsDetail></Response>`, "utf-8")), 0);
+              setTimeout(
+                () =>
+                  handler(
+                    Buffer.from(
+                      `<Response><JobsDetail><Result>0</Result><Section><Suggestion>pass</Suggestion></Section></JobsDetail></Response>`,
+                      "utf-8",
+                    ),
+                  ),
+                0,
+              );
             } else if (event === "end") {
               setTimeout(() => handler(), 0);
             }

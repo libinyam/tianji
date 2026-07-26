@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { openAuthModal } from "@/lib/pending-action";
 import { Link, useParams, useNavigate } from "react-router-dom";
 import { PostDetailSkeleton } from "@/components/Skeleton";
 import {
@@ -202,7 +203,7 @@ export default function BookDetail() {
 
   const handleFav = async () => {
     if (!user) {
-      window.dispatchEvent(new CustomEvent("tianji:open-auth"));
+      openAuthModal();
       return;
     }
     if (!book) return;
@@ -224,7 +225,7 @@ export default function BookDetail() {
 
   const handleReviewSubmit = async () => {
     if (!user) {
-      window.dispatchEvent(new CustomEvent("tianji:open-auth"));
+      openAuthModal();
       return;
     }
     if (!book || reviewRating === 0 || !reviewText.trim()) return;
@@ -278,7 +279,7 @@ export default function BookDetail() {
 
   const openReport = () => {
     if (!user) {
-      window.dispatchEvent(new CustomEvent("tianji:open-auth"));
+      openAuthModal();
       return;
     }
     setReportOpen(true);
@@ -684,7 +685,7 @@ export default function BookDetail() {
               <button
                 onClick={() => {
                   if (!user) {
-                    window.dispatchEvent(new CustomEvent("tianji:open-auth"));
+                    openAuthModal();
                     return;
                   }
                   const pageStr = questionPage.trim() ? `第 ${questionPage.trim()} 页：` : "";

@@ -45,11 +45,11 @@ const BOT_UID = "ai-bot-001";
  */
 function sanitizeReply(text) {
   return text
-    .replace(/<script[\s\S]*?<\/script>/gi, "")  // 移除 script 标签
-    .replace(/<\/?[a-z][\s\S]*?>/gi, "")           // 移除所有 HTML 标签
-    .replace(/javascript\s*:/gi, "")                // 移除 javascript: 协议
-    .replace(/data\s*:\s*text\/html/gi, "")         // 移除 data:text/html URI
-    .replace(/on\w+\s*=\s*["']/gi, "")              // 移除内联事件处理器
+    .replace(/<script[\s\S]*?<\/script>/gi, "") // 移除 script 标签
+    .replace(/<\/?[a-z][\s\S]*?>/gi, "") // 移除所有 HTML 标签
+    .replace(/javascript\s*:/gi, "") // 移除 javascript: 协议
+    .replace(/data\s*:\s*text\/html/gi, "") // 移除 data:text/html URI
+    .replace(/on\w+\s*=\s*["']/gi, "") // 移除内联事件处理器
     .trim()
     .slice(0, 1000);
 }
@@ -75,7 +75,14 @@ async function moderateReply(text, uid, source) {
     };
   } catch (err) {
     // 审核服务不可用时 fail-open
-    return { passed: true, suggestion: "pass", label: "", score: 0, error: err.message, failOpen: true };
+    return {
+      passed: true,
+      suggestion: "pass",
+      label: "",
+      score: 0,
+      error: err.message,
+      failOpen: true,
+    };
   }
 }
 
@@ -169,7 +176,7 @@ exports.main = async (event, context) => {
     }
     // 幂等：该回答下最近 60s 内已有 bot 评论则不重复生成
     const recentBotComment = (targetAnswer.comments || []).find(
-      (c) => c.authorUid === BOT_UID && Date.now() - new Date(c.date).getTime() < 60000
+      (c) => c.authorUid === BOT_UID && Date.now() - new Date(c.date).getTime() < 60000,
     );
     if (recentBotComment) {
       return { ok: false, error: "已有待处理的 bot 回复" };
@@ -183,9 +190,10 @@ exports.main = async (event, context) => {
   }
 
   const safeComment = String(userComment || "").slice(0, 2000);
-  const safeAnswer = replyType === "comment" && answerId
-    ? String(answerList.find((a) => a.id === answerId)?.content || "").slice(0, 5000)
-    : "";
+  const safeAnswer =
+    replyType === "comment" && answerId
+      ? String(answerList.find((a) => a.id === answerId)?.content || "").slice(0, 5000)
+      : "";
 
   let systemPrompt, userMessage;
 
@@ -276,7 +284,12 @@ exports.main = async (event, context) => {
     if (!modResult.passed) {
       // 审核拦截：不写入数据库，返回错误
       const labelMap = {
-        Porn: "涉黄", Ad: "广告", Illegal: "违法", Abuse: "辱骂", Polity: "涉政", Terrorist: "暴恐",
+        Porn: "涉黄",
+        Ad: "广告",
+        Illegal: "违法",
+        Abuse: "辱骂",
+        Polity: "涉政",
+        Terrorist: "暴恐",
       };
       const label = labelMap[modResult.label] || modResult.label || "违规";
       logError("ai-bot:moderation-blocked", uid, new Error(`AI 回复审核拦截: ${label}`));

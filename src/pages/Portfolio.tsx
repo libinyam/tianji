@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { formatRelativeTime } from "@/lib/format";
 import { Link } from "react-router-dom";
 import { Trophy, Users, Clock, ArrowRight, BookOpen } from "lucide-react";
 import PageHero from "@/components/PageHero";
@@ -6,17 +7,6 @@ import EmptyState from "@/components/EmptyState";
 import { PostCardSkeleton } from "@/components/Skeleton";
 import { fetchPortfolioWorks, type WorkshopProject } from "@/lib/workshops";
 import { useSEO } from "@/hooks/useSEO";
-
-function formatTime(iso: string): string {
-  if (!iso) return "";
-  const d = new Date(iso);
-  if (isNaN(d.getTime())) return iso;
-  const now = new Date();
-  const diff = now.getTime() - d.getTime();
-  if (diff < 86400000) return "今天";
-  if (diff < 604800000) return `${Math.floor(diff / 86400000)} 天前`;
-  return `${d.getFullYear()}.${String(d.getMonth() + 1).padStart(2, "0")}.${String(d.getDate()).padStart(2, "0")}`;
-}
 
 export default function Portfolio() {
   useSEO({
@@ -151,7 +141,7 @@ export default function Portfolio() {
                       </span>
                       <span className="flex items-center gap-1.5">
                         <Clock className="h-3.5 w-3.5" />
-                        {formatTime(work.updatedAt || work.createdAt)}
+                        {formatRelativeTime(work.updatedAt || work.createdAt)}
                       </span>
                     </div>
                     <span className="inline-flex items-center gap-1 text-xs text-tian-500 opacity-0 transition-opacity group-hover:opacity-100">

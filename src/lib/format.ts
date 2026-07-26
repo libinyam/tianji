@@ -52,6 +52,18 @@ export function formatShortTime(dateStr: string): string {
 }
 
 /**
+ * 格式化为绝对日期 YYYY-MM-DD（#427 此前 Profile/UserProfile 各自内联同一实现）
+ * 空串返回空串，无效日期原样返回
+ */
+export function formatDate(dateStr: string): string {
+  if (!dateStr) return "";
+  const d = new Date(dateStr);
+  return isNaN(d.getTime())
+    ? dateStr
+    : `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+}
+
+/**
  * 格式化数字为简写（1100 → 1.1k, 320000 → 320k, 46 → 46）
  * Discourse 风格：千位以上加 k，保留一位小数（.0 省略）
  */

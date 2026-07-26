@@ -1,5 +1,12 @@
 import { describe, it, expect } from "vitest";
-import { createPost, createAnswer, createComment, createBook, createUser, createQuestion } from "./testFactories";
+import {
+  createPost,
+  createAnswer,
+  createComment,
+  createBook,
+  createUser,
+  createQuestion,
+} from "./testFactories";
 import { createMockDb, createMockApp, seedCollection } from "./mockCloudbase";
 
 describe("testFactories", () => {
@@ -75,7 +82,10 @@ describe("mockCloudbase", () => {
   it("createMockDb 支持 update 和 command.inc", async () => {
     const db = createMockDb();
     await db.collection("posts").doc("p1").set({ views: 10 });
-    await db.collection("posts").doc("p1").update({ views: db.command.inc(5) });
+    await db
+      .collection("posts")
+      .doc("p1")
+      .update({ views: db.command.inc(5) });
 
     const { data } = await db.collection("posts").doc("p1").get();
     expect(data[0].views).toBe(15);

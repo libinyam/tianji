@@ -47,8 +47,7 @@ exports.main = async (event, context) => {
     try {
       const info = await appInst.auth().getEndUserInfo();
       uid = info?.userInfo?.uid || "";
-    } catch (e) {
-    }
+    } catch (e) {}
   }
 
   if (!uid && context?.userInfo) {

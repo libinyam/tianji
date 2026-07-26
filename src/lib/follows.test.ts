@@ -96,24 +96,24 @@ describe("follows 用户关注体系（#322）", () => {
   describe("toggleFollow", () => {
     it("未登录：抛出错误", async () => {
       mockAuth.user = null;
-      await expect(
-        toggleFollow({ targetUid: "u2", targetNickname: "Bob" })
-      ).rejects.toThrow("请先登录");
+      await expect(toggleFollow({ targetUid: "u2", targetNickname: "Bob" })).rejects.toThrow(
+        "请先登录",
+      );
     });
 
     it("不能关注自己", async () => {
       mockAuth.user = { uid: "u1" };
-      await expect(
-        toggleFollow({ targetUid: "u1", targetNickname: "Me" })
-      ).rejects.toThrow("不能关注自己");
+      await expect(toggleFollow({ targetUid: "u1", targetNickname: "Me" })).rejects.toThrow(
+        "不能关注自己",
+      );
     });
 
     it("被封禁：拒绝关注", async () => {
       mockAuth.user = { uid: "u1" };
       mockBanned.banned = true;
-      await expect(
-        toggleFollow({ targetUid: "u2", targetNickname: "Bob" })
-      ).rejects.toThrow("已被封禁");
+      await expect(toggleFollow({ targetUid: "u2", targetNickname: "Bob" })).rejects.toThrow(
+        "已被封禁",
+      );
       expect(checkCurrentUserBanned).toHaveBeenCalled();
     });
 
@@ -138,7 +138,7 @@ describe("follows 用户关注体系（#322）", () => {
           targetUid: "u2",
           nickname: "Bob",
           avatarUrl: "https://example.com/a.png",
-        })
+        }),
       );
     });
 
@@ -175,7 +175,7 @@ describe("follows 用户关注体系（#322）", () => {
           type: "follow",
           title: "Alice 关注了你",
           link: "/user/u1",
-        })
+        }),
       );
     });
 
@@ -203,9 +203,9 @@ describe("follows 用户关注体系（#322）", () => {
       chain.add.mockResolvedValueOnce({});
       mockDb.collection.mockReturnValueOnce(chain);
 
-      await expect(
-        toggleFollow({ targetUid: "u2", targetNickname: "Bob" })
-      ).rejects.toThrow("权限不足");
+      await expect(toggleFollow({ targetUid: "u2", targetNickname: "Bob" })).rejects.toThrow(
+        "权限不足",
+      );
     });
   });
 
@@ -365,10 +365,7 @@ describe("follows 用户关注体系（#322）", () => {
     it("成功：返回 targetUid 数组", async () => {
       const chain = makeChain();
       chain.get.mockResolvedValueOnce({
-        data: [
-          { targetUid: "u2" },
-          { targetUid: "u3" },
-        ],
+        data: [{ targetUid: "u2" }, { targetUid: "u3" }],
       });
       mockDb.collection.mockReturnValueOnce(chain);
 
@@ -421,7 +418,7 @@ describe("follows 标签关注体系（#322）", () => {
         expect.objectContaining({
           uid: "u1",
           tagName: "React",
-        })
+        }),
       );
     });
 

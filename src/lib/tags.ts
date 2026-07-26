@@ -26,13 +26,32 @@ const CASUAL_TAG_NAMES = ["灌水", "动态", "新闻", "其他", "闲聊"];
 /** 预设两级标签 */
 export const PRESET_TAGS: Record<Exclude<TagCategory, "casual">, string[]> = {
   subject: [
-    "数学", "人工智能", "物理", "哲学", "金融", "计算机",
-    "文学", "历史", "化学", "生物", "经济学", "统计学",
+    "数学",
+    "人工智能",
+    "物理",
+    "哲学",
+    "金融",
+    "计算机",
+    "文学",
+    "历史",
+    "化学",
+    "生物",
+    "经济学",
+    "统计学",
   ],
   tool: [
-    "Codex", "Trae", "CloudBase", "GitHub Actions",
-    "网站部署", "报错排查", "环境变量", "API 调用",
-    "数据库", "身份认证", "前端框架", "Vercel",
+    "Codex",
+    "Trae",
+    "CloudBase",
+    "GitHub Actions",
+    "网站部署",
+    "报错排查",
+    "环境变量",
+    "API 调用",
+    "数据库",
+    "身份认证",
+    "前端框架",
+    "Vercel",
   ],
 };
 
@@ -64,20 +83,14 @@ export function isCasualTag(name: string): boolean {
 export async function fetchHotTags(limit = 30, excludeCasual = false): Promise<TagInfo[]> {
   try {
     await authReady; // #345 等匿名身份就绪，避免新访客首屏 401
-    const { data } = await db
-      .collection("tags")
-      .orderBy("count", "desc")
-      .limit(limit)
-      .get();
+    const { data } = await db.collection("tags").orderBy("count", "desc").limit(limit).get();
     let list = (data as TagInfo[]).map((d) => ({
       name: d.name,
       count: d.count ?? 0,
       category: d.category,
     }));
     if (excludeCasual) {
-      list = list.filter(
-        (t) => t.category !== "casual" && !isCasualTag(t.name)
-      );
+      list = list.filter((t) => t.category !== "casual" && !isCasualTag(t.name));
     }
     return list;
   } catch {
@@ -116,7 +129,10 @@ export async function ensureTags(names: string[]): Promise<void> {
     const category = inferCategory(trimmed);
     try {
       // 大小写不敏感比较（保留原始展示名）
-      const { data } = await db.collection("tags").where({ name: db.RegExp({ regexp: `^${escapeRegex(trimmed)}$`, options: "i" }) }).get();
+      const { data } = await db
+        .collection("tags")
+        .where({ name: db.RegExp({ regexp: `^${escapeRegex(trimmed)}$`, options: "i" }) })
+        .get();
       if (data && data.length > 0) {
         // 已存在，count + 1
         const doc = data[0];
@@ -145,7 +161,7 @@ export async function ensureTags(names: string[]): Promise<void> {
  *  RelatedContent 只渲染每组 3 条，传 5 即可 */
 export async function fetchContentByTag(
   tagName: string,
-  limit = 50
+  limit = 50,
 ): Promise<{
   posts: TagContentItem[];
   ideas: TagContentItem[];
@@ -153,23 +169,39 @@ export async function fetchContentByTag(
   workshops: TagContentItem[];
 }> {
   const [postsRes, ideasRes, booksRes, workshopsRes] = await Promise.allSettled([
-    db.collection("posts").where({ tags: tagName })
+    db
+      .collection("posts")
+      .where({ tags: tagName })
       .field({ title: true, excerpt: true, author: true, createdAt: true })
-      .orderBy("createdAt", "desc").limit(limit).get(),
-    db.collection("ideas").where({ tags: tagName })
+      .orderBy("createdAt", "desc")
+      .limit(limit)
+      .get(),
+    db
+      .collection("ideas")
+      .where({ tags: tagName })
       .field({ title: true, summary: true, author: true, createdAt: true })
-      .orderBy("createdAt", "desc").limit(limit).get(),
-    db.collection("books").where({ tags: tagName })
+      .orderBy("createdAt", "desc")
+      .limit(limit)
+      .get(),
+    db
+      .collection("books")
+      .where({ tags: tagName })
       .field({ title: true, summary: true, author: true, createdAt: true })
-      .orderBy("createdAt", "desc").limit(limit).get(),
-    db.collection("workshops").where({ tags: tagName })
+      .orderBy("createdAt", "desc")
+      .limit(limit)
+      .get(),
+    db
+      .collection("workshops")
+      .where({ tags: tagName })
       .field({ title: true, description: true, creator: true, createdAt: true })
-      .orderBy("createdAt", "desc").limit(limit).get(),
+      .orderBy("createdAt", "desc")
+      .limit(limit)
+      .get(),
   ]);
 
   const extract = (
     res: PromiseSettledResult<{ data: Record<string, unknown>[] }>,
-    type: "post" | "idea" | "book" | "workshop"
+    type: "post" | "idea" | "book" | "workshop",
   ): TagContentItem[] => {
     if (res.status !== "fulfilled") return [];
     return (res.value.data || []).map((d) => {
@@ -223,7 +255,10 @@ export async function fetchContentByTag(
     posts: extract(postsRes as PromiseSettledResult<{ data: Record<string, unknown>[] }>, "post"),
     ideas: extract(ideasRes as PromiseSettledResult<{ data: Record<string, unknown>[] }>, "idea"),
     books: extract(booksRes as PromiseSettledResult<{ data: Record<string, unknown>[] }>, "book"),
-    workshops: extract(workshopsRes as PromiseSettledResult<{ data: Record<string, unknown>[] }>, "workshop"),
+    workshops: extract(
+      workshopsRes as PromiseSettledResult<{ data: Record<string, unknown>[] }>,
+      "workshop",
+    ),
   };
 }
 
@@ -250,7 +285,7 @@ export type ContentType = "post" | "idea" | "book" | "workshop";
  */
 export async function fetchRelatedContent(
   tags: string[],
-  excludeId: string
+  excludeId: string,
 ): Promise<{
   posts: TagContentItem[];
   ideas: TagContentItem[];

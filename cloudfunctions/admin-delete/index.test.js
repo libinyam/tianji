@@ -89,19 +89,13 @@ function ctx(uid) {
 
 describe("admin-delete 内容删除", () => {
   it("deletePost 成功删除帖子并级联清理关联数据", async () => {
-    store.posts = new Map([
-      ["post0000000001", { _id: "post0000000001", title: "测试帖" }],
-    ]);
-    store.favorites = new Map([
-      ["f1", { _id: "f1", targetId: "post0000000001" }],
-    ]);
-    store.reports = new Map([
-      ["r1", { _id: "r1", targetId: "post0000000001" }],
-    ]);
+    store.posts = new Map([["post0000000001", { _id: "post0000000001", title: "测试帖" }]]);
+    store.favorites = new Map([["f1", { _id: "f1", targetId: "post0000000001" }]]);
+    store.reports = new Map([["r1", { _id: "r1", targetId: "post0000000001" }]]);
 
     const res = await main(
       { action: "delete", collection: "posts", docId: "post0000000001" },
-      ctx("admin-001")
+      ctx("admin-001"),
     );
 
     expect(res.ok).toBe(true);
@@ -111,13 +105,11 @@ describe("admin-delete 内容删除", () => {
   });
 
   it("deleteIdea 成功删除灵感", async () => {
-    store.ideas = new Map([
-      ["idea0000000001", { _id: "idea0000000001", content: "灵感" }],
-    ]);
+    store.ideas = new Map([["idea0000000001", { _id: "idea0000000001", content: "灵感" }]]);
 
     const res = await main(
       { action: "delete", collection: "ideas", docId: "idea0000000001" },
-      ctx("admin-001")
+      ctx("admin-001"),
     );
 
     expect(res.ok).toBe(true);
@@ -125,13 +117,11 @@ describe("admin-delete 内容删除", () => {
   });
 
   it("deleteBook 成功删除资源", async () => {
-    store.books = new Map([
-      ["book0000000001", { _id: "book0000000001", title: "书" }],
-    ]);
+    store.books = new Map([["book0000000001", { _id: "book0000000001", title: "书" }]]);
 
     const res = await main(
       { action: "delete", collection: "books", docId: "book0000000001" },
-      ctx("admin-001")
+      ctx("admin-001"),
     );
 
     expect(res.ok).toBe(true);
@@ -139,13 +129,11 @@ describe("admin-delete 内容删除", () => {
   });
 
   it("非管理员调用被拒绝且不删除文档", async () => {
-    store.posts = new Map([
-      ["post0000000001", { _id: "post0000000001", title: "测试帖" }],
-    ]);
+    store.posts = new Map([["post0000000001", { _id: "post0000000001", title: "测试帖" }]]);
 
     const res = await main(
       { action: "delete", collection: "posts", docId: "post0000000001" },
-      ctx("normal-user")
+      ctx("normal-user"),
     );
 
     expect(res.ok).toBe(false);
@@ -158,7 +146,7 @@ describe("admin-delete 内容删除", () => {
 
     const res = await main(
       { action: "delete", collection: "posts", docId: "post0000000001" },
-      ctx("admin-001")
+      ctx("admin-001"),
     );
 
     expect(res.ok).toBe(true);

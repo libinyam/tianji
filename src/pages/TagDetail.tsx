@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { openAuthModal } from "@/lib/pending-action";
 import { useParams, Link } from "react-router-dom";
 import {
   ArrowLeft,
@@ -89,7 +90,7 @@ export default function TagDetail() {
   // #149 关注 / 取消关注标签
   const handleTagFollow = async () => {
     if (!user) {
-      window.dispatchEvent(new CustomEvent("tianji:open-auth"));
+      openAuthModal();
       return;
     }
     const rl = rateLimiters.tagFollow.check();

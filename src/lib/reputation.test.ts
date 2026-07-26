@@ -1,7 +1,9 @@
 import { describe, it, expect, vi } from "vitest";
 
 vi.mock("@/lib/cloudbase", () => ({
-  app: { database: () => ({ collection: () => ({ doc: () => ({ get: async () => ({ data: [] }) }) }) }) },
+  app: {
+    database: () => ({ collection: () => ({ doc: () => ({ get: async () => ({ data: [] }) }) }) }),
+  },
 }));
 
 vi.mock("@/stores/auth", () => ({

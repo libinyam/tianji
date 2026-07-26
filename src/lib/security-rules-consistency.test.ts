@@ -28,9 +28,7 @@ interface RulesFile {
 
 const rules: RulesFile = JSON.parse(readFileSync(RULES_FILE, "utf-8"));
 
-const DANGEROUS_UPDATE_PATTERNS = [
-  "auth.uid != null",
-];
+const DANGEROUS_UPDATE_PATTERNS = ["auth.uid != null"];
 
 const CONTENT_COLLECTIONS = ["posts", "ideas", "books", "workshops"];
 
@@ -69,7 +67,9 @@ describe("安全规则 × 客户端写路径一致性 (#207)", () => {
     const config = rules.collections.users_v2;
     expect(config, "users_v2 不在规则中").toBeDefined();
     if (config.securityRule) {
-      expect(config.securityRule.write, "users_v2 write 必须禁止客户端写入").toBe("auth.uid == null");
+      expect(config.securityRule.write, "users_v2 write 必须禁止客户端写入").toBe(
+        "auth.uid == null",
+      );
     }
   });
 

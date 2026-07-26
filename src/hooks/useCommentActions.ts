@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { openAuthModal } from "@/lib/pending-action";
 import { toast } from "@/stores/toast";
 import { submitComment, deleteComment, updateComment } from "@/lib/posts";
 import { rateLimiters } from "@/lib/security";
@@ -8,10 +9,7 @@ import type { Question, Comment } from "@/types";
 
 type SetQuestion = React.Dispatch<React.SetStateAction<Question | null>>;
 
-export function useCommentActions(
-  question: Question | null,
-  setQuestion: SetQuestion
-) {
+export function useCommentActions(question: Question | null, setQuestion: SetQuestion) {
   const { user } = useAuthStore();
 
   const [commentingAnswerId, setCommentingAnswerId] = useState<string | null>(null);
@@ -27,7 +25,7 @@ export function useCommentActions(
 
   const openComment = (answerId: string) => {
     if (!user) {
-      window.dispatchEvent(new CustomEvent("tianji:open-auth"));
+      openAuthModal();
       return;
     }
     setCommentingAnswerId(commentingAnswerId === answerId ? null : answerId);
@@ -37,7 +35,7 @@ export function useCommentActions(
 
   const openReply = (answerId: string, comment: Comment) => {
     if (!user) {
-      window.dispatchEvent(new CustomEvent("tianji:open-auth"));
+      openAuthModal();
       return;
     }
     setCommentingAnswerId(answerId);
@@ -61,7 +59,7 @@ export function useCommentActions(
         question.id,
         answerId,
         commentText.trim(),
-        replyTarget?.commentId
+        replyTarget?.commentId,
       );
       if (comment) {
         rateLimiters.comment.record();
@@ -146,7 +144,7 @@ export function useCommentActions(
           return {
             ...a,
             comments: (a.comments ?? []).map((c) =>
-              c.id === commentId ? { ...c, content: editCommentText.trim() } : c
+              c.id === commentId ? { ...c, content: editCommentText.trim() } : c,
             ),
           };
         }

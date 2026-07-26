@@ -21,7 +21,7 @@ import TagSelector from "@/components/TagSelector";
 import { fetchIdeas, resonanceIdea, updateIdea, deleteIdea } from "@/lib/ideas";
 import { toggleFavorite, getFavoritedIds } from "@/lib/favorites";
 import { useAuthStore } from "@/stores/auth";
-import { dispatchAuthWithIntent } from "@/lib/pending-action";
+import { dispatchAuthWithIntent, openAuthModal } from "@/lib/pending-action";
 import { isAuthor } from "@/lib/utils";
 import { useSEO } from "@/hooks/useSEO";
 import type { Idea } from "@/types";
@@ -49,7 +49,7 @@ export default function Ideas() {
 
   const openReport = (idea: Idea) => {
     if (!user) {
-      window.dispatchEvent(new CustomEvent("tianji:open-auth"));
+      openAuthModal();
       return;
     }
     setReportTarget({ id: idea.id, title: idea.title });
@@ -110,7 +110,7 @@ export default function Ideas() {
 
   const handleResonance = async (idea: Idea) => {
     if (!user) {
-      window.dispatchEvent(new CustomEvent("tianji:open-auth"));
+      openAuthModal();
       return;
     }
     if (resonated[idea.id]) return;
@@ -136,7 +136,7 @@ export default function Ideas() {
 
   const handleFav = async (idea: Idea) => {
     if (!user) {
-      window.dispatchEvent(new CustomEvent("tianji:open-auth"));
+      openAuthModal();
       return;
     }
     try {

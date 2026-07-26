@@ -7,10 +7,7 @@ import type { Question } from "@/types";
 
 type SetQuestion = React.Dispatch<React.SetStateAction<Question | null>>;
 
-export function usePostEditor(
-  question: Question | null,
-  setQuestion: SetQuestion
-) {
+export function usePostEditor(question: Question | null, setQuestion: SetQuestion) {
   const navigate = useNavigate();
 
   const [editingPost, setEditingPost] = useState(false);
@@ -37,8 +34,7 @@ export function usePostEditor(
         ...question,
         title: editTitle.trim(),
         body: trimmedBody,
-        excerpt:
-          trimmedBody.length > 120 ? trimmedBody.slice(0, 120) + "…" : trimmedBody,
+        excerpt: trimmedBody.length > 120 ? trimmedBody.slice(0, 120) + "…" : trimmedBody,
       });
       setEditingPost(false);
     } catch (e) {

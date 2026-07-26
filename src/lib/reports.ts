@@ -69,7 +69,7 @@ export async function fetchReports(status?: string): Promise<Report[]> {
 /** 处理举报（管理员） */
 export async function resolveReport(
   reportId: string,
-  action: "resolved" | "dismissed"
+  action: "resolved" | "dismissed",
 ): Promise<boolean> {
   await assertAdmin();
   await db.collection(COLLECTION).doc(reportId).update({ status: action });

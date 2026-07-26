@@ -4,6 +4,46 @@
 
 ## [Unreleased]
 
+## [0.4.0] - 2026-07-26
+
+### Added
+- 全站重设计为 Discourse/linux.do 白色简约风格，深浅主题经 CSS 变量色板以极小 diff 完成切换 (#396/#398)
+- 移动端讨论区新增分区 Tab 条（学术区/闲聊区/关注）与热门标签横向筛选条——此前 <1024px 侧边栏隐藏后这两个功能完全不可达 (#401)
+- Hero 主 CTA 精简为「加入讨论」单入口 (#387)
+- Footer 添加公安备案号
+
+### Security
+- 所有 UGC 写路径收敛为「云函数 + 服务端审核」单一架构：createIdea/updateIdea/createWorkshop/updateWorkshopMeta 迁入 content-actions 并接入 moderateText；updateWorkshopContent 补审核 (#404)
+- 通知创建服务端化：actorUid 取自登录态防冒充管理员，link 限站内路径防钓鱼，类型白名单 + 独立限流 (#40)
+- 安全规则 v1.5.0：ideas/workshops/notifications 的 create 收紧为禁止客户端直写
+- 灵感评论迁移到云函数，修复与安全规则冲突导致非作者评论失败/静默丢失 (#400)
+- react-router 升级 7.18.1；GHSA-qwww-vcr4-c8h2 需 v8 迁移根治，CI 注释更新为真实现状 (#405 部分)
+- 编辑帖子改走云函数绕过安全规则，修复 [object Object] 错误 (#385)
+
+### Fixed
+- fetchPostById/fetchIdeaById/fetchBookById/fetchWorkshops 补 await authReady，修复新访客深链 401 误报「不存在」(#402)
+- 首页帖子标题改为真链接：键盘可达、中键新标签、爬虫可发现内容页 (#411)
+- 首页表头与数据行统一网格，修复 375px 视口横向溢出与列错位 (#413)
+- text-mist-500 对比度提升至 WCAG AA（浅色 2.5:1→4.8:1，全站 197 处生效）(#412)
+
+### Performance
+- 帖子列表/搜索/榜单查询加 .field() 投影，完整正文与全部回答评论不再随列表传输 (#407)
+- RelatedContent 从每集合拉 50 篇全文档降为 5 篇 + 投影，详情页附带流量降一个数量级 (#410)
+- MarkdownRenderer 包 React.memo，详情页输入不再触发全文重解析 (#408 部分)
+- 记录 #406 调查结论：SDK 3.6.2 子包发布不完整，按需引入暂不可行
+
+### Accessibility
+- Toast 容器 aria-live、Layout skip link、排序按钮 aria-pressed、侧边栏分区 aria-current (#422)
+
+### Test
+- content-actions 七个删除/编辑 action 补 16 个权限校验用例——云函数 admin 身份下 authorUid 比对是防越权唯一屏障，此前零覆盖 (#414)
+- __setTestDb 支持注入 callFunction，#315 审核 fail-closed 首次纳入回归；新增 security-actions.test.js 23 个用例 (#415)
+- manage-announcements 改延迟初始化补齐 admin 门控测试，8 个云函数全部可测 (#416)
+
+### CI/CD
+- PR CI 新增 Build 步骤，Vite 构建期错误在合并前暴露 (#417)
+- 移除 Vitest 4 已废弃的 environmentMatchGlobs 死配置 (#425 部分)
+
 ## [0.3.1] - 2026-07-13
 
 ### Security

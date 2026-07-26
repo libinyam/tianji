@@ -88,22 +88,12 @@ export async function fetchAdminStats(): Promise<{
   };
 }
 
-export async function fetchAdminList(
-  collection: string,
-  limit = 50,
-): Promise<unknown[]> {
-  const { data } = await db
-    .collection(collection)
-    .orderBy("createdAt", "desc")
-    .limit(limit)
-    .get();
+export async function fetchAdminList(collection: string, limit = 50): Promise<unknown[]> {
+  const { data } = await db.collection(collection).orderBy("createdAt", "desc").limit(limit).get();
   return data ?? [];
 }
 
-export async function fetchAdminUsers(
-  page = 1,
-  pageSize = 50,
-): Promise<unknown> {
+export async function fetchAdminUsers(page = 1, pageSize = 50): Promise<unknown> {
   const res = await app.callFunction({
     name: "user-admin",
     data: { action: "listUsers", page, pageSize },
@@ -119,10 +109,7 @@ export async function searchAdminUsers(keyword: string): Promise<unknown> {
   return res?.result;
 }
 
-export async function adminDelete(
-  collection: string,
-  docId: string,
-): Promise<unknown> {
+export async function adminDelete(collection: string, docId: string): Promise<unknown> {
   const res = await app.callFunction({
     name: "admin-delete",
     data: { collection, docId, action: "delete" },

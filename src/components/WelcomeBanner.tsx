@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { openAuthModal } from "@/lib/pending-action";
 import { Link } from "react-router-dom";
 import { Sparkles, X } from "lucide-react";
 import { useAuthStore } from "@/stores/auth";
@@ -43,7 +44,7 @@ export default function WelcomeBanner() {
             了解天玑 →
           </Link>
           <button
-            onClick={() => window.dispatchEvent(new CustomEvent("tianji:open-auth"))}
+            onClick={() => openAuthModal()}
             className="text-mist-400 transition-colors hover:text-parchment-100"
           >
             登录 / 注册

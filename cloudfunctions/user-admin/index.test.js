@@ -105,7 +105,7 @@ describe("user-admin 用户管理", () => {
 
     const res = await main(
       { action: "banUser", uid: "user-0001", reason: "违规", days: 7 },
-      ctx("admin-001")
+      ctx("admin-001"),
     );
 
     expect(res.ok).toBe(true);
@@ -162,7 +162,7 @@ describe("user-admin 用户管理", () => {
 
     const res = await main(
       { action: "banUser", uid: "user-0001", reason: "new-reason", days: 3 },
-      ctx("admin-001")
+      ctx("admin-001"),
     );
 
     expect(res.ok).toBe(true);

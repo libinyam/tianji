@@ -1,11 +1,7 @@
 import { useState } from "react";
+import { openAuthModal } from "@/lib/pending-action";
 import { toast } from "@/stores/toast";
-import {
-  updateAnswer,
-  deleteAnswer,
-  acceptAnswer,
-  voteAnswer,
-} from "@/lib/posts";
+import { updateAnswer, deleteAnswer, acceptAnswer, voteAnswer } from "@/lib/posts";
 import { useAuthStore } from "@/stores/auth";
 import type { Question } from "@/types";
 
@@ -16,7 +12,7 @@ export function useAnswerActions(
   question: Question | null,
   setQuestion: SetQuestion,
   voted: Record<string, boolean>,
-  setVoted: SetVoted
+  setVoted: SetVoted,
 ) {
   const { user } = useAuthStore();
 
@@ -34,7 +30,7 @@ export function useAnswerActions(
     try {
       await updateAnswer(question.id, aId, editAnswerText.trim());
       const newAnswerList = question.answerList.map((a) =>
-        a.id === aId ? { ...a, content: editAnswerText.trim() } : a
+        a.id === aId ? { ...a, content: editAnswerText.trim() } : a,
       );
       setQuestion({ ...question, answerList: newAnswerList });
       setEditingAnswerId(null);
@@ -78,7 +74,7 @@ export function useAnswerActions(
 
   const toggleVote = async (aid: string) => {
     if (!user) {
-      window.dispatchEvent(new CustomEvent("tianji:open-auth"));
+      openAuthModal();
       return;
     }
     if (!question) return;
@@ -89,9 +85,7 @@ export function useAnswerActions(
       return {
         ...q,
         answerList: q.answerList.map((a) =>
-          a.id === aid
-            ? { ...a, votes: Math.max(0, (a.votes ?? 0) + (newVoted ? 1 : -1)) }
-            : a
+          a.id === aid ? { ...a, votes: Math.max(0, (a.votes ?? 0) + (newVoted ? 1 : -1)) } : a,
         ),
       };
     });
@@ -105,9 +99,7 @@ export function useAnswerActions(
           return {
             ...q,
             answerList: q.answerList.map((a) =>
-              a.id === aid
-                ? { ...a, votes: Math.max(0, (a.votes ?? 0) + (newVoted ? -1 : 1)) }
-                : a
+              a.id === aid ? { ...a, votes: Math.max(0, (a.votes ?? 0) + (newVoted ? -1 : 1)) } : a,
             ),
           };
         });
@@ -120,9 +112,7 @@ export function useAnswerActions(
         return {
           ...q,
           answerList: q.answerList.map((a) =>
-            a.id === aid
-              ? { ...a, votes: Math.max(0, (a.votes ?? 0) + (newVoted ? -1 : 1)) }
-              : a
+            a.id === aid ? { ...a, votes: Math.max(0, (a.votes ?? 0) + (newVoted ? -1 : 1)) } : a,
           ),
         };
       });

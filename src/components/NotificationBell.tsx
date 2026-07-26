@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from "react";
+import { formatRelativeTime } from "@/lib/format";
 import { useNavigate } from "react-router-dom";
 import {
   Bell,
@@ -33,20 +34,6 @@ const TYPE_ICON: Record<NotificationType, typeof Bell> = {
   accept: CheckCircle,
   follow: UserPlus,
 };
-
-function formatTime(s: string): string {
-  const d = new Date(s);
-  const now = new Date();
-  const diff = now.getTime() - d.getTime();
-  const min = Math.floor(diff / 60000);
-  if (min < 1) return "刚刚";
-  if (min < 60) return `${min} 分钟前`;
-  const hr = Math.floor(min / 60);
-  if (hr < 24) return `${hr} 小时前`;
-  const day = Math.floor(hr / 24);
-  if (day < 30) return `${day} 天前`;
-  return d.toISOString().slice(0, 10);
-}
 
 export default function NotificationBell() {
   const navigate = useNavigate();
@@ -166,68 +153,66 @@ export default function NotificationBell() {
 
       {/* #424 进场动画由 CSS keyframes 实现，替代 motion 依赖 */}
       {open && (
-          <div
-            className="tj-animate-dropdown-in absolute right-0 top-11 z-50 w-80 overflow-hidden rounded-lg border border-void-600 bg-void-900 shadow-sm"
-          >
-            {/* 头部 */}
-            <div className="flex items-center justify-between border-b border-void-600 px-4 py-2.5">
-              <span className="text-xs font-medium text-parchment-100">通知</span>
-              {unread > 0 && (
-                <button
-                  onClick={handleMarkAll}
-                  className="flex items-center gap-1 text-[10px] text-mist-400 transition-colors hover:text-tian-500"
-                >
-                  <CheckCheck size={11} /> 全部已读
-                </button>
-              )}
-            </div>
+        <div className="tj-animate-dropdown-in absolute right-0 top-11 z-50 w-80 overflow-hidden rounded-lg border border-void-600 bg-void-900 shadow-sm">
+          {/* 头部 */}
+          <div className="flex items-center justify-between border-b border-void-600 px-4 py-2.5">
+            <span className="text-xs font-medium text-parchment-100">通知</span>
+            {unread > 0 && (
+              <button
+                onClick={handleMarkAll}
+                className="flex items-center gap-1 text-[10px] text-mist-400 transition-colors hover:text-tian-500"
+              >
+                <CheckCheck size={11} /> 全部已读
+              </button>
+            )}
+          </div>
 
-            {/* 列表 */}
-            <div className="max-h-80 overflow-y-auto">
-              {loading ? (
-                <div className="py-8 text-center text-xs text-mist-500">加载中…</div>
-              ) : list.length === 0 ? (
-                <div className="py-10 text-center text-xs text-mist-500">
-                  <Bell size={20} className="mx-auto mb-2 opacity-40" />
-                  暂无通知
-                </div>
-              ) : (
-                list.map((item) => {
-                  const Icon = TYPE_ICON[item.type] ?? MessageCircle;
-                  return (
-                    <button
-                      key={item.id}
-                      onClick={() => handleClick(item)}
-                      className={`flex w-full items-start gap-2.5 border-b border-void-600 px-4 py-3 text-left transition-colors hover:bg-void-700 ${
-                        !item.read ? "bg-tian-500/5" : ""
+          {/* 列表 */}
+          <div className="max-h-80 overflow-y-auto">
+            {loading ? (
+              <div className="py-8 text-center text-xs text-mist-500">加载中…</div>
+            ) : list.length === 0 ? (
+              <div className="py-10 text-center text-xs text-mist-500">
+                <Bell size={20} className="mx-auto mb-2 opacity-40" />
+                暂无通知
+              </div>
+            ) : (
+              list.map((item) => {
+                const Icon = TYPE_ICON[item.type] ?? MessageCircle;
+                return (
+                  <button
+                    key={item.id}
+                    onClick={() => handleClick(item)}
+                    className={`flex w-full items-start gap-2.5 border-b border-void-600 px-4 py-3 text-left transition-colors hover:bg-void-700 ${
+                      !item.read ? "bg-tian-500/5" : ""
+                    }`}
+                  >
+                    <span
+                      className={`mt-0.5 flex h-7 w-7 shrink-0 items-center justify-center rounded-lg ${
+                        !item.read ? "bg-tian-500/10 text-tian-500" : "bg-void-700 text-mist-400"
                       }`}
                     >
-                      <span
-                        className={`mt-0.5 flex h-7 w-7 shrink-0 items-center justify-center rounded-lg ${
-                          !item.read ? "bg-tian-500/10 text-tian-500" : "bg-void-700 text-mist-400"
-                        }`}
-                      >
-                        <Icon size={13} />
-                      </span>
-                      <div className="min-w-0 flex-1">
-                        <p className="text-xs text-parchment-100">
-                          <span className="font-medium">{item.actor}</span>
-                          <span className="text-mist-400"> {getTypeLabel(item.type)}</span>
-                        </p>
-                        <p className="mt-0.5 truncate text-[11px] text-mist-500">{item.title}</p>
-                        <p className="mt-0.5 text-[10px] text-mist-500">
-                          {formatTime(item.createdAt)}
-                        </p>
-                      </div>
-                      {!item.read && (
-                        <span className="mt-1.5 h-2 w-2 shrink-0 rounded-full bg-red-500" />
-                      )}
-                    </button>
-                  );
-                })
-              )}
-            </div>
+                      <Icon size={13} />
+                    </span>
+                    <div className="min-w-0 flex-1">
+                      <p className="text-xs text-parchment-100">
+                        <span className="font-medium">{item.actor}</span>
+                        <span className="text-mist-400"> {getTypeLabel(item.type)}</span>
+                      </p>
+                      <p className="mt-0.5 truncate text-[11px] text-mist-500">{item.title}</p>
+                      <p className="mt-0.5 text-[10px] text-mist-500">
+                        {formatRelativeTime(item.createdAt)}
+                      </p>
+                    </div>
+                    {!item.read && (
+                      <span className="mt-1.5 h-2 w-2 shrink-0 rounded-full bg-red-500" />
+                    )}
+                  </button>
+                );
+              })
+            )}
           </div>
+        </div>
       )}
     </div>
   );

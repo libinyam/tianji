@@ -6,11 +6,9 @@ export default defineConfig({
   test: {
     globals: false,
     environment: "node",
-    // 支持 .tsx 测试文件按需切换到 jsdom（通过文件顶部 // @vitest-environment jsdom 注释）
-    environmentMatchGlobs: [
-      ["src/components/**/*.test.tsx", "jsdom"],
-      ["src/pages/**/*.test.tsx", "jsdom"],
-    ],
+    // #425 environmentMatchGlobs 在 Vitest 4 已移除（此前是不生效的死配置）。
+    // 组件/页面测试切 jsdom 依赖每个 .tsx 测试文件顶部的
+    // `// @vitest-environment jsdom` docblock 注释——新增测试务必带上。
     setupFiles: ["src/test/setup.ts"],
     exclude: ["node_modules", "**/node_modules/**", ".claude/**", ".agents/**", ".closed-loop-workspace/**", "dist/**"],
     coverage: {

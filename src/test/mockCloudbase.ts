@@ -39,12 +39,12 @@ export function createMockDb() {
             const next: Record<string, unknown> = { ...cur };
             for (const [k, v] of Object.entries(patch)) {
               if (v && typeof v === "object" && "__inc" in v) {
-                next[k] = (next[k] as number ?? 0) + (v as { __inc: number }).__inc;
+                next[k] = ((next[k] as number) ?? 0) + (v as { __inc: number }).__inc;
               } else if (v && typeof v === "object" && "__push" in v) {
-                const arr = Array.isArray(next[k]) ? next[k] as unknown[] : [];
+                const arr = Array.isArray(next[k]) ? (next[k] as unknown[]) : [];
                 next[k] = arr.concat((v as { __push: unknown[] }).__push);
               } else if (v && typeof v === "object" && "__addToSet" in v) {
-                const arr = Array.isArray(next[k]) ? next[k] as unknown[] : [];
+                const arr = Array.isArray(next[k]) ? (next[k] as unknown[]) : [];
                 const val = (v as { __addToSet: unknown }).__addToSet;
                 if (!arr.includes(val)) arr.push(val);
                 next[k] = arr;

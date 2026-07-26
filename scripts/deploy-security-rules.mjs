@@ -81,28 +81,48 @@ function tc3Signature(action, params) {
 
   const payload = JSON.stringify({ ...params });
   const hashedPayload = sha256(payload);
-  const canonicalHeaders = "content-type:application/json; charset=utf-8\n" + "host:" + host + "\n" + "x-tc-action:" + action.toLowerCase() + "\n";
+  const canonicalHeaders =
+    "content-type:application/json; charset=utf-8\n" +
+    "host:" +
+    host +
+    "\n" +
+    "x-tc-action:" +
+    action.toLowerCase() +
+    "\n";
   const signedHeaders = "content-type;host;x-tc-action";
-  const canonicalRequest = "POST\n/\n\n" + canonicalHeaders + "\n" + signedHeaders + "\n" + hashedPayload;
+  const canonicalRequest =
+    "POST\n/\n\n" + canonicalHeaders + "\n" + signedHeaders + "\n" + hashedPayload;
 
   const hashedCanonicalRequest = sha256(canonicalRequest);
   const credentialScope = date + "/" + service + "/tc3_request";
-  const stringToSign = "TC3-HMAC-SHA256\n" + timestamp + "\n" + credentialScope + "\n" + hashedCanonicalRequest;
+  const stringToSign =
+    "TC3-HMAC-SHA256\n" + timestamp + "\n" + credentialScope + "\n" + hashedCanonicalRequest;
 
   const secretDateKey = hmacSha256(Buffer.from("TC3" + secretKey, "utf8"), date);
   const secretServiceKey = hmacSha256(secretDateKey, service);
   const secretSigningKey = hmacSha256(secretServiceKey, "tc3_request");
-  const signature = crypto.createHmac("sha256", secretSigningKey).update(stringToSign, "utf8").digest("hex");
+  const signature = crypto
+    .createHmac("sha256", secretSigningKey)
+    .update(stringToSign, "utf8")
+    .digest("hex");
 
-  const authorization = "TC3-HMAC-SHA256 Credential=" + secretId + "/" + credentialScope + ", SignedHeaders=" + signedHeaders + ", Signature=" + signature;
+  const authorization =
+    "TC3-HMAC-SHA256 Credential=" +
+    secretId +
+    "/" +
+    credentialScope +
+    ", SignedHeaders=" +
+    signedHeaders +
+    ", Signature=" +
+    signature;
 
   return {
     method: "POST",
     url: endpoint,
     headers: {
-      "Authorization": authorization,
+      Authorization: authorization,
       "Content-Type": "application/json; charset=utf-8",
-      "Host": host,
+      Host: host,
       "X-TC-Action": action,
       "X-TC-Version": "2018-06-08",
       "X-TC-Timestamp": String(timestamp),

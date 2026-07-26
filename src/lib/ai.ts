@@ -14,5 +14,10 @@ export async function triggerAiBotReply(params: {
     name: "ai-bot",
     data: params,
   });
-  return (res?.result ?? {}) as { ok: boolean; reply?: string; comment?: unknown; answer?: unknown };
+  return (res?.result ?? {}) as {
+    ok: boolean;
+    reply?: string;
+    comment?: unknown;
+    answer?: unknown;
+  };
 }

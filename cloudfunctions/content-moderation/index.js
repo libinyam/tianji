@@ -42,7 +42,8 @@ function camSafeUrlEncode(str) {
 /** 将对象转为 key=value&key=value 格式（key 小写 + URL编码，按 key 排序） */
 function obj2str(obj, lowerCaseKey) {
   const keys = Object.keys(obj).sort(function (a, b) {
-    a = a.toLowerCase(); b = b.toLowerCase();
+    a = a.toLowerCase();
+    b = b.toLowerCase();
     return a === b ? 0 : a > b ? 1 : -1;
   });
   const list = [];
@@ -57,7 +58,9 @@ function obj2str(obj, lowerCaseKey) {
 /** 获取 header key 列表（小写 + URL编码，排序） */
 function getHeaderList(headers) {
   return Object.keys(headers)
-    .map(function (k) { return camSafeUrlEncode(k).toLowerCase(); })
+    .map(function (k) {
+      return camSafeUrlEncode(k).toLowerCase();
+    })
     .sort()
     .join(";");
 }
@@ -78,13 +81,16 @@ function cosSign(secretId, secretKey, method, path, headersToSign) {
   const formatString = [
     method.toLowerCase(),
     path,
-    "",                         // HttpParameters 为空
+    "", // HttpParameters 为空
     obj2str(headersToSign, true), // HttpHeaders: key=value&key=value
-    "",                         // 末尾空元素 → join 产生尾部 \n
+    "", // 末尾空元素 → join 产生尾部 \n
   ].join("\n");
 
   // StringToSign = sha1\nKeyTime\nSHA1(FormatString)\n
-  const sha1FormatString = crypto.createHash("sha1").update(Buffer.from(formatString, "utf8")).digest("hex");
+  const sha1FormatString = crypto
+    .createHash("sha1")
+    .update(Buffer.from(formatString, "utf8"))
+    .digest("hex");
   const stringToSign = ["sha1", keyTime, sha1FormatString, ""].join("\n");
 
   // SignKey = HMAC-SHA1(SecretKey, KeyTime)
@@ -94,12 +100,19 @@ function cosSign(secretId, secretKey, method, path, headersToSign) {
   const signature = crypto.createHmac("sha1", signKey).update(stringToSign).digest("hex");
 
   // Authorization
-  return "q-sign-algorithm=sha1&q-ak=" + secretId +
-    "&q-sign-time=" + keyTime +
-    "&q-key-time=" + keyTime +
-    "&q-header-list=" + qHeaderList +
+  return (
+    "q-sign-algorithm=sha1&q-ak=" +
+    secretId +
+    "&q-sign-time=" +
+    keyTime +
+    "&q-key-time=" +
+    keyTime +
+    "&q-header-list=" +
+    qHeaderList +
     "&q-url-param-list=" +
-    "&q-signature=" + signature;
+    "&q-signature=" +
+    signature
+  );
 }
 
 /**
@@ -131,7 +144,8 @@ function parseCiResponse(xml) {
 
   // 如果没有 Section 但 Result=0，说明通过
   if (!result.suggestion) {
-    result.suggestion = result.resultNum === 0 ? "pass" : (result.resultNum === 2 ? "block" : "review");
+    result.suggestion =
+      result.resultNum === 0 ? "pass" : result.resultNum === 2 ? "block" : "review";
   }
 
   return result;
@@ -161,7 +175,9 @@ async function moderateText(text) {
   // 请求体 XML
   const bodyXml =
     "<Request>" +
-    "<Input><Content>" + contentBase64 + "</Content></Input>" +
+    "<Input><Content>" +
+    contentBase64 +
+    "</Content></Input>" +
     "<Conf><DetectType>porn,ads,illegal,abuse,politics</DetectType></Conf>" +
     "</Request>";
 
@@ -170,7 +186,7 @@ async function moderateText(text) {
   // 需要签名的 headers
   const headersToSign = {
     "content-type": "application/xml",
-    "host": host,
+    host: host,
   };
 
   const authorization = cosSign(secretId, secretKey, "POST", path, headersToSign);
@@ -181,9 +197,9 @@ async function moderateText(text) {
     path: path,
     method: "POST",
     headers: {
-      "Authorization": authorization,
+      Authorization: authorization,
       "Content-Type": "application/xml",
-      "Host": host,
+      Host: host,
       "Content-Length": body.length,
     },
   };

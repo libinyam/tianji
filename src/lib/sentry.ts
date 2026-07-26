@@ -9,9 +9,7 @@ export function initSentry() {
 
   Sentry.init({
     dsn: SENTRY_DSN,
-    integrations: [
-      Sentry.browserTracingIntegration(),
-    ],
+    integrations: [Sentry.browserTracingIntegration()],
     tracesSampleRate: 0.1,
     environment: import.meta.env.MODE,
     beforeSend(event) {

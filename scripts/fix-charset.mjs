@@ -19,9 +19,7 @@ import COS from "cos-nodejs-sdk-v5";
 const BUCKET = "4147-static-tianji-d3gozv3qr802e49cb-1445413468";
 const REGION = "ap-shanghai";
 
-const FILES_TO_FIX = [
-  { key: "index.html", contentType: "text/html; charset=utf-8" },
-];
+const FILES_TO_FIX = [{ key: "index.html", contentType: "text/html; charset=utf-8" }];
 
 async function main() {
   const SecretId = process.env.TCB_SECRET_ID;
@@ -49,7 +47,7 @@ async function main() {
           (err, data) => {
             if (err) reject(err);
             else resolve(data);
-          }
+          },
         );
       });
       console.log(`✓ ${key}: Content-Type=${contentType}, Content-Disposition cleared`);

@@ -38,9 +38,10 @@ const ACCENT_COLORS = ["#7cc4ff", "#f3c969", "#5aa6f0", "#a78bfa", "#34d399", "#
 function toBook(doc: BookDoc): Book {
   // rating 从 reviews 实时计算，彻底避免并发评价时的均分漂移（#114）
   const reviews = doc.reviews ?? [];
-  const rating = reviews.length > 0
-    ? Math.round((reviews.reduce((sum, r) => sum + r.rating, 0) / reviews.length) * 10) / 10
-    : 0;
+  const rating =
+    reviews.length > 0
+      ? Math.round((reviews.reduce((sum, r) => sum + r.rating, 0) / reviews.length) * 10) / 10
+      : 0;
   return {
     id: doc._id ?? "",
     title: doc.title,
@@ -77,12 +78,19 @@ export async function incrementBookDownloads(id: string): Promise<void> {
 }
 
 /** 添加读者评价（按 uid 去重，已评过则更新原评价） */
-export async function addReview(bookId: string, review: { author: string; authorUid: string; rating: number; content: string }): Promise<{ avgRating: number; updated: boolean } | null> {
+export async function addReview(
+  bookId: string,
+  review: { author: string; authorUid: string; rating: number; content: string },
+): Promise<{ avgRating: number; updated: boolean } | null> {
   const res = await app.callFunction({
     name: "content-actions",
     data: { action: "addBookReview", bookId, ...review },
   });
-  const result = (res?.result ?? {}) as { ok?: boolean; data?: { avgRating: number; updated: boolean }; error?: string };
+  const result = (res?.result ?? {}) as {
+    ok?: boolean;
+    data?: { avgRating: number; updated: boolean };
+    error?: string;
+  };
   if (!result.ok) throw new Error(result.error || "评价失败");
   return result.data ?? null;
 }
@@ -120,10 +128,7 @@ export async function fetchBooks(): Promise<{ data: Book[]; error: boolean }> {
 export async function fetchBookById(id: string): Promise<Book | null> {
   try {
     await authReady; // #345/#402 等匿名身份就绪，避免新访客深链 401 误报"未找到"
-    const { data } = await db
-      .collection(BOOKS_COLLECTION)
-      .doc(id)
-      .get();
+    const { data } = await db.collection(BOOKS_COLLECTION).doc(id).get();
     if (!data || data.length === 0) return null;
     return toBook(data[0] as BookDoc);
   } catch {
@@ -222,7 +227,11 @@ export async function createBook(params: {
  * #96 查询相关推荐（按 category 从数据库查，不再只查 mock）
  * 排除当前资源，按收藏数倒序取前 limit 条
  */
-export async function fetchRelatedBooks(category: BookCategory, excludeId: string, limit = 3): Promise<Book[]> {
+export async function fetchRelatedBooks(
+  category: BookCategory,
+  excludeId: string,
+  limit = 3,
+): Promise<Book[]> {
   try {
     const _ = db.command;
     const { data } = await db
@@ -249,7 +258,7 @@ export async function updateBook(
     tags?: string[];
     difficulty?: 1 | 2 | 3 | 4 | 5;
     link?: string;
-  }
+  },
 ): Promise<boolean> {
   const uid = getCurrentUid();
   if (!uid) throw new Error("请先登录");
@@ -267,7 +276,8 @@ export async function updateBook(
   if (params.summary !== undefined) updateFields.summary = sanitizeInput(params.summary);
   if (params.tags !== undefined) updateFields.tags = params.tags.map(sanitizeTag);
   if (params.difficulty !== undefined) updateFields.difficulty = params.difficulty;
-  if (params.link !== undefined) updateFields.link = params.link ? sanitizeInput(params.link, 2000) : undefined;
+  if (params.link !== undefined)
+    updateFields.link = params.link ? sanitizeInput(params.link, 2000) : undefined;
 
   if (Object.keys(updateFields).length === 0) return true;
   await docRef.update(updateFields);

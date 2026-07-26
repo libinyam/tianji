@@ -23,9 +23,16 @@
 ## 代码规范
 
 - TypeScript strict mode
-- 遵循 ESLint 配置，提交前运行 `npm run lint`
 - 使用函数式组件与 React Hooks
-- 提交前确保 `npm run build` 通过
+- 提交前自查清单（与 PR CI 完全一致，任一失败 CI 会拒绝合入）：
+  ```bash
+  npm run check          # TypeScript 类型检查
+  npm run lint           # ESLint
+  npm run format:check   # Prettier 格式检查
+  npm run test:coverage  # 全量测试 + 覆盖率阈值
+  npm run build          # Vite 构建
+  ```
+- 组件/页面测试文件（.tsx）顶部必须带 `// @vitest-environment jsdom` 注释
 
 ## 评审流程
 
@@ -37,6 +44,6 @@
 
 ## 本地开发注意事项
 
-- 安装依赖后需配置 `.env.local` 所需环境变量（详见 README）
+- 安装依赖后复制 `.env.example` 为 `.env` 并填入环境变量（与 README 一致）
 - 云函数位于 `cloudfunctions/`，修改后需重新部署
 - 涉及 CloudBase 数据库操作时注意安全规则配置

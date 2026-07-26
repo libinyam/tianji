@@ -112,11 +112,7 @@ function toProject(doc: WorkshopDoc): WorkshopProject {
 export async function fetchWorkshops(): Promise<WorkshopProject[]> {
   try {
     await authReady; // #345/#402 等匿名身份就绪，避免新访客首屏 401
-    const { data } = await db
-      .collection(COLLECTION)
-      .orderBy("createdAt", "desc")
-      .limit(50)
-      .get();
+    const { data } = await db.collection(COLLECTION).orderBy("createdAt", "desc").limit(50).get();
     return (data as WorkshopDoc[]).map(toProject);
   } catch {
     return [];
@@ -232,7 +228,7 @@ export async function joinWorkshop(id: string): Promise<boolean> {
 export async function submitContribution(
   workshopId: string,
   chapterId: string,
-  content: string
+  content: string,
 ): Promise<Contribution | null> {
   const uid = getCurrentUid();
   if (!uid) throw new Error("请先登录");
@@ -269,7 +265,7 @@ export async function updateWorkshop(
     description?: string;
     content?: string;
     status?: WorkshopStatus;
-  }
+  },
 ): Promise<boolean> {
   const uid = getCurrentUid();
   if (!uid) throw new Error("请先登录");
@@ -366,7 +362,7 @@ export async function deleteWorkshop(id: string): Promise<boolean> {
 export async function addAnnotation(
   id: string,
   content: string,
-  selectedText?: string
+  selectedText?: string,
 ): Promise<Annotation | null> {
   const uid = getCurrentUid();
   if (!uid) throw new Error("请先登录");
@@ -397,10 +393,7 @@ export async function addAnnotation(
  * @param id 文档 id
  * @param annotationId 批注 id
  */
-export async function resolveAnnotation(
-  id: string,
-  annotationId: string
-): Promise<boolean> {
+export async function resolveAnnotation(id: string, annotationId: string): Promise<boolean> {
   const uid = getCurrentUid();
   if (!uid) throw new Error("请先登录");
   try {
@@ -442,10 +435,7 @@ export async function leaveWorkshop(id: string): Promise<boolean> {
 /**
  * #98 删除批注（创建者或批注作者可删除）
  */
-export async function deleteAnnotation(
-  id: string,
-  annotationId: string
-): Promise<boolean> {
+export async function deleteAnnotation(id: string, annotationId: string): Promise<boolean> {
   const uid = getCurrentUid();
   if (!uid) throw new Error("请先登录");
   try {
