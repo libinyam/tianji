@@ -454,3 +454,213 @@ describe("灵感评论（issue #400）", () => {
     expect(idea.replies).toBe(1);
   });
 });
+
+describe("删除/编辑的权限校验分支（issue #414）", () => {
+  // 云函数以 admin 身份运行,安全规则对其不生效,函数内的 authorUid 比对
+  // 是防止越权删改他人内容的唯一服务端屏障——此前这些分支零测试覆盖。
+  function seedPost(overrides = {}) {
+    store.posts = new Map([
+      [
+        "p1",
+        {
+          _id: "p1",
+          authorUid: "owner",
+          title: "原标题",
+          body: "原正文",
+          excerpt: "原正文",
+          tags: ["旧标签"],
+          answersCount: 1,
+          answerList: [
+            {
+              id: "a1",
+              authorUid: "answerer",
+              content: "原回答",
+              comments: [{ id: "c1", authorUid: "commenter", content: "原评论" }],
+            },
+          ],
+          ...overrides,
+        },
+      ],
+    ]);
+  }
+
+  describe("deletePost", () => {
+    it("非作者删除被拒且帖子仍在", async () => {
+      seedPost();
+      const res = await main({ action: "deletePost", postId: "p1" }, ctx("intruder"));
+      expect(res.ok).toBe(false);
+      expect(res.error).toBe("无权删除他人帖子");
+      expect(store.posts.has("p1")).toBe(true);
+    });
+
+    it("作者删除成功", async () => {
+      seedPost();
+      const res = await main({ action: "deletePost", postId: "p1" }, ctx("owner"));
+      expect(res.ok).toBe(true);
+      expect(store.posts.has("p1")).toBe(false);
+    });
+  });
+
+  describe("deleteIdea", () => {
+    it("非作者删除被拒且灵感仍在", async () => {
+      store.ideas = new Map([["i1", { _id: "i1", authorUid: "owner", title: "灵感" }]]);
+      const res = await main({ action: "deleteIdea", ideaId: "i1" }, ctx("intruder"));
+      expect(res.ok).toBe(false);
+      expect(res.error).toBe("无权删除他人灵感");
+      expect(store.ideas.has("i1")).toBe(true);
+    });
+
+    it("作者删除成功", async () => {
+      store.ideas = new Map([["i1", { _id: "i1", authorUid: "owner", title: "灵感" }]]);
+      const res = await main({ action: "deleteIdea", ideaId: "i1" }, ctx("owner"));
+      expect(res.ok).toBe(true);
+      expect(store.ideas.has("i1")).toBe(false);
+    });
+  });
+
+  describe("deleteAnswer", () => {
+    it("非回答作者删除被拒且回答仍在", async () => {
+      seedPost();
+      const res = await main(
+        { action: "deleteAnswer", postId: "p1", answerId: "a1" },
+        ctx("intruder")
+      );
+      expect(res.ok).toBe(false);
+      expect(res.error).toBe("无权删除他人回答");
+      expect(store.posts.get("p1").answerList).toHaveLength(1);
+    });
+
+    it("回答作者删除成功且计数减一", async () => {
+      seedPost();
+      const res = await main(
+        { action: "deleteAnswer", postId: "p1", answerId: "a1" },
+        ctx("answerer")
+      );
+      expect(res.ok).toBe(true);
+      const post = store.posts.get("p1");
+      expect(post.answerList).toHaveLength(0);
+      expect(post.answersCount).toBe(0);
+    });
+  });
+
+  describe("deleteComment", () => {
+    it("非评论作者删除被拒且评论仍在", async () => {
+      seedPost();
+      const res = await main(
+        { action: "deleteComment", postId: "p1", answerId: "a1", commentId: "c1" },
+        ctx("intruder")
+      );
+      expect(res.ok).toBe(false);
+      expect(res.error).toBe("无权删除他人评论");
+      expect(store.posts.get("p1").answerList[0].comments).toHaveLength(1);
+    });
+
+    it("评论作者删除成功", async () => {
+      seedPost();
+      const res = await main(
+        { action: "deleteComment", postId: "p1", answerId: "a1", commentId: "c1" },
+        ctx("commenter")
+      );
+      expect(res.ok).toBe(true);
+      expect(store.posts.get("p1").answerList[0].comments).toHaveLength(0);
+    });
+  });
+
+  describe("updatePost", () => {
+    it("非作者编辑被拒且内容不变", async () => {
+      seedPost();
+      const res = await main(
+        { action: "updatePost", postId: "p1", title: "篡改标题", body: "篡改正文" },
+        ctx("intruder")
+      );
+      expect(res.ok).toBe(false);
+      expect(res.error).toBe("无权编辑他人帖子");
+      expect(store.posts.get("p1").title).toBe("原标题");
+      expect(store.posts.get("p1").body).toBe("原正文");
+    });
+
+    it("作者编辑成功,title/body/excerpt/tags 全部更新", async () => {
+      seedPost();
+      const res = await main(
+        { action: "updatePost", postId: "p1", title: "新标题", body: "新正文", tags: ["新标签"] },
+        ctx("owner")
+      );
+      expect(res.ok).toBe(true);
+      const post = store.posts.get("p1");
+      expect(post.title).toBe("新标题");
+      expect(post.body).toBe("新正文");
+      expect(post.excerpt).toBe("新正文");
+      expect(post.tags).toEqual(["新标签"]);
+    });
+
+    it("被封禁的作者编辑被拒", async () => {
+      seedPost();
+      store.users_v2 = new Map([["owner", { _id: "owner", banned: true }]]);
+      const res = await main(
+        { action: "updatePost", postId: "p1", title: "新标题", body: "新正文" },
+        ctx("owner")
+      );
+      expect(res.ok).toBe(false);
+      expect(res.error).toContain("封禁");
+      expect(store.posts.get("p1").title).toBe("原标题");
+    });
+  });
+
+  describe("updateAnswer", () => {
+    it("非回答作者编辑被拒且内容不变", async () => {
+      seedPost();
+      const res = await main(
+        { action: "updateAnswer", postId: "p1", answerId: "a1", content: "篡改回答" },
+        ctx("intruder")
+      );
+      expect(res.ok).toBe(false);
+      expect(res.error).toBe("无权编辑他人回答");
+      expect(store.posts.get("p1").answerList[0].content).toBe("原回答");
+    });
+
+    it("回答作者编辑成功", async () => {
+      seedPost();
+      const res = await main(
+        { action: "updateAnswer", postId: "p1", answerId: "a1", content: "新回答" },
+        ctx("answerer")
+      );
+      expect(res.ok).toBe(true);
+      expect(store.posts.get("p1").answerList[0].content).toBe("新回答");
+    });
+  });
+
+  describe("updateComment", () => {
+    it("非评论作者编辑被拒且内容不变", async () => {
+      seedPost();
+      const res = await main(
+        {
+          action: "updateComment",
+          postId: "p1",
+          answerId: "a1",
+          commentId: "c1",
+          content: "篡改评论",
+        },
+        ctx("intruder")
+      );
+      expect(res.ok).toBe(false);
+      expect(res.error).toBe("无权编辑他人评论");
+      expect(store.posts.get("p1").answerList[0].comments[0].content).toBe("原评论");
+    });
+
+    it("评论作者编辑成功", async () => {
+      seedPost();
+      const res = await main(
+        {
+          action: "updateComment",
+          postId: "p1",
+          answerId: "a1",
+          commentId: "c1",
+          content: "新评论",
+        },
+        ctx("commenter")
+      );
+      expect(res.ok).toBe(true);
+      expect(store.posts.get("p1").answerList[0].comments[0].content).toBe("新评论");
+    });
+  });
+});

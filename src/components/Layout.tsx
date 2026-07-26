@@ -38,9 +38,16 @@ export default function Layout() {
 
   return (
     <div className="min-h-screen bg-void-950 text-parchment-200">
+      {/* #422 skip link：键盘用户跳过整个导航直达正文，仅聚焦时可见 */}
+      <a
+        href="#main"
+        className="sr-only z-[10000] rounded-md bg-tian-500 px-3 py-2 text-sm font-medium text-white focus:not-sr-only focus:fixed focus:left-3 focus:top-3"
+      >
+        跳到主内容
+      </a>
       <div className="flex min-h-screen flex-col">
         <Navbar onLoginClick={() => setAuthOpen(true)} />
-        <main className="flex-1">
+        <main id="main" className="flex-1">
           <Outlet />
         </main>
         <Footer />

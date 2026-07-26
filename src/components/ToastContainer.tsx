@@ -24,7 +24,12 @@ export default function ToastContainer() {
   const { toasts, dismiss } = useToastStore();
 
   return (
-    <div className="pointer-events-none fixed bottom-6 right-6 z-[9999] flex flex-col gap-2">
+    // #422 aria-live 让读屏用户听到操作反馈；容器级 status 覆盖所有 toast 的进出
+    <div
+      role="status"
+      aria-live="polite"
+      className="pointer-events-none fixed bottom-6 right-6 z-[9999] flex flex-col gap-2"
+    >
       <AnimatePresence>
         {toasts.map((t) => {
           const Icon = ICONS[t.type];
@@ -32,6 +37,7 @@ export default function ToastContainer() {
             <motion.div
               key={t.id}
               layout
+              role={t.type === "error" ? "alert" : undefined}
               initial={{ opacity: 0, x: 60, scale: 0.9 }}
               animate={{ opacity: 1, x: 0, scale: 1 }}
               exit={{ opacity: 0, x: 60, scale: 0.9 }}
@@ -42,6 +48,7 @@ export default function ToastContainer() {
               <span className="max-w-xs">{t.message}</span>
               <button
                 onClick={() => dismiss(t.id)}
+                aria-label="关闭通知"
                 className="ml-2 shrink-0 opacity-50 transition-opacity hover:opacity-100"
               >
                 <X size={14} />

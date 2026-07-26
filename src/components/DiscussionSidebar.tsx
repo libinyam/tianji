@@ -124,6 +124,7 @@ export default function DiscussionSidebar({
               <button
                 key={s.key}
                 onClick={() => onSectionChange(s.key)}
+                aria-current={isActive ? "true" : undefined}
                 className={`flex w-full items-center gap-2.5 rounded-md px-2.5 py-2 text-sm transition-colors ${
                   isActive
                     ? "bg-void-700 font-medium text-tian-500"

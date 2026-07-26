@@ -1,5 +1,5 @@
 import { useMemo, useState, useEffect } from "react";
-import { useNavigate, useLocation, useSearchParams } from "react-router-dom";
+import { Link, useNavigate, useLocation, useSearchParams } from "react-router-dom";
 import {
   Plus,
   Search,
@@ -421,6 +421,7 @@ export default function Discussion() {
                   <button
                     key={s}
                     onClick={() => updateFilters({ sort: s })}
+                    aria-pressed={sort === s}
                     className={`rounded-md px-2.5 py-1.5 transition-colors ${
                       sort === s
                         ? "bg-void-700 font-medium text-tian-500"
@@ -563,12 +564,12 @@ export default function Discussion() {
           {/* 帖子列表 - Discourse 风格：无边框行流，行间细线分隔 */}
           {!loading && !error && filtered.length > 0 && (
             <div className="bg-void-900">
-              {/* 表头 */}
-              <div className="grid grid-cols-[minmax(0,1fr)_56px_64px_200px] items-center gap-3 border-b border-void-600 px-4 py-2 text-xs font-medium text-mist-500">
+              {/* 表头（#413 与数据行同网格：<lg 隐藏浏览量/活动列，避免 375px 溢出与错位） */}
+              <div className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-4 border-b border-void-600 px-4 py-2 text-xs font-medium text-mist-500 lg:grid-cols-[minmax(0,1fr)_56px_64px_200px]">
                 <span>话题</span>
                 <span className="text-right">回复</span>
-                <span className="text-right">浏览量</span>
-                <span className="text-right">活动</span>
+                <span className="hidden text-right lg:inline">浏览量</span>
+                <span className="hidden text-right lg:inline">活动</span>
               </div>
               {filtered.map((q, i) => {
                 const lastActivity = getLastActivity(q);
@@ -605,8 +606,15 @@ export default function Discussion() {
                             ⭐
                           </span>
                         )}
-                        <h3 className="truncate text-[15px] font-medium leading-snug text-parchment-100 transition-colors group-hover:text-tian-500">
-                          {q.title}
+                        {/* #411 真链接：键盘可达、中键/Ctrl 新标签、爬虫可发现内容页 */}
+                        <h3 className="min-w-0 truncate text-[15px] font-medium leading-snug text-parchment-100 transition-colors group-hover:text-tian-500">
+                          <Link
+                            to={`/discussion/${q.id}`}
+                            onClick={(e) => e.stopPropagation()}
+                            className="rounded-sm outline-none focus-visible:ring-2 focus-visible:ring-tian-500"
+                          >
+                            {q.title}
+                          </Link>
                         </h3>
                         {q.bounty ? (
                           <span className="shrink-0 rounded bg-star-400/10 px-1.5 py-0.5 text-xs font-medium text-star-300">
