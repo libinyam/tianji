@@ -29,8 +29,10 @@ const mockAuth = vi.hoisted(() => ({
   },
 }));
 
+const mockCallFunction = vi.hoisted(() => vi.fn());
+
 vi.mock("@/lib/cloudbase", () => ({
-  app: { database: () => mockDb },
+  app: { database: () => mockDb, callFunction: mockCallFunction },
 }));
 
 vi.mock("@/stores/auth", () => ({
@@ -57,6 +59,7 @@ describe("notifications", () => {
     mockDb._chain.update.mockResolvedValue(undefined);
     mockDb._chain.remove.mockResolvedValue(undefined);
     mockDb._chain.watch.mockReturnValue(mockDb._watcher);
+    mockCallFunction.mockResolvedValue({ result: { ok: true, data: { created: true } } });
   });
 
   describe("fetchNotifications", () => {
@@ -224,7 +227,8 @@ describe("notifications", () => {
   });
 
   describe("createNotification", () => {
-    it("成功：写入通知文档", async () => {
+    // #40 改走云函数：actorUid 由服务端取自登录态，客户端仅传显示名兜底
+    it("成功：调用云函数创建通知", async () => {
       mockAuth.user = { uid: "actor-uid", nickname: "Actor" };
 
       await createNotification({
@@ -234,21 +238,23 @@ describe("notifications", () => {
         link: "/p/1",
       });
 
-      expect(mockDb._chain.add).toHaveBeenCalledTimes(1);
-      expect(mockDb._chain.add).toHaveBeenCalledWith(
-        expect.objectContaining({
-          uid: "target-uid",
-          actor: "Actor",
-          actorUid: "actor-uid",
+      expect(mockCallFunction).toHaveBeenCalledTimes(1);
+      expect(mockCallFunction).toHaveBeenCalledWith({
+        name: "content-actions",
+        data: {
+          action: "createNotification",
+          targetUid: "target-uid",
           type: "answer",
           title: "新回答",
           link: "/p/1",
-          read: false,
-        })
-      );
+          actor: "Actor",
+        },
+      });
+      // 不再直写数据库
+      expect(mockDb._chain.add).not.toHaveBeenCalled();
     });
 
-    it("通知自己：不写入文档", async () => {
+    it("通知自己：不调用云函数", async () => {
       mockAuth.user = { uid: "same-uid", nickname: "Me" };
 
       await createNotification({
@@ -258,12 +264,12 @@ describe("notifications", () => {
         link: "/p/1",
       });
 
-      expect(mockDb._chain.add).not.toHaveBeenCalled();
+      expect(mockCallFunction).not.toHaveBeenCalled();
     });
 
     it("失败：静默失败不抛出", async () => {
       mockAuth.user = { uid: "actor-uid", nickname: "Actor" };
-      mockDb._chain.add.mockRejectedValue(new Error("db error"));
+      mockCallFunction.mockRejectedValue(new Error("网络错误"));
 
       await expect(
         createNotification({
@@ -285,8 +291,10 @@ describe("notifications", () => {
         link: "/p/1",
       });
 
-      expect(mockDb._chain.add).toHaveBeenCalledWith(
-        expect.objectContaining({ actor: "user1" })
+      expect(mockCallFunction).toHaveBeenCalledWith(
+        expect.objectContaining({
+          data: expect.objectContaining({ actor: "user1" }),
+        })
       );
     });
 
@@ -300,8 +308,10 @@ describe("notifications", () => {
         link: "/p/1",
       });
 
-      expect(mockDb._chain.add).toHaveBeenCalledWith(
-        expect.objectContaining({ actor: "a@b.com" })
+      expect(mockCallFunction).toHaveBeenCalledWith(
+        expect.objectContaining({
+          data: expect.objectContaining({ actor: "a@b.com" }),
+        })
       );
     });
 
@@ -315,8 +325,10 @@ describe("notifications", () => {
         link: "/p/1",
       });
 
-      expect(mockDb._chain.add).toHaveBeenCalledWith(
-        expect.objectContaining({ actor: "匿名用户" })
+      expect(mockCallFunction).toHaveBeenCalledWith(
+        expect.objectContaining({
+          data: expect.objectContaining({ actor: "匿名用户" }),
+        })
       );
     });
   });

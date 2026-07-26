@@ -5,7 +5,6 @@ import { checkCurrentUserBanned } from "@/lib/ban";
 import { containsSensitiveWord } from "@/lib/sensitive-words";
 import { awardReputation } from "@/lib/reputation";
 import { getCurrentUid, getCurrentUserName } from "@/lib/current-user";
-import { AVATAR_COLORS } from "@/lib/avatar-colors";
 import type { Idea, IdeaComment } from "@/types";
 
 const db = app.database();
@@ -96,22 +95,37 @@ export async function createIdea(params: {
     throw new Error(`内容包含敏感词: ${sensitiveCheck.words.join(", ")}`);
   }
 
-  const doc: Omit<IdeaDoc, "_id"> = {
-    title: cleanTitle,
-    summary: cleanSummary,
-    author: getCurrentUserName(),
-    authorUid: uid,
-    avatarColor: AVATAR_COLORS[Math.floor(Math.random() * AVATAR_COLORS.length)],
-    topic: cleanTopic,
-    tags: cleanTags,
-    resonance: 0,
-    replies: 0,
-    createdAt: new Date().toISOString(),
+  // #404 走云函数写入，接入服务端审核（上方本地校验仅为快速反馈）
+  const res = await app.callFunction({
+    name: "content-actions",
+    data: {
+      action: "createIdea",
+      title: cleanTitle,
+      summary: cleanSummary,
+      topic: cleanTopic,
+      tags: cleanTags,
+      author: getCurrentUserName(),
+    },
+  });
+  const result = (res?.result ?? {}) as {
+    ok?: boolean;
+    error?: string;
+    data?: {
+      id?: string;
+      title: string;
+      summary: string;
+      author: string;
+      authorUid: string;
+      avatarColor: string;
+      topic: string;
+      tags: string[];
+      createdAt: string;
+    };
   };
-
-  const res = await db.collection(IDEAS_COLLECTION).add(doc);
-  const resObj = res as unknown as Record<string, unknown>;
-  const newId = (resObj.id as string) ?? (resObj._id as string) ?? "";
+  if (!result.ok) throw new Error(result.error || "发布失败，请重试");
+  const doc = result.data;
+  if (!doc) return null;
+  const newId = doc.id ?? "";
 
   await awardReputation("createIdea", newId);
 
@@ -120,9 +134,10 @@ export async function createIdea(params: {
     title: doc.title,
     summary: doc.summary,
     author: doc.author,
+    authorUid: doc.authorUid,
     avatarColor: doc.avatarColor,
     topic: doc.topic,
-    tags: doc.tags,
+    tags: doc.tags ?? [],
     resonance: 0,
     replies: 0,
     createdAt: doc.createdAt,
@@ -146,7 +161,7 @@ export async function resonanceIdea(id: string): Promise<boolean> {
   return true;
 }
 
-/** 编辑灵感（仅作者） */
+/** 编辑灵感（仅作者，#404 走云函数，接入服务端审核） */
 export async function updateIdea(
   ideaId: string,
   params: { title: string; summary: string; tags: string[] }
@@ -154,23 +169,21 @@ export async function updateIdea(
   const uid = getCurrentUid();
   if (!uid) throw new Error("请先登录");
 
-  const docRef = db.collection(IDEAS_COLLECTION).doc(ideaId);
-  const { data } = await docRef.get();
-  if (!data || data.length === 0) return false;
-
-  const idea = data[0] as IdeaDoc;
-  if (idea.authorUid !== uid) throw new Error("无权编辑他人灵感");
-
   // Sanitize inputs
   const cleanTitle = sanitizeTitle(params.title);
   const cleanSummary = sanitizeInput(params.summary);
   const cleanTags = params.tags.map(sanitizeTag);
 
-  await docRef.update({
-    title: cleanTitle,
-    summary: cleanSummary,
-    tags: cleanTags,
+  const res = await app.callFunction({
+    name: "content-actions",
+    data: { action: "updateIdea", ideaId, title: cleanTitle, summary: cleanSummary, tags: cleanTags },
   });
+  const result = (res?.result ?? {}) as { ok?: boolean; error?: string };
+  if (!result.ok) {
+    // 与旧实现一致：灵感不存在返回 false，越权/审核拦截抛出
+    if (result.error === "灵感不存在") return false;
+    throw new Error(result.error || "保存失败，请重试");
+  }
   return true;
 }
 

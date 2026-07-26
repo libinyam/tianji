@@ -254,9 +254,22 @@ describe("ideas", () => {
   });
 
   describe("createIdea", () => {
-    it("成功：返回新 Idea 并写入文档并奖励声望", async () => {
+    // #404 改走云函数：服务端审核 + authorUid 由服务端取自登录态
+    const cloudIdeaDoc = {
+      id: "new-idea-id",
+      title: "标题",
+      summary: "摘要",
+      author: "Tester",
+      authorUid: "test-uid",
+      avatarColor: "#7cc4ff",
+      topic: "话题",
+      tags: ["t1"],
+      createdAt: "2026-07-26T00:00:00.000Z",
+    };
+
+    it("成功：调用云函数、返回新 Idea 并奖励声望", async () => {
       mockAuth.user = { uid: "test-uid", nickname: "Tester" };
-      mockDb._chain.add.mockResolvedValue({ id: "new-idea-id" });
+      mockCallFunction.mockResolvedValue({ result: { ok: true, data: cloudIdeaDoc } });
 
       const result = await createIdea({
         title: "标题",
@@ -268,40 +281,36 @@ describe("ideas", () => {
       expect(result).not.toBeNull();
       expect(result?.id).toBe("new-idea-id");
       expect(result?.title).toBe("标题");
-      expect(result?.summary).toBe("摘要");
       expect(result?.author).toBe("Tester");
-      expect(result?.topic).toBe("话题");
-      expect(result?.tags).toEqual(["t1"]);
       expect(result?.resonance).toBe(0);
       expect(result?.replies).toBe(0);
-      expect(result?.avatarColor).toEqual(expect.any(String));
-      expect(mockDb._chain.add).toHaveBeenCalledTimes(1);
-      expect(mockDb._chain.add).toHaveBeenCalledWith(
-        expect.objectContaining({
+      expect(mockCallFunction).toHaveBeenCalledWith({
+        name: "content-actions",
+        data: {
+          action: "createIdea",
           title: "标题",
           summary: "摘要",
-          author: "Tester",
-          authorUid: "test-uid",
           topic: "话题",
           tags: ["t1"],
-          resonance: 0,
-          replies: 0,
-        })
-      );
+          author: "Tester",
+        },
+      });
+      // 不再直写数据库
+      expect(mockDb._chain.add).not.toHaveBeenCalled();
       expect(mockReputation.awardReputation).toHaveBeenCalledWith(
         "createIdea",
         "new-idea-id"
       );
     });
 
-    it("未登录：抛出'请先登录'且不写入数据库", async () => {
+    it("未登录：抛出'请先登录'且不调用云函数", async () => {
       mockAuth.user = null;
 
       await expect(
         createIdea({ title: "标题", summary: "摘要", topic: "话题", tags: [] })
       ).rejects.toThrow("请先登录");
 
-      expect(mockDb._chain.add).not.toHaveBeenCalled();
+      expect(mockCallFunction).not.toHaveBeenCalled();
       expect(mockReputation.awardReputation).not.toHaveBeenCalled();
     });
 
@@ -313,10 +322,10 @@ describe("ideas", () => {
         createIdea({ title: "标题", summary: "摘要", topic: "话题", tags: [] })
       ).rejects.toThrow("您的账号已被封禁");
 
-      expect(mockDb._chain.add).not.toHaveBeenCalled();
+      expect(mockCallFunction).not.toHaveBeenCalled();
     });
 
-    it("敏感词：抛出包含敏感词的错误", async () => {
+    it("敏感词：本地快筛抛错且不调用云函数", async () => {
       mockAuth.user = { uid: "test-uid" };
       mockSensitive.containsSensitiveWord.mockReturnValue({
         found: true,
@@ -327,22 +336,37 @@ describe("ideas", () => {
         createIdea({ title: "标题", summary: "摘要", topic: "话题", tags: [] })
       ).rejects.toThrow("内容包含敏感词: bad");
 
-      expect(mockDb._chain.add).not.toHaveBeenCalled();
+      expect(mockCallFunction).not.toHaveBeenCalled();
     });
 
-    it("标题为空：抛出校验错误且不写入数据库", async () => {
+    it("标题为空：抛出校验错误且不调用云函数", async () => {
       mockAuth.user = { uid: "test-uid" };
 
       await expect(
         createIdea({ title: "   ", summary: "正文", topic: "话题", tags: [] })
       ).rejects.toThrow("标题不能为空");
 
-      expect(mockDb._chain.add).not.toHaveBeenCalled();
+      expect(mockCallFunction).not.toHaveBeenCalled();
     });
 
-    it("用户名回退：无 nickname 时使用 username", async () => {
+    it("云函数返回失败（如服务端审核拦截）：抛出错误", async () => {
+      mockAuth.user = { uid: "test-uid" };
+      mockCallFunction.mockResolvedValue({
+        result: { ok: false, error: "内容包含涉黄信息，请修改后重试" },
+      });
+
+      await expect(
+        createIdea({ title: "标题", summary: "摘要", topic: "话题", tags: [] })
+      ).rejects.toThrow("涉黄");
+
+      expect(mockReputation.awardReputation).not.toHaveBeenCalled();
+    });
+
+    it("用户名回退：无 nickname 时以 username 作为 author 传给云函数", async () => {
       mockAuth.user = { uid: "test-uid", username: "uname" };
-      mockDb._chain.add.mockResolvedValue({ id: "new-id" });
+      mockCallFunction.mockResolvedValue({
+        result: { ok: true, data: { ...cloudIdeaDoc, author: "uname" } },
+      });
 
       const result = await createIdea({
         title: "标题",
@@ -351,6 +375,11 @@ describe("ideas", () => {
         tags: [],
       });
 
+      expect(mockCallFunction).toHaveBeenCalledWith(
+        expect.objectContaining({
+          data: expect.objectContaining({ author: "uname" }),
+        })
+      );
       expect(result?.author).toBe("uname");
     });
   });
@@ -412,11 +441,10 @@ describe("ideas", () => {
   });
 
   describe("updateIdea", () => {
-    it("成功：作者更新自己的灵感返回 true", async () => {
+    // #404 改走云函数：所有权校验与审核在服务端执行
+    it("成功：调用云函数并返回 true", async () => {
       mockAuth.user = { uid: "test-uid" };
-      mockDb._docRef.get.mockResolvedValue({
-        data: [{ _id: "i1", authorUid: "test-uid", title: "旧标题" }],
-      });
+      mockCallFunction.mockResolvedValue({ result: { ok: true, data: { updated: true } } });
 
       const result = await updateIdea("i1", {
         title: "新标题",
@@ -425,17 +453,25 @@ describe("ideas", () => {
       });
 
       expect(result).toBe(true);
-      expect(mockDb._docRef.update).toHaveBeenCalledTimes(1);
-      expect(mockDb._docRef.update).toHaveBeenCalledWith({
-        title: "新标题",
-        summary: "新摘要",
-        tags: ["t1"],
+      expect(mockCallFunction).toHaveBeenCalledWith({
+        name: "content-actions",
+        data: {
+          action: "updateIdea",
+          ideaId: "i1",
+          title: "新标题",
+          summary: "新摘要",
+          tags: ["t1"],
+        },
       });
+      // 不再直写数据库
+      expect(mockDb._docRef.update).not.toHaveBeenCalled();
     });
 
-    it("灵感不存在：返回 false 且不调用 update", async () => {
+    it("灵感不存在：返回 false", async () => {
       mockAuth.user = { uid: "test-uid" };
-      mockDb._docRef.get.mockResolvedValue({ data: [] });
+      mockCallFunction.mockResolvedValue({
+        result: { ok: false, error: "灵感不存在" },
+      });
 
       const result = await updateIdea("missing", {
         title: "新标题",
@@ -444,30 +480,38 @@ describe("ideas", () => {
       });
 
       expect(result).toBe(false);
-      expect(mockDb._docRef.update).not.toHaveBeenCalled();
     });
 
     it("非作者：抛出'无权编辑他人灵感'", async () => {
       mockAuth.user = { uid: "test-uid" };
-      mockDb._docRef.get.mockResolvedValue({
-        data: [{ _id: "i1", authorUid: "other-uid", title: "x" }],
+      mockCallFunction.mockResolvedValue({
+        result: { ok: false, error: "无权编辑他人灵感" },
       });
 
       await expect(
         updateIdea("i1", { title: "新", summary: "新", tags: [] })
       ).rejects.toThrow("无权编辑他人灵感");
-
-      expect(mockDb._docRef.update).not.toHaveBeenCalled();
     });
 
-    it("未登录：抛出'请先登录'", async () => {
+    it("服务端审核拦截：抛出错误", async () => {
+      mockAuth.user = { uid: "test-uid" };
+      mockCallFunction.mockResolvedValue({
+        result: { ok: false, error: "内容包含敏感词: 广告" },
+      });
+
+      await expect(
+        updateIdea("i1", { title: "新", summary: "新", tags: [] })
+      ).rejects.toThrow("敏感词");
+    });
+
+    it("未登录：抛出'请先登录'且不调用云函数", async () => {
       mockAuth.user = null;
 
       await expect(
         updateIdea("i1", { title: "新", summary: "新", tags: [] })
       ).rejects.toThrow("请先登录");
 
-      expect(mockDb._docRef.update).not.toHaveBeenCalled();
+      expect(mockCallFunction).not.toHaveBeenCalled();
     });
   });
 

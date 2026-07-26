@@ -1,7 +1,7 @@
 {
-  "version": "1.4.0",
+  "version": "1.5.0",
   "description": "CloudBase NoSQL 数据库安全规则 - 防止客户端越权访问",
-  "lastUpdated": "2026-07-14",
+  "lastUpdated": "2026-07-26",
   "collections": {
     "posts": {
       "permission": "CUSTOM",
@@ -19,13 +19,13 @@
       "permission": "CUSTOM",
       "securityRule": {
         "read": "auth.uid != null",
-        "create": "auth.uid != null",
+        "create": "auth.uid == null",
         "write": "auth.uid != null && doc.authorUid == auth.uid",
         "update": "auth.uid != null && doc.authorUid == auth.uid",
         "delete": "auth.uid != null && doc.authorUid == auth.uid"
       },
       "ownerField": "authorUid",
-      "note": "create 允许登录用户创建；update/delete 收紧为作者限定；共鸣/评论通过 content-actions 云函数执行 (#400)"
+      "note": "#404 create 收紧为禁止客户端直写（创建/编辑/共鸣/评论/删除全部通过 content-actions 云函数执行，接入服务端审核）；update/delete 保留作者限定作为纵深防御"
     },
     "books": {
       "permission": "CUSTOM",
@@ -43,13 +43,13 @@
       "permission": "CUSTOM",
       "securityRule": {
         "read": "auth.uid != null",
-        "create": "auth.uid != null",
+        "create": "auth.uid == null",
         "write": "auth.uid != null && doc.creatorUid == auth.uid",
         "update": "auth.uid != null && doc.creatorUid == auth.uid",
         "delete": "auth.uid != null && doc.creatorUid == auth.uid"
       },
       "ownerField": "creatorUid",
-      "note": "update 收紧为作者限定；参与者加入/批注通过 content-actions 云函数执行"
+      "note": "#404 create 收紧为禁止客户端直写（创建/元信息编辑通过 content-actions 云函数执行，接入服务端审核）；update 保留创建者限定（作品集标记等仍为创建者直写）；参与者加入/批注/正文通过云函数执行"
     },
     "votes": {
       "permission": "CUSTOM",
@@ -101,13 +101,13 @@
       "permission": "CUSTOM",
       "securityRule": {
         "read": "auth.uid != null && doc.uid == auth.uid",
-        "create": "auth.uid != null",
+        "create": "auth.uid == null",
         "write": "auth.uid != null && doc.uid == auth.uid",
         "update": "auth.uid != null && doc.uid == auth.uid",
         "delete": "auth.uid != null && doc.uid == auth.uid"
       },
       "ownerField": "uid",
-      "note": "通知由客户端创建，用户只能读/改/删自己的通知"
+      "note": "#40 create 收紧为禁止客户端直写（通知经 content-actions 云函数创建，actorUid 取自登录态防冒充）；用户只能读/改/删自己的通知"
     },
     "reports": {
       "permission": "CUSTOM",
