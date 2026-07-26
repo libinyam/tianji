@@ -13,6 +13,7 @@ import {
   Coffee,
   Heart,
   Hash,
+  Trophy,
 } from "lucide-react";
 import { fetchHotPosts } from "@/lib/posts";
 import { fetchFollowedTags } from "@/lib/follows";
@@ -23,6 +24,7 @@ const MODULES = [
   { to: "/library", icon: BookOpen, label: "资源库", desc: "按学习阶段整理的资源与教程" },
   { to: "/ideas", icon: Lightbulb, label: "灵感广场", desc: "项目创意与研究思路交流" },
   { to: "/workshop", icon: PenLine, label: "协作工坊", desc: "多人协同的项目创作空间" },
+  { to: "/leaderboard", icon: Trophy, label: "声望榜", desc: "社区贡献者排行与成就徽章" },
 ];
 
 const ONBOARDING_STEPS = [

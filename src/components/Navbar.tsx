@@ -23,6 +23,7 @@ const NAV = [
   { to: "/ideas", label: "灵感广场" },
   { to: "/workshop", label: "协作工坊" },
   { to: "/portfolio", label: "作品集" },
+  { to: "/leaderboard", label: "声望榜" },
 ];
 
 interface NavbarProps {

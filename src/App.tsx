@@ -36,6 +36,7 @@ function lazyWithReload<T extends ComponentType<unknown>>(factory: () => Promise
 const About = lazyWithReload(() => import("@/pages/About"));
 const GrowthPath = lazyWithReload(() => import("@/pages/GrowthPath"));
 const Portfolio = lazyWithReload(() => import("@/pages/Portfolio"));
+const Leaderboard = lazyWithReload(() => import("@/pages/Leaderboard"));
 const Library = lazyWithReload(() => import("@/pages/Library"));
 const BookDetail = lazyWithReload(() => import("@/pages/BookDetail"));
 const DiscussionDetail = lazyWithReload(() => import("@/pages/DiscussionDetail"));
@@ -87,6 +88,7 @@ export default function App() {
                   <Route path="/about" element={<About />} />
                   <Route path="/growth" element={<GrowthPath />} />
                   <Route path="/portfolio" element={<Portfolio />} />
+                  <Route path="/leaderboard" element={<Leaderboard />} />
                   <Route path="/library" element={<Library />} />
                   <Route path="/library/:id" element={<BookDetail />} />
                   <Route path="/discussion" element={<DiscussionRedirect />} />

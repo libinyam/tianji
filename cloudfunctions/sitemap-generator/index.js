@@ -49,6 +49,7 @@ const STATIC_PAGES = [
   { loc: `${SITE}/ideas`, changefreq: "daily", priority: "0.8" },
   { loc: `${SITE}/workshop`, changefreq: "weekly", priority: "0.8" },
   { loc: `${SITE}/portfolio`, changefreq: "weekly", priority: "0.6" },
+  { loc: `${SITE}/leaderboard`, changefreq: "daily", priority: "0.6" },
   { loc: `${SITE}/growth`, changefreq: "monthly", priority: "0.6" },
   { loc: `${SITE}/about`, changefreq: "monthly", priority: "0.6" },
 ];
