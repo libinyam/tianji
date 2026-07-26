@@ -263,6 +263,52 @@ async function createPost(event, uid) {
   });
 }
 
+/**
+ * #154 @提及:内容中的 @昵称 与线程参与者快照匹配(中文昵称无词边界,
+ * 直接做 `@昵称` 子串匹配),排除自己与已获直接通知者,去重后写 mention 通知。
+ * 只匹配线程内出现过的参与者,天然避免全站重名歧义与批量骚扰。
+ */
+function collectMentionTargets(content, candidates, excludeUids) {
+  const text = String(content || "");
+  const excluded = new Set(excludeUids.filter(Boolean));
+  const targets = new Map();
+  for (const c of candidates) {
+    if (!c || !c.authorUid || !c.author || c.author === "匿名用户") continue;
+    if (excluded.has(c.authorUid) || targets.has(c.authorUid)) continue;
+    if (text.includes(`@${c.author}`)) targets.set(c.authorUid, c.author);
+  }
+  return Array.from(targets.keys());
+}
+
+async function notifyMentions({
+  content,
+  candidates,
+  excludeUids,
+  actorUid,
+  actorName,
+  title,
+  link,
+}) {
+  const targets = collectMentionTargets(content, candidates, [...excludeUids, actorUid]);
+  for (const targetUid of targets) {
+    try {
+      await db.collection("notifications").add({
+        uid: targetUid,
+        actor: String(actorName || "").slice(0, 50) || "匿名用户",
+        actorUid,
+        type: "mention",
+        title: String(title || "").slice(0, 200),
+        link,
+        read: false,
+        createdAt: new Date().toISOString(),
+      });
+    } catch {
+      // 通知失败不阻断主流程
+    }
+  }
+  return targets.length;
+}
+
 async function submitAnswer(event, uid) {
   const { postId, content, author } = event;
   if (!postId || !content) return fail("缺少参数");
@@ -321,6 +367,23 @@ async function submitAnswer(event, uid) {
     } catch {}
   }
 
+  // #154 @提及线程参与者(帖子作者已获 answer 通知,排除避免重复)
+  await notifyMentions({
+    content: answer.content,
+    candidates: [
+      { author: post.author, authorUid: post.authorUid },
+      ...(post.answerList || []).flatMap((a) => [
+        { author: a.author, authorUid: a.authorUid },
+        ...(a.comments || []).map((c) => ({ author: c.author, authorUid: c.authorUid })),
+      ]),
+    ],
+    excludeUids: [post.authorUid],
+    actorUid: uid,
+    actorName: answer.author,
+    title: post.title || "",
+    link: `/discussion/${postId}`,
+  });
+
   return ok(answer);
 }
 
@@ -369,6 +432,23 @@ async function submitComment(event, uid) {
   const fieldPath = `answerList.${idx}.comments`;
   await docRef.update({
     [fieldPath]: _.push([comment]),
+  });
+
+  // #154 @提及线程参与者(回答作者由客户端发 comment 直接通知,排除避免重复)
+  await notifyMentions({
+    content: comment.content,
+    candidates: [
+      { author: post.author, authorUid: post.authorUid },
+      ...answerList.flatMap((a) => [
+        { author: a.author, authorUid: a.authorUid },
+        ...(a.comments || []).map((c) => ({ author: c.author, authorUid: c.authorUid })),
+      ]),
+    ],
+    excludeUids: [answerList[idx].authorUid],
+    actorUid: uid,
+    actorName: comment.author,
+    title: post.title || "",
+    link: `/discussion/${postId}`,
   });
 
   return ok(comment);
@@ -564,6 +644,20 @@ async function addIdeaComment(event, uid) {
   await docRef.update({
     comments: _.push([comment]),
     replies: _.inc(1),
+  });
+
+  // #154 @提及灵感评论区参与者(灵感作者由客户端发 comment 直接通知,排除避免重复)
+  await notifyMentions({
+    content: comment.content,
+    candidates: [
+      { author: idea.author, authorUid: idea.authorUid },
+      ...(idea.comments || []).map((c) => ({ author: c.author, authorUid: c.authorUid })),
+    ],
+    excludeUids: [idea.authorUid],
+    actorUid: uid,
+    actorName: comment.author,
+    title: idea.title || "",
+    link: `/ideas/${ideaId}`,
   });
 
   // 返回作者信息供前端发通知（legacy 灵感缺 authorUid 时为空串）
@@ -1461,6 +1555,7 @@ const NOTIFICATION_TYPES = [
   "accept",
   "follow",
   "workshop",
+  "mention",
 ];
 
 /**

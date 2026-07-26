@@ -12,6 +12,7 @@ import {
   MessageSquare,
   CheckCircle,
   UserPlus,
+  AtSign,
 } from "lucide-react";
 import {
   fetchNotifications,
@@ -33,6 +34,7 @@ const TYPE_ICON: Record<NotificationType, typeof Bell> = {
   contribute: Lightbulb,
   accept: CheckCircle,
   follow: UserPlus,
+  mention: AtSign,
 };
 
 export default function NotificationBell() {
