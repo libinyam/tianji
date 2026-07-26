@@ -112,6 +112,7 @@ function toProject(doc: WorkshopDoc): WorkshopProject {
 /** 获取所有协作项目 */
 export async function fetchWorkshops(): Promise<WorkshopProject[]> {
   try {
+    await authReady; // #345/#402 等匿名身份就绪，避免新访客首屏 401
     const { data } = await db
       .collection(COLLECTION)
       .orderBy("createdAt", "desc")

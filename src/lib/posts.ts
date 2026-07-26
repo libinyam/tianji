@@ -149,6 +149,7 @@ export async function fetchHotPosts(limit = 5): Promise<Question[]> {
 /** 获取单个帖子详情 */
 export async function fetchPostById(id: string): Promise<Question | null> {
   try {
+    await authReady; // #345/#402 等匿名身份就绪，避免新访客深链 401 误报"帖子不存在"
     const { data } = await db
       .collection(POSTS_COLLECTION)
       .doc(id)

@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo, type ComponentPropsWithoutRef } from "react";
+import { useState, useEffect, useMemo, memo, type ComponentPropsWithoutRef } from "react";
 import ReactMarkdown from "react-markdown";
 import remarkMath from "remark-math";
 import remarkGfm from "remark-gfm";
@@ -91,8 +91,11 @@ interface MarkdownRendererProps {
  * - cloud:// fileID 图片自动兑换临时 URL
  *
  * 替代 LazyMathText 用于新内容渲染。旧内容（纯文本 + $...$）向后兼容。
+ *
+ * #408 用 React.memo 包裹：详情页输入回答/评论时整页重渲染，若无 memo，
+ * 正文和每条回答/评论都会在每个按键上重跑 remark/KaTeX/highlight 解析。
  */
-export default function MarkdownRenderer({ content, className = "" }: MarkdownRendererProps) {
+function MarkdownRenderer({ content, className = "" }: MarkdownRendererProps) {
   const components = useMemo(
     () => ({
       // 图片：处理 cloud:// fileID
@@ -177,3 +180,5 @@ export default function MarkdownRenderer({ content, className = "" }: MarkdownRe
     </div>
   );
 }
+
+export default memo(MarkdownRenderer);

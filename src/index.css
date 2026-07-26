@@ -43,10 +43,10 @@
   --c-parchment-200: #374151;
   --c-parchment-300: #4b5563;
 
-  /* 次要文字 */
+  /* 次要文字（#412 最浅一档需满足 WCAG AA 4.5:1，白底下限约 #6b7280） */
   --c-mist-300: #4b5563;
-  --c-mist-400: #6b7280;
-  --c-mist-500: #9ca3af;
+  --c-mist-400: #5b6472;
+  --c-mist-500: #6b7280;
 
   --bg-body: #ffffff;
   --color-body: #1f2937;
@@ -99,9 +99,10 @@
   --c-parchment-200: #e5e7eb;
   --c-parchment-300: #d1d5db;
 
+  /* #412 最浅一档在 #111113 底上同样需 ≥4.5:1（#6b7280 仅 3.8:1） */
   --c-mist-300: #d1d5db;
   --c-mist-400: #9ca3af;
-  --c-mist-500: #6b7280;
+  --c-mist-500: #8a919e;
 
   --bg-body: #111113;
   --color-body: #e5e7eb;

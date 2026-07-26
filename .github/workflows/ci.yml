@@ -31,7 +31,10 @@ jobs:
         run: npm run test:coverage
 
       - name: Check for known vulnerabilities
-        # #332 critical 漏洞阻止合并；high 暂时允许（@cloudbase/node-sdk 锁定 axios@0.27.2 无法升级）
+        # #332 critical 漏洞阻止合并；high 暂时允许——react-router 的 RSC CSRF
+        # advisory（GHSA-qwww-vcr4-c8h2）在 7.x 无修复版，需 v8 迁移（#405），
+        # 且本项目为纯 SPA 不使用 RSC，实际不可利用。v8 迁移完成后应收紧为：
+        # 生产依赖 npm audit --omit=dev --audit-level=high
         # 使用官方 registry 确保能访问 audit endpoint（npmmirror 不支持）
         # 不设 continue-on-error（默认 false），检出 critical 漏洞时 CI 失败、阻断合入
         run: npm audit --audit-level=critical --registry=https://registry.npmjs.org
