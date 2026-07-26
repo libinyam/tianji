@@ -139,18 +139,32 @@ export async function ensureTags(names: string[]): Promise<void> {
   }
 }
 
-/** 跨内容类型聚合：查询某个标签下的所有内容 */
-export async function fetchContentByTag(tagName: string): Promise<{
+/** 跨内容类型聚合：查询某个标签下的所有内容。
+ *  #410 加字段投影（extract 只消费标题/摘要/作者/时间，此前把完整正文和
+ *  全部回答都拉了下来）；limit 参数化——标签详情页用默认 50，
+ *  RelatedContent 只渲染每组 3 条，传 5 即可 */
+export async function fetchContentByTag(
+  tagName: string,
+  limit = 50
+): Promise<{
   posts: TagContentItem[];
   ideas: TagContentItem[];
   books: TagContentItem[];
   workshops: TagContentItem[];
 }> {
   const [postsRes, ideasRes, booksRes, workshopsRes] = await Promise.allSettled([
-    db.collection("posts").where({ tags: tagName }).orderBy("createdAt", "desc").limit(50).get(),
-    db.collection("ideas").where({ tags: tagName }).orderBy("createdAt", "desc").limit(50).get(),
-    db.collection("books").where({ tags: tagName }).orderBy("createdAt", "desc").limit(50).get(),
-    db.collection("workshops").where({ tags: tagName }).orderBy("createdAt", "desc").limit(50).get(),
+    db.collection("posts").where({ tags: tagName })
+      .field({ title: true, excerpt: true, author: true, createdAt: true })
+      .orderBy("createdAt", "desc").limit(limit).get(),
+    db.collection("ideas").where({ tags: tagName })
+      .field({ title: true, summary: true, author: true, createdAt: true })
+      .orderBy("createdAt", "desc").limit(limit).get(),
+    db.collection("books").where({ tags: tagName })
+      .field({ title: true, summary: true, author: true, createdAt: true })
+      .orderBy("createdAt", "desc").limit(limit).get(),
+    db.collection("workshops").where({ tags: tagName })
+      .field({ title: true, description: true, creator: true, createdAt: true })
+      .orderBy("createdAt", "desc").limit(limit).get(),
   ]);
 
   const extract = (
@@ -245,9 +259,10 @@ export async function fetchRelatedContent(
 }> {
   if (!tags.length) return { posts: [], ideas: [], books: [], workshops: [] };
 
-  // 只取前2个标签查询，避免过多数据库请求
+  // 只取前2个标签查询，避免过多数据库请求；#410 每模块只展示 3 条，
+  // limit(5) 留去重/排除余量即可，此前 limit(50) 丢弃 97% 数据
   const queryTags = tags.slice(0, 2);
-  const results = await Promise.all(queryTags.map((t) => fetchContentByTag(t)));
+  const results = await Promise.all(queryTags.map((t) => fetchContentByTag(t, 5)));
 
   const mergeUnique = (key: "posts" | "ideas" | "books" | "workshops"): TagContentItem[] => {
     const map = new Map<string, TagContentItem>();

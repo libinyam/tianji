@@ -6,6 +6,7 @@ const mockDb = vi.hoisted(() => {
     limit: vi.fn().mockReturnThis(),
     where: vi.fn().mockReturnThis(),
     skip: vi.fn().mockReturnThis(),
+    field: vi.fn().mockReturnThis(),
     get: vi.fn(),
     add: vi.fn(),
     update: vi.fn(),
