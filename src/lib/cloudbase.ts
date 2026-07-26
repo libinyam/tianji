@@ -1,3 +1,8 @@
+// 注意（#406 调查结论，2026-07-26）：不要改成 "@cloudbase/js-sdk/app" 子包按需引入。
+// 3.6.2 的子包发布不完整——exports 映射的 ./database 指向不存在的
+// database/dist/index.esm.js，该目录实为内嵌的底层 @cloudbase/database 查询构建器，
+// 无 registerDatabase 能力模块；/auth 也需显式 registerAuth 而非副作用导入。
+// 体积优化需等 SDK 修复子包发布或改为动态 import 架构，详见 issue #406。
 import cloudbase from "@cloudbase/js-sdk";
 
 // CloudBase 环境配置 - 从环境变量读取，避免硬编码

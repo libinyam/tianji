@@ -74,6 +74,34 @@ export interface PostsResult {
 
 const POSTS_PAGE_SIZE = 20;
 
+/**
+ * #407 列表查询字段投影：排除 body 全文与 answerList 内的 content/comments。
+ * 此前列表把每篇帖子的完整正文和全部回答（含评论）都拉下来，payload 随
+ * 回答数线性无上限增长。活动列（最后回复者头像+时间）只需要回答的三个
+ * 小字段，用点路径投影保留。详情页 fetchPostById 不投影，仍取全文档。
+ */
+const LIST_FIELDS = {
+  title: true,
+  excerpt: true,
+  tags: true,
+  author: true,
+  authorUid: true,
+  avatarColor: true,
+  bounty: true,
+  category: true,
+  subCategory: true,
+  views: true,
+  votes: true,
+  answersCount: true,
+  createdAt: true,
+  pinned: true,
+  locked: true,
+  featured: true,
+  "answerList.date": true,
+  "answerList.author": true,
+  "answerList.avatarColor": true,
+};
+
 /** 获取帖子列表，可按分区和子分类筛选，按时间倒序。
  *  支持分页加载，通过 offset 指定起始位置（#278）。
  *  返回 {data, error, hasMore} 结构，调用方可区分「无数据」和「请求失败」 */
@@ -94,8 +122,8 @@ export async function fetchPosts(
     if (subCategory) whereCond.subCategory = subCategory;
     if (tag && tag !== "全部") whereCond.tags = tag;
     const { data } = Object.keys(whereCond).length
-      ? await col.where(whereCond).orderBy("pinned", "desc").orderBy("createdAt", "desc").skip(skip).limit(page).get()
-      : await col.orderBy("pinned", "desc").orderBy("createdAt", "desc").skip(skip).limit(page).get();
+      ? await col.where(whereCond).field(LIST_FIELDS).orderBy("pinned", "desc").orderBy("createdAt", "desc").skip(skip).limit(page).get()
+      : await col.field(LIST_FIELDS).orderBy("pinned", "desc").orderBy("createdAt", "desc").skip(skip).limit(page).get();
 
     const realPosts = ((data as PostDoc[]) ?? []).map(toQuestion);
     return { data: realPosts, error: null, hasMore: realPosts.length === page };
@@ -120,6 +148,7 @@ export async function fetchFollowingPosts(): Promise<PostsResult> {
     const { data } = await db
       .collection(POSTS_COLLECTION)
       .where({ authorUid: _.in(uids) })
+      .field(LIST_FIELDS)
       .orderBy("createdAt", "desc")
       .limit(POSTS_PAGE_SIZE)
       .get();
@@ -137,6 +166,7 @@ export async function fetchHotPosts(limit = 5): Promise<Question[]> {
     await authReady; // #345 等匿名身份就绪，避免新访客首屏 401
     const { data } = await db
       .collection(POSTS_COLLECTION)
+      .field(LIST_FIELDS)
       .orderBy("views", "desc")
       .limit(limit)
       .get();

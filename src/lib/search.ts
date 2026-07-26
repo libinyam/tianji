@@ -83,6 +83,18 @@ export async function searchAll(
       db
         .collection("posts")
         .where(_.or([{ title: regex }, { excerpt: regex }, { body: regex }]))
+        // #407 正则匹配在数据库端执行，结果只需列表小字段；
+        // 排除 body 全文与 answerList，一次搜索不再传输最多 100 篇完整文档
+        .field({
+          title: true,
+          excerpt: true,
+          tags: true,
+          author: true,
+          views: true,
+          votes: true,
+          answersCount: true,
+          createdAt: true,
+        })
         .limit(100)
         .get()
         .then(({ data }) => {
@@ -236,6 +248,8 @@ export async function fetchHotList(): Promise<HotItem[]> {
   const tasks: Promise<void>[] = [
     db
       .collection("posts")
+      // #407 榜单只需标题与计数，排除 body/answerList 全文
+      .field({ title: true, views: true, votes: true, answersCount: true })
       .orderBy("views", "desc")
       .limit(10)
       .get()
