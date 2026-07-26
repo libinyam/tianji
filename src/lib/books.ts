@@ -119,6 +119,7 @@ export async function fetchBooks(): Promise<{ data: Book[]; error: boolean }> {
 /** 获取单本书籍详情 */
 export async function fetchBookById(id: string): Promise<Book | null> {
   try {
+    await authReady; // #345/#402 等匿名身份就绪，避免新访客深链 401 误报"未找到"
     const { data } = await db
       .collection(BOOKS_COLLECTION)
       .doc(id)
