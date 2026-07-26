@@ -19,6 +19,15 @@
       "triggers": [
         { "name": "daily-sitemap", "type": "timer", "config": "0 0 4 * * * *" }
       ]
+    },
+    {
+      "name": "prerender-posts",
+      "handler": "index.main",
+      "timeout": 60,
+      "ignore": ["*.test.js"],
+      "triggers": [
+        { "name": "daily-prerender", "type": "timer", "config": "0 30 4 * * * *" }
+      ]
     }
   ],
   "hosting": {

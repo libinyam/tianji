@@ -1,0 +1,10 @@
+{
+  "name": "prerender-posts",
+  "version": "1.0.0",
+  "description": "为 top-N 帖子生成带专属 meta 的预渲染页写入静态托管 (#333)",
+  "main": "index.js",
+  "dependencies": {
+    "@cloudbase/node-sdk": "^4.0.0",
+    "cos-nodejs-sdk-v5": "^3.0.0"
+  }
+}
