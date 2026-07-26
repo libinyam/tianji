@@ -173,7 +173,7 @@ export async function updateIdea(
   return true;
 }
 
-/** 添加评论 */
+/** 添加评论（#400 走云函数：绕过 ideas 仅作者可 update 的安全规则，并获得服务端审核） */
 export async function addIdeaComment(ideaId: string, content: string): Promise<IdeaComment | null> {
   const uid = getCurrentUid();
   if (!uid) throw new Error("请先登录");
@@ -182,31 +182,30 @@ export async function addIdeaComment(ideaId: string, content: string): Promise<I
   // Sanitize input
   const cleanContent = sanitizeInput(content.trim());
 
-  const docRef = db.collection(IDEAS_COLLECTION).doc(ideaId);
-  const { data } = await docRef.get();
-  if (!data || data.length === 0) return null;
-
-  const idea = data[0] as IdeaDoc;
-  const comment: IdeaComment = {
-    id: `c_${crypto.randomUUID()}`,
-    author: getCurrentUserName(),
-    authorUid: uid,
-    avatarColor: AVATAR_COLORS[Math.floor(Math.random() * AVATAR_COLORS.length)],
-    content: cleanContent,
-    createdAt: new Date().toISOString(),
-  };
-
-  await docRef.update({
-    comments: db.command.push([comment]),
-    replies: db.command.inc(1),
+  const res = await app.callFunction({
+    name: "content-actions",
+    data: { action: "addIdeaComment", ideaId, content: cleanContent, author: getCurrentUserName() },
   });
+  const result = (res?.result ?? {}) as {
+    ok?: boolean;
+    error?: string;
+    data?: { comment?: IdeaComment; ideaTitle?: string; ideaAuthorUid?: string };
+  };
+  if (!result.ok) {
+    // 与旧实现一致：灵感已被删除时返回 null，由调用方给出友好提示
+    if (result.error === "灵感不存在") return null;
+    throw new Error(result.error || "评论失败，请重试");
+  }
+  const comment = result.data?.comment;
+  if (!comment) return null;
 
   // 通知灵感作者（legacy 灵感缺 authorUid 时不写无主通知 #115）
-  if (idea.authorUid && idea.authorUid !== uid) {
+  const ideaAuthorUid = result.data?.ideaAuthorUid;
+  if (ideaAuthorUid && ideaAuthorUid !== uid) {
     await createNotification({
-      uid: idea.authorUid,
+      uid: ideaAuthorUid,
       type: "comment",
-      title: idea.title,
+      title: result.data?.ideaTitle ?? "",
       link: `/ideas/${ideaId}`,
     }).catch(() => {});
   }
@@ -214,26 +213,21 @@ export async function addIdeaComment(ideaId: string, content: string): Promise<I
   return comment;
 }
 
-/** 删除评论（仅作者） */
+/** 删除评论（仅作者，#400 走云函数） */
 export async function deleteIdeaComment(ideaId: string, commentId: string): Promise<boolean> {
   const uid = getCurrentUid();
   if (!uid) throw new Error("请先登录");
 
-  const docRef = db.collection(IDEAS_COLLECTION).doc(ideaId);
-  const { data } = await docRef.get();
-  if (!data || data.length === 0) return false;
-
-  const idea = data[0] as IdeaDoc;
-  const comments = idea.comments ?? [];
-  const comment = comments.find((c) => c.id === commentId);
-  if (!comment) return false;
-  if (comment.authorUid !== uid) throw new Error("无权删除他人评论");
-
-  await docRef.update({
-    comments: db.command.pull({ id: commentId }),
-    replies: db.command.inc(-1),
+  const res = await app.callFunction({
+    name: "content-actions",
+    data: { action: "deleteIdeaComment", ideaId, commentId },
   });
-
+  const result = (res?.result ?? {}) as { ok?: boolean; error?: string };
+  if (!result.ok) {
+    // 与旧实现一致：目标不存在返回 false，越权等其余错误抛出
+    if (result.error === "灵感不存在" || result.error === "评论不存在") return false;
+    throw new Error(result.error || "删除失败，请重试");
+  }
   return true;
 }
 

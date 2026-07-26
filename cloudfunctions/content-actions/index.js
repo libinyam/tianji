@@ -360,6 +360,69 @@ async function deleteIdea(event, uid) {
   return ok({ deleted: true });
 }
 
+/**
+ * #400 灵感评论（以 admin 权限绕过 ideas 仅作者可 update 的安全规则，
+ * 否则非作者评论他人灵感会被规则拒绝）。含文本审核，与 posts 评论一致。
+ */
+async function addIdeaComment(event, uid) {
+  const { ideaId, content, author } = event;
+  if (!ideaId || !content) return fail("缺少参数");
+
+  if (await isBanned(uid)) return fail("您的账号已被封禁");
+
+  // #289 文本审核
+  const modResult = await moderateText(content, uid, "addIdeaComment");
+  await logModeration({ uid, action: "addIdeaComment", ideaId, suggestion: modResult.suggestion, label: modResult.label, score: modResult.score, textPreview: String(content).slice(0, 200) });
+  if (!modResult.passed) return fail(moderationRejectMessage(modResult));
+
+  const docRef = db.collection("ideas").doc(ideaId);
+  const { data } = await docRef.get();
+  if (!data || data.length === 0) return fail("灵感不存在");
+
+  const idea = data[0];
+  // #367 author 由前端传入（与 submitComment 一致）
+  const comment = {
+    id: `c_${Date.now()}_${Math.random().toString(36).slice(2, 10)}`,
+    author: String(author || "").slice(0, 50) || "匿名用户",
+    authorUid: uid,
+    avatarColor: AVATAR_COLORS[Math.floor(Math.random() * AVATAR_COLORS.length)],
+    content: String(content).slice(0, 5000),
+    createdAt: new Date().toISOString(),
+  };
+
+  await docRef.update({
+    comments: _.push([comment]),
+    replies: _.inc(1),
+  });
+
+  // 返回作者信息供前端发通知（legacy 灵感缺 authorUid 时为空串）
+  return ok({ comment, ideaTitle: idea.title || "", ideaAuthorUid: idea.authorUid || "" });
+}
+
+/** #400 删除灵感评论（仅评论作者） */
+async function deleteIdeaComment(event, uid) {
+  const { ideaId, commentId } = event;
+  if (!ideaId || !commentId) return fail("缺少参数");
+
+  const docRef = db.collection("ideas").doc(ideaId);
+  const { data } = await docRef.get();
+  if (!data || data.length === 0) return fail("灵感不存在");
+
+  const idea = data[0];
+  const comments = idea.comments || [];
+  const idx = comments.findIndex((c) => c.id === commentId);
+  if (idx === -1) return fail("评论不存在");
+  if (comments[idx].authorUid !== uid) return fail("无权删除他人评论");
+
+  comments.splice(idx, 1);
+  await docRef.update({
+    comments,
+    replies: _.inc(-1),
+  });
+
+  return ok({ deleted: true });
+}
+
 /** 删除回答（仅回答作者） */
 async function deleteAnswer(event, uid) {
   const { postId, answerId } = event;
@@ -1133,6 +1196,10 @@ exports.main = async (event, context) => {
           return await deletePost(event, uid);
         case "deleteIdea":
           return await deleteIdea(event, uid);
+        case "addIdeaComment":
+          return await addIdeaComment(event, uid);
+        case "deleteIdeaComment":
+          return await deleteIdeaComment(event, uid);
         case "updatePost":
           return await updatePost(event, uid);
         case "updateAnswer":
