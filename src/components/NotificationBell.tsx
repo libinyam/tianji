@@ -1,6 +1,5 @@
 import { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
-import { motion, AnimatePresence } from "motion/react";
 import {
   Bell,
   CheckCheck,
@@ -165,14 +164,10 @@ export default function NotificationBell() {
         )}
       </button>
 
-      <AnimatePresence>
-        {open && (
-          <motion.div
-            initial={{ opacity: 0, y: -8, scale: 0.96 }}
-            animate={{ opacity: 1, y: 0, scale: 1 }}
-            exit={{ opacity: 0, y: -8, scale: 0.96 }}
-            transition={{ duration: 0.15 }}
-            className="absolute right-0 top-11 z-50 w-80 overflow-hidden rounded-lg border border-void-600 bg-void-900 shadow-sm"
+      {/* #424 进场动画由 CSS keyframes 实现，替代 motion 依赖 */}
+      {open && (
+          <div
+            className="tj-animate-dropdown-in absolute right-0 top-11 z-50 w-80 overflow-hidden rounded-lg border border-void-600 bg-void-900 shadow-sm"
           >
             {/* 头部 */}
             <div className="flex items-center justify-between border-b border-void-600 px-4 py-2.5">
@@ -232,9 +227,8 @@ export default function NotificationBell() {
                 })
               )}
             </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
+          </div>
+      )}
     </div>
   );
 }

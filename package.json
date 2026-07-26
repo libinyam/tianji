@@ -1,7 +1,7 @@
 {
   "name": "tianji",
   "private": true,
-  "version": "1.0.0",
+  "version": "0.4.0",
   "license": "MIT",
   "type": "module",
   "scripts": {
@@ -25,7 +25,6 @@
     "highlight.js": "^11.11.1",
     "katex": "^0.16.22",
     "lucide-react": "^1.24.0",
-    "motion": "^12.42.2",
     "pdfjs-dist": "^6.1.200",
     "react": "^19.2.7",
     "react-dom": "^19.2.7",

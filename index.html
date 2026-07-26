@@ -17,6 +17,17 @@
         }
       })();
     </script>
+    <!-- #421 首帧前应用主题：React 挂载后才加 .dark 类会导致深色用户每次进站先白闪一下。
+         须与 src/stores/theme.ts 的 STORAGE_KEY 及回退逻辑保持一致 -->
+    <script>
+      (function () {
+        try {
+          var saved = localStorage.getItem('tianji-theme');
+          var dark = saved === 'dark' || (!saved && window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches);
+          if (dark) document.documentElement.classList.add('dark');
+        } catch (e) { /* localStorage 不可用时静默走默认浅色 */ }
+      })();
+    </script>
     <!-- Open Graph -->
     <meta property="og:title" content="天玑 · 跨专业 AI 学习与项目共创社区" />
     <meta property="og:description" content="整合学习资源、工具教程、项目案例与协作空间，帮你从只会学理论，走向能做项目、会协作、能产出。" />
