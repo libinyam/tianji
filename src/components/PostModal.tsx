@@ -1,6 +1,11 @@
 import { useState, useEffect } from "react";
 import { X, Loader2, RotateCcw, GraduationCap, Coffee } from "lucide-react";
-import { createPost, type PostCategory, type CasualSubCategory, CASUAL_SUB_CATEGORIES } from "@/lib/posts";
+import {
+  createPost,
+  type PostCategory,
+  type CasualSubCategory,
+  CASUAL_SUB_CATEGORIES,
+} from "@/lib/posts";
 import { ensureTags } from "@/lib/tags";
 import { rateLimiters } from "@/lib/security";
 import { triggerAiBotReply } from "@/lib/ai";
@@ -21,8 +26,21 @@ interface PostModalProps {
   onPrefillApplied?: () => void;
 }
 
-export default function PostModal({ open, onClose, onCreated, defaultCategory = "academic", prefill, onPrefillApplied }: PostModalProps) {
-  const { value: draft, setValue: setDraft, clearDraft, restored, dismissRestored } = useDraft("tianji-draft-post", {
+export default function PostModal({
+  open,
+  onClose,
+  onCreated,
+  defaultCategory = "academic",
+  prefill,
+  onPrefillApplied,
+}: PostModalProps) {
+  const {
+    value: draft,
+    setValue: setDraft,
+    clearDraft,
+    restored,
+    dismissRestored,
+  } = useDraft("tianji-draft-post", {
     title: "",
     body: "",
     tags: [] as string[],
@@ -85,9 +103,14 @@ export default function PostModal({ open, onClose, onCreated, defaultCategory = 
     setError(null);
     try {
       // 闲聊区：用子分类作为标签；学术区：用用户输入或默认标签
-      const finalTags = category === "casual"
-        ? (subCategory ? [subCategory] : ["闲聊"])
-        : (tags.length > 0 ? tags : ["综合讨论"]);
+      const finalTags =
+        category === "casual"
+          ? subCategory
+            ? [subCategory]
+            : ["闲聊"]
+          : tags.length > 0
+            ? tags
+            : ["综合讨论"];
       const post = await createPost({
         title: title.trim(),
         body: body.trim(),
@@ -110,12 +133,14 @@ export default function PostModal({ open, onClose, onCreated, defaultCategory = 
         triggerAiBotReply({
           postId: post.id,
           replyType: "post",
-        }).then(() => {
-          // AI 回复已异步写入数据库
-        }).catch((err) => {
-          console.error("AI bot error:", err);
-          toast.info("AI回复暂时不可用");
-        });
+        })
+          .then(() => {
+            // AI 回复已异步写入数据库
+          })
+          .catch((err) => {
+            console.error("AI bot error:", err);
+            toast.info("AI回复暂时不可用");
+          });
       }
     } catch (err) {
       setError((err as Error).message);
@@ -136,16 +161,14 @@ export default function PostModal({ open, onClose, onCreated, defaultCategory = 
       <div className="max-h-[90vh] overflow-y-auto">
         <button
           onClick={handleClose}
-          className="absolute right-4 top-4 flex h-8 w-8 items-center justify-center rounded-md text-mist-400 transition-colors hover:bg-void-700/50 hover:text-parchment-100"
+          className="absolute right-4 top-4 flex h-8 w-8 items-center justify-center rounded-md text-mist-400 transition-colors hover:bg-void-700 hover:text-parchment-100"
           aria-label="关闭"
         >
           <X size={18} />
         </button>
 
         <div className="relative">
-          <div className="mb-2 font-mono text-xs uppercase tracking-[0.25em] text-star-300">
-            发起讨论
-          </div>
+          <div className="mb-2 text-xs font-medium text-tian-500">发起讨论</div>
           <h3 id="post-dialog-title" className="heading-display text-2xl text-parchment-50">
             提出你的问题
           </h3>
@@ -157,12 +180,21 @@ export default function PostModal({ open, onClose, onCreated, defaultCategory = 
         <form onSubmit={handleSubmit} className="relative mt-6 space-y-5">
           {/* 草稿恢复提示 */}
           {restored && (
-            <div className="flex items-center justify-between rounded-lg border border-star-400/30 bg-star-400/10 px-3 py-2 text-xs text-star-200">
+            <div className="flex items-center justify-between rounded-lg border border-void-600 bg-void-700 px-3 py-2 text-xs text-parchment-200">
               <span>已恢复上次未发布的草稿</span>
               <div className="flex items-center gap-3">
                 <button
                   type="button"
-                  onClick={() => { setDraft({ title: "", body: "", tags: [], category: defaultCategory, subCategory: "" }); clearDraft(); }}
+                  onClick={() => {
+                    setDraft({
+                      title: "",
+                      body: "",
+                      tags: [],
+                      category: defaultCategory,
+                      subCategory: "",
+                    });
+                    clearDraft();
+                  }}
                   className="flex items-center gap-1 text-mist-300 transition-colors hover:text-parchment-100"
                 >
                   <RotateCcw size={12} /> 清空
@@ -181,10 +213,10 @@ export default function PostModal({ open, onClose, onCreated, defaultCategory = 
           <div>
             <label className="mb-1.5 block text-xs text-mist-400">发布到</label>
             <div className="flex gap-2">
-              {([
+              {[
                 { key: "academic" as PostCategory, label: "学术区", icon: GraduationCap },
                 { key: "casual" as PostCategory, label: "闲聊区", icon: Coffee },
-              ]).map((s) => {
+              ].map((s) => {
                 const Icon = s.icon;
                 const isActive = category === s.key;
                 return (
@@ -192,10 +224,10 @@ export default function PostModal({ open, onClose, onCreated, defaultCategory = 
                     key={s.key}
                     type="button"
                     onClick={() => setCategory(s.key)}
-                    className={`flex items-center gap-1.5 rounded-lg border px-3 py-2 text-sm transition-all ${
+                    className={`flex items-center gap-1.5 rounded-lg border px-3 py-2 text-sm transition-colors ${
                       isActive
-                        ? "border-star-400/40 bg-star-400/10 text-parchment-100"
-                        : "border-void-600/40 bg-void-900/30 text-mist-400 hover:border-mist-400/30"
+                        ? "border-tian-500 bg-void-800 text-tian-500"
+                        : "border-void-600 bg-void-800 text-mist-400 hover:bg-void-700"
                     }`}
                   >
                     <Icon size={14} /> {s.label}
@@ -214,10 +246,10 @@ export default function PostModal({ open, onClose, onCreated, defaultCategory = 
                     key={sc}
                     type="button"
                     onClick={() => setSubCategory(sc)}
-                    className={`rounded-lg border px-3 py-1.5 text-xs transition-all ${
+                    className={`rounded-lg border px-3 py-1.5 text-xs transition-colors ${
                       subCategory === sc
-                        ? "border-tian-400/50 bg-tian-400/15 text-tian-100"
-                        : "border-void-600/40 bg-void-900/30 text-mist-400 hover:border-mist-400/30"
+                        ? "border-tian-500 bg-void-800 text-tian-500"
+                        : "border-void-600 bg-void-800 text-mist-400 hover:bg-void-700"
                     }`}
                   >
                     {sc}
@@ -237,7 +269,7 @@ export default function PostModal({ open, onClose, onCreated, defaultCategory = 
               value={title}
               onChange={(e) => setTitle(e.target.value)}
               placeholder="一句话描述你的问题"
-              className="w-full rounded-lg border border-void-600/50 bg-void-950/50 px-3 py-2.5 text-sm text-parchment-100 placeholder:text-mist-500 focus:border-star-400/50 focus:outline-none focus:ring-1 focus:ring-star-400/30"
+              className="w-full rounded-lg border border-void-600 bg-void-950 px-3 py-2.5 text-sm text-parchment-100 placeholder:text-mist-500 focus:border-tian-500 focus:outline-none focus:ring-1 focus:ring-tian-500/30"
             />
           </div>
 
@@ -245,9 +277,7 @@ export default function PostModal({ open, onClose, onCreated, defaultCategory = 
           <div>
             <label className="mb-1.5 block text-xs text-mist-400">
               正文
-              <span className="ml-2 text-mist-500">
-                支持 Markdown 排版与 LaTeX 公式
-              </span>
+              <span className="ml-2 text-mist-500">支持 Markdown 排版与 LaTeX 公式</span>
             </label>
             <MarkdownEditor
               name="body"
@@ -268,23 +298,19 @@ export default function PostModal({ open, onClose, onCreated, defaultCategory = 
           )}
 
           {error && (
-            <div className="rounded-lg border border-red-400/30 bg-red-400/10 px-3 py-2 text-xs text-red-300">
+            <div className="rounded-lg border border-red-300 bg-red-50 px-3 py-2 text-xs text-red-600">
               {error}
             </div>
           )}
 
           <div className="flex justify-end gap-3">
-            <button
-              type="button"
-              onClick={handleClose}
-              className="btn-ghost"
-            >
+            <button type="button" onClick={handleClose} className="btn-secondary">
               取消
             </button>
             <button
               type="submit"
               disabled={loading || !title.trim() || !body.trim()}
-              className="btn-gold disabled:cursor-not-allowed disabled:opacity-60"
+              className="btn-primary disabled:cursor-not-allowed disabled:opacity-60"
             >
               {loading ? (
                 <>

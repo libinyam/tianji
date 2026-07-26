@@ -4,6 +4,7 @@ import {
   Routes,
   Route,
   Navigate,
+  Link,
   useLocation,
 } from "react-router-dom";
 import Layout from "@/components/Layout";
@@ -15,9 +16,7 @@ import Discussion from "@/pages/Discussion";
  * 包装 lazy，捕获动态 import 失败（新部署后旧 chunk hash 失效）自动刷新页面。
  * 刷新后浏览器获取最新 index.html，引用正确的 chunk 文件名。
  */
-function lazyWithReload<T extends ComponentType<unknown>>(
-  factory: () => Promise<{ default: T }>
-) {
+function lazyWithReload<T extends ComponentType<unknown>>(factory: () => Promise<{ default: T }>) {
   return lazy(() =>
     factory().catch((err: unknown) => {
       const msg = err instanceof Error ? err.message : String(err);
@@ -29,7 +28,7 @@ function lazyWithReload<T extends ComponentType<unknown>>(
         window.location.reload();
       }
       throw err;
-    })
+    }),
   );
 }
 
@@ -54,13 +53,13 @@ function PageFallback() {
   return (
     <div className="container-tj py-8">
       <div className="space-y-4">
-        <div className="animate-pulse rounded bg-void-700/50 h-8 w-64" />
-        <div className="animate-pulse rounded bg-void-700/50 h-4 w-full" />
-        <div className="animate-pulse rounded bg-void-700/50 h-4 w-5/6" />
+        <div className="animate-pulse rounded bg-void-700 h-8 w-64" />
+        <div className="animate-pulse rounded bg-void-700 h-4 w-full" />
+        <div className="animate-pulse rounded bg-void-700 h-4 w-5/6" />
         <div className="mt-6 space-y-3">
-          <div className="animate-pulse rounded-xl bg-void-700/50 h-28 w-full" />
-          <div className="animate-pulse rounded-xl bg-void-700/50 h-28 w-full" />
-          <div className="animate-pulse rounded-xl bg-void-700/50 h-28 w-full" />
+          <div className="animate-pulse rounded-lg bg-void-700 h-28 w-full" />
+          <div className="animate-pulse rounded-lg bg-void-700 h-28 w-full" />
+          <div className="animate-pulse rounded-lg bg-void-700 h-28 w-full" />
         </div>
       </div>
     </div>
@@ -103,9 +102,17 @@ export default function App() {
                   <Route
                     path="*"
                     element={
-                      <div className="container-tj py-40 text-center">
-                        <h1 className="heading-display text-3xl text-parchment-50">迷失在星海</h1>
-                        <p className="mt-3 text-mist-400">你访问的页面不存在，或许它还在被某个星辰书写。</p>
+                      <div className="container-tj py-10 text-center">
+                        <h1 className="heading-display text-2xl text-parchment-50">页面不存在</h1>
+                        <p className="mt-3 text-sm text-mist-400">
+                          你访问的页面不存在，或已被删除。
+                        </p>
+                        <Link
+                          to="/"
+                          className="mt-5 inline-block text-sm text-tian-500 hover:text-tian-600"
+                        >
+                          返回首页
+                        </Link>
                       </div>
                     }
                   />

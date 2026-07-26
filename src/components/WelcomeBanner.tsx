@@ -11,9 +11,7 @@ const STORAGE_KEY = "tianji:welcome-dismissed";
  * 避免已登录用户在会话检查完成前看到横幅闪现。
  */
 export default function WelcomeBanner() {
-  const [dismissed, setDismissed] = useState(
-    () => localStorage.getItem(STORAGE_KEY) === "1"
-  );
+  const [dismissed, setDismissed] = useState(() => localStorage.getItem(STORAGE_KEY) === "1");
   const { user } = useAuthStore();
 
   // 登录过的设备不再展示
@@ -32,16 +30,16 @@ export default function WelcomeBanner() {
   };
 
   return (
-    <div className="mb-4 flex items-start gap-3 rounded-md border border-star-400/20 bg-star-400/5 px-3 py-2.5 text-sm">
-      <Sparkles size={14} className="mt-0.5 shrink-0 text-star-300" />
+    <div className="mb-4 flex items-start gap-3 rounded-md border border-void-600 bg-void-700 px-3 py-2.5 text-sm">
+      <Sparkles size={14} className="mt-0.5 shrink-0 text-star-400" />
       <div className="min-w-0 flex-1">
-        <span className="text-parchment-100">欢迎来到天玑</span>
+        <span className="font-medium text-parchment-100">欢迎来到天玑</span>
         <span className="text-mist-400">
           {" "}
           — 跨专业 AI 学习与项目共创社区。在这里答疑解惑、交流灵感、协作产出。
         </span>
         <span className="mt-1 flex flex-wrap items-center gap-3 text-xs">
-          <Link to="/about" className="text-star-300 transition-colors hover:text-star-200">
+          <Link to="/about" className="text-tian-500 transition-colors hover:text-tian-600">
             了解天玑 →
           </Link>
           <button

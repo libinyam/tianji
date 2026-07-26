@@ -1,11 +1,4 @@
-import {
-  Bug,
-  Code2,
-  GitPullRequestArrow,
-  ListChecks,
-  Rocket,
-  Sparkles,
-} from "lucide-react";
+import { Bug, Code2, GitPullRequestArrow, ListChecks, Rocket, Sparkles } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 
 interface TimelineItem {
@@ -57,16 +50,14 @@ const LINKS = [
 
 export default function AICreationTimeline() {
   return (
-    <section className="container-tj py-12">
+    <section className="container-tj py-8">
       <div className="grid gap-8 lg:grid-cols-[0.9fr_1.1fr] lg:items-start">
         <div>
           <div className="mb-3 flex items-center gap-2">
-            <GitPullRequestArrow className="h-4 w-4 text-star-400" strokeWidth={1.5} />
-            <span className="font-mono text-[11px] uppercase tracking-[0.2em] text-mist-400">
-              Built with TRAE
-            </span>
+            <GitPullRequestArrow className="h-4 w-4 text-tian-500" strokeWidth={1.5} />
+            <span className="text-xs font-medium text-tian-500">Built with TRAE</span>
           </div>
-          <h2 className="heading-display text-3xl leading-tight text-parchment-50 sm:text-4xl">
+          <h2 className="heading-display text-2xl leading-tight text-parchment-50 sm:text-3xl">
             人提出方向，AI 帮我把想法推成产品
           </h2>
           <p className="mt-4 max-w-xl text-sm leading-relaxed text-mist-400 sm:text-base">
@@ -81,7 +72,7 @@ export default function AICreationTimeline() {
                 href={link.href}
                 target="_blank"
                 rel="noreferrer"
-                className="rounded-full border border-void-600/40 px-3 py-1.5 text-xs text-star-200 transition-colors hover:border-star-400/60 hover:bg-star-400/10"
+                className="rounded-full border border-void-600 bg-void-800 px-3 py-1.5 text-xs text-tian-500 transition-colors hover:bg-void-700"
               >
                 {link.label}
               </a>
@@ -95,23 +86,21 @@ export default function AICreationTimeline() {
             return (
               <li
                 key={item.title}
-                className="grid grid-cols-[44px_1fr] gap-3 rounded-lg border border-void-600/30 bg-void-800/20 p-4"
+                className="grid grid-cols-[44px_1fr] gap-3 rounded-lg border border-void-600 bg-void-800 p-4"
               >
-                <div className="flex h-10 w-10 items-center justify-center rounded-lg border border-star-400/25 bg-star-400/10 text-star-300">
+                <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-void-700 text-tian-500">
                   <Icon size={18} strokeWidth={1.5} />
                 </div>
                 <div>
                   <div className="flex flex-wrap items-center gap-2">
-                    <span className="font-mono text-[10px] uppercase tracking-[0.18em] text-mist-500">
+                    <span className="text-xs text-mist-500">
                       {String(index + 1).padStart(2, "0")} · {item.meta}
                     </span>
                     <h3 className="text-sm font-semibold text-parchment-100 sm:text-base">
                       {item.title}
                     </h3>
                   </div>
-                  <p className="mt-1.5 text-sm leading-relaxed text-mist-400">
-                    {item.desc}
-                  </p>
+                  <p className="mt-1.5 text-sm leading-relaxed text-mist-400">{item.desc}</p>
                 </div>
               </li>
             );

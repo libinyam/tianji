@@ -37,7 +37,7 @@ describe("ErrorBoundary（#191）", () => {
     render(
       <ErrorBoundary>
         <div data-testid="child">正常内容</div>
-      </ErrorBoundary>
+      </ErrorBoundary>,
     );
     expect(screen.getByTestId("child")).toBeInTheDocument();
   });
@@ -46,7 +46,7 @@ describe("ErrorBoundary（#191）", () => {
     render(
       <ErrorBoundary>
         <Boom message="渲染失败" />
-      </ErrorBoundary>
+      </ErrorBoundary>,
     );
     expect(screen.getByText("页面出错了")).toBeInTheDocument();
     expect(screen.getByText("渲染失败")).toBeInTheDocument();
@@ -56,7 +56,7 @@ describe("ErrorBoundary（#191）", () => {
     render(
       <ErrorBoundary>
         <Boom message="sentinel-error" />
-      </ErrorBoundary>
+      </ErrorBoundary>,
     );
     expect(captureException).toHaveBeenCalledTimes(1);
     const captured = captureException.mock.calls[0][0] as Error;
@@ -67,7 +67,7 @@ describe("ErrorBoundary（#191）", () => {
     render(
       <ErrorBoundary>
         <Boom message="普通错误" />
-      </ErrorBoundary>
+      </ErrorBoundary>,
     );
     expect(screen.getByRole("button", { name: "刷新页面" })).toBeInTheDocument();
   });
@@ -78,7 +78,7 @@ describe("ErrorBoundary（#191）", () => {
     render(
       <ErrorBoundary>
         <Boom message="x" />
-      </ErrorBoundary>
+      </ErrorBoundary>,
     );
     fireEvent.click(screen.getByRole("button", { name: "刷新页面" }));
     expect(reload).toHaveBeenCalledTimes(1);
@@ -91,7 +91,7 @@ describe("ErrorBoundary（#191）", () => {
     render(
       <ErrorBoundary>
         <Boom message="Failed to fetch dynamically imported module: /foo.js" />
-      </ErrorBoundary>
+      </ErrorBoundary>,
     );
     expect(screen.getByText("正在刷新页面…")).toBeInTheDocument();
     expect(screen.getByText("网站已更新，正在加载最新版本")).toBeInTheDocument();
@@ -106,7 +106,7 @@ describe("ErrorBoundary（#191）", () => {
     render(
       <ErrorBoundary>
         <Boom message="Loading chunk 42 failed." />
-      </ErrorBoundary>
+      </ErrorBoundary>,
     );
     expect(reload).toHaveBeenCalledTimes(1);
     vi.unstubAllGlobals();
@@ -119,7 +119,7 @@ describe("ErrorBoundary（#191）", () => {
     const { unmount } = render(
       <ErrorBoundary>
         <Boom message="Loading CSS chunk 1 failed." />
-      </ErrorBoundary>
+      </ErrorBoundary>,
     );
     expect(reload).toHaveBeenCalledTimes(1);
     unmount();
@@ -128,7 +128,7 @@ describe("ErrorBoundary（#191）", () => {
     render(
       <ErrorBoundary>
         <Boom message="Loading CSS chunk 2 failed." />
-      </ErrorBoundary>
+      </ErrorBoundary>,
     );
     expect(reload).toHaveBeenCalledTimes(1);
     vi.unstubAllGlobals();
@@ -142,7 +142,7 @@ describe("ErrorBoundary（#191）", () => {
     render(
       <ErrorBoundary>
         <Boom message="Loading chunk 99 failed." />
-      </ErrorBoundary>
+      </ErrorBoundary>,
     );
     expect(reload).toHaveBeenCalledTimes(1);
     vi.unstubAllGlobals();

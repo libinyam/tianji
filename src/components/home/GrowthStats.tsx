@@ -42,17 +42,10 @@ export default function GrowthStats() {
   }, []);
 
   return (
-    <section className="container-tj py-12">
+    <section className="container-tj py-8">
       <div className="mb-6 text-center">
-        <div className="mb-2 flex items-center justify-center gap-2">
-          <span className="font-mono text-xs uppercase tracking-[0.25em] text-star-300">
-            Growth Data
-          </span>
-        </div>
         <h2 className="heading-display text-2xl text-parchment-50">天玑成长数据</h2>
-        <p className="mt-2 text-sm text-mist-400">
-          来自社区的真实数据，持续成长中
-        </p>
+        <p className="mt-2 text-sm text-mist-400">来自社区的真实数据，持续成长中</p>
       </div>
 
       <div className="mx-auto grid max-w-3xl grid-cols-2 gap-4 sm:grid-cols-4">
@@ -62,9 +55,9 @@ export default function GrowthStats() {
           return (
             <div
               key={item.key}
-              className="rounded-xl border border-void-600/40 bg-void-900/40 p-5 text-center transition-colors hover:border-star-400/30"
+              className="rounded-lg border border-void-600 bg-void-800 p-5 text-center transition-colors hover:bg-void-700"
             >
-              <Icon size={20} className="mx-auto mb-2 text-star-400" />
+              <Icon size={20} className="mx-auto mb-2 text-tian-500" />
               <div className="heading-display text-2xl text-parchment-50">
                 {loading ? (
                   <Skeleton className="mx-auto h-7 w-12" />

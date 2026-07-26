@@ -4,14 +4,7 @@ import { cn } from "@/lib/utils";
  * 骨架屏基础块 — 带脉冲动画的占位条
  */
 export function Skeleton({ className }: { className?: string }) {
-  return (
-    <div
-      className={cn(
-        "animate-pulse rounded bg-void-700/50",
-        className
-      )}
-    />
-  );
+  return <div className={cn("animate-pulse rounded bg-void-700", className)} />;
 }
 
 /** 帖子列表骨架 */
@@ -114,15 +107,21 @@ export function PostDetailSkeleton() {
         <Skeleton className="h-8 w-20 rounded-full" />
       </div>
       <div className="mt-8 space-y-4">
-        <Skeleton className="h-32 w-full rounded-xl" />
-        <Skeleton className="h-32 w-full rounded-xl" />
+        <Skeleton className="h-32 w-full rounded-lg" />
+        <Skeleton className="h-32 w-full rounded-lg" />
       </div>
     </div>
   );
 }
 
 /** 通用列表骨架 */
-export function ListSkeleton({ count = 4, children }: { count?: number; children: React.ReactNode }) {
+export function ListSkeleton({
+  count = 4,
+  children,
+}: {
+  count?: number;
+  children: React.ReactNode;
+}) {
   return (
     <div className="space-y-4">
       {Array.from({ length: count }).map((_, i) => (

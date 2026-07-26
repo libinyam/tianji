@@ -55,19 +55,14 @@ export default class ErrorBoundary extends Component<Props, State> {
 
       return (
         <div className="flex min-h-screen flex-col items-center justify-center gap-4 bg-void-950 text-parchment-100">
-          <h1 className="text-2xl font-bold">
-            {isChunkError ? "正在刷新页面…" : "页面出错了"}
-          </h1>
+          <h1 className="text-2xl font-bold">{isChunkError ? "正在刷新页面…" : "页面出错了"}</h1>
           <p className="text-mist-400">
             {isChunkError
               ? "网站已更新，正在加载最新版本"
               : this.state.error?.message || "发生未知错误"}
           </p>
           {!isChunkError && (
-            <button
-              onClick={() => window.location.reload()}
-              className="rounded-lg bg-star-400 px-6 py-2 text-sm font-medium text-void-950 transition hover:bg-star-300"
-            >
+            <button onClick={() => window.location.reload()} className="btn-primary">
               刷新页面
             </button>
           )}

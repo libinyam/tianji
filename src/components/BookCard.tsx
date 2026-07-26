@@ -17,24 +17,18 @@ export default function BookCard({ book }: { book: Book; index?: number }) {
           navigate(`/library/${book.id}`);
         }
       }}
-      className="group flex h-full cursor-pointer flex-col overflow-hidden rounded-lg border border-void-600/30 bg-void-800/20 transition-colors outline-none focus-visible:ring-2 focus-visible:ring-star-400/40 hover:bg-void-800/40"
+      className="group flex h-full cursor-pointer flex-col overflow-hidden rounded-lg border border-void-600 bg-void-900 transition-colors outline-none focus-visible:ring-2 focus-visible:ring-tian-500/40 hover:border-mist-500 hover:shadow-sm"
     >
       {/* 封面 */}
       <div
-        className="relative flex h-36 items-center justify-center overflow-hidden border-b border-void-600/20"
-        style={{
-          background: `linear-gradient(150deg, ${book.accent}15, ${book.accent}05 60%, transparent)`,
-        }}
+        className="relative flex h-36 items-center justify-center overflow-hidden border-b border-void-600"
+        style={{ backgroundColor: `${book.accent}12` }}
       >
-        <BookOpen
-          size={32}
-          strokeWidth={1}
-          style={{ color: book.accent }}
-        />
-        <span className="absolute bottom-2 left-2.5 rounded bg-void-950/60 px-1.5 py-0.5 font-mono text-[10px] text-mist-400 backdrop-blur-sm">
+        <BookOpen size={32} strokeWidth={1} style={{ color: book.accent }} />
+        <span className="absolute bottom-2 left-2.5 rounded bg-void-900 px-1.5 py-0.5 text-[10px] text-mist-500">
           {book.year}
         </span>
-        <span className="absolute bottom-2 right-2.5 flex items-center gap-1 rounded bg-void-950/60 px-1.5 py-0.5 font-mono text-[10px] text-star-300 backdrop-blur-sm">
+        <span className="absolute bottom-2 right-2.5 flex items-center gap-1 rounded bg-void-900 px-1.5 py-0.5 text-[10px] text-star-300">
           <Star size={9} /> {book.rating}
         </span>
       </div>
@@ -42,7 +36,7 @@ export default function BookCard({ book }: { book: Book; index?: number }) {
       {/* 内容 */}
       <div className="flex flex-1 flex-col p-4">
         <span className="mb-2 text-[11px] text-mist-500">{book.category}</span>
-        <h3 className="heading-display text-sm leading-snug text-parchment-50 transition-colors group-hover:text-star-300">
+        <h3 className="heading-display text-sm leading-snug text-parchment-50 transition-colors group-hover:text-tian-500">
           {book.title}
         </h3>
         <p className="mt-1 text-xs text-mist-500">{book.author}</p>
@@ -52,13 +46,18 @@ export default function BookCard({ book }: { book: Book; index?: number }) {
 
         <div className="mt-3 flex flex-wrap gap-1">
           {book.tags.slice(0, 3).map((t) => (
-            <Link key={t} to={`/tags/${encodeURIComponent(t)}`} className="pill transition-colors hover:border-star-400/40 hover:text-star-200" onClick={(e) => e.stopPropagation()}>
+            <Link
+              key={t}
+              to={`/tags/${encodeURIComponent(t)}`}
+              className="pill transition-colors hover:text-tian-500"
+              onClick={(e) => e.stopPropagation()}
+            >
               {t}
             </Link>
           ))}
         </div>
 
-        <div className="mt-3 flex items-center justify-between border-t border-void-600/20 pt-2.5">
+        <div className="mt-3 flex items-center justify-between border-t border-void-600 pt-2.5">
           <div className="flex items-center gap-2">
             <span className="text-[10px] text-mist-500">难度</span>
             <DifficultyDots level={book.difficulty} />

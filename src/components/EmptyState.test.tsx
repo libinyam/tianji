@@ -16,11 +16,7 @@ describe("EmptyState（#323）", () => {
 
   it("渲染自定义 icon", () => {
     render(
-      <EmptyState
-        title="空"
-        description="d"
-        icon={<span data-testid="custom-icon">ICON</span>}
-      />
+      <EmptyState title="空" description="d" icon={<span data-testid="custom-icon">ICON</span>} />,
     );
     expect(screen.getByTestId("custom-icon")).toBeInTheDocument();
   });
@@ -32,9 +28,7 @@ describe("EmptyState（#323）", () => {
 
   it("传 actionText + onAction 时渲染按钮并响应点击", () => {
     const onAction = vi.fn();
-    render(
-      <EmptyState title="t" description="d" actionText="新增" onAction={onAction} />
-    );
+    render(<EmptyState title="t" description="d" actionText="新增" onAction={onAction} />);
     const btn = screen.getByRole("button", { name: "新增" });
     fireEvent.click(btn);
     expect(onAction).toHaveBeenCalledTimes(1);

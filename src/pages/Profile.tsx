@@ -23,7 +23,7 @@ import { useDocumentTitle } from "@/hooks/useDocumentTitle";
 import { uploadFile, getTempFileURL, deleteFile } from "@/lib/storage";
 import { ListSkeleton, PostCardSkeleton } from "@/components/Skeleton";
 
-// 星辰风格头像，契合天玑主题
+// 默认头像备选
 const DEFAULT_AVATARS = [
   "https://api.dicebear.com/7.x/identicon/svg?seed=StarNova&backgroundColor=1a1a2e,16213e,0f3460",
   "https://api.dicebear.com/7.x/identicon/svg?seed=Orion&backgroundColor=0f3460,533483,1a1a2e",
@@ -36,7 +36,9 @@ const DEFAULT_AVATARS = [
 function formatDate(s: string) {
   if (!s) return "";
   const d = new Date(s);
-  return isNaN(d.getTime()) ? s : `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+  return isNaN(d.getTime())
+    ? s
+    : `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
 }
 
 export default function Profile() {
@@ -119,12 +121,12 @@ export default function Profile() {
 
   if (!user) {
     return (
-      <div className="container-tj flex min-h-[60vh] flex-col items-center justify-center gap-4 py-20 text-center">
+      <div className="container-tj flex min-h-[60vh] flex-col items-center justify-center gap-4 py-10 text-center">
         <p className="text-lg text-parchment-100">请先登录查看个人主页</p>
         <p className="mt-1 text-sm text-mist-500">登录后即可管理你的资料、帖子和收藏</p>
         <button
           onClick={() => window.dispatchEvent(new CustomEvent("tianji:open-auth"))}
-          className="btn-gold mt-4"
+          className="btn-primary mt-4"
         >
           登录 / 注册
         </button>
@@ -133,7 +135,9 @@ export default function Profile() {
   }
 
   const displayName = user.nickname || user.username || user.email || "成员";
-  const avatar = user.avatarUrl || `https://api.dicebear.com/7.x/identicon/svg?seed=${user.uid}&backgroundColor=1a1a2e,16213e,0f3460`;
+  const avatar =
+    user.avatarUrl ||
+    `https://api.dicebear.com/7.x/identicon/svg?seed=${user.uid}&backgroundColor=1a1a2e,16213e,0f3460`;
 
   const favItems = favorites.map((f) => ({
     id: f.targetId,
@@ -144,27 +148,58 @@ export default function Profile() {
   }));
 
   const tabs = [
-    { label: "帖子", icon: MessageSquare, items: content?.posts, linkBase: "/discussion", emptyText: "还没有发表过讨论" },
-    { label: "灵感", icon: Lightbulb, items: content?.ideas, linkBase: "/ideas", emptyText: "还没有分享过灵感", useDirectLink: true, linkField: "link" },
-    { label: "资源", icon: BookOpen, items: content?.books, linkBase: "/library", emptyText: "还没有上传过资源" },
-    { label: "协作", icon: Users, items: content?.workshops, linkBase: "/workshop", emptyText: "还没有发起过协作" },
-    { label: "收藏", icon: Bookmark, items: favItems, linkBase: "", emptyText: "还没有收藏过内容", useDirectLink: true },
+    {
+      label: "帖子",
+      icon: MessageSquare,
+      items: content?.posts,
+      linkBase: "/discussion",
+      emptyText: "还没有发表过讨论",
+    },
+    {
+      label: "灵感",
+      icon: Lightbulb,
+      items: content?.ideas,
+      linkBase: "/ideas",
+      emptyText: "还没有分享过灵感",
+      useDirectLink: true,
+      linkField: "link",
+    },
+    {
+      label: "资源",
+      icon: BookOpen,
+      items: content?.books,
+      linkBase: "/library",
+      emptyText: "还没有上传过资源",
+    },
+    {
+      label: "协作",
+      icon: Users,
+      items: content?.workshops,
+      linkBase: "/workshop",
+      emptyText: "还没有发起过协作",
+    },
+    {
+      label: "收藏",
+      icon: Bookmark,
+      items: favItems,
+      linkBase: "",
+      emptyText: "还没有收藏过内容",
+      useDirectLink: true,
+    },
   ];
 
   return (
-    <div className="min-h-screen pb-20">
+    <div className="min-h-screen pb-10">
       {/* 头部 */}
-      <div className="relative overflow-hidden border-b border-void-600/40">
-        <div className="absolute inset-0 bg-gradient-to-br from-void-900 via-void-950 to-void-900" />
-        <div className="absolute -top-20 right-20 h-64 w-64 rounded-full bg-star-400/5 blur-3xl" />
-        <div className="container-tj relative py-12">
+      <div className="border-b border-void-600">
+        <div className="container-tj py-8">
           <div className="flex flex-col items-start gap-6 sm:flex-row sm:items-center">
             {/* 头像 */}
             <div className="relative">
               <img
                 src={avatar}
                 alt={displayName}
-                className="h-24 w-24 rounded-2xl border-2 border-star-400/30 bg-void-800 object-cover"
+                className="h-24 w-24 rounded-2xl border border-void-600 bg-void-700 object-cover"
               />
               <span className="absolute -bottom-1 -right-1 flex h-7 w-7 items-center justify-center rounded-full border border-void-600 bg-void-900">
                 <span className="h-2 w-2 rounded-full bg-emerald-400" />
@@ -183,7 +218,7 @@ export default function Profile() {
                       onChange={(e) => setNickname(e.target.value)}
                       maxLength={20}
                       placeholder="输入你的昵称"
-                      className="w-full max-w-xs rounded-lg border border-void-600 bg-void-800/60 px-3 py-2 text-sm text-parchment-100 outline-none focus:border-star-400/50"
+                      className="w-full max-w-xs rounded-lg border border-void-600 bg-void-800 px-3 py-2 text-sm text-parchment-100 outline-none focus:border-tian-500"
                     />
                   </div>
                   <div>
@@ -193,8 +228,10 @@ export default function Profile() {
                         <button
                           key={url}
                           onClick={() => setAvatarUrl(url)}
-                          className={`h-12 w-12 overflow-hidden rounded-xl border-2 transition-all ${
-                            avatarUrl === url ? "border-star-400" : "border-transparent opacity-60 hover:opacity-100"
+                          className={`h-12 w-12 overflow-hidden rounded-lg border-2 transition-colors ${
+                            avatarUrl === url
+                              ? "border-tian-500"
+                              : "border-transparent opacity-60 hover:opacity-100"
                           }`}
                         >
                           <img src={url} alt="" className="h-full w-full" />
@@ -204,10 +241,14 @@ export default function Profile() {
                       <button
                         onClick={() => fileInputRef.current?.click()}
                         disabled={uploading}
-                        className="flex h-12 w-12 items-center justify-center rounded-xl border-2 border-dashed border-void-600 text-mist-400 transition-all hover:border-star-400/50 hover:text-star-400 disabled:opacity-50"
+                        className="flex h-12 w-12 items-center justify-center rounded-lg border border-dashed border-void-600 text-mist-400 transition-colors hover:border-tian-500 hover:text-tian-500 disabled:opacity-50"
                         title="上传自定义头像"
                       >
-                        {uploading ? <Loader2 size={18} className="animate-spin" /> : <Upload size={18} />}
+                        {uploading ? (
+                          <Loader2 size={18} className="animate-spin" />
+                        ) : (
+                          <Upload size={18} />
+                        )}
                       </button>
                       <input
                         name="avatar"
@@ -227,7 +268,7 @@ export default function Profile() {
                     <button
                       onClick={handleSave}
                       disabled={saving}
-                      className="flex items-center gap-1.5 rounded-lg bg-star-400 px-4 py-2 text-xs font-medium text-void-950 transition-colors hover:bg-star-300 disabled:opacity-50"
+                      className="flex items-center gap-1.5 rounded-lg bg-tian-500 px-4 py-2 text-xs font-medium text-white transition-colors hover:bg-tian-600 disabled:opacity-50"
                     >
                       <Save size={14} /> {saving ? "保存中..." : "保存"}
                     </button>
@@ -255,7 +296,7 @@ export default function Profile() {
                   <div className="mt-3 flex flex-wrap gap-2">
                     <button
                       onClick={() => setEditing(true)}
-                      className="flex items-center gap-1.5 rounded-lg border border-void-600/60 bg-void-800/40 px-3 py-1.5 text-xs text-mist-300 transition-colors hover:border-star-400/40 hover:text-parchment-100"
+                      className="flex items-center gap-1.5 rounded-lg border border-void-600 bg-void-800 px-3 py-1.5 text-xs text-mist-300 transition-colors hover:bg-void-700 hover:text-parchment-100"
                     >
                       <Edit3 size={13} /> 编辑资料
                     </button>
@@ -268,18 +309,20 @@ export default function Profile() {
           {/* 声望/等级 */}
           {reputation && (
             <div className="mt-6 flex flex-wrap items-center gap-2">
-              <div className="flex items-center gap-1.5 rounded-lg border border-star-400/30 bg-star-400/5 px-3 py-1.5">
+              <div className="flex items-center gap-1.5 rounded-lg border border-void-600 bg-void-800 px-3 py-1.5">
                 <span className="text-xs text-mist-400">声望</span>
-                <span className="heading-display text-lg text-parchment-50">{reputation.reputation}</span>
+                <span className="heading-display text-lg text-parchment-50">
+                  {reputation.reputation}
+                </span>
               </div>
-              <div className="flex items-center gap-1.5 rounded-lg border border-void-600/40 bg-void-800/30 px-3 py-1.5">
+              <div className="flex items-center gap-1.5 rounded-lg border border-void-600 bg-void-800 px-3 py-1.5">
                 <span className="text-xs text-mist-400">等级</span>
                 <span className="text-sm text-star-300">{reputation.levelName}</span>
               </div>
               {getBadges(reputation.reputation).map((badge) => (
                 <span
                   key={badge}
-                  className="rounded-full border border-void-600/40 bg-void-800/40 px-2.5 py-1 text-xs text-mist-300"
+                  className="rounded-full border border-void-600 bg-void-700 px-2.5 py-1 text-xs text-mist-300"
                 >
                   {badge}
                 </span>
@@ -289,7 +332,7 @@ export default function Profile() {
 
           {/* 统计 */}
           {!loading && content && (
-            <div className="mt-8 grid grid-cols-2 gap-3 sm:grid-cols-5">
+            <div className="mt-6 grid grid-cols-2 gap-2 sm:grid-cols-5">
               {[
                 { label: "帖子", value: content.posts.length, icon: MessageSquare },
                 { label: "灵感", value: content.ideas.length, icon: Lightbulb },
@@ -299,13 +342,13 @@ export default function Profile() {
               ].map((s) => (
                 <div
                   key={s.label}
-                  className="rounded-xl border border-void-600/40 bg-void-800/30 px-4 py-3"
+                  className="rounded-lg border border-void-600 bg-void-800 px-4 py-3"
                 >
                   <div className="flex items-center gap-2 text-mist-400">
                     <s.icon size={14} />
                     <span className="text-xs">{s.label}</span>
                   </div>
-                  <p className="mt-1 heading-display text-2xl text-parchment-50">{s.value}</p>
+                  <p className="mt-1 heading-display text-xl text-parchment-50">{s.value}</p>
                 </div>
               ))}
             </div>
@@ -316,21 +359,22 @@ export default function Profile() {
       {/* 内容区域 */}
       <div className="container-tj mt-8">
         {loading ? (
-          <div className="grid gap-6 lg:grid-cols-2">
-            <ListSkeleton count={3}><PostCardSkeleton /></ListSkeleton>
-            <ListSkeleton count={3}><PostCardSkeleton /></ListSkeleton>
+          <div className="grid gap-4 lg:grid-cols-2">
+            <ListSkeleton count={3}>
+              <PostCardSkeleton />
+            </ListSkeleton>
+            <ListSkeleton count={3}>
+              <PostCardSkeleton />
+            </ListSkeleton>
           </div>
         ) : (
-          <div className="grid gap-6 lg:grid-cols-2">
+          <div className="grid gap-4 lg:grid-cols-2">
             {tabs.map((tab) => {
               const items = tab.items ?? [];
               return (
-                <div
-                  key={tab.label}
-                  className="rounded-2xl border border-void-600/40 bg-void-900/40 p-5"
-                >
-                  <div className="mb-4 flex items-center gap-2">
-                    <tab.icon size={16} className="text-star-400" />
+                <div key={tab.label} className="rounded-lg border border-void-600 bg-void-900 p-4">
+                  <div className="mb-3 flex items-center gap-2">
+                    <tab.icon size={16} className="text-mist-400" />
                     <h2 className="heading-display text-lg text-parchment-50">{tab.label}</h2>
                     <span className="ml-auto text-xs text-mist-500">{items.length} 条</span>
                   </div>
@@ -338,15 +382,19 @@ export default function Profile() {
                   {items.length === 0 ? (
                     <p className="py-6 text-center text-sm text-mist-500">{tab.emptyText}</p>
                   ) : (
-                    <ul className="space-y-2">
+                    <ul className="divide-y divide-void-600">
                       {items.map((item) => (
                         <li key={item.id}>
                           <Link
-                            to={"useDirectLink" in tab && tab.useDirectLink ? (item as { link: string }).link : `${tab.linkBase}/${item.id}`}
-                            className="group flex items-center justify-between rounded-lg border border-transparent px-3 py-2.5 transition-colors hover:border-void-600/40 hover:bg-void-800/40"
+                            to={
+                              "useDirectLink" in tab && tab.useDirectLink
+                                ? (item as { link: string }).link
+                                : `${tab.linkBase}/${item.id}`
+                            }
+                            className="group flex items-center justify-between px-2 py-2.5 transition-colors hover:bg-void-700"
                           >
                             <div className="min-w-0 flex-1">
-                              <p className="truncate text-sm text-parchment-100 group-hover:text-star-200">
+                              <p className="truncate text-sm text-parchment-100 group-hover:text-tian-500">
                                 {item.title}
                               </p>
                               <div className="mt-0.5 flex items-center gap-3 text-xs text-mist-500">
@@ -367,12 +415,12 @@ export default function Profile() {
                                   </span>
                                 )}
                                 {"category" in item && (
-                                  <span className="rounded bg-void-700/50 px-1.5 py-0.5">
+                                  <span className="rounded bg-void-700 px-1.5 py-0.5">
                                     {item.category}
                                   </span>
                                 )}
                                 {"type" in item && (
-                                  <span className="rounded bg-void-700/50 px-1.5 py-0.5">
+                                  <span className="rounded bg-void-700 px-1.5 py-0.5">
                                     {item.type}
                                   </span>
                                 )}

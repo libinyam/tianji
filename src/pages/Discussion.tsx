@@ -313,7 +313,7 @@ export default function Discussion() {
   const setActiveCategory = (v: string) => updateFilters({ cat: v, tag: "全部" });
 
   return (
-    <div className="forum-light min-h-screen bg-void-950 text-parchment-100">
+    <div className="min-h-screen bg-void-950 text-parchment-100">
       {/* 主体：左侧 Discourse 风导航 + 右侧整块讨论区 */}
       <section className="container-tj flex gap-6 py-6 lg:items-start">
         {/* 左侧导航栏 */}
@@ -330,7 +330,7 @@ export default function Discussion() {
         {/* 右侧主讨论区 */}
         <div className="min-w-0 flex-1">
           {/* 顶部条：标题 + 排序 + 发起讨论 */}
-          <div className="mb-4 flex items-center justify-between border-b border-void-600/60 pb-3">
+          <div className="mb-4 flex items-center justify-between border-b border-void-600 pb-3">
             <h1 className="text-lg font-semibold text-parchment-50">
               {section === "academic" ? "学术区" : section === "casual" ? "闲聊区" : "关注"}
             </h1>
@@ -343,8 +343,8 @@ export default function Discussion() {
                     onClick={() => updateFilters({ sort: s })}
                     className={`rounded-md px-2.5 py-1.5 transition-colors ${
                       sort === s
-                        ? "bg-tian-500/10 font-medium text-tian-500"
-                        : "text-mist-500 hover:bg-void-700/50 hover:text-parchment-100"
+                        ? "bg-void-700 font-medium text-tian-500"
+                        : "text-mist-500 hover:bg-void-700 hover:text-parchment-100"
                     }`}
                   >
                     {s}
@@ -371,11 +371,11 @@ export default function Discussion() {
                 .map((a) => (
                   <div
                     key={a.id}
-                    className="flex items-start gap-3 rounded-md border border-tian-400/20 bg-tian-400/5 px-3 py-2 text-sm"
+                    className="flex items-start gap-3 rounded-md border border-void-600 bg-void-700 px-3 py-2 text-sm"
                   >
-                    <Megaphone size={14} className="mt-0.5 shrink-0 text-tian-300" />
+                    <Megaphone size={14} className="mt-0.5 shrink-0 text-tian-500" />
                     <div className="min-w-0 flex-1">
-                      <span className="text-tian-200">{a.title}</span>
+                      <span className="font-medium text-parchment-100">{a.title}</span>
                       <p className="mt-0.5 text-mist-400">{a.content}</p>
                     </div>
                     <button
@@ -399,8 +399,8 @@ export default function Discussion() {
                   onClick={() => setActiveCategory(c)}
                   className={`rounded-md px-2.5 py-1.5 transition-colors ${
                     activeCategory === c
-                      ? "bg-tian-500/10 font-medium text-tian-500"
-                      : "text-mist-500 hover:bg-void-700/50 hover:text-parchment-100"
+                      ? "bg-void-700 font-medium text-tian-500"
+                      : "text-mist-500 hover:bg-void-700 hover:text-parchment-100"
                   }`}
                 >
                   {c}
@@ -418,8 +418,8 @@ export default function Discussion() {
 
           {/* 错误态 */}
           {!loading && error && (
-            <div className="flex flex-col items-center justify-center rounded-xl border border-red-400/30 bg-red-400/5 px-6 py-20 text-center">
-              <div className="mb-5 flex h-16 w-16 items-center justify-center rounded-full bg-red-400/10 text-red-300">
+            <div className="flex flex-col items-center justify-center rounded-lg border border-void-600 bg-void-800 px-6 py-10 text-center">
+              <div className="mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-void-700 text-red-500">
                 <AlertCircle size={28} strokeWidth={1.5} />
               </div>
               <h3 className="heading-display text-xl text-parchment-50">讨论加载失败</h3>
@@ -428,7 +428,7 @@ export default function Discussion() {
               </p>
               <button
                 onClick={() => setReloadKey((k) => k + 1)}
-                className="btn-gold mt-6 inline-flex items-center gap-2 text-sm"
+                className="btn-primary mt-4 inline-flex items-center gap-2 text-sm"
               >
                 <RefreshCw size={14} /> 重试
               </button>
@@ -444,7 +444,7 @@ export default function Discussion() {
                   ? user
                     ? "关注动态为空"
                     : "登录后查看关注动态"
-                  : "这片星域还很安静"
+                  : "这里还很安静"
               }
               description={
                 section === "following"
@@ -482,9 +482,9 @@ export default function Discussion() {
 
           {/* 帖子列表 - Discourse 风格：无边框行流，行间细线分隔 */}
           {!loading && !error && filtered.length > 0 && (
-            <div className="bg-void-900/40">
+            <div className="bg-void-900">
               {/* 表头 */}
-              <div className="grid grid-cols-[minmax(0,1fr)_56px_64px_200px] items-center gap-3 border-b border-void-600/40 px-4 py-2 text-xs font-medium text-mist-500">
+              <div className="grid grid-cols-[minmax(0,1fr)_56px_64px_200px] items-center gap-3 border-b border-void-600 px-4 py-2 text-xs font-medium text-mist-500">
                 <span>话题</span>
                 <span className="text-right">回复</span>
                 <span className="text-right">浏览量</span>
@@ -503,8 +503,8 @@ export default function Discussion() {
                   <div
                     key={q.id}
                     onClick={() => navigate(`/discussion/${q.id}`)}
-                    className={`group grid cursor-pointer grid-cols-[minmax(0,1fr)_auto] items-center gap-4 px-4 py-3 transition-colors hover:bg-void-700/50 lg:grid-cols-[minmax(0,1fr)_56px_64px_200px] ${
-                      i !== 0 ? "border-t border-void-600/40" : ""
+                    className={`group grid cursor-pointer grid-cols-[minmax(0,1fr)_auto] items-center gap-4 px-4 py-3 transition-colors hover:bg-void-700 lg:grid-cols-[minmax(0,1fr)_56px_64px_200px] ${
+                      i !== 0 ? "border-t border-void-600" : ""
                     }`}
                   >
                     {/* 主题列 */}
@@ -544,10 +544,7 @@ export default function Discussion() {
                           </span>
                         )}
                         {extraTags.slice(0, 2).map((t) => (
-                          <span
-                            key={t}
-                            className="rounded bg-void-700/60 px-1.5 py-0.5 text-mist-400"
-                          >
+                          <span key={t} className="rounded bg-void-700 px-1.5 py-0.5 text-mist-400">
                             {t}
                           </span>
                         ))}
@@ -595,7 +592,7 @@ export default function Discussion() {
             <button
               onClick={loadMore}
               disabled={loadingMore}
-              className="mt-4 w-full rounded-lg border border-void-600/20 py-2.5 text-sm text-mist-400 transition-colors hover:bg-void-800/30 disabled:opacity-50"
+              className="mt-4 w-full rounded-lg border border-void-600 py-2.5 text-sm text-mist-400 transition-colors hover:bg-void-700 disabled:opacity-50"
             >
               {loadingMore ? "加载中…" : "加载更多"}
             </button>

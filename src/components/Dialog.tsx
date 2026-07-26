@@ -15,7 +15,7 @@ interface DialogProps {
   maxWidthClass?: string;
   /** 内边距 class，默认 p-7 */
   paddingClass?: string;
-  /** 是否使用不透明背景（覆盖 card-surface 的半透明默认值） */
+  /** 是否强制不透明背景（card-surface 已是实色，此项仅作兼容保留） */
   opaque?: boolean;
   children: ReactNode;
 }
@@ -62,7 +62,7 @@ export default function Dialog({
     if (open && dialogRef.current) {
       // 找到第一个可聚焦元素
       const focusable = dialogRef.current.querySelector<HTMLElement>(
-        'button, [href], input, textarea, select, [tabindex]:not([tabindex="-1"])'
+        'button, [href], input, textarea, select, [tabindex]:not([tabindex="-1"])',
       );
       // 延迟一帧确保 DOM 已渲染
       requestAnimationFrame(() => {
@@ -90,7 +90,7 @@ export default function Dialog({
       // 焦点陷阱
       if (e.key === "Tab" && dialogRef.current) {
         const focusables = dialogRef.current.querySelectorAll<HTMLElement>(
-          'button:not([disabled]), [href], input:not([disabled]), textarea:not([disabled]), select:not([disabled]), [tabindex]:not([tabindex="-1"])'
+          'button:not([disabled]), [href], input:not([disabled]), textarea:not([disabled]), select:not([disabled]), [tabindex]:not([tabindex="-1"])',
         );
         if (focusables.length === 0) return;
         const first = focusables[0];
@@ -130,14 +130,11 @@ export default function Dialog({
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             transition={{ duration: 0.2 }}
-            className="fixed inset-0 z-[100] bg-void-950/80 backdrop-blur-sm"
+            className="fixed inset-0 z-[100] bg-black/40"
             aria-hidden
           />
           {/* 内容容器：可滚动，内容短时居中，长时从顶部开始 */}
-          <div
-            className="fixed inset-0 z-[101] overflow-y-auto"
-            onClick={handleBackdropClick}
-          >
+          <div className="fixed inset-0 z-[101] overflow-y-auto" onClick={handleBackdropClick}>
             <div className="flex min-h-full items-start justify-center px-4 py-8 sm:items-center sm:py-12">
               <motion.div
                 ref={dialogRef}
@@ -150,8 +147,7 @@ export default function Dialog({
                 animate={{ opacity: 1, scale: 1, y: 0 }}
                 exit={{ opacity: 0, scale: 0.96, y: 8 }}
                 transition={{ duration: 0.25 }}
-                className={`card-surface grain relative w-full ${maxWidthClass} ${paddingClass} outline-none ${opaque ? "!bg-void-900 !backdrop-blur-0" : ""}`}
-                style={opaque ? { backgroundColor: "var(--c-void-900, rgb(15 20 33))" } : undefined}
+                className={`card-surface relative w-full ${maxWidthClass} ${paddingClass} outline-none ${opaque ? "!bg-void-900" : ""}`}
               >
                 {children}
               </motion.div>
@@ -160,6 +156,6 @@ export default function Dialog({
         </>
       )}
     </AnimatePresence>,
-    document.body
+    document.body,
   );
 }

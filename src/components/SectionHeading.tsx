@@ -1,5 +1,3 @@
-import { motion } from "motion/react";
-
 interface SectionHeadingProps {
   eyebrow?: string;
   title: string;
@@ -8,7 +6,7 @@ interface SectionHeadingProps {
   className?: string;
 }
 
-/** 通用章节标题，左侧带星点装饰。 */
+/** 通用章节标题：简约扁平。 */
 export default function SectionHeading({
   eyebrow,
   title,
@@ -18,35 +16,13 @@ export default function SectionHeading({
 }: SectionHeadingProps) {
   const isCenter = align === "center";
   return (
-    <div
-      className={`${isCenter ? "mx-auto text-center" : "text-left"} max-w-2xl ${className}`}
-    >
-      {eyebrow && (
-        <div
-          className={`mb-3 flex items-center gap-2 ${
-            isCenter ? "justify-center" : ""
-          }`}
-        >
-          <span className="h-px w-8 bg-gradient-to-r from-transparent to-star-400" />
-          <span className="font-mono text-xs uppercase tracking-[0.25em] text-star-300">
-            {eyebrow}
-          </span>
-          <span className="h-px w-8 bg-gradient-to-l from-transparent to-star-400" />
-        </div>
-      )}
-      <motion.h2
-        initial={{ opacity: 0, y: 16 }}
-        whileInView={{ opacity: 1, y: 0 }}
-        viewport={{ once: true, margin: "-80px" }}
-        transition={{ duration: 0.6 }}
-        className="heading-display text-3xl text-parchment-100 sm:text-4xl"
-      >
+    <div className={`${isCenter ? "mx-auto text-center" : "text-left"} max-w-2xl ${className}`}>
+      {eyebrow && <span className="mb-1.5 block text-xs font-medium text-tian-500">{eyebrow}</span>}
+      <h2 className="text-xl font-semibold tracking-tight text-parchment-100 sm:text-2xl">
         {title}
-      </motion.h2>
+      </h2>
       {subtitle && (
-        <p className="mt-3 text-sm leading-relaxed text-mist-400 sm:text-base">
-          {subtitle}
-        </p>
+        <p className="mt-2 text-sm leading-relaxed text-mist-400 sm:text-base">{subtitle}</p>
       )}
     </div>
   );

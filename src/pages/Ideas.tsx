@@ -1,7 +1,17 @@
 import { useMemo, useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { toast } from "@/stores/toast";
-import { Lightbulb, ThumbsUp, MessageCircle, Plus, Loader2, Bookmark, Pencil, Trash2, Flag } from "lucide-react";
+import {
+  Lightbulb,
+  ThumbsUp,
+  MessageCircle,
+  Plus,
+  Loader2,
+  Bookmark,
+  Pencil,
+  Trash2,
+  Flag,
+} from "lucide-react";
 import Dialog from "@/components/Dialog";
 import IdeaModal from "@/components/IdeaModal";
 import ReportModal from "@/components/ReportModal";
@@ -72,7 +82,7 @@ export default function Ideas() {
 
   const TOPICS = useMemo(
     () => ["全部", ...Array.from(new Set(allIdeas.map((i) => i.topic)))],
-    [allIdeas]
+    [allIdeas],
   );
 
   const filtered = useMemo(
@@ -83,7 +93,7 @@ export default function Ideas() {
           if (sort === "最新") return b.createdAt < a.createdAt ? 1 : -1;
           return b.resonance - a.resonance;
         }),
-    [allIdeas, topic, sort]
+    [allIdeas, topic, sort],
   );
 
   const handleNewIdea = (idea: Idea) => {
@@ -108,7 +118,7 @@ export default function Ideas() {
     // 本地先 +1
     setResonated((v) => ({ ...v, [idea.id]: true }));
     setRealIdeas((prev) =>
-      prev.map((i) => (i.id === idea.id ? { ...i, resonance: i.resonance + 1 } : i))
+      prev.map((i) => (i.id === idea.id ? { ...i, resonance: i.resonance + 1 } : i)),
     );
 
     // 远程更新
@@ -118,7 +128,7 @@ export default function Ideas() {
       // 回滚
       setResonated((v) => ({ ...v, [idea.id]: false }));
       setRealIdeas((prev) =>
-        prev.map((i) => (i.id === idea.id ? { ...i, resonance: Math.max(0, i.resonance - 1) } : i))
+        prev.map((i) => (i.id === idea.id ? { ...i, resonance: Math.max(0, i.resonance - 1) } : i)),
       );
       toast.error("操作失败，请重试");
     }
@@ -159,8 +169,18 @@ export default function Ideas() {
   const handleSaveIdea = async () => {
     if (!editingIdea || !editTitle.trim() || !editSummary.trim()) return;
     try {
-      await updateIdea(editingIdea.id, { title: editTitle.trim(), summary: editSummary.trim(), tags: editTags });
-      setRealIdeas((prev) => prev.map((i) => i.id === editingIdea.id ? { ...i, title: editTitle.trim(), summary: editSummary.trim(), tags: editTags } : i));
+      await updateIdea(editingIdea.id, {
+        title: editTitle.trim(),
+        summary: editSummary.trim(),
+        tags: editTags,
+      });
+      setRealIdeas((prev) =>
+        prev.map((i) =>
+          i.id === editingIdea.id
+            ? { ...i, title: editTitle.trim(), summary: editSummary.trim(), tags: editTags }
+            : i,
+        ),
+      );
       setEditingIdea(null);
       toast.success("灵感已更新");
     } catch (e) {
@@ -182,10 +202,13 @@ export default function Ideas() {
   return (
     <>
       {/* 顶部工具栏 */}
-      <div className="border-b border-void-600/30 bg-void-900/20">
+      <div className="border-b border-void-600 bg-void-900">
         <div className="container-tj flex h-12 items-center justify-between">
           <h1 className="text-sm font-medium text-parchment-100">灵感广场</h1>
-          <button onClick={handleIdeaClick} className="inline-flex items-center gap-1.5 rounded-md bg-star-400/10 px-3 py-1.5 text-xs font-medium text-star-300 transition-colors hover:bg-star-400/20">
+          <button
+            onClick={handleIdeaClick}
+            className="inline-flex items-center gap-1.5 rounded-md bg-tian-500 px-3 py-1.5 text-xs font-medium text-white transition-colors hover:bg-tian-600"
+          >
             <Plus size={13} /> 分享灵感
           </button>
         </div>
@@ -200,7 +223,7 @@ export default function Ideas() {
                 key={t}
                 onClick={() => setTopic(t)}
                 className={`rounded px-2 py-1 transition-colors ${
-                  topic === t ? "text-parchment-100" : "text-mist-500 hover:text-mist-300"
+                  topic === t ? "font-medium text-tian-500" : "text-mist-500 hover:text-mist-300"
                 }`}
               >
                 {t}
@@ -213,7 +236,7 @@ export default function Ideas() {
                 key={s}
                 onClick={() => setSort(s)}
                 className={`rounded px-2 py-1 transition-colors ${
-                  sort === s ? "text-parchment-100" : "text-mist-500 hover:text-mist-300"
+                  sort === s ? "font-medium text-tian-500" : "text-mist-500 hover:text-mist-300"
                 }`}
               >
                 {s}
@@ -224,7 +247,7 @@ export default function Ideas() {
 
         {/* 加载状态 */}
         {loading && (
-          <div className="flex items-center justify-center py-20 text-mist-400">
+          <div className="flex items-center justify-center py-10 text-mist-400">
             <Loader2 size={20} className="mr-2 animate-spin" /> 加载灵感中…
           </div>
         )}
@@ -242,19 +265,29 @@ export default function Ideas() {
 
         {/* 灵感列表 - 行内分割线风格 */}
         {!loading && filtered.length > 0 && (
-          <div className="divide-y divide-void-600/20 rounded-lg border border-void-600/20">
+          <div className="divide-y divide-void-600 rounded-lg border border-void-600">
             {filtered.map((idea) => (
               <div
                 key={idea.id}
-                className="group relative px-4 py-3 transition-colors hover:bg-void-800/30"
+                className="group relative px-4 py-3 transition-colors hover:bg-void-700"
               >
                 {/* 作者操作 */}
                 {isAuthor(user?.uid, idea.authorUid) && (
                   <div className="absolute right-3 top-3 flex gap-1 opacity-0 transition-opacity group-hover:opacity-100">
-                    <button onClick={() => startEditIdea(idea)} className="flex h-8 w-8 items-center justify-center rounded-md text-mist-500 transition-colors hover:bg-void-700/60 hover:text-mist-300" title="编辑" aria-label="编辑灵感">
+                    <button
+                      onClick={() => startEditIdea(idea)}
+                      className="flex h-8 w-8 items-center justify-center rounded-md text-mist-500 transition-colors hover:bg-void-700 hover:text-mist-300"
+                      title="编辑"
+                      aria-label="编辑灵感"
+                    >
                       <Pencil size={12} />
                     </button>
-                    <button onClick={() => handleDeleteIdea(idea)} className="flex h-8 w-8 items-center justify-center rounded-md text-mist-500 transition-colors hover:bg-void-700/60 hover:text-red-300" title="删除" aria-label="删除灵感">
+                    <button
+                      onClick={() => handleDeleteIdea(idea)}
+                      className="flex h-8 w-8 items-center justify-center rounded-md text-mist-500 transition-colors hover:bg-void-700 hover:text-red-500"
+                      title="删除"
+                      aria-label="删除灵感"
+                    >
                       <Trash2 size={12} />
                     </button>
                   </div>
@@ -262,13 +295,13 @@ export default function Ideas() {
 
                 <div className="flex items-start gap-3">
                   {/* 共鸣数标签 */}
-                  <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-md bg-star-400/10 text-xs font-medium text-star-300">
+                  <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-md bg-void-700 text-xs font-medium text-mist-400">
                     {idea.resonance}
                   </span>
 
                   <div className="min-w-0 flex-1">
                     <Link to={`/ideas/${idea.id}`} className="block">
-                      <h3 className="truncate text-sm font-medium text-parchment-100 transition-colors group-hover:text-star-300">
+                      <h3 className="truncate text-sm font-medium text-parchment-100 transition-colors group-hover:text-tian-500">
                         {idea.title}
                       </h3>
                     </Link>
@@ -280,21 +313,28 @@ export default function Ideas() {
                       <span className="text-mist-600">&middot;</span>
                       <button
                         onClick={() => handleResonance(idea)}
-                        className={`inline-flex items-center gap-0.5 rounded-md px-1 py-0.5 transition-colors hover:text-star-300 ${resonated[idea.id] ? "text-star-300" : ""}`}
+                        className={`inline-flex items-center gap-0.5 rounded-md px-1 py-0.5 transition-colors hover:text-tian-500 ${resonated[idea.id] ? "text-tian-500" : ""}`}
                         aria-label="共鸣"
                       >
-                        <ThumbsUp size={11} className={resonated[idea.id] ? "fill-star-400" : ""} />
+                        <ThumbsUp size={11} className={resonated[idea.id] ? "fill-tian-500" : ""} />
                         共鸣
                       </button>
                       <button
                         onClick={() => handleFav(idea)}
-                        className={`flex h-7 w-7 items-center justify-center rounded-md transition-colors hover:bg-void-700/60 hover:text-star-300 ${favedIdeas.has(idea.id) ? "text-star-300" : ""}`}
+                        className={`flex h-7 w-7 items-center justify-center rounded-md transition-colors hover:bg-void-700 hover:text-tian-500 ${favedIdeas.has(idea.id) ? "text-tian-500" : ""}`}
                         aria-label="收藏"
                       >
-                        <Bookmark size={11} className={favedIdeas.has(idea.id) ? "fill-star-400" : ""} />
+                        <Bookmark
+                          size={11}
+                          className={favedIdeas.has(idea.id) ? "fill-tian-500" : ""}
+                        />
                       </button>
                       {!isAuthor(user?.uid, idea.authorUid) && (
-                        <button onClick={() => openReport(idea)} className="flex h-7 w-7 items-center justify-center rounded-md transition-colors hover:bg-void-700/60 hover:text-red-300" aria-label="举报">
+                        <button
+                          onClick={() => openReport(idea)}
+                          className="flex h-7 w-7 items-center justify-center rounded-md transition-colors hover:bg-void-700 hover:text-red-500"
+                          aria-label="举报"
+                        >
                           <Flag size={11} />
                         </button>
                       )}
@@ -318,32 +358,38 @@ export default function Ideas() {
 
       {/* 编辑灵感弹窗 */}
       <Dialog open={!!editingIdea} onClose={() => setEditingIdea(null)} maxWidthClass="max-w-lg">
-            <h3 id="edit-idea-title" className="mb-4 heading-display text-lg text-parchment-50">编辑灵感</h3>
-            <input
-              name="title"
-              value={editTitle}
-              onChange={(e) => setEditTitle(e.target.value)}
-              className="mb-3 w-full rounded-lg border border-void-600/50 bg-void-950/50 px-3 py-2.5 text-sm text-parchment-100 focus:border-star-400/50 focus:outline-none"
-              placeholder="标题"
-              maxLength={200}
-            />
-            <textarea
-              name="body"
-              rows={5}
-              value={editSummary}
-              onChange={(e) => setEditSummary(e.target.value)}
-              className="w-full resize-none rounded-lg border border-void-600/50 bg-void-950/50 p-3 text-sm text-parchment-100 focus:border-star-400/50 focus:outline-none"
-              maxLength={500}
-              placeholder="灵感内容"
-            />
-            <div className="mt-3">
-              <label className="mb-1.5 block text-xs text-mist-400">标签</label>
-              <TagSelector value={editTags} onChange={setEditTags} />
-            </div>
-            <div className="mt-4 flex justify-end gap-2">
-              <button onClick={() => setEditingIdea(null)} className="btn-ghost text-sm">取消</button>
-              <button onClick={handleSaveIdea} className="btn-gold text-sm">保存</button>
-            </div>
+        <h3 id="edit-idea-title" className="mb-4 heading-display text-lg text-parchment-50">
+          编辑灵感
+        </h3>
+        <input
+          name="title"
+          value={editTitle}
+          onChange={(e) => setEditTitle(e.target.value)}
+          className="mb-3 w-full rounded-lg border border-void-600 bg-void-950 px-3 py-2.5 text-sm text-parchment-100 focus:border-tian-500 focus:outline-none"
+          placeholder="标题"
+          maxLength={200}
+        />
+        <textarea
+          name="body"
+          rows={5}
+          value={editSummary}
+          onChange={(e) => setEditSummary(e.target.value)}
+          className="w-full resize-none rounded-lg border border-void-600 bg-void-950 p-3 text-sm text-parchment-100 focus:border-tian-500 focus:outline-none"
+          maxLength={500}
+          placeholder="灵感内容"
+        />
+        <div className="mt-3">
+          <label className="mb-1.5 block text-xs text-mist-400">标签</label>
+          <TagSelector value={editTags} onChange={setEditTags} />
+        </div>
+        <div className="mt-4 flex justify-end gap-2">
+          <button onClick={() => setEditingIdea(null)} className="btn-secondary text-sm">
+            取消
+          </button>
+          <button onClick={handleSaveIdea} className="btn-primary text-sm">
+            保存
+          </button>
+        </div>
       </Dialog>
 
       <ReportModal

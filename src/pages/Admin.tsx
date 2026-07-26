@@ -1,6 +1,13 @@
 import { useEffect, useState } from "react";
 import { Navigate } from "react-router-dom";
-import { useIsAdmin, fetchAdminStats, fetchAdminList, fetchAdminUsers, searchAdminUsers, adminDelete } from "@/lib/admin";
+import {
+  useIsAdmin,
+  fetchAdminStats,
+  fetchAdminList,
+  fetchAdminUsers,
+  searchAdminUsers,
+  adminDelete,
+} from "@/lib/admin";
 import { useAuthStore } from "@/stores/auth";
 import { toast } from "@/stores/toast";
 import { fetchReports, resolveReport, type Report } from "@/lib/reports";
@@ -101,7 +108,9 @@ export default function Admin() {
   useDocumentTitle("管理后台");
   const isAdmin = useIsAdmin();
   const { user, loading } = useAuthStore();
-  const [tab, setTab] = useState<"overview" | "posts" | "ideas" | "books" | "workshops" | "reports" | "announcements" | "users">("overview");
+  const [tab, setTab] = useState<
+    "overview" | "posts" | "ideas" | "books" | "workshops" | "reports" | "announcements" | "users"
+  >("overview");
   const [stats, setStats] = useState<Stats | null>(null);
   const [posts, setPosts] = useState<PostItem[]>([]);
   const [ideas, setIdeas] = useState<IdeaItem[]>([]);
@@ -236,9 +245,7 @@ export default function Admin() {
   const handleToggleAnnouncement = async (id: string, active: boolean) => {
     try {
       await toggleAnnouncement(id, active);
-      setAnnouncements((prev) =>
-        prev.map((a) => (a.id === id ? { ...a, active } : a))
-      );
+      setAnnouncements((prev) => prev.map((a) => (a.id === id ? { ...a, active } : a)));
       toast.success(active ? "公告已激活" : "公告已隐藏");
     } catch (err) {
       toast.error((err as Error).message || "操作失败");
@@ -259,7 +266,11 @@ export default function Admin() {
   const fetchUsers = async () => {
     setLoadingData(true);
     try {
-      const result = (await fetchAdminUsers()) as { ok: boolean; data?: UserItem[]; error?: string };
+      const result = (await fetchAdminUsers()) as {
+        ok: boolean;
+        data?: UserItem[];
+        error?: string;
+      };
       if (result?.ok && result.data) {
         setUserList(result.data);
       } else {
@@ -279,7 +290,11 @@ export default function Admin() {
     }
     setLoadingData(true);
     try {
-      const result = (await searchAdminUsers(searchKeyword.trim())) as { ok: boolean; data?: UserItem[]; error?: string };
+      const result = (await searchAdminUsers(searchKeyword.trim())) as {
+        ok: boolean;
+        data?: UserItem[];
+        error?: string;
+      };
       if (result?.ok && result.data) {
         setUserList(result.data);
       } else {
@@ -298,9 +313,7 @@ export default function Admin() {
     try {
       await banUser(uid, reason);
       setUserList((prev) =>
-        prev.map((u) =>
-          u._id === uid ? { ...u, banned: true, bannedReason: reason } : u
-        )
+        prev.map((u) => (u._id === uid ? { ...u, banned: true, bannedReason: reason } : u)),
       );
       toast.success("用户已封禁");
     } catch (err) {
@@ -314,10 +327,8 @@ export default function Admin() {
       await unbanUser(uid);
       setUserList((prev) =>
         prev.map((u) =>
-          u._id === uid
-            ? { ...u, banned: false, bannedReason: "", bannedUntil: "" }
-            : u
-        )
+          u._id === uid ? { ...u, banned: false, bannedReason: "", bannedUntil: "" } : u,
+        ),
       );
       toast.success("用户已解封");
     } catch (err) {
@@ -325,14 +336,9 @@ export default function Admin() {
     }
   };
 
-  const handleResolveReport = async (
-    report: Report,
-    action: "resolved" | "dismissed"
-  ) => {
+  const handleResolveReport = async (report: Report, action: "resolved" | "dismissed") => {
     const confirmMsg =
-      action === "resolved"
-        ? "确定删除被举报的内容并标记为已处理？"
-        : "确定忽略此举报？";
+      action === "resolved" ? "确定删除被举报的内容并标记为已处理？" : "确定忽略此举报？";
     if (!confirm(confirmMsg)) return;
     try {
       if (action === "resolved") {
@@ -345,7 +351,10 @@ export default function Admin() {
         const col = colMap[report.targetType];
         if (col) {
           try {
-            const result = (await adminDelete(col, report.targetId)) as { ok?: boolean; error?: string };
+            const result = (await adminDelete(col, report.targetId)) as {
+              ok?: boolean;
+              error?: string;
+            };
             if (!result?.ok) {
               toast.error(result?.error || "内容删除失败");
               return;
@@ -426,21 +435,57 @@ export default function Admin() {
   if (!user) return <Navigate to="/" replace />;
   if (!isAdmin) {
     return (
-      <div className="mx-auto max-w-2xl py-20 text-center">
+      <div className="mx-auto max-w-2xl py-10 text-center">
         <Shield size={48} className="mx-auto mb-4 text-mist-500" />
-        <h1 className="mb-2 text-2xl font-bold text-star-100">权限不足</h1>
+        <h1 className="mb-2 text-2xl font-bold text-parchment-100">权限不足</h1>
         <p className="text-mist-400">只有管理员可以访问此页面</p>
       </div>
     );
   }
 
   const statCards = [
-    { label: "帖子", value: stats?.posts ?? 0, icon: MessageSquare, color: "text-blue-400", bg: "bg-blue-400/10" },
-    { label: "灵感", value: stats?.ideas ?? 0, icon: Lightbulb, color: "text-yellow-400", bg: "bg-yellow-400/10" },
-    { label: "资源", value: stats?.books ?? 0, icon: Book, color: "text-green-400", bg: "bg-green-400/10" },
-    { label: "协作", value: stats?.workshops ?? 0, icon: HardHat, color: "text-purple-400", bg: "bg-purple-400/10" },
-    { label: "用户", value: stats?.users ?? 0, icon: Users, color: "text-pink-400", bg: "bg-pink-400/10" },
-    { label: "通知", value: stats?.notifications ?? 0, icon: Activity, color: "text-cyan-400", bg: "bg-cyan-400/10" },
+    {
+      label: "帖子",
+      value: stats?.posts ?? 0,
+      icon: MessageSquare,
+      color: "text-blue-600",
+      bg: "bg-blue-50",
+    },
+    {
+      label: "灵感",
+      value: stats?.ideas ?? 0,
+      icon: Lightbulb,
+      color: "text-amber-600",
+      bg: "bg-amber-50",
+    },
+    {
+      label: "资源",
+      value: stats?.books ?? 0,
+      icon: Book,
+      color: "text-green-600",
+      bg: "bg-green-50",
+    },
+    {
+      label: "协作",
+      value: stats?.workshops ?? 0,
+      icon: HardHat,
+      color: "text-purple-600",
+      bg: "bg-purple-50",
+    },
+    {
+      label: "用户",
+      value: stats?.users ?? 0,
+      icon: Users,
+      color: "text-pink-600",
+      bg: "bg-pink-50",
+    },
+    {
+      label: "通知",
+      value: stats?.notifications ?? 0,
+      icon: Activity,
+      color: "text-cyan-600",
+      bg: "bg-cyan-50",
+    },
   ];
 
   const tabs = [
@@ -457,26 +502,26 @@ export default function Admin() {
   return (
     <div className="mx-auto max-w-6xl py-8">
       {/* Header */}
-      <div className="mb-8 flex items-center gap-3">
-        <div className="flex h-12 w-12 items-center justify-center rounded-xl border border-tian-400/30 bg-tian-400/10">
-          <Shield className="text-tian-300" size={24} />
+      <div className="mb-6 flex items-center gap-3">
+        <div className="flex h-12 w-12 items-center justify-center rounded-lg border border-void-600 bg-void-700">
+          <Shield className="text-tian-500" size={24} />
         </div>
         <div>
-          <h1 className="text-2xl font-bold text-star-100">管理后台</h1>
+          <h1 className="text-2xl font-bold text-parchment-100">管理后台</h1>
           <p className="text-sm text-mist-400">天玑社区管理中心</p>
         </div>
       </div>
 
       {/* Tabs */}
-      <div className="mb-6 flex gap-1 overflow-x-auto rounded-xl border border-void-600/40 bg-void-800/30 p-1">
+      <div className="mb-6 flex gap-1 overflow-x-auto rounded-lg border border-void-600 bg-void-800 p-1">
         {tabs.map((t) => (
           <button
             key={t.key}
             onClick={() => setTab(t.key)}
-            className={`flex items-center gap-2 whitespace-nowrap rounded-lg px-4 py-2 text-sm font-medium transition-all ${
+            className={`flex items-center gap-2 whitespace-nowrap rounded-lg px-4 py-2 text-sm font-medium transition-colors ${
               tab === t.key
-                ? "bg-tian-400/20 text-tian-200"
-                : "text-mist-400 hover:text-mist-200"
+                ? "bg-tian-500 text-white"
+                : "text-mist-400 hover:bg-void-700 hover:text-parchment-100"
             }`}
           >
             <t.icon size={16} />
@@ -492,37 +537,34 @@ export default function Admin() {
         <div>
           <div className="grid grid-cols-2 gap-4 md:grid-cols-3">
             {statCards.map((card) => (
-              <div
-                key={card.label}
-                className="rounded-xl border border-void-600/40 bg-void-800/30 p-5"
-              >
+              <div key={card.label} className="rounded-lg border border-void-600 bg-void-800 p-5">
                 <div className="mb-3 flex items-center justify-between">
                   <span className="text-sm text-mist-400">{card.label}</span>
                   <div className={`flex h-8 w-8 items-center justify-center rounded-lg ${card.bg}`}>
                     <card.icon size={16} className={card.color} />
                   </div>
                 </div>
-                <p className="text-3xl font-bold text-star-100">{card.value}</p>
+                <p className="text-3xl font-bold text-parchment-100">{card.value}</p>
               </div>
             ))}
           </div>
 
-          <div className="mt-6 rounded-xl border border-void-600/40 bg-void-800/30 p-5">
-            <h3 className="mb-3 text-sm font-medium text-star-200">快捷操作</h3>
+          <div className="mt-6 rounded-lg border border-void-600 bg-void-800 p-5">
+            <h3 className="mb-3 text-sm font-medium text-parchment-100">快捷操作</h3>
             <div className="flex flex-wrap gap-2">
-              <button onClick={() => setTab("posts")} className="btn-ghost text-sm">
+              <button onClick={() => setTab("posts")} className="btn-secondary text-sm">
                 管理帖子
               </button>
-              <button onClick={() => setTab("ideas")} className="btn-ghost text-sm">
+              <button onClick={() => setTab("ideas")} className="btn-secondary text-sm">
                 管理灵感
               </button>
-              <button onClick={() => setTab("books")} className="btn-ghost text-sm">
+              <button onClick={() => setTab("books")} className="btn-secondary text-sm">
                 管理资源
               </button>
-              <button onClick={() => setTab("workshops")} className="btn-ghost text-sm">
+              <button onClick={() => setTab("workshops")} className="btn-secondary text-sm">
                 管理协作
               </button>
-              <button onClick={() => setTab("reports")} className="btn-ghost text-sm">
+              <button onClick={() => setTab("reports")} className="btn-secondary text-sm">
                 管理举报
               </button>
             </div>
@@ -532,31 +574,30 @@ export default function Admin() {
 
       {/* Posts */}
       {tab === "posts" && !loadingData && (
-        <div className="space-y-2">
+        <div className="divide-y divide-void-600 rounded-lg border border-void-600 bg-void-800">
           {posts.length === 0 && <p className="py-8 text-center text-mist-400">暂无帖子</p>}
           {posts.map((p) => (
-            <div
-              key={p._id}
-              className="flex items-center justify-between rounded-xl border border-void-600/40 bg-void-800/30 p-4"
-            >
+            <div key={p._id} className="flex items-center justify-between p-4">
               <div className="min-w-0 flex-1">
-                <p className="truncate font-medium text-star-100">{p.title}</p>
+                <p className="truncate font-medium text-parchment-100">{p.title}</p>
                 <div className="mt-1 flex items-center gap-3 text-xs text-mist-500">
                   <span>{p.author}</span>
                   <span>{p.createdAt}</span>
                   <span>浏览 {p.views}</span>
                   {p.tags?.map((t) => (
-                    <span key={t} className="rounded bg-void-700/50 px-1.5 py-0.5">{t}</span>
+                    <span key={t} className="rounded bg-void-700 px-1.5 py-0.5">
+                      {t}
+                    </span>
                   ))}
                 </div>
               </div>
               <div className="ml-3 flex flex-shrink-0 items-center gap-1.5">
                 <button
                   onClick={() => handleTogglePin(p._id)}
-                  className={`flex-shrink-0 rounded-lg border p-2 transition-all ${
+                  className={`flex-shrink-0 rounded-lg border p-2 transition-colors ${
                     p.pinned
-                      ? "border-blue-400/50 bg-blue-400/20 text-blue-300 hover:bg-blue-400/30"
-                      : "border-void-600/50 bg-void-800/40 text-mist-400 hover:border-blue-400/40 hover:text-blue-300"
+                      ? "border-blue-200 bg-blue-50 text-blue-600 hover:bg-blue-100"
+                      : "border-void-600 bg-void-800 text-mist-400 hover:bg-void-700 hover:text-blue-600"
                   }`}
                   title={p.pinned ? "取消置顶" : "置顶"}
                 >
@@ -564,10 +605,10 @@ export default function Admin() {
                 </button>
                 <button
                   onClick={() => handleToggleLock(p._id)}
-                  className={`flex-shrink-0 rounded-lg border p-2 transition-all ${
+                  className={`flex-shrink-0 rounded-lg border p-2 transition-colors ${
                     p.locked
-                      ? "border-red-400/50 bg-red-400/20 text-red-300 hover:bg-red-400/30"
-                      : "border-void-600/50 bg-void-800/40 text-mist-400 hover:border-red-400/40 hover:text-red-300"
+                      ? "border-red-200 bg-red-50 text-red-600 hover:bg-red-100"
+                      : "border-void-600 bg-void-800 text-mist-400 hover:bg-void-700 hover:text-red-600"
                   }`}
                   title={p.locked ? "取消锁定" : "锁定"}
                 >
@@ -575,10 +616,10 @@ export default function Admin() {
                 </button>
                 <button
                   onClick={() => handleToggleFeature(p._id)}
-                  className={`flex-shrink-0 rounded-lg border p-2 transition-all ${
+                  className={`flex-shrink-0 rounded-lg border p-2 transition-colors ${
                     p.featured
-                      ? "border-yellow-400/50 bg-yellow-400/20 text-yellow-300 hover:bg-yellow-400/30"
-                      : "border-void-600/50 bg-void-800/40 text-mist-400 hover:border-yellow-400/40 hover:text-yellow-300"
+                      ? "border-amber-200 bg-amber-50 text-amber-600 hover:bg-amber-100"
+                      : "border-void-600 bg-void-800 text-mist-400 hover:bg-void-700 hover:text-amber-600"
                   }`}
                   title={p.featured ? "取消加精" : "加精"}
                 >
@@ -586,7 +627,7 @@ export default function Admin() {
                 </button>
                 <button
                   onClick={() => handleDelete("posts", p._id)}
-                  className="flex-shrink-0 rounded-lg border border-red-500/30 bg-red-500/10 p-2 text-red-400 transition-all hover:bg-red-500/20"
+                  className="flex-shrink-0 rounded-lg border border-red-200 bg-red-50 p-2 text-red-600 transition-colors hover:bg-red-100"
                   title="删除"
                 >
                   <Trash2 size={16} />
@@ -599,17 +640,12 @@ export default function Admin() {
 
       {/* Ideas */}
       {tab === "ideas" && !loadingData && (
-        <div className="space-y-2">
+        <div className="divide-y divide-void-600 rounded-lg border border-void-600 bg-void-800">
           {ideas.length === 0 && <p className="py-8 text-center text-mist-400">暂无灵感</p>}
           {ideas.map((i) => (
-            <div
-              key={i._id}
-              className="flex items-center justify-between rounded-xl border border-void-600/40 bg-void-800/30 p-4"
-            >
+            <div key={i._id} className="flex items-center justify-between p-4">
               <div className="min-w-0 flex-1">
-                <p className="truncate text-sm text-star-100">
-                  {i.title}
-                </p>
+                <p className="truncate text-sm text-parchment-100">{i.title}</p>
                 {i.summary && (
                   <p className="mt-0.5 truncate text-xs text-mist-400">
                     {i.summary.slice(0, 80)}
@@ -624,7 +660,7 @@ export default function Admin() {
               </div>
               <button
                 onClick={() => handleDelete("ideas", i._id)}
-                className="ml-3 flex-shrink-0 rounded-lg border border-red-500/30 bg-red-500/10 p-2 text-red-400 transition-all hover:bg-red-500/20"
+                className="ml-3 flex-shrink-0 rounded-lg border border-red-200 bg-red-50 p-2 text-red-600 transition-colors hover:bg-red-100"
               >
                 <Trash2 size={16} />
               </button>
@@ -635,15 +671,12 @@ export default function Admin() {
 
       {/* Books */}
       {tab === "books" && !loadingData && (
-        <div className="space-y-2">
+        <div className="divide-y divide-void-600 rounded-lg border border-void-600 bg-void-800">
           {books.length === 0 && <p className="py-8 text-center text-mist-400">暂无资源</p>}
           {books.map((b) => (
-            <div
-              key={b._id}
-              className="flex items-center justify-between rounded-xl border border-void-600/40 bg-void-800/30 p-4"
-            >
+            <div key={b._id} className="flex items-center justify-between p-4">
               <div className="min-w-0 flex-1">
-                <p className="truncate font-medium text-star-100">{b.title}</p>
+                <p className="truncate font-medium text-parchment-100">{b.title}</p>
                 <div className="mt-1 flex items-center gap-3 text-xs text-mist-500">
                   <span>{b.author}</span>
                   <span>下载 {b.downloads ?? 0}</span>
@@ -652,7 +685,7 @@ export default function Admin() {
               </div>
               <button
                 onClick={() => handleDelete("books", b._id)}
-                className="ml-3 flex-shrink-0 rounded-lg border border-red-500/30 bg-red-500/10 p-2 text-red-400 transition-all hover:bg-red-500/20"
+                className="ml-3 flex-shrink-0 rounded-lg border border-red-200 bg-red-50 p-2 text-red-600 transition-colors hover:bg-red-100"
               >
                 <Trash2 size={16} />
               </button>
@@ -663,15 +696,12 @@ export default function Admin() {
 
       {/* Workshops */}
       {tab === "workshops" && !loadingData && (
-        <div className="space-y-2">
+        <div className="divide-y divide-void-600 rounded-lg border border-void-600 bg-void-800">
           {workshops.length === 0 && <p className="py-8 text-center text-mist-400">暂无协作</p>}
           {workshops.map((w) => (
-            <div
-              key={w._id}
-              className="flex items-center justify-between rounded-xl border border-void-600/40 bg-void-800/30 p-4"
-            >
+            <div key={w._id} className="flex items-center justify-between p-4">
               <div className="min-w-0 flex-1">
-                <p className="truncate font-medium text-star-100">{w.title}</p>
+                <p className="truncate font-medium text-parchment-100">{w.title}</p>
                 <div className="mt-1 flex items-center gap-3 text-xs text-mist-500">
                   <span>{w.creator}</span>
                   <span>参与 {w.participants?.length ?? 0}</span>
@@ -680,7 +710,7 @@ export default function Admin() {
               </div>
               <button
                 onClick={() => handleDelete("workshops", w._id)}
-                className="ml-3 flex-shrink-0 rounded-lg border border-red-500/30 bg-red-500/10 p-2 text-red-400 transition-all hover:bg-red-500/20"
+                className="ml-3 flex-shrink-0 rounded-lg border border-red-200 bg-red-50 p-2 text-red-600 transition-colors hover:bg-red-100"
               >
                 <Trash2 size={16} />
               </button>
@@ -691,7 +721,7 @@ export default function Admin() {
 
       {/* Reports */}
       {tab === "reports" && !loadingData && (
-        <div className="space-y-2">
+        <div className="divide-y divide-void-600 rounded-lg border border-void-600 bg-void-800">
           {reports.length === 0 && <p className="py-8 text-center text-mist-400">暂无举报</p>}
           {reports.map((r) => {
             const typeLabel: Record<string, string> = {
@@ -708,22 +738,19 @@ export default function Admin() {
               dismissed: "已忽略",
             };
             const statusColor: Record<string, string> = {
-              pending: "border-yellow-400/40 bg-yellow-400/10 text-yellow-300",
-              resolved: "border-green-400/40 bg-green-400/10 text-green-300",
-              dismissed: "border-void-600/50 bg-void-700/40 text-mist-400",
+              pending: "border-amber-200 bg-amber-50 text-amber-700",
+              resolved: "border-green-200 bg-green-50 text-green-700",
+              dismissed: "border-void-600 bg-void-700 text-mist-400",
             };
             return (
-              <div
-                key={r.id}
-                className="rounded-xl border border-void-600/40 bg-void-800/30 p-4"
-              >
+              <div key={r.id} className="p-4">
                 <div className="flex items-start justify-between gap-3">
                   <div className="min-w-0 flex-1">
-                    <p className="truncate font-medium text-star-100">
+                    <p className="truncate font-medium text-parchment-100">
                       {r.targetTitle || "（无标题）"}
                     </p>
                     <div className="mt-1 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-mist-500">
-                      <span className="rounded bg-void-700/50 px-1.5 py-0.5 text-mist-300">
+                      <span className="rounded bg-void-700 px-1.5 py-0.5 text-mist-300">
                         {typeLabel[r.targetType] ?? r.targetType}
                       </span>
                       <span>举报人：{r.reporterName || r.reporterUid || "匿名"}</span>
@@ -743,23 +770,21 @@ export default function Admin() {
                       <>
                         <button
                           onClick={() => handleResolveReport(r, "resolved")}
-                          className="flex items-center gap-1 rounded-lg border border-red-500/30 bg-red-500/10 px-2.5 py-1.5 text-xs text-red-400 transition-all hover:bg-red-500/20"
+                          className="flex items-center gap-1 rounded-lg border border-red-200 bg-red-50 px-2.5 py-1.5 text-xs text-red-600 transition-colors hover:bg-red-100"
                           title="删除内容并标记为已处理"
                         >
                           <Trash2 size={14} /> 处理
                         </button>
                         <button
                           onClick={() => handleResolveReport(r, "dismissed")}
-                          className="flex items-center gap-1 rounded-lg border border-void-600/50 bg-void-800/40 px-2.5 py-1.5 text-xs text-mist-300 transition-all hover:border-mist-400/40"
+                          className="flex items-center gap-1 rounded-lg border border-void-600 bg-void-800 px-2.5 py-1.5 text-xs text-mist-300 transition-colors hover:bg-void-700"
                           title="忽略举报"
                         >
                           <XCircle size={14} /> 忽略
                         </button>
                       </>
                     )}
-                    {r.status !== "pending" && (
-                      <CheckCircle2 size={16} className="text-mist-600" />
-                    )}
+                    {r.status !== "pending" && <CheckCircle2 size={16} className="text-mist-400" />}
                   </div>
                 </div>
               </div>
@@ -771,17 +796,17 @@ export default function Admin() {
       {tab === "announcements" && !loadingData && (
         <div className="space-y-4">
           {/* 发布表单 */}
-          <div className="rounded-xl border border-tian-400/30 bg-tian-400/5 p-5">
+          <div className="rounded-lg border border-void-600 bg-void-800 p-5">
             <div className="mb-3 flex items-center gap-2">
-              <Megaphone size={16} className="text-tian-300" />
-              <span className="text-sm font-medium text-tian-200">发布公告</span>
+              <Megaphone size={16} className="text-tian-500" />
+              <span className="text-sm font-medium text-parchment-100">发布公告</span>
             </div>
             <input
               value={annForm.title}
               onChange={(e) => setAnnForm((p) => ({ ...p, title: e.target.value }))}
               placeholder="公告标题"
               maxLength={100}
-              className="mb-3 w-full rounded-lg border border-void-600/50 bg-void-950/50 px-4 py-2.5 text-sm text-parchment-100 placeholder:text-mist-500 focus:border-tian-400/50 focus:outline-none focus:ring-1 focus:ring-tian-400/30"
+              className="mb-3 w-full rounded-lg border border-void-600 bg-void-950 px-4 py-2.5 text-sm text-parchment-100 placeholder:text-mist-500 focus:border-tian-500 focus:outline-none focus:ring-1 focus:ring-tian-500"
             />
             <textarea
               value={annForm.content}
@@ -789,28 +814,24 @@ export default function Admin() {
               placeholder="公告内容…"
               rows={3}
               maxLength={500}
-              className="mb-3 w-full resize-y rounded-lg border border-void-600/50 bg-void-950/50 px-4 py-2.5 text-sm leading-relaxed text-parchment-100 placeholder:text-mist-500 focus:border-tian-400/50 focus:outline-none focus:ring-1 focus:ring-tian-400/30"
+              className="mb-3 w-full resize-y rounded-lg border border-void-600 bg-void-950 px-4 py-2.5 text-sm leading-relaxed text-parchment-100 placeholder:text-mist-500 focus:border-tian-500 focus:outline-none focus:ring-1 focus:ring-tian-500"
             />
             <button
               onClick={handleCreateAnnouncement}
               disabled={!annForm.title.trim() || !annForm.content.trim() || annSubmitting}
-              className="inline-flex items-center gap-2 rounded-lg border border-tian-400/60 bg-tian-500 px-4 py-2 text-sm font-medium text-white transition-all hover:bg-tian-600 disabled:cursor-not-allowed disabled:opacity-50"
+              className="inline-flex items-center gap-2 rounded-lg bg-tian-500 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-tian-600 disabled:cursor-not-allowed disabled:opacity-50"
             >
               <Plus size={15} /> {annSubmitting ? "发布中…" : "发布公告"}
             </button>
           </div>
 
           {/* 公告列表 */}
-          {announcements.length === 0 && (
-            <p className="py-8 text-center text-mist-400">暂无公告</p>
-          )}
+          {announcements.length === 0 && <p className="py-8 text-center text-mist-400">暂无公告</p>}
           {announcements.map((a) => (
             <div
               key={a.id}
-              className={`rounded-xl border p-4 ${
-                a.active
-                  ? "border-void-600/40 bg-void-800/30"
-                  : "border-void-600/20 bg-void-900/20 opacity-60"
+              className={`rounded-lg border p-4 ${
+                a.active ? "border-void-600 bg-void-800" : "border-void-600 bg-void-700 opacity-60"
               }`}
             >
               <div className="flex items-start justify-between gap-3">
@@ -818,10 +839,10 @@ export default function Admin() {
                   <div className="flex items-center gap-2">
                     <h4 className="font-medium text-parchment-50">{a.title}</h4>
                     <span
-                      className={`rounded-md border px-1.5 py-0.5 text-[10px] ${
+                      className={`rounded-md border px-1.5 py-0.5 text-xs ${
                         a.active
-                          ? "border-green-400/40 bg-green-400/10 text-green-300"
-                          : "border-void-600/50 bg-void-700/40 text-mist-500"
+                          ? "border-green-200 bg-green-50 text-green-700"
+                          : "border-void-600 bg-void-700 text-mist-500"
                       }`}
                     >
                       {a.active ? "活跃" : "隐藏"}
@@ -837,14 +858,14 @@ export default function Admin() {
                 <div className="flex flex-shrink-0 items-center gap-2">
                   <button
                     onClick={() => handleToggleAnnouncement(a.id, !a.active)}
-                    className="flex items-center gap-1 rounded-lg border border-void-600/50 bg-void-800/40 px-2.5 py-1.5 text-xs text-mist-300 transition-all hover:border-mist-400/40"
+                    className="flex items-center gap-1 rounded-lg border border-void-600 bg-void-800 px-2.5 py-1.5 text-xs text-mist-300 transition-colors hover:bg-void-700"
                     title={a.active ? "隐藏公告" : "激活公告"}
                   >
                     <Power size={14} /> {a.active ? "隐藏" : "激活"}
                   </button>
                   <button
                     onClick={() => handleDeleteAnnouncement(a.id)}
-                    className="flex items-center gap-1 rounded-lg border border-red-500/30 bg-red-500/10 px-2.5 py-1.5 text-xs text-red-400 transition-all hover:bg-red-500/20"
+                    className="flex items-center gap-1 rounded-lg border border-red-200 bg-red-50 px-2.5 py-1.5 text-xs text-red-600 transition-colors hover:bg-red-100"
                     title="删除公告"
                   >
                     <Trash2 size={14} /> 删除
@@ -866,32 +887,29 @@ export default function Admin() {
               onChange={(e) => setSearchKeyword(e.target.value)}
               onKeyDown={(e) => e.key === "Enter" && handleSearchUsers()}
               placeholder="搜索用户名..."
-              className="flex-1 rounded-lg border border-void-600/50 bg-void-800/40 px-4 py-2 text-sm text-star-100 placeholder:text-mist-500"
+              className="flex-1 rounded-lg border border-void-600 bg-void-950 px-4 py-2 text-sm text-parchment-100 placeholder:text-mist-500 focus:border-tian-500 focus:outline-none"
             />
             <button
               onClick={handleSearchUsers}
-              className="flex items-center gap-1 rounded-lg bg-tian-500/20 px-4 py-2 text-sm text-tian-200 hover:bg-tian-500/30"
+              className="flex items-center gap-1 rounded-lg bg-tian-500 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-tian-600"
             >
               <Search size={16} /> 搜索
             </button>
           </div>
 
-          <div className="space-y-2">
+          <div className="divide-y divide-void-600 rounded-lg border border-void-600 bg-void-800">
             {userList.length === 0 && (
               <p className="py-8 text-center text-mist-400">暂无用户数据</p>
             )}
             {userList.map((u) => (
-              <div
-                key={u._id}
-                className="flex items-center justify-between rounded-xl border border-void-600/40 bg-void-800/30 p-4"
-              >
+              <div key={u._id} className="flex items-center justify-between p-4">
                 <div className="min-w-0 flex-1">
                   <div className="flex items-center gap-2">
-                    <span className="truncate font-medium text-star-100">
+                    <span className="truncate font-medium text-parchment-100">
                       {u.displayName || "(未设置昵称)"}
                     </span>
                     {u.banned && (
-                      <span className="flex items-center gap-1 rounded-full bg-red-500/10 px-2 py-0.5 text-xs text-red-400">
+                      <span className="flex items-center gap-1 rounded-full bg-red-50 px-2 py-0.5 text-xs text-red-600">
                         <Ban size={12} /> 已封禁
                       </span>
                     )}
@@ -902,9 +920,7 @@ export default function Admin() {
                     </span>
                     <span className="font-mono">{u._id}</span>
                     {u.banned && u.bannedReason && (
-                      <span className="truncate text-red-400/70">
-                        原因: {u.bannedReason}
-                      </span>
+                      <span className="truncate text-red-500">原因: {u.bannedReason}</span>
                     )}
                   </div>
                 </div>
@@ -912,14 +928,14 @@ export default function Admin() {
                   {u.banned ? (
                     <button
                       onClick={() => handleUnbanUser(u._id)}
-                      className="flex items-center gap-1 rounded-lg border border-green-500/30 bg-green-500/10 px-3 py-1.5 text-xs text-green-400 transition-all hover:bg-green-500/20"
+                      className="flex items-center gap-1 rounded-lg border border-green-200 bg-green-50 px-3 py-1.5 text-xs text-green-600 transition-colors hover:bg-green-100"
                     >
                       <ShieldCheck size={14} /> 解封
                     </button>
                   ) : (
                     <button
                       onClick={() => handleBanUser(u._id, u.displayName)}
-                      className="flex items-center gap-1 rounded-lg border border-red-500/30 bg-red-500/10 px-3 py-1.5 text-xs text-red-400 transition-all hover:bg-red-500/20"
+                      className="flex items-center gap-1 rounded-lg border border-red-200 bg-red-50 px-3 py-1.5 text-xs text-red-600 transition-colors hover:bg-red-100"
                     >
                       <Ban size={14} /> 封禁
                     </button>

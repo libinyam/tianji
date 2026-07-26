@@ -1,6 +1,5 @@
 import { useState } from "react";
 import { Link, useParams } from "react-router-dom";
-import { motion } from "motion/react";
 import { toast } from "@/stores/toast";
 import {
   ArrowLeft,
@@ -198,12 +197,12 @@ export default function DiscussionDetail() {
   // 加载失败或帖子不存在
   if (!question) {
     return (
-      <div className="container-tj py-40 text-center">
+      <div className="container-tj py-10 text-center">
         <p className="text-mist-400">{loadError ?? "未找到该讨论。"}</p>
-        <button onClick={() => window.location.reload()} className="btn-ghost mt-6 inline-flex">
+        <button onClick={() => window.location.reload()} className="btn-secondary mt-6 inline-flex">
           重试
         </button>
-        <Link to="/" className="btn-ghost ml-2 inline-flex">
+        <Link to="/" className="btn-secondary ml-2 inline-flex">
           <ArrowLeft size={15} /> 返回讨论区
         </Link>
       </div>
@@ -211,11 +210,11 @@ export default function DiscussionDetail() {
   }
 
   return (
-    <div className="forum-light min-h-screen bg-void-950">
+    <div className="min-h-screen bg-void-950">
       <div className="container-tj py-10">
         <Link
           to="/"
-          className="inline-flex items-center gap-1.5 text-sm text-mist-400 transition-colors hover:text-star-300"
+          className="inline-flex items-center gap-1.5 text-sm text-mist-400 transition-colors hover:text-tian-500"
         >
           <ArrowLeft size={15} /> 返回讨论区
         </Link>
@@ -224,31 +223,23 @@ export default function DiscussionDetail() {
           {/* 主体 */}
           <div className="min-w-0">
             {/* 问题 */}
-            <motion.div
-              initial={{ opacity: 0, y: 16 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.5 }}
-            >
+            <div>
               <div className="flex flex-wrap items-center gap-2">
                 {question.category === "casual" ? (
-                  <span className="rounded-full border border-orange-400/30 bg-orange-400/10 px-2.5 py-0.5 text-[11px] text-orange-300">
-                    闲聊区
-                  </span>
+                  <span className="pill">闲聊区</span>
                 ) : (
-                  <span className="rounded-full border border-star-400/30 bg-star-400/10 px-2.5 py-0.5 text-[11px] text-star-300">
-                    学术区
-                  </span>
+                  <span className="pill-blue">学术区</span>
                 )}
                 {question.bounty && (
                   <span className="pill-gold">
-                    <Star size={11} className="fill-star-400" /> 悬赏 {question.bounty} 星辰
+                    <Star size={11} className="fill-star-400" /> 悬赏 {question.bounty} 积分
                   </span>
                 )}
                 {question.tags.map((t) => (
                   <Link
                     key={t}
                     to={`/tags/${encodeURIComponent(t)}`}
-                    className="pill transition-colors hover:border-tian-400/50 hover:text-tian-100"
+                    className="pill transition-colors hover:text-tian-500"
                   >
                     {t}
                   </Link>
@@ -260,12 +251,12 @@ export default function DiscussionDetail() {
               </h1>
 
               {/* 帖子元信息条 - Discourse 风格作者栏 (#294) */}
-              <div className="mt-5 flex items-center gap-3 rounded-lg border border-void-600/30 bg-void-800/40 px-4 py-2.5 text-sm text-mist-500">
+              <div className="mt-5 flex items-center gap-3 rounded-lg border border-void-600 bg-void-700 px-4 py-2.5 text-sm text-mist-500">
                 <Avatar name={question.author} color={question.avatarColor} size={28} />
                 {question.authorUid ? (
                   <Link
                     to={`/user/${question.authorUid}`}
-                    className="font-medium text-parchment-100 transition-colors hover:text-star-300"
+                    className="font-medium text-parchment-100 transition-colors hover:text-tian-500"
                   >
                     {question.author}
                   </Link>
@@ -282,11 +273,11 @@ export default function DiscussionDetail() {
                   onClick={handleToggleFav}
                   className={`ml-auto flex items-center gap-1.5 rounded-md px-2.5 py-1.5 text-xs transition-colors ${
                     favState
-                      ? "text-star-300"
-                      : "text-mist-400 hover:bg-void-700/60 hover:text-star-300"
+                      ? "text-tian-500"
+                      : "text-mist-400 hover:bg-void-700 hover:text-tian-500"
                   }`}
                 >
-                  <Bookmark size={13} className={favState ? "fill-star-400" : ""} />
+                  <Bookmark size={13} className={favState ? "fill-tian-500" : ""} />
                   {favState ? "已收藏" : "收藏"}
                 </button>
                 {!isAuthor(user?.uid, question.authorUid) && (
@@ -294,7 +285,7 @@ export default function DiscussionDetail() {
                     <ShareButton title={question.title} path={`/discussion/${id}`} />
                     <button
                       onClick={() => openReport("post", question.id, question.title)}
-                      className="flex items-center gap-1 rounded-md px-2.5 py-1.5 text-xs text-mist-400 transition-colors hover:bg-void-700/60 hover:text-red-300"
+                      className="flex items-center gap-1 rounded-md px-2.5 py-1.5 text-xs text-mist-400 transition-colors hover:bg-void-700 hover:text-red-500"
                       title="举报帖子"
                     >
                       <Flag size={13} /> 举报
@@ -306,7 +297,7 @@ export default function DiscussionDetail() {
                     <ShareButton title={question.title} path={`/discussion/${id}`} />
                     <button
                       onClick={startEditPost}
-                      className="flex h-8 w-8 items-center justify-center rounded-md text-mist-400 transition-colors hover:bg-void-700/60 hover:text-tian-300"
+                      className="flex h-8 w-8 items-center justify-center rounded-md text-mist-400 transition-colors hover:bg-void-700 hover:text-tian-500"
                       title="编辑帖子"
                       aria-label="编辑帖子"
                     >
@@ -314,7 +305,7 @@ export default function DiscussionDetail() {
                     </button>
                     <button
                       onClick={handleDeletePost}
-                      className="flex h-8 w-8 items-center justify-center rounded-md text-mist-400 transition-colors hover:bg-void-700/60 hover:text-red-300"
+                      className="flex h-8 w-8 items-center justify-center rounded-md text-mist-400 transition-colors hover:bg-void-700 hover:text-red-500"
                       title="删除帖子"
                       aria-label="删除帖子"
                     >
@@ -325,12 +316,12 @@ export default function DiscussionDetail() {
               </div>
 
               {editingPost ? (
-                <div className="mt-6 border-t border-void-600/40 pt-6">
+                <div className="mt-6 border-t border-void-600 pt-6">
                   <input
                     name="title"
                     value={editTitle}
                     onChange={(e) => setEditTitle(e.target.value)}
-                    className="mb-3 w-full rounded-lg border border-void-600/50 bg-void-950/50 px-3 py-2 text-lg text-parchment-100 focus:border-star-400/50 focus:outline-none"
+                    className="mb-3 w-full rounded-lg border border-void-600 bg-void-950 px-3 py-2 text-lg text-parchment-100 focus:border-tian-500 focus:outline-none"
                     placeholder="标题"
                     maxLength={200}
                   />
@@ -342,31 +333,31 @@ export default function DiscussionDetail() {
                     maxLength={10000}
                   />
                   <div className="mt-3 flex justify-end gap-2">
-                    <button onClick={() => setEditingPost(false)} className="btn-ghost text-xs">
+                    <button onClick={() => setEditingPost(false)} className="btn-secondary text-xs">
                       取消
                     </button>
-                    <button onClick={handleSavePost} className="btn-gold text-xs">
+                    <button onClick={handleSavePost} className="btn-primary text-xs">
                       保存
                     </button>
                   </div>
                 </div>
               ) : (
-                <div className="mt-6 border-t border-void-600/40 pt-6">
+                <div className="mt-6 border-t border-void-600 pt-6">
                   <LazyMarkdownRenderer
                     content={question.body}
                     className="text-[15px] leading-relaxed text-parchment-100"
                   />
                 </div>
               )}
-            </motion.div>
+            </div>
 
             {/* 回答 - Discourse 风格：头像左侧 + 作者栏 + 内容 + 操作行 (#294) */}
-            <div className="mt-10 border-t border-void-600/40 pt-6">
+            <div className="mt-10 border-t border-void-600 pt-6">
               <h2 className="heading-display text-lg text-parchment-50">
                 {question.answerList.length} 个回答
               </h2>
 
-              <div className="mt-4 space-y-4">
+              <div className="mt-4 divide-y divide-void-600">
                 {[...question.answerList]
                   .sort((a, b) => {
                     // 采纳的回答始终排第一
@@ -376,10 +367,7 @@ export default function DiscussionDetail() {
                     return b.date > a.date ? 1 : -1;
                   })
                   .map((a, idx) => (
-                    <div
-                      key={a.id}
-                      className="rounded-lg border border-void-600/30 bg-void-800/40 px-5 py-4"
-                    >
+                    <div key={a.id} className="py-5">
                       <div className="flex gap-4">
                         <Avatar name={a.author} color={a.avatarColor} size={42} />
 
@@ -393,7 +381,7 @@ export default function DiscussionDetail() {
                               {formatRelativeTime(a.date)}
                             </span>
                             {a.accepted && (
-                              <span className="inline-flex items-center gap-1 rounded-full bg-emerald-400/10 px-2 py-0.5 text-[11px] text-emerald-300">
+                              <span className="inline-flex items-center gap-1 rounded-full bg-emerald-50 px-2 py-0.5 text-[11px] text-emerald-600">
                                 <Check size={11} /> 已采纳
                               </span>
                             )}
@@ -410,13 +398,13 @@ export default function DiscussionDetail() {
                               <div className="mt-2 flex justify-end gap-2">
                                 <button
                                   onClick={() => setEditingAnswerId(null)}
-                                  className="btn-ghost text-xs"
+                                  className="btn-secondary text-xs"
                                 >
                                   取消
                                 </button>
                                 <button
                                   onClick={() => handleSaveAnswer(a.id)}
-                                  className="btn-gold text-xs"
+                                  className="btn-primary text-xs"
                                 >
                                   保存
                                 </button>
@@ -435,17 +423,17 @@ export default function DiscussionDetail() {
                               onClick={() => toggleVote(a.id)}
                               className={`inline-flex items-center gap-1.5 rounded-md px-2.5 py-1.5 transition-colors ${
                                 voted[a.id]
-                                  ? "text-star-300"
-                                  : "hover:bg-void-700/60 hover:text-star-300"
+                                  ? "text-tian-500"
+                                  : "hover:bg-void-700 hover:text-tian-500"
                               }`}
                               aria-label="投票"
                             >
-                              <ThumbsUp size={14} className={voted[a.id] ? "fill-star-400" : ""} />
+                              <ThumbsUp size={14} className={voted[a.id] ? "fill-tian-500" : ""} />
                               {a.votes > 0 && <span>{a.votes}</span>}
                             </button>
                             <button
                               onClick={() => openComment(a.id)}
-                              className="inline-flex items-center gap-1.5 rounded-md px-2.5 py-1.5 transition-colors hover:bg-void-700/60 hover:text-tian-200"
+                              className="inline-flex items-center gap-1.5 rounded-md px-2.5 py-1.5 transition-colors hover:bg-void-700 hover:text-tian-500"
                             >
                               <MessageCircle size={14} />
                               {a.comments && a.comments.length > 0
@@ -458,7 +446,7 @@ export default function DiscussionDetail() {
                                 <button
                                   onClick={() => handleAccept(a.id, true)}
                                   disabled={acceptingId !== null}
-                                  className="inline-flex items-center gap-1 rounded-md px-2.5 py-1.5 transition-colors hover:bg-emerald-400/10 hover:text-emerald-300 disabled:cursor-not-allowed disabled:opacity-50"
+                                  className="inline-flex items-center gap-1 rounded-md px-2.5 py-1.5 transition-colors hover:bg-emerald-50 hover:text-emerald-600 disabled:cursor-not-allowed disabled:opacity-50"
                                 >
                                   {acceptingId === a.id ? (
                                     <Loader2 size={13} className="animate-spin" />
@@ -472,7 +460,7 @@ export default function DiscussionDetail() {
                               <button
                                 onClick={() => handleAccept(a.id, false)}
                                 disabled={acceptingId !== null}
-                                className="inline-flex items-center gap-1 rounded-md px-2.5 py-1.5 transition-colors hover:bg-void-700/60 hover:text-mist-300 disabled:cursor-not-allowed disabled:opacity-50"
+                                className="inline-flex items-center gap-1 rounded-md px-2.5 py-1.5 transition-colors hover:bg-void-700 hover:text-mist-300 disabled:cursor-not-allowed disabled:opacity-50"
                               >
                                 {acceptingId === a.id ? (
                                   <Loader2 size={13} className="animate-spin" />
@@ -488,7 +476,7 @@ export default function DiscussionDetail() {
                                   onClick={() =>
                                     openReport("answer", a.id, `回答：${a.content.slice(0, 30)}`)
                                   }
-                                  className="flex h-8 w-8 items-center justify-center rounded-md transition-colors hover:bg-void-700/60 hover:text-red-300"
+                                  className="flex h-8 w-8 items-center justify-center rounded-md transition-colors hover:bg-void-700 hover:text-red-500"
                                   title="举报回答"
                                 >
                                   <Flag size={13} />
@@ -498,14 +486,14 @@ export default function DiscussionDetail() {
                                 <>
                                   <button
                                     onClick={() => startEditAnswer(a.id, a.content)}
-                                    className="flex h-8 w-8 items-center justify-center rounded-md transition-colors hover:bg-void-700/60 hover:text-tian-300"
+                                    className="flex h-8 w-8 items-center justify-center rounded-md transition-colors hover:bg-void-700 hover:text-tian-500"
                                     title="编辑回答"
                                   >
                                     <Pencil size={13} />
                                   </button>
                                   <button
                                     onClick={() => handleDeleteAnswer(a.id)}
-                                    className="flex h-8 w-8 items-center justify-center rounded-md transition-colors hover:bg-void-700/60 hover:text-red-300"
+                                    className="flex h-8 w-8 items-center justify-center rounded-md transition-colors hover:bg-void-700 hover:text-red-500"
                                     title="删除回答"
                                   >
                                     <Trash2 size={13} />
@@ -517,7 +505,7 @@ export default function DiscussionDetail() {
 
                           {/* 评论列表 - Discourse 嵌套缩进，左侧竖线连接 (#294) */}
                           {a.comments && a.comments.length > 0 && (
-                            <div className="mt-4 space-y-3 border-t border-void-600/30 pt-4 pl-2">
+                            <div className="mt-4 space-y-3 border-t border-void-600 pt-4 pl-2">
                               {[...(a.comments ?? [])]
                                 .sort((x, y) => (y.date > x.date ? 1 : -1))
                                 .map((c) => {
@@ -527,7 +515,7 @@ export default function DiscussionDetail() {
                                   return (
                                     <div
                                       key={c.id}
-                                      className="group flex gap-3 border-l-2 border-void-600/40 pl-3"
+                                      className="group flex gap-3 border-l-2 border-void-600 pl-3"
                                     >
                                       <Avatar name={c.author} color={c.avatarColor} size={24} />
                                       <div className="min-w-0 flex-1">
@@ -537,7 +525,7 @@ export default function DiscussionDetail() {
                                             {c.author}
                                           </span>
                                           {repliedComment && (
-                                            <span className="text-tian-300">
+                                            <span className="text-tian-500">
                                               回复 @{repliedComment.author}
                                             </span>
                                           )}
@@ -547,7 +535,7 @@ export default function DiscussionDetail() {
                                           <div className="ml-auto flex items-center gap-0.5">
                                             <button
                                               onClick={() => openReply(a.id, c)}
-                                              className="flex h-7 w-7 items-center justify-center rounded text-mist-500 opacity-0 transition-opacity hover:text-tian-300 group-hover:opacity-100"
+                                              className="flex h-7 w-7 items-center justify-center rounded text-mist-500 opacity-0 transition-opacity hover:text-tian-500 group-hover:opacity-100"
                                               aria-label="回复评论"
                                               title="回复评论"
                                             >
@@ -557,7 +545,7 @@ export default function DiscussionDetail() {
                                               <>
                                                 <button
                                                   onClick={() => startEditComment(c.id, c.content)}
-                                                  className="flex h-7 w-7 items-center justify-center rounded-md text-mist-500 opacity-0 transition-opacity hover:text-tian-300 group-hover:opacity-100"
+                                                  className="flex h-7 w-7 items-center justify-center rounded-md text-mist-500 opacity-0 transition-opacity hover:text-tian-500 group-hover:opacity-100"
                                                   title="编辑评论"
                                                   aria-label="编辑评论"
                                                 >
@@ -567,7 +555,7 @@ export default function DiscussionDetail() {
                                                   onClick={() => {
                                                     handleDeleteComment(a.id, c.id);
                                                   }}
-                                                  className="flex h-7 w-7 items-center justify-center rounded-md text-mist-500 opacity-0 transition-opacity hover:text-red-300 group-hover:opacity-100"
+                                                  className="flex h-7 w-7 items-center justify-center rounded-md text-mist-500 opacity-0 transition-opacity hover:text-red-500 group-hover:opacity-100"
                                                   title="删除评论"
                                                   aria-label="删除评论"
                                                 >
@@ -584,7 +572,7 @@ export default function DiscussionDetail() {
                                                     `评论：${c.content.slice(0, 30)}`,
                                                   );
                                                 }}
-                                                className="flex h-7 w-7 items-center justify-center rounded text-mist-500 opacity-0 transition-opacity hover:text-red-300 group-hover:opacity-100"
+                                                className="flex h-7 w-7 items-center justify-center rounded text-mist-500 opacity-0 transition-opacity hover:text-red-500 group-hover:opacity-100"
                                                 aria-label="举报评论"
                                                 title="举报评论"
                                               >
@@ -605,13 +593,13 @@ export default function DiscussionDetail() {
                                             <div className="mt-1 flex justify-end gap-2">
                                               <button
                                                 onClick={() => setEditingCommentId(null)}
-                                                className="btn-ghost text-xs"
+                                                className="btn-secondary text-xs"
                                               >
                                                 取消
                                               </button>
                                               <button
                                                 onClick={() => handleSaveComment(a.id, c.id)}
-                                                className="btn-gold text-xs"
+                                                className="btn-primary text-xs"
                                               >
                                                 保存
                                               </button>
@@ -632,9 +620,9 @@ export default function DiscussionDetail() {
 
                           {/* 评论输入框 */}
                           {commentingAnswerId === a.id && (
-                            <div className="mt-3 border-t border-void-600/30 pt-3">
+                            <div className="mt-3 border-t border-void-600 pt-3">
                               {replyTarget && (
-                                <div className="mb-2 flex items-center gap-1 text-xs text-tian-300">
+                                <div className="mb-2 flex items-center gap-1 text-xs text-tian-500">
                                   <CornerDownRight size={11} />
                                   回复 @{replyTarget.author}
                                   <button
@@ -642,7 +630,7 @@ export default function DiscussionDetail() {
                                       setReplyTarget(null);
                                       setCommentText("");
                                     }}
-                                    className="ml-1 text-mist-500 hover:text-red-300"
+                                    className="ml-1 text-mist-500 hover:text-red-500"
                                   >
                                     ✕
                                   </button>
@@ -664,14 +652,14 @@ export default function DiscussionDetail() {
                                     setCommentText("");
                                     setReplyTarget(null);
                                   }}
-                                  className="btn-ghost text-xs"
+                                  className="btn-secondary text-xs"
                                 >
                                   取消
                                 </button>
                                 <button
                                   onClick={() => handleSubmitComment(a.id)}
                                   disabled={commentSubmitting || !commentText.trim()}
-                                  className="btn-gold text-xs disabled:opacity-60"
+                                  className="btn-primary text-xs disabled:opacity-60"
                                 >
                                   {commentSubmitting ? "提交中…" : "发送"}
                                 </button>
@@ -685,7 +673,7 @@ export default function DiscussionDetail() {
               </div>
 
               {/* 回答框 */}
-              <div className="mt-8 rounded-xl border border-void-600/40 bg-void-800/30 p-5">
+              <div className="mt-8 rounded-lg border border-void-600 bg-void-800 p-5">
                 <h3 className="heading-display text-base text-parchment-50">你的回答</h3>
                 <p className="mt-1 text-xs text-mist-500">支持 Markdown 排版与 LaTeX 公式</p>
                 <MarkdownEditor
@@ -698,12 +686,12 @@ export default function DiscussionDetail() {
                   disabled={!user}
                   className="mt-3"
                 />
-                {answerError && <p className="mt-2 text-xs text-red-300">{answerError}</p>}
+                {answerError && <p className="mt-2 text-xs text-red-500">{answerError}</p>}
                 <div className="mt-3 flex justify-end">
                   <button
                     onClick={handleSubmitAnswer}
                     disabled={submitting || !answerText.trim()}
-                    className="btn-gold disabled:cursor-not-allowed disabled:opacity-60"
+                    className="btn-primary disabled:cursor-not-allowed disabled:opacity-60"
                   >
                     {submitting ? (
                       <>
@@ -747,7 +735,7 @@ export default function DiscussionDetail() {
                     {question.bounty && (
                       <div className="flex justify-between">
                         <dt className="text-mist-400">悬赏</dt>
-                        <dd className="text-star-400">{question.bounty}</dd>
+                        <dd className="text-star-300">{question.bounty}</dd>
                       </div>
                     )}
                   </dl>
@@ -766,8 +754,8 @@ export default function DiscussionDetail() {
                 </div>
               </div>
 
-              <div className="rounded-xl border border-void-600/40 bg-void-800/30 p-5">
-                <h4 className="font-mono text-xs uppercase tracking-[0.2em] text-star-300">
+              <div className="rounded-lg border border-void-600 bg-void-800 p-5">
+                <h4 className="text-xs font-semibold uppercase tracking-wide text-mist-500">
                   相关标签
                 </h4>
                 <div className="mt-4 flex flex-wrap gap-2">
@@ -775,7 +763,7 @@ export default function DiscussionDetail() {
                     <Link
                       key={t}
                       to={`/tags/${encodeURIComponent(t)}`}
-                      className="pill hover:border-tian-400/50 hover:text-tian-100"
+                      className="pill transition-colors hover:text-tian-500"
                     >
                       {t}
                     </Link>

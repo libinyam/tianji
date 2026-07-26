@@ -1,6 +1,5 @@
 import { useState, useEffect, useRef } from "react";
 import { Link, useParams, useNavigate } from "react-router-dom";
-import { motion } from "motion/react";
 import {
   ArrowLeft,
   Lock,
@@ -136,9 +135,9 @@ export default function WorkshopDetail() {
 
   if (!project) {
     return (
-      <div className="container-tj py-40 text-center">
+      <div className="container-tj py-10 text-center">
         <p className="text-mist-400">未找到该项目。</p>
-        <Link to="/workshop" className="btn-ghost mt-6 inline-flex">
+        <Link to="/workshop" className="btn-secondary mt-6 inline-flex">
           <ArrowLeft size={15} /> 返回协作工坊
         </Link>
       </div>
@@ -184,9 +183,7 @@ export default function WorkshopDetail() {
         if (ok) {
           setSaveStatus("saved");
           setProject((prev) =>
-            prev
-              ? { ...prev, content: value, updatedAt: new Date().toISOString() }
-              : prev
+            prev ? { ...prev, content: value, updatedAt: new Date().toISOString() } : prev,
           );
         } else {
           setSaveStatus("error");
@@ -214,7 +211,7 @@ export default function WorkshopDetail() {
                       content,
                       updatedAt: new Date().toISOString(),
                     }
-                  : prev
+                  : prev,
               );
             } else {
               toast.error("保存失败，请稍后重试");
@@ -387,7 +384,7 @@ export default function WorkshopDetail() {
         setProject({
           ...project,
           annotations: project.annotations.map((a) =>
-            a.id === annotId ? { ...a, resolved: true } : a
+            a.id === annotId ? { ...a, resolved: true } : a,
           ),
         });
       }
@@ -403,40 +400,27 @@ export default function WorkshopDetail() {
     <div className="container-tj py-10">
       <Link
         to="/workshop"
-        className="inline-flex items-center gap-1.5 text-sm text-mist-400 transition-colors hover:text-star-300"
+        className="inline-flex items-center gap-1.5 text-sm text-mist-400 transition-colors hover:text-tian-500"
       >
         <ArrowLeft size={15} /> 返回协作工坊
       </Link>
 
       {/* 项目头部 */}
-      <motion.div
-        initial={{ opacity: 0, y: 16 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.5 }}
-        className="mt-8"
-      >
+      <div className="mt-8">
         <div className="flex items-center gap-2">
-          <span
-            className={`flex items-center gap-1.5 rounded-full border px-3 py-1 text-xs ${
-              project.type === "教材"
-                ? "border-star-400/40 bg-star-400/10 text-star-300"
-                : "border-tian-400/40 bg-tian-400/10 text-tian-200"
-            }`}
-          >
+          <span className="pill">
             {project.type === "教材" ? <BookOpen size={12} /> : <FileText size={12} />}
             {project.type}
           </span>
-          <span className={`pill ${
-            project.status === "招募中" ? "border-star-400/40 bg-star-400/10 text-star-300" :
-            project.status === "进行中" ? "border-tian-400/40 bg-tian-400/10 text-tian-200" :
-            "border-emerald-400/40 bg-emerald-400/10 text-emerald-300"
-          }`}>{project.status}</span>
+          <span className={project.status === "已完成" ? "pill" : "pill-blue"}>
+            {project.status}
+          </span>
           {/* #98 创建者可变更状态 */}
           {isCreator && (
             <select
               value={project.status}
               onChange={(e) => handleStatusChange(e.target.value as WorkshopStatus)}
-              className="rounded-md border border-void-600/50 bg-void-900/50 px-2 py-0.5 text-xs text-mist-300 focus:border-star-400/50 focus:outline-none"
+              className="rounded-md border border-void-600 bg-void-900 px-2 py-0.5 text-xs text-mist-300 focus:border-tian-500 focus:outline-none"
               aria-label="变更项目状态"
             >
               <option value="招募中">招募中</option>
@@ -445,7 +429,11 @@ export default function WorkshopDetail() {
             </select>
           )}
           {project.tags.map((t) => (
-            <Link key={t} to={`/tags/${encodeURIComponent(t)}`} className="pill transition-colors hover:border-tian-400/50 hover:text-tian-100">
+            <Link
+              key={t}
+              to={`/tags/${encodeURIComponent(t)}`}
+              className="pill transition-colors hover:text-tian-500"
+            >
               {t}
             </Link>
           ))}
@@ -459,7 +447,7 @@ export default function WorkshopDetail() {
                 value={editTitle}
                 onChange={(e) => setEditTitle(e.target.value)}
                 placeholder="项目标题"
-                className="w-full rounded-lg border border-void-600/50 bg-void-950/50 px-3 py-2 text-xl font-bold text-parchment-50 placeholder:text-mist-500 focus:border-star-400/50 focus:outline-none"
+                className="w-full rounded-lg border border-void-600 bg-void-950 px-3 py-2 text-xl font-bold text-parchment-50 placeholder:text-mist-500 focus:border-tian-500 focus:outline-none"
                 maxLength={200}
               />
               <textarea
@@ -468,7 +456,7 @@ export default function WorkshopDetail() {
                 onChange={(e) => setEditDesc(e.target.value)}
                 placeholder="简要描述项目的目标、适合的人群、协作方式…"
                 rows={4}
-                className="w-full resize-none rounded-lg border border-void-600/50 bg-void-950/50 p-3 text-sm leading-relaxed text-parchment-100 placeholder:text-mist-500 focus:border-star-400/50 focus:outline-none"
+                className="w-full resize-none rounded-lg border border-void-600 bg-void-950 p-3 text-sm leading-relaxed text-parchment-100 placeholder:text-mist-500 focus:border-tian-500 focus:outline-none"
                 maxLength={5000}
               />
             </div>
@@ -482,8 +470,8 @@ export default function WorkshopDetail() {
             <div className="flex shrink-0 items-center gap-2">
               <button
                 onClick={handleToggleEdit}
-                className={`btn-ghost text-xs ${
-                  editing ? "border-star-400/40 text-star-300" : ""
+                className={`btn-secondary text-xs ${
+                  editing ? "border-tian-500 text-tian-500" : ""
                 }`}
               >
                 {editing ? (
@@ -500,7 +488,7 @@ export default function WorkshopDetail() {
               {isCreator && (
                 <button
                   onClick={handleStartMetaEdit}
-                  className="btn-ghost text-xs"
+                  className="btn-secondary text-xs"
                   title="编辑标题和简介"
                 >
                   <Settings size={13} /> 项目设置
@@ -515,18 +503,19 @@ export default function WorkshopDetail() {
             <button
               onClick={handleSaveMeta}
               disabled={metaSaving}
-              className="btn-gold text-xs disabled:opacity-60"
+              className="btn-primary text-xs disabled:opacity-60"
             >
               {metaSaving ? (
-                <><Loader2 size={13} className="animate-spin" /> 保存中…</>
+                <>
+                  <Loader2 size={13} className="animate-spin" /> 保存中…
+                </>
               ) : (
-                <><Check size={13} /> 保存</>
+                <>
+                  <Check size={13} /> 保存
+                </>
               )}
             </button>
-            <button
-              onClick={() => setMetaEditing(false)}
-              className="btn-ghost text-xs"
-            >
+            <button onClick={() => setMetaEditing(false)} className="btn-secondary text-xs">
               <X size={13} /> 取消
             </button>
           </div>
@@ -563,7 +552,11 @@ export default function WorkshopDetail() {
               return (
                 <span
                   key={pUid + i}
-                  title={isCreatorMember ? `${project.creator}（创建者）` : `用户 ${pUid ? pUid.slice(-6) : "未知"}`}
+                  title={
+                    isCreatorMember
+                      ? `${project.creator}（创建者）`
+                      : `用户 ${pUid ? pUid.slice(-6) : "未知"}`
+                  }
                   className="flex h-7 w-7 items-center justify-center rounded-full border-2 border-void-900 font-display text-[10px] text-void-900"
                   style={{
                     background: isCreatorMember
@@ -571,9 +564,7 @@ export default function WorkshopDetail() {
                       : `hsl(${(pUid.charCodeAt(0) * 37) % 360}, 60%, 65%)`,
                   }}
                 >
-                  {isCreatorMember
-                    ? project.creator.charAt(0)
-                    : pUid.slice(-2)}
+                  {isCreatorMember ? project.creator.charAt(0) : pUid.slice(-2)}
                 </span>
               );
             })}
@@ -590,7 +581,7 @@ export default function WorkshopDetail() {
           <button
             onClick={handleJoin}
             disabled={joining}
-            className="btn-gold mt-5 disabled:opacity-60"
+            className="btn-primary mt-5 disabled:opacity-60"
           >
             {joining ? (
               <>
@@ -605,13 +596,13 @@ export default function WorkshopDetail() {
         )}
         {isParticipant && !isCreator && (
           <div className="mt-5 flex items-center gap-3">
-            <span className="inline-flex items-center gap-1.5 rounded-lg border border-emerald-400/30 bg-emerald-400/10 px-3 py-1.5 text-xs text-emerald-300">
+            <span className="inline-flex items-center gap-1.5 rounded-md border border-emerald-200 bg-emerald-50 px-3 py-1.5 text-xs text-emerald-600">
               <Check size={13} /> 已加入
             </span>
             {/* #98 参与者退出项目 */}
             <button
               onClick={handleLeave}
-              className="inline-flex items-center gap-1 text-xs text-mist-500 transition-colors hover:text-red-300"
+              className="inline-flex items-center gap-1 text-xs text-mist-500 transition-colors hover:text-red-500"
             >
               <LogOut size={12} /> 退出项目
             </button>
@@ -620,14 +611,14 @@ export default function WorkshopDetail() {
 
         {/* 创建者：删除项目 */}
         {isCreator && !metaEditing && (
-          <div className="mt-6 border-t border-void-600/30 pt-4">
+          <div className="mt-6 border-t border-void-600 pt-4">
             {deleteConfirm ? (
               <div className="flex items-center gap-3">
-                <span className="text-sm text-red-300">确定删除整个项目？此操作不可撤销。</span>
+                <span className="text-sm text-red-600">确定删除整个项目？此操作不可撤销。</span>
                 <button
                   onClick={handleDelete}
                   disabled={deleting}
-                  className="inline-flex items-center gap-1.5 rounded-lg border border-red-500/40 bg-red-500/20 px-3 py-1.5 text-xs font-medium text-red-300 transition-all hover:bg-red-500/30 disabled:opacity-60"
+                  className="inline-flex items-center gap-1.5 rounded-md border border-red-200 bg-red-50 px-3 py-1.5 text-xs font-medium text-red-600 transition-colors hover:bg-red-100 disabled:opacity-60"
                 >
                   {deleting ? <Loader2 size={12} className="animate-spin" /> : <Trash2 size={12} />}
                   {deleting ? "删除中…" : "确认删除"}
@@ -635,7 +626,7 @@ export default function WorkshopDetail() {
                 <button
                   onClick={() => setDeleteConfirm(false)}
                   disabled={deleting}
-                  className="btn-ghost text-xs"
+                  className="btn-secondary text-xs"
                 >
                   取消
                 </button>
@@ -643,24 +634,28 @@ export default function WorkshopDetail() {
             ) : (
               <button
                 onClick={() => setDeleteConfirm(true)}
-                className="inline-flex items-center gap-1.5 text-xs text-mist-500 transition-colors hover:text-red-400"
+                className="inline-flex items-center gap-1.5 text-xs text-mist-500 transition-colors hover:text-red-500"
               >
                 <Trash2 size={12} /> 删除项目
               </button>
             )}
           </div>
         )}
-      </motion.div>
+      </div>
 
       {/* 论文权限提示 */}
       {project.type === "论文" && !canView && (
-        <div className="mt-8 rounded-xl border border-tian-400/30 bg-tian-400/5 p-8 text-center">
-          <Lock className="mx-auto mb-3 h-8 w-8 text-tian-300" />
+        <div className="mt-8 rounded-lg border border-void-600 bg-void-700 p-6 text-center">
+          <Lock className="mx-auto mb-3 h-8 w-8 text-mist-400" />
           <p className="heading-display text-lg text-parchment-50">论文内容仅参与者可见</p>
           <p className="mt-2 text-sm text-mist-400">
             加入项目后，即可查看和编辑文档内容，并参与批注讨论。
           </p>
-          <button onClick={handleJoin} disabled={joining} className="btn-gold mt-5 disabled:opacity-60">
+          <button
+            onClick={handleJoin}
+            disabled={joining}
+            className="btn-primary mt-5 disabled:opacity-60"
+          >
             {joining ? "加入中…" : "加入项目"}
           </button>
         </div>
@@ -668,39 +663,37 @@ export default function WorkshopDetail() {
 
       {/* #30 章节大纲 + 贡献流：每章一张卡片，含贡献按钮和该章节的贡献列表 */}
       {project.outline.length > 0 && (
-        <div className="mt-8 rounded-xl border border-void-600/40 bg-void-800/30 p-6">
-          <div className="mb-4 flex items-center gap-2">
-            <ListTree size={15} className="text-star-400" />
-            <h3 className="font-mono text-xs uppercase tracking-[0.2em] text-star-300">
+        <div className="mt-8 rounded-lg border border-void-600 bg-void-800">
+          <div className="flex items-center gap-2 border-b border-void-600 px-4 py-3">
+            <ListTree size={15} className="text-mist-400" />
+            <h3 className="text-sm font-medium text-parchment-100">
               章节大纲 · {project.outline.length} 章 · {project.contributions.length} 条贡献
             </h3>
           </div>
-          <div className="space-y-4">
+          <div className="divide-y divide-void-600">
             {project.outline.map((ch, i) => {
               const chapterContribs = project.contributions.filter((c) => c.chapterId === ch.id);
               return (
-                <div key={ch.id} className="rounded-lg border border-void-600/30 bg-void-900/30 p-4">
+                <div key={ch.id} className="p-4">
                   {/* 章节标题区 */}
                   <div className="flex items-start justify-between gap-3">
                     <div className="flex-1">
                       <div className="flex items-center gap-2">
-                        <span className="font-mono text-xs text-mist-500">第{i + 1}章</span>
+                        <span className="text-xs text-mist-500">第{i + 1}章</span>
                         <p className="text-sm font-medium text-parchment-100">{ch.title}</p>
                         {chapterContribs.length > 0 && (
-                          <span className="rounded-full border border-star-400/30 bg-star-400/10 px-1.5 py-0.5 text-[10px] text-star-300">
+                          <span className="rounded-full bg-void-700 px-1.5 py-0.5 text-[10px] text-mist-400">
                             {chapterContribs.length} 条贡献
                           </span>
                         )}
                       </div>
-                      {ch.brief && (
-                        <p className="mt-1 text-xs text-mist-400">{ch.brief}</p>
-                      )}
+                      {ch.brief && <p className="mt-1 text-xs text-mist-400">{ch.brief}</p>}
                     </div>
                     {/* #30 参与者可为每个章节贡献内容 */}
                     {(isCreator || isParticipant) && (
                       <button
                         onClick={() => setContributingChapter(ch)}
-                        className="flex shrink-0 items-center gap-1 rounded-lg border border-star-400/30 bg-star-400/10 px-3 py-1.5 text-xs text-star-300 transition-colors hover:bg-star-400/20"
+                        className="flex shrink-0 items-center gap-1 rounded-md border border-void-600 px-3 py-1.5 text-xs text-tian-500 transition-colors hover:bg-void-700"
                       >
                         <Plus size={12} /> 贡献内容
                       </button>
@@ -709,19 +702,21 @@ export default function WorkshopDetail() {
 
                   {/* 该章节的贡献列表 */}
                   {chapterContribs.length > 0 && (
-                    <div className="mt-3 space-y-2 border-t border-void-600/20 pt-3">
+                    <div className="mt-3 divide-y divide-void-600 border-t border-void-600">
                       {chapterContribs.map((c) => (
-                        <div key={c.id} className="rounded border border-void-600/20 bg-void-950/30 p-2.5">
+                        <div key={c.id} className="py-2.5">
                           <div className="mb-1.5 flex items-center justify-between gap-2">
                             <div className="flex items-center gap-2">
                               <Avatar name={c.author} color={c.avatarColor} size={18} />
                               <span className="text-xs text-mist-300">{c.author}</span>
                             </div>
-                            <span className="font-mono text-[9px] text-mist-500">{formatTime(c.createdAt)}</span>
+                            <span className="text-[10px] text-mist-500">
+                              {formatTime(c.createdAt)}
+                            </span>
                           </div>
                           <LazyMathText
                             content={c.content}
-                            className="text-xs leading-relaxed text-mist-200"
+                            className="text-xs leading-relaxed text-parchment-200"
                           />
                         </div>
                       ))}
@@ -756,11 +751,11 @@ export default function WorkshopDetail() {
       {canView && (
         <div className="mt-10 grid gap-6 lg:grid-cols-[1fr_320px]">
           {/* 正文区域 */}
-          <div className="card-surface grain relative overflow-hidden">
+          <div className="card-surface relative overflow-hidden">
             {/* 编辑器顶栏 */}
-            <div className="flex items-center justify-between border-b border-void-600/40 bg-void-900/50 px-5 py-3">
+            <div className="flex items-center justify-between border-b border-void-600 bg-void-700 px-5 py-3">
               <div className="flex items-center gap-2">
-                <PenLine size={15} className="text-star-400" />
+                <PenLine size={15} className="text-mist-400" />
                 <span className="text-sm text-parchment-100">文档正文</span>
               </div>
               <div className="flex items-center gap-2 text-xs">
@@ -772,21 +767,15 @@ export default function WorkshopDetail() {
                       </span>
                     )}
                     {saveStatus === "saved" && (
-                      <span className="flex items-center gap-1 text-emerald-400">
+                      <span className="flex items-center gap-1 text-emerald-600">
                         <Check size={11} /> 已自动保存
                       </span>
                     )}
-                    {saveStatus === "error" && (
-                      <span className="text-red-400">保存失败</span>
-                    )}
-                    {saveStatus === "idle" && (
-                      <span className="text-mist-500">自动保存已开启</span>
-                    )}
+                    {saveStatus === "error" && <span className="text-red-500">保存失败</span>}
+                    {saveStatus === "idle" && <span className="text-mist-500">自动保存已开启</span>}
                   </>
                 )}
-                {!editing && content && (
-                  <span className="text-mist-500">{content.length} 字</span>
-                )}
+                {!editing && content && <span className="text-mist-500">{content.length} 字</span>}
               </div>
             </div>
 
@@ -800,13 +789,13 @@ export default function WorkshopDetail() {
                   autoFocus
                   placeholder="撰写文档内容…支持 LaTeX：行内 $...$，行间 $$...$$"
                   maxLength={30000}
-                  className="w-full resize-y rounded-lg border border-void-600/50 bg-void-950/50 p-4 text-sm leading-relaxed text-parchment-100 placeholder:text-mist-500 focus:border-star-400/50 focus:outline-none focus:ring-1 focus:ring-star-400/30"
+                  className="w-full resize-y rounded-lg border border-void-600 bg-void-950 p-4 text-sm leading-relaxed text-parchment-100 placeholder:text-mist-500 focus:border-tian-500 focus:outline-none focus:ring-1 focus:ring-tian-500"
                 />
               ) : content ? (
                 <div className="prose-tj">
                   <LazyMathText
                     content={content}
-                    className="text-[15px] leading-relaxed text-mist-200"
+                    className="text-[15px] leading-relaxed text-parchment-200"
                   />
                 </div>
               ) : (
@@ -821,7 +810,7 @@ export default function WorkshopDetail() {
 
             {/* 选中提示 */}
             {!editing && (
-              <div className="border-t border-void-600/30 px-5 py-2.5 text-xs text-mist-500">
+              <div className="border-t border-void-600 px-5 py-2.5 text-xs text-mist-500">
                 <MessageSquare size={11} className="mr-1 inline" />
                 选中文本即可添加批注
               </div>
@@ -830,23 +819,19 @@ export default function WorkshopDetail() {
 
           {/* 批注侧栏 */}
           <aside className="space-y-4">
-            <div className="card-surface grain p-5">
+            <div className="card-surface p-5">
               <div className="mb-4 flex items-center gap-2">
-                <MessageSquare size={14} className="text-star-400" />
-                <h4 className="font-mono text-xs uppercase tracking-[0.2em] text-star-300">
+                <MessageSquare size={14} className="text-mist-400" />
+                <h4 className="text-sm font-medium text-parchment-100">
                   批注 · {activeAnnotations.length}
                 </h4>
               </div>
 
               {/* 批注输入表单 */}
               {showAnnotForm && (
-                <motion.div
-                  initial={{ opacity: 0, height: 0 }}
-                  animate={{ opacity: 1, height: "auto" }}
-                  className="mb-4 overflow-hidden rounded-lg border border-tian-400/30 bg-tian-400/5 p-3"
-                >
+                <div className="mb-4 rounded-lg border border-void-600 bg-void-700 p-3">
                   <div className="mb-2 flex items-start justify-between gap-2">
-                    <span className="text-xs text-tian-200">添加批注</span>
+                    <span className="text-xs font-medium text-parchment-100">添加批注</span>
                     <button
                       onClick={() => {
                         setShowAnnotForm(false);
@@ -859,10 +844,9 @@ export default function WorkshopDetail() {
                     </button>
                   </div>
                   {selectedText && (
-                    <div className="mb-2 rounded border-l-2 border-tian-400/40 bg-void-900/40 px-2 py-1 text-[11px] text-mist-400">
-                      「{selectedText.length > 60
-                        ? selectedText.slice(0, 60) + "…"
-                        : selectedText}」
+                    <div className="mb-2 rounded border-l-2 border-tian-500 bg-void-800 px-2 py-1 text-[11px] text-mist-400">
+                      「{selectedText.length > 60 ? selectedText.slice(0, 60) + "…" : selectedText}
+                      」
                     </div>
                   )}
                   <textarea
@@ -872,15 +856,13 @@ export default function WorkshopDetail() {
                     rows={3}
                     placeholder="写下你的批注…"
                     maxLength={500}
-                    className="w-full resize-y rounded-md border border-void-600/50 bg-void-950/50 p-2 text-xs leading-relaxed text-parchment-100 placeholder:text-mist-500 focus:border-star-400/50 focus:outline-none"
+                    className="w-full resize-y rounded-md border border-void-600 bg-void-950 p-2 text-xs leading-relaxed text-parchment-100 placeholder:text-mist-500 focus:border-tian-500 focus:outline-none"
                   />
-                  {annotError && (
-                    <p className="mt-1 text-[11px] text-red-400">{annotError}</p>
-                  )}
+                  {annotError && <p className="mt-1 text-[11px] text-red-500">{annotError}</p>}
                   <button
                     onClick={handleAddAnnotation}
                     disabled={annotSubmitting || !annotInput.trim()}
-                    className="btn-gold mt-2 w-full justify-center py-1.5 text-xs disabled:opacity-60"
+                    className="btn-primary mt-2 w-full justify-center py-1.5 text-xs disabled:opacity-60"
                   >
                     {annotSubmitting ? (
                       <>
@@ -892,23 +874,19 @@ export default function WorkshopDetail() {
                       </>
                     )}
                   </button>
-                </motion.div>
+                </div>
               )}
 
               {/* 活跃批注列表 */}
               {activeAnnotations.length > 0 ? (
-                <div className="space-y-3">
+                <div className="divide-y divide-void-600">
                   {activeAnnotations.map((a, i) => (
                     <AnnotationCard
                       key={a.id}
                       annotation={a}
                       index={i}
-                      canResolve={
-                        !!user && (isCreator || a.authorUid === uid)
-                      }
-                      canDelete={
-                        !!user && (isCreator || a.authorUid === uid)
-                      }
+                      canResolve={!!user && (isCreator || a.authorUid === uid)}
+                      canDelete={!!user && (isCreator || a.authorUid === uid)}
                       onResolve={() => handleResolve(a.id)}
                       onDelete={() => handleDeleteAnnotation(a.id)}
                     />
@@ -924,18 +902,16 @@ export default function WorkshopDetail() {
 
               {/* 已解决批注 */}
               {resolvedAnnotations.length > 0 && (
-                <div className="mt-4 border-t border-void-600/30 pt-3">
+                <div className="mt-4 border-t border-void-600 pt-3">
                   <button
                     onClick={() => setShowResolved(!showResolved)}
                     className="flex w-full items-center justify-between text-xs text-mist-500 transition-colors hover:text-mist-300"
                   >
-                    <span>
-                      已解决 · {resolvedAnnotations.length}
-                    </span>
+                    <span>已解决 · {resolvedAnnotations.length}</span>
                     <span>{showResolved ? "收起" : "展开"}</span>
                   </button>
                   {showResolved && (
-                    <div className="mt-3 space-y-3">
+                    <div className="mt-3 divide-y divide-void-600">
                       {resolvedAnnotations.map((a, i) => (
                         <AnnotationCard
                           key={a.id}
@@ -955,9 +931,7 @@ export default function WorkshopDetail() {
         </div>
       )}
 
-      {project.tags.length > 0 && (
-        <RelatedContent tags={project.tags} excludeId={project.id} />
-      )}
+      {project.tags.length > 0 && <RelatedContent tags={project.tags} excludeId={project.id} />}
     </div>
   );
 }
@@ -965,7 +939,6 @@ export default function WorkshopDetail() {
 /** 批注卡片组件 */
 function AnnotationCard({
   annotation,
-  index,
   resolved = false,
   canResolve,
   canDelete,
@@ -982,17 +955,7 @@ function AnnotationCard({
 }) {
   const avatarColor = `hsl(${((annotation.authorUid || "x").charCodeAt(0) * 37) % 360}, 60%, 65%)`;
   return (
-    <motion.div
-      initial={{ opacity: 0, x: 12 }}
-      whileInView={{ opacity: 1, x: 0 }}
-      viewport={{ once: true }}
-      transition={{ duration: 0.3, delay: index * 0.05 }}
-      className={`rounded-lg border p-3 ${
-        resolved
-          ? "border-void-600/20 bg-void-800/20 opacity-60"
-          : "border-void-600/40 bg-void-800/40"
-      }`}
-    >
+    <div className={`py-3 ${resolved ? "opacity-60" : ""}`}>
       <div className="mb-2 flex items-center justify-between">
         <div className="flex items-center gap-2">
           <span
@@ -1003,32 +966,32 @@ function AnnotationCard({
           </span>
           <span className="text-xs text-mist-300">{annotation.author}</span>
         </div>
-        <span className="font-mono text-[9px] text-mist-500">
-          {formatTime(annotation.createdAt)}
-        </span>
+        <span className="text-[10px] text-mist-500">{formatTime(annotation.createdAt)}</span>
       </div>
       <LazyMathText
         content={annotation.content}
-        className="text-xs leading-relaxed text-mist-200"
+        className="text-xs leading-relaxed text-parchment-200"
       />
       {/* #27 展示批注对应的选中文本快照 */}
       {annotation.selectedText && (
-        <blockquote className="mt-2 border-l-2 border-star-400/40 bg-void-950/40 px-2.5 py-1 text-[11px] italic leading-relaxed text-mist-400">
-          「{annotation.selectedText.length > 80
+        <blockquote className="mt-2 border-l-2 border-void-600 bg-void-700 px-2.5 py-1 text-[11px] italic leading-relaxed text-mist-400">
+          「
+          {annotation.selectedText.length > 80
             ? annotation.selectedText.slice(0, 80) + "…"
-            : annotation.selectedText}」
+            : annotation.selectedText}
+          」
         </blockquote>
       )}
       <div className="mt-2 flex items-center justify-end gap-3">
         {resolved ? (
-          <span className="flex items-center gap-1 text-[10px] text-emerald-400">
+          <span className="flex items-center gap-1 text-[10px] text-emerald-600">
             <CheckCircle2 size={11} /> 已解决
           </span>
         ) : (
           canResolve && (
             <button
               onClick={onResolve}
-              className="flex items-center gap-1 text-[10px] text-mist-400 transition-colors hover:text-emerald-400"
+              className="flex items-center gap-1 text-[10px] text-mist-400 transition-colors hover:text-emerald-600"
             >
               <CheckCircle2 size={11} /> 标记解决
             </button>
@@ -1038,13 +1001,13 @@ function AnnotationCard({
         {canDelete && !resolved && onDelete && (
           <button
             onClick={onDelete}
-            className="flex items-center gap-1 text-[10px] text-mist-500 transition-colors hover:text-red-400"
+            className="flex items-center gap-1 text-[10px] text-mist-500 transition-colors hover:text-red-500"
             aria-label="删除批注"
           >
             <Trash2 size={11} /> 删除
           </button>
         )}
       </div>
-    </motion.div>
+    </div>
   );
 }

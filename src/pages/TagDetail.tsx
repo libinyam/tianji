@@ -1,9 +1,28 @@
 import { useState, useEffect } from "react";
 import { useParams, Link } from "react-router-dom";
-import { motion } from "motion/react";
-import { ArrowLeft, Tag, MessageSquare, Lightbulb, BookOpen, Users, Wrench, GraduationCap } from "lucide-react";
-import { fetchContentByTag, fetchTagCount, inferCategory, CATEGORY_LABEL, type TagContentItem } from "@/lib/tags";
-import { PostCardSkeleton, BookCardSkeleton, IdeaCardSkeleton, WorkshopCardSkeleton } from "@/components/Skeleton";
+import {
+  ArrowLeft,
+  Tag,
+  MessageSquare,
+  Lightbulb,
+  BookOpen,
+  Users,
+  Wrench,
+  GraduationCap,
+} from "lucide-react";
+import {
+  fetchContentByTag,
+  fetchTagCount,
+  inferCategory,
+  CATEGORY_LABEL,
+  type TagContentItem,
+} from "@/lib/tags";
+import {
+  PostCardSkeleton,
+  BookCardSkeleton,
+  IdeaCardSkeleton,
+  WorkshopCardSkeleton,
+} from "@/components/Skeleton";
 import { useSEO } from "@/hooks/useSEO";
 import { toggleTagFollow, isTagFollowing } from "@/lib/follows";
 import { rateLimiters } from "@/lib/security";
@@ -31,7 +50,9 @@ export default function TagDetail() {
   // #150 动态 SEO
   useSEO({
     title: name ? `#${name}` : undefined,
-    description: name ? `查看天玑社区中带「#${name}」标签的所有内容：讨论、灵感、资源、协作工坊。` : undefined,
+    description: name
+      ? `查看天玑社区中带「#${name}」标签的所有内容：讨论、灵感、资源、协作工坊。`
+      : undefined,
     canonical: name ? `https://tianjihub.cn/tags/${encodeURIComponent(name)}` : undefined,
   });
   const [loading, setLoading] = useState(true);
@@ -51,14 +72,18 @@ export default function TagDetail() {
     if (!name) return;
     let mounted = true;
     setLoading(true);
-    Promise.all([fetchContentByTag(name), fetchTagCount(name), isTagFollowing(name)]).then(([c, n, isFollow]) => {
-      if (!mounted) return;
-      setContent(c);
-      setCount(n);
-      setTagFollowing(isFollow);
-      setLoading(false);
-    });
-    return () => { mounted = false; };
+    Promise.all([fetchContentByTag(name), fetchTagCount(name), isTagFollowing(name)]).then(
+      ([c, n, isFollow]) => {
+        if (!mounted) return;
+        setContent(c);
+        setCount(n);
+        setTagFollowing(isFollow);
+        setLoading(false);
+      },
+    );
+    return () => {
+      mounted = false;
+    };
   }, [name]);
 
   // #149 关注 / 取消关注标签
@@ -98,35 +123,33 @@ export default function TagDetail() {
     <div className="container-tj py-10">
       <Link
         to="/"
-        className="mb-6 inline-flex items-center gap-2 text-sm text-mist-400 transition-colors hover:text-star-300"
+        className="mb-6 inline-flex items-center gap-2 text-sm text-mist-400 transition-colors hover:text-tian-500"
       >
         <ArrowLeft size={14} /> 返回首页
       </Link>
 
       {/* 标签头部 */}
-      <motion.div
-        initial={{ opacity: 0, y: 12 }}
-        animate={{ opacity: 1, y: 0 }}
-        className="mb-8 flex items-center justify-between gap-4"
-      >
+      <div className="mb-6 flex items-center justify-between gap-4">
         <div className="flex items-center gap-4">
-          <div className="flex h-16 w-16 items-center justify-center rounded-2xl border border-star-400/30 bg-star-400/10 text-star-300">
-            <Tag size={28} />
+          <div className="flex h-12 w-12 items-center justify-center rounded-lg border border-void-600 bg-void-700 text-mist-400">
+            <Tag size={20} />
           </div>
           <div>
             <div className="flex items-center gap-3">
               <h1 className="heading-display text-3xl text-parchment-100">#{name}</h1>
-              <span className={`flex items-center gap-1 rounded-full border px-2.5 py-0.5 text-[10px] font-medium ${
-                inferCategory(name) === "tool"
-                  ? "border-star-400/40 bg-star-400/10 text-star-300"
-                  : "border-tian-400/40 bg-tian-400/10 text-tian-300"
-              }`}>
+              <span
+                className={`flex items-center gap-1 rounded-full border border-void-600 bg-void-700 px-2.5 py-0.5 text-xs font-medium ${
+                  inferCategory(name) === "tool" ? "text-mist-400" : "text-tian-500"
+                }`}
+              >
                 {inferCategory(name) === "tool" ? <Wrench size={9} /> : <GraduationCap size={9} />}
                 {CATEGORY_LABEL[inferCategory(name)]}
               </span>
             </div>
             <p className="mt-1 text-sm text-mist-400">
-              {loading ? "加载中…" : `${count} 次使用 · ${content.posts.length + content.ideas.length + content.books.length + content.workshops.length} 条内容`}
+              {loading
+                ? "加载中…"
+                : `${count} 次使用 · ${content.posts.length + content.ideas.length + content.books.length + content.workshops.length} 条内容`}
             </p>
           </div>
         </div>
@@ -135,10 +158,10 @@ export default function TagDetail() {
           <button
             onClick={handleTagFollow}
             disabled={tagFollowLoading}
-            className={`inline-flex shrink-0 items-center gap-1.5 rounded-md px-3 py-1.5 text-xs font-medium transition-all disabled:opacity-60 ${
+            className={`inline-flex shrink-0 items-center gap-1.5 rounded-md px-3 py-1.5 text-xs font-medium transition-colors disabled:opacity-60 ${
               tagFollowing
-                ? "border border-void-600/50 bg-void-800/40 text-mist-300 hover:border-red-400/40 hover:text-red-300"
-                : "bg-tian-400/15 text-tian-200 hover:bg-tian-400/25"
+                ? "border border-void-600 bg-void-800 text-mist-300 hover:border-red-400 hover:text-red-500"
+                : "bg-tian-500 text-white hover:bg-tian-600"
             }`}
           >
             {tagFollowLoading ? (
@@ -149,10 +172,10 @@ export default function TagDetail() {
             {tagFollowing ? "已关注" : "关注标签"}
           </button>
         )}
-      </motion.div>
+      </div>
 
       {/* Tab 切换 */}
-      <div className="mb-6 flex gap-1 border-b border-void-600/40">
+      <div className="mb-6 flex gap-1 border-b border-void-600">
         {tabData.map((tab) => {
           const Icon = tab.icon;
           const isActive = activeTab === tab.key;
@@ -160,16 +183,16 @@ export default function TagDetail() {
             <button
               key={tab.key}
               onClick={() => setActiveTab(tab.key)}
-              className={`flex items-center gap-2 border-b-2 px-4 py-3 text-sm transition-colors ${
+              className={`flex items-center gap-2 border-b-2 px-3 py-2.5 text-sm transition-colors ${
                 isActive
-                  ? "border-star-400 text-star-300"
-                  : "border-transparent text-mist-400 hover:text-mist-200"
+                  ? "border-tian-500 text-tian-500"
+                  : "border-transparent text-mist-400 hover:text-parchment-100"
               }`}
             >
               <Icon size={14} />
               {tab.label}
               {tab.items.length > 0 && (
-                <span className="rounded-full bg-void-700/60 px-1.5 py-0.5 text-[10px] text-mist-400">
+                <span className="rounded-full bg-void-700 px-1.5 py-0.5 text-[10px] text-mist-400">
                   {tab.items.length}
                 </span>
               )}
@@ -181,51 +204,50 @@ export default function TagDetail() {
       {/* 内容列表 */}
       {loading ? (
         <div className="space-y-3">
-          {activeTab === "post" && Array.from({ length: 4 }).map((_, i) => <PostCardSkeleton key={i} />)}
-          {activeTab === "idea" && Array.from({ length: 4 }).map((_, i) => <IdeaCardSkeleton key={i} />)}
+          {activeTab === "post" &&
+            Array.from({ length: 4 }).map((_, i) => <PostCardSkeleton key={i} />)}
+          {activeTab === "idea" &&
+            Array.from({ length: 4 }).map((_, i) => <IdeaCardSkeleton key={i} />)}
           {activeTab === "book" && (
             <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-              {Array.from({ length: 6 }).map((_, i) => <BookCardSkeleton key={i} />)}
+              {Array.from({ length: 6 }).map((_, i) => (
+                <BookCardSkeleton key={i} />
+              ))}
             </div>
           )}
-          {activeTab === "workshop" && Array.from({ length: 3 }).map((_, i) => <WorkshopCardSkeleton key={i} />)}
+          {activeTab === "workshop" &&
+            Array.from({ length: 3 }).map((_, i) => <WorkshopCardSkeleton key={i} />)}
         </div>
       ) : currentItems.length === 0 ? (
-        <div className="py-20 text-center text-sm text-mist-500">
+        <div className="py-10 text-center text-sm text-mist-500">
           <Icon className="mx-auto mb-3 opacity-30" size={32} />
           暂无{TYPE_LABEL[activeTab]}内容使用此标签
         </div>
       ) : (
-        <div className="grid gap-3">
-          {currentItems.map((item, i) => {
+        <div className="divide-y divide-void-600 rounded-lg border border-void-600">
+          {currentItems.map((item) => {
             const Icon = TYPE_ICON[item.type];
             return (
-              <motion.div
+              <Link
                 key={item.id}
-                initial={{ opacity: 0, y: 8 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: i * 0.03 }}
+                to={item.link}
+                className="group flex items-start gap-3 p-3 transition-colors hover:bg-void-700"
               >
-                <Link
-                  to={item.link}
-                  className="group flex items-start gap-3 rounded-xl border border-void-600/40 bg-void-800/30 p-4 transition-colors hover:border-star-400/30 hover:bg-void-800/50"
-                >
-                  <span className="mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-void-700/50 text-mist-400">
-                    <Icon size={14} />
-                  </span>
-                  <div className="min-w-0 flex-1">
-                    <h3 className="truncate text-sm font-medium text-parchment-100 group-hover:text-star-200">
-                      {item.title}
-                    </h3>
-                    <p className="mt-1 line-clamp-2 text-xs text-mist-500">{item.excerpt}</p>
-                    <div className="mt-2 flex items-center gap-2 text-[10px] text-mist-600">
-                      <span>{item.author}</span>
-                      <span>·</span>
-                      <span>{item.createdAt.slice(0, 10)}</span>
-                    </div>
+                <span className="mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-void-700 text-mist-400">
+                  <Icon size={14} />
+                </span>
+                <div className="min-w-0 flex-1">
+                  <h3 className="truncate text-sm font-medium text-parchment-100 group-hover:text-tian-500">
+                    {item.title}
+                  </h3>
+                  <p className="mt-1 line-clamp-2 text-xs text-mist-500">{item.excerpt}</p>
+                  <div className="mt-2 flex items-center gap-2 text-xs text-mist-500">
+                    <span>{item.author}</span>
+                    <span>·</span>
+                    <span>{item.createdAt.slice(0, 10)}</span>
                   </div>
-                </Link>
-              </motion.div>
+                </div>
+              </Link>
             );
           })}
         </div>

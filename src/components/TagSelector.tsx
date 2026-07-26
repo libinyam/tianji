@@ -1,6 +1,13 @@
 import { useState, useEffect, useRef, useMemo } from "react";
 import { X, Loader2, Tag, Wrench, GraduationCap } from "lucide-react";
-import { fetchHotTags, searchTags, PRESET_TAGS, CATEGORY_LABEL, isCasualTag, type TagInfo } from "@/lib/tags";
+import {
+  fetchHotTags,
+  searchTags,
+  PRESET_TAGS,
+  CATEGORY_LABEL,
+  isCasualTag,
+  type TagInfo,
+} from "@/lib/tags";
 
 interface TagSelectorProps {
   value: string[];
@@ -8,11 +15,7 @@ interface TagSelectorProps {
   maxTags?: number;
 }
 
-export default function TagSelector({
-  value,
-  onChange,
-  maxTags = 5,
-}: TagSelectorProps) {
+export default function TagSelector({ value, onChange, maxTags = 5 }: TagSelectorProps) {
   const [input, setInput] = useState("");
   const [suggestions, setSuggestions] = useState<TagInfo[]>([]);
   const [hotTags, setHotTags] = useState<TagInfo[]>([]);
@@ -70,21 +73,32 @@ export default function TagSelector({
   // 构建推荐列表：搜索结果优先，否则用热门+预设
   const hasSearch = suggestions.length > 0;
   const hotToolTags = hotTags.filter((t) => t.category === "tool" && !value.includes(t.name));
-  const hotSubjectTags = hotTags.filter((t) => (t.category === "subject" || !t.category) && !value.includes(t.name));
+  const hotSubjectTags = hotTags.filter(
+    (t) => (t.category === "subject" || !t.category) && !value.includes(t.name),
+  );
 
-  const presetTools = PRESET_TAGS.tool.filter((t) => !value.includes(t) && !hotToolTags.some((h) => h.name === t));
-  const presetSubjects = PRESET_TAGS.subject.filter((t) => !value.includes(t) && !hotSubjectTags.some((h) => h.name === t));
+  const presetTools = PRESET_TAGS.tool.filter(
+    (t) => !value.includes(t) && !hotToolTags.some((h) => h.name === t),
+  );
+  const presetSubjects = PRESET_TAGS.subject.filter(
+    (t) => !value.includes(t) && !hotSubjectTags.some((h) => h.name === t),
+  );
 
   // 构建扁平化的可选标签列表（用于键盘导航）
   const flatOptions = useMemo(() => {
     if (hasSearch) {
-      return suggestions.filter((t) => !value.includes(t.name)).slice(0, 8).map((t) => ({ name: t.name, count: t.count }));
+      return suggestions
+        .filter((t) => !value.includes(t.name))
+        .slice(0, 8)
+        .map((t) => ({ name: t.name, count: t.count }));
     }
     return [
       ...hotToolTags.slice(0, 6).map((t) => ({ name: t.name, count: t.count })),
       ...presetTools.slice(0, 6).map((t) => ({ name: t, count: undefined as number | undefined })),
       ...hotSubjectTags.slice(0, 6).map((t) => ({ name: t.name, count: t.count })),
-      ...presetSubjects.slice(0, 6).map((t) => ({ name: t, count: undefined as number | undefined })),
+      ...presetSubjects
+        .slice(0, 6)
+        .map((t) => ({ name: t, count: undefined as number | undefined })),
     ];
   }, [hasSearch, suggestions, value, hotToolTags, hotSubjectTags, presetTools, presetSubjects]);
 
@@ -135,14 +149,14 @@ export default function TagSelector({
         onMouseEnter={() => setActiveIndex(globalIndex)}
         className={`flex items-center gap-1 rounded-full border px-2.5 py-1 text-xs transition-colors ${
           isActive
-            ? "border-star-400/60 bg-star-400/15 text-star-200"
-            : "border-void-600/40 bg-void-800/40 text-mist-300 hover:border-star-400/40 hover:text-star-200"
+            ? "border-tian-500 bg-tian-50 text-tian-600"
+            : "border-void-600 bg-void-800 text-mist-300 hover:border-tian-300 hover:text-tian-600"
         }`}
       >
         <Tag size={9} />
         {name}
         {count !== undefined && count > 0 && (
-          <span className="text-[9px] text-mist-600">{count}</span>
+          <span className="text-[9px] text-mist-500">{count}</span>
         )}
       </button>
     );
@@ -157,14 +171,14 @@ export default function TagSelector({
         {value.map((t) => (
           <span
             key={t}
-            className="flex items-center gap-1 rounded-full border border-tian-400/40 bg-tian-400/10 px-2.5 py-1 text-xs text-tian-100"
+            className="flex items-center gap-1 rounded-full border border-tian-200 bg-tian-50 px-2.5 py-1 text-xs text-tian-600"
           >
             {t}
             <button
               type="button"
               onClick={() => removeTag(t)}
               aria-label={`移除标签 ${t}`}
-              className="ml-0.5 text-mist-500 hover:text-red-300"
+              className="ml-0.5 text-mist-500 hover:text-red-500"
             >
               <X size={11} />
             </button>
@@ -189,7 +203,7 @@ export default function TagSelector({
             onKeyDown={handleKeyDown}
             placeholder={value.length < maxTags ? "输入标签后回车，↑↓选择" : ""}
             disabled={value.length >= maxTags}
-            className="w-full rounded-full border border-void-600/50 bg-void-950/50 px-3 py-1 text-xs text-parchment-100 placeholder:text-mist-500 focus:border-star-400/50 focus:outline-none disabled:opacity-40"
+            className="w-full rounded-full border border-void-600 bg-void-950 px-3 py-1 text-xs text-parchment-100 placeholder:text-mist-500 focus:border-tian-500 focus:outline-none disabled:opacity-40"
           />
         </div>
       </div>
@@ -199,7 +213,7 @@ export default function TagSelector({
         <div
           id="tag-listbox"
           role="listbox"
-          className="mt-2 rounded-lg border border-void-600/40 bg-void-900/95 p-2.5 shadow-xl backdrop-blur-xl"
+          className="mt-2 rounded-lg border border-void-600 bg-void-900 p-2.5 shadow-sm"
         >
           {loading && (
             <div className="flex items-center gap-1.5 px-2 py-1.5 text-xs text-mist-500">
@@ -210,10 +224,13 @@ export default function TagSelector({
           {/* 搜索结果 */}
           {!loading && hasSearch && (
             <div className="flex flex-wrap gap-1.5">
-              {suggestions.filter((t) => !value.includes(t.name)).slice(0, 8).map((t) => {
-                const idx = optionCounter++;
-                return renderTagOption(t.name, t.count, idx);
-              })}
+              {suggestions
+                .filter((t) => !value.includes(t.name))
+                .slice(0, 8)
+                .map((t) => {
+                  const idx = optionCounter++;
+                  return renderTagOption(t.name, t.count, idx);
+                })}
             </div>
           )}
 
@@ -223,7 +240,7 @@ export default function TagSelector({
               {/* 工具与部署 */}
               {(hotToolTags.length > 0 || presetTools.length > 0) && (
                 <div>
-                  <div className="mb-1.5 flex items-center gap-1.5 px-1 text-[10px] font-medium text-star-300">
+                  <div className="mb-1.5 flex items-center gap-1.5 px-1 text-xs font-medium text-mist-400">
                     <Wrench size={10} />
                     {CATEGORY_LABEL.tool}
                   </div>
@@ -243,7 +260,7 @@ export default function TagSelector({
               {/* 学科 */}
               {(hotSubjectTags.length > 0 || presetSubjects.length > 0) && (
                 <div>
-                  <div className="mb-1.5 flex items-center gap-1.5 px-1 text-[10px] font-medium text-tian-300">
+                  <div className="mb-1.5 flex items-center gap-1.5 px-1 text-xs font-medium text-mist-400">
                     <GraduationCap size={10} />
                     {CATEGORY_LABEL.subject}
                   </div>
@@ -262,11 +279,14 @@ export default function TagSelector({
             </div>
           )}
 
-          {!loading && !hasSearch && hotToolTags.length === 0 && hotSubjectTags.length === 0 && presetTools.length === 0 && presetSubjects.length === 0 && (
-            <div className="px-2 py-1.5 text-xs text-mist-500">
-              输入自定义标签后回车添加
-            </div>
-          )}
+          {!loading &&
+            !hasSearch &&
+            hotToolTags.length === 0 &&
+            hotSubjectTags.length === 0 &&
+            presetTools.length === 0 &&
+            presetSubjects.length === 0 && (
+              <div className="px-2 py-1.5 text-xs text-mist-500">输入自定义标签后回车添加</div>
+            )}
         </div>
       )}
     </div>

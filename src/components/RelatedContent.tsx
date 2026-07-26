@@ -1,6 +1,5 @@
 import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
-import { motion } from "motion/react";
 import { MessageSquare, Lightbulb, Book, HardHat, ArrowRight } from "lucide-react";
 import { fetchRelatedContent, type TagContentItem } from "@/lib/tags";
 
@@ -8,17 +7,10 @@ interface RelatedGroup {
   label: string;
   icon: typeof MessageSquare;
   color: string;
-  borderColor: string;
   items: TagContentItem[];
 }
 
-export default function RelatedContent({
-  tags,
-  excludeId,
-}: {
-  tags: string[];
-  excludeId: string;
-}) {
+export default function RelatedContent({ tags, excludeId }: { tags: string[]; excludeId: string }) {
   const [data, setData] = useState<{
     posts: TagContentItem[];
     ideas: TagContentItem[];
@@ -48,8 +40,8 @@ export default function RelatedContent({
 
   if (loading) {
     return (
-      <div className="mt-10 flex items-center gap-2 text-sm text-mist-500">
-        <div className="h-3 w-3 animate-pulse rounded-full bg-mist-500/40" />
+      <div className="mt-8 flex items-center gap-2 text-sm text-mist-500">
+        <div className="h-3 w-3 animate-pulse rounded-full bg-mist-400" />
         正在查找相关内容…
       </div>
     );
@@ -61,29 +53,25 @@ export default function RelatedContent({
     {
       label: "相关讨论",
       icon: MessageSquare,
-      color: "text-tian-300",
-      borderColor: "border-tian-400/30",
+      color: "text-tian-500",
       items: data.posts,
     },
     {
       label: "相关灵感",
       icon: Lightbulb,
-      color: "text-yellow-300",
-      borderColor: "border-yellow-400/30",
+      color: "text-yellow-600",
       items: data.ideas,
     },
     {
       label: "相关资源",
       icon: Book,
-      color: "text-emerald-300",
-      borderColor: "border-emerald-400/30",
+      color: "text-emerald-600",
       items: data.books,
     },
     {
       label: "相关协作",
       icon: HardHat,
-      color: "text-purple-300",
-      borderColor: "border-purple-400/30",
+      color: "text-purple-600",
       items: data.workshops,
     },
   ];
@@ -92,22 +80,16 @@ export default function RelatedContent({
   if (visibleGroups.length === 0) return null;
 
   return (
-    <div className="mt-10">
+    <div className="mt-8">
       <div className="mb-4 flex items-center gap-2">
-        <div className="h-px flex-1 bg-void-600/30" />
+        <div className="h-px flex-1 bg-void-600" />
         <span className="text-xs font-medium text-mist-400">跨模块发现</span>
-        <div className="h-px flex-1 bg-void-600/30" />
+        <div className="h-px flex-1 bg-void-600" />
       </div>
 
       <div className="grid gap-4 sm:grid-cols-2">
-        {visibleGroups.map((group, gi) => (
-          <motion.div
-            key={group.label}
-            initial={{ opacity: 0, y: 12 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.4, delay: gi * 0.08 }}
-            className={`rounded-xl border ${group.borderColor} bg-void-800/20 p-4`}
-          >
+        {visibleGroups.map((group) => (
+          <div key={group.label} className="rounded-lg border border-void-600 bg-void-800 p-4">
             <div className="mb-3 flex items-center gap-2">
               <group.icon size={14} className={group.color} />
               <h4 className="text-xs font-medium text-mist-300">{group.label}</h4>
@@ -118,14 +100,14 @@ export default function RelatedContent({
                 <Link
                   key={item.id}
                   to={item.link}
-                  className="group flex items-start gap-2 rounded-lg p-2 transition-colors hover:bg-void-700/30"
+                  className="group flex items-start gap-2 rounded-lg p-2 transition-colors hover:bg-void-700"
                 >
                   <ArrowRight
                     size={12}
                     className="mt-0.5 shrink-0 text-mist-500 transition-colors group-hover:text-mist-300"
                   />
                   <div className="min-w-0 flex-1">
-                    <p className="truncate text-sm text-parchment-100 transition-colors group-hover:text-star-200">
+                    <p className="truncate text-sm text-parchment-100 transition-colors group-hover:text-tian-500">
                       {item.title}
                     </p>
                     <p className="mt-0.5 truncate text-[11px] text-mist-500">
@@ -135,7 +117,7 @@ export default function RelatedContent({
                 </Link>
               ))}
             </div>
-          </motion.div>
+          </div>
         ))}
       </div>
     </div>

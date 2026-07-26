@@ -39,16 +39,13 @@ const CanvasCaptcha = forwardRef<CanvasCaptchaHandle, CanvasCaptchaProps>(
       const W = canvas.width;
       const H = canvas.height;
 
-      // 背景渐变
-      const grad = ctx.createLinearGradient(0, 0, W, H);
-      grad.addColorStop(0, "#1a1625");
-      grad.addColorStop(1, "#2a1f3d");
-      ctx.fillStyle = grad;
+      // 背景：浅灰纯色，与页面白色主题一致
+      ctx.fillStyle = "#f8f9fa";
       ctx.fillRect(0, 0, W, H);
 
       // 干扰线
       for (let i = 0; i < 4; i++) {
-        ctx.strokeStyle = `rgba(${100 + Math.random() * 80}, ${80 + Math.random() * 60}, ${120 + Math.random() * 80}, 0.3)`;
+        ctx.strokeStyle = `rgba(${60 + Math.random() * 80}, ${60 + Math.random() * 80}, ${70 + Math.random() * 80}, 0.3)`;
         ctx.lineWidth = 0.5 + Math.random();
         ctx.beginPath();
         ctx.moveTo(Math.random() * W, Math.random() * H);
@@ -58,14 +55,14 @@ const CanvasCaptcha = forwardRef<CanvasCaptchaHandle, CanvasCaptchaProps>(
 
       // 干扰点
       for (let i = 0; i < 30; i++) {
-        ctx.fillStyle = `rgba(200, 200, 220, ${Math.random() * 0.3})`;
+        ctx.fillStyle = `rgba(80, 80, 100, ${Math.random() * 0.3})`;
         ctx.beginPath();
         ctx.arc(Math.random() * W, Math.random() * H, 0.5 + Math.random(), 0, Math.PI * 2);
         ctx.fill();
       }
 
-      // 字符
-      const colors = ["#f3c969", "#7cc4ff", "#c4b5fd", "#86efac", "#fda4af"];
+      // 字符：深色系，浅底可读
+      const colors = ["#b45309", "#006b9f", "#6d28d9", "#047857", "#be123c"];
       const charW = W / (LENGTH + 1);
       for (let i = 0; i < text.length; i++) {
         ctx.save();
@@ -115,27 +112,27 @@ const CanvasCaptcha = forwardRef<CanvasCaptchaHandle, CanvasCaptchaProps>(
           value={value}
           onChange={(e) => onChange(e.target.value.toUpperCase())}
           placeholder="输入验证码"
-          className="min-w-0 flex-1 rounded-lg border border-void-600/50 bg-void-950/50 px-3 py-2.5 text-sm text-parchment-100 placeholder:text-mist-500 focus:border-star-400/50 focus:outline-none focus:ring-1 focus:ring-star-400/30"
+          className="min-w-0 flex-1 rounded-lg border border-void-600 bg-void-950 px-3 py-2.5 text-sm text-parchment-100 placeholder:text-mist-500 focus:border-tian-500 focus:outline-none focus:ring-1 focus:ring-tian-500/30"
         />
         <canvas
           ref={canvasRef}
           width={100}
           height={40}
           onClick={refresh}
-          className="cursor-pointer rounded-lg border border-void-600/40"
+          className="cursor-pointer rounded-lg border border-void-600"
           title="点击刷新验证码"
         />
         <button
           type="button"
           onClick={refresh}
-          className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border border-void-600/50 bg-void-800/40 text-mist-400 transition-colors hover:text-star-300"
+          className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border border-void-600 bg-void-800 text-mist-400 transition-colors hover:bg-void-700 hover:text-tian-500"
           title="刷新验证码"
         >
           <RefreshCw size={14} />
         </button>
       </div>
     );
-  }
+  },
 );
 
 CanvasCaptcha.displayName = "CanvasCaptcha";
