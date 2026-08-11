@@ -24,8 +24,7 @@ class ParseError extends Error {
 const COMMON_HEADER = {
   "User-Agent":
     "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0.0.0 Safari/537.36",
-  Accept:
-    "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8",
+  Accept: "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8",
   "Accept-Language": "zh-CN,zh;q=0.9,en;q=0.8",
 };
 
@@ -351,7 +350,12 @@ class DouyinParser {
       images.forEach((img, idx) => {
         const u = pick(img.url_list);
         if (u) {
-          media.push({ type: "image", url: u, referer: shareUrl, filename: `${base}_${idx + 1}.jpeg` });
+          media.push({
+            type: "image",
+            url: u,
+            referer: shareUrl,
+            filename: `${base}_${idx + 1}.jpeg`,
+          });
         }
       });
       mtype = "images";
@@ -423,7 +427,10 @@ class DouyinParser {
   async _parseSlides(vid) {
     const api = "https://www.iesdouyin.com/web/api/v2/aweme/slidesinfo/";
     const params = new URLSearchParams({ aweme_ids: `[${vid}]`, request_source: "200" });
-    const res = await this.session.fetch(`${api}?${params}`, { headers: ANDROID_HEADER, redirect: "follow" });
+    const res = await this.session.fetch(`${api}?${params}`, {
+      headers: ANDROID_HEADER,
+      redirect: "follow",
+    });
     if (res.status !== 200) throw new ParseError(`图集接口请求失败: HTTP ${res.status}`);
     let data;
     try {
@@ -450,7 +457,12 @@ class DouyinParser {
         const pa = v.play_addr || {};
         const vu = pick(pa.url_list);
         if (vu) {
-          media.push({ type: "dynamic", url: vu.replace("playwm", "play"), referer, filename: `${base}_${idx + 1}.mp4` });
+          media.push({
+            type: "dynamic",
+            url: vu.replace("playwm", "play"),
+            referer,
+            filename: `${base}_${idx + 1}.mp4`,
+          });
         }
       }
     });
@@ -486,7 +498,10 @@ class TikTokParser {
 
   async parse(raw) {
     let url = firstUrl(raw);
-    if (/(vt|vm|vt\.|vm\.)tiktok\.com\//.test(url) || /^https?:\/\/(vt|vm)\.tiktok\.com/.test(url)) {
+    if (
+      /(vt|vm|vt\.|vm\.)tiktok\.com\//.test(url) ||
+      /^https?:\/\/(vt|vm)\.tiktok\.com/.test(url)
+    ) {
       url = await this._resolveShort(url);
     }
     const viaTikwm = await this._viaTikwm(url);
@@ -511,10 +526,13 @@ class TikTokParser {
   async _viaTikwm(url) {
     let data;
     try {
-      const r = await this.session.fetch(`https://www.tikwm.com/api/?url=${encodeURIComponent(url)}`, {
-        headers: { "User-Agent": COMMON_HEADER["User-Agent"] },
-        redirect: "follow",
-      });
+      const r = await this.session.fetch(
+        `https://www.tikwm.com/api/?url=${encodeURIComponent(url)}`,
+        {
+          headers: { "User-Agent": COMMON_HEADER["User-Agent"] },
+          redirect: "follow",
+        },
+      );
       data = await r.json();
     } catch {
       return null;
@@ -531,14 +549,24 @@ class TikTokParser {
     let play = d.play;
     if (play) {
       if (play.startsWith("/")) play = "https://www.tikwm.com" + play;
-      media.push({ type: "video", url: play, referer: "https://www.tikwm.com/", filename: `${base}.mp4` });
+      media.push({
+        type: "video",
+        url: play,
+        referer: "https://www.tikwm.com/",
+        filename: `${base}.mp4`,
+      });
     }
     images.forEach((img, idx) => {
       let u = null;
       if (typeof img === "string") u = img;
       else if (img && typeof img === "object") u = img.url || img.imageDisplay;
       if (u) {
-        media.push({ type: "image", url: u, referer: "https://www.tikwm.com/", filename: `${base}_${idx + 1}.jpeg` });
+        media.push({
+          type: "image",
+          url: u,
+          referer: "https://www.tikwm.com/",
+          filename: `${base}_${idx + 1}.jpeg`,
+        });
       }
     });
     if (!media.length) return null;
@@ -558,7 +586,9 @@ class TikTokParser {
   async _viaPage(url) {
     const res = await this.session.fetch(url, { headers: TIKTOK_HEADER, redirect: "follow" });
     const text = await res.text();
-    const m = text.match(/<script id="__UNIVERSAL_DATA_FOR_REHYDRATION__"[^>]*>([\s\S]*?)<\/script>/);
+    const m = text.match(
+      /<script id="__UNIVERSAL_DATA_FOR_REHYDRATION__"[^>]*>([\s\S]*?)<\/script>/,
+    );
     if (!m) throw new ParseError("TikTok 页面解析失败, 可重试或更换链接");
     const jsonStr = extractBalancedJson(m[1], 0) || m[1].trim();
     let data;
@@ -569,7 +599,7 @@ class TikTokParser {
     }
     const scope = data.__DEFAULT_SCOPE || {};
     const detail = scope["webapp.video-detail"] || {};
-    const item = ((detail.itemInfo || {}).itemStruct) || {};
+    const item = (detail.itemInfo || {}).itemStruct || {};
     if (!item) throw new ParseError("TikTok 未找到视频数据");
     const title = item.desc || "";
     const authorObj = item.author || {};
@@ -582,15 +612,25 @@ class TikTokParser {
       const play = video.playAddr;
       cover = video.cover || video.originCover;
       if (play) {
-        media.push({ type: "video", url: play, referer: "https://www.tiktok.com/", filename: `${base}.mp4` });
+        media.push({
+          type: "video",
+          url: play,
+          referer: "https://www.tiktok.com/",
+          filename: `${base}.mp4`,
+        });
       }
     }
     const ip = item.imagePost || {};
-    const imageList = (ip.imageList) || [];
+    const imageList = ip.imageList || [];
     imageList.forEach((im, idx) => {
       const u = (im.imageDisplay || {}).url;
       if (u) {
-        media.push({ type: "image", url: u, referer: "https://www.tiktok.com/", filename: `${base}_${idx + 1}.jpeg` });
+        media.push({
+          type: "image",
+          url: u,
+          referer: "https://www.tiktok.com/",
+          filename: `${base}_${idx + 1}.jpeg`,
+        });
       }
     });
     if (!media.length) throw new ParseError("TikTok 未找到可下载内容");
@@ -691,7 +731,11 @@ async function proxyMedia(event) {
 
   const { buf, exceeded } = await readBodyCapped(res, MAX_CHUNK);
   if (exceeded) {
-    return { ok: false, error: "文件过大或不支持分块下载，请尝试单个图片或更换链接", tooLarge: true };
+    return {
+      ok: false,
+      error: "文件过大或不支持分块下载，请尝试单个图片或更换链接",
+      tooLarge: true,
+    };
   }
   return {
     ok: true,
