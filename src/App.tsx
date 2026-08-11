@@ -44,6 +44,8 @@ const Ideas = lazyWithReload(() => import("@/pages/Ideas"));
 const IdeaDetail = lazyWithReload(() => import("@/pages/IdeaDetail"));
 const Workshop = lazyWithReload(() => import("@/pages/Workshop"));
 const WorkshopDetail = lazyWithReload(() => import("@/pages/WorkshopDetail"));
+const Tools = lazyWithReload(() => import("@/pages/Tools"));
+const DouyinDownloader = lazyWithReload(() => import("@/pages/DouyinDownloader"));
 const Profile = lazyWithReload(() => import("@/pages/Profile"));
 const UserProfile = lazyWithReload(() => import("@/pages/UserProfile"));
 const TagDetail = lazyWithReload(() => import("@/pages/TagDetail"));
@@ -97,6 +99,8 @@ export default function App() {
                   <Route path="/ideas/:id" element={<IdeaDetail />} />
                   <Route path="/workshop" element={<Workshop />} />
                   <Route path="/workshop/:id" element={<WorkshopDetail />} />
+                  <Route path="/tools" element={<Tools />} />
+                  <Route path="/tools/douyin" element={<DouyinDownloader />} />
                   <Route path="/profile" element={<Profile />} />
                   <Route path="/user/:uid" element={<UserProfile />} />
                   <Route path="/tags/:name" element={<TagDetail />} />
