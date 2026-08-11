@@ -1,0 +1,7 @@
+{
+  "name": "douyin-tool",
+  "version": "1.0.0",
+  "description": "抖音 / TikTok 无水印解析与代理下载",
+  "main": "index.js",
+  "dependencies": {}
+}

@@ -8,6 +8,7 @@
     { "name": "user-admin", "handler": "index.main", "timeout": 20, "ignore": ["*.test.js"] },
     { "name": "admin-delete", "handler": "index.main", "timeout": 20, "ignore": ["*.test.js"] },
     { "name": "check-admin", "handler": "index.main", "timeout": 20, "ignore": ["*.test.js"] },
+    { "name": "douyin-tool", "handler": "index.main", "timeout": 60, "ignore": ["*.test.js"] },
     { "name": "ai-bot", "handler": "index.main", "timeout": 60, "ignore": ["*.test.js"] },
     { "name": "db-backup", "handler": "index.main", "timeout": 60, "ignore": ["*.test.js"] },
     { "name": "manage-announcements", "handler": "index.main", "timeout": 20, "ignore": ["*.test.js"] },

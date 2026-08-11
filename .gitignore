@@ -43,3 +43,10 @@ repo-context.json
 .agents/
 .claude/
 .closed-loop-workspace/
+
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+venv/

@@ -1,0 +1,373 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>抖音 / TikTok 无水印下载器</title>
+<style>
+  :root {
+    --bg: #0f1226;
+    --bg-2: #161a36;
+    --card: #1c2143;
+    --card-2: #232a55;
+    --text: #eef0ff;
+    --muted: #9aa0c9;
+    --primary: #ff2c55;
+    --primary-2: #ff5c7c;
+    --accent: #25f4ee;
+    --border: #2c3360;
+    --ok: #2dd4bf;
+    --err: #fb7185;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC",
+      "Microsoft YaHei", Roboto, Helvetica, Arial, sans-serif;
+    background: radial-gradient(1200px 700px at 80% -10%, #2a1d4a 0%, var(--bg) 55%) fixed;
+    color: var(--text);
+    min-height: 100vh;
+    line-height: 1.5;
+  }
+  .wrap { max-width: 880px; margin: 0 auto; padding: 36px 18px 80px; }
+  .brand { display: flex; align-items: center; gap: 12px; margin-bottom: 6px; }
+  .logo {
+    width: 44px; height: 44px; border-radius: 13px;
+    background: linear-gradient(135deg, var(--primary), var(--accent));
+    display: grid; place-items: center; font-weight: 800; color: #fff; font-size: 22px;
+    box-shadow: 0 10px 30px rgba(255, 44, 85, .35);
+  }
+  h1 { font-size: 22px; font-weight: 700; letter-spacing: .3px; }
+  .sub { color: var(--muted); font-size: 14px; margin-bottom: 22px; }
+
+  .search {
+    background: linear-gradient(180deg, var(--card), var(--bg-2));
+    border: 1px solid var(--border);
+    border-radius: 18px; padding: 16px;
+    box-shadow: 0 24px 60px rgba(0,0,0,.35);
+  }
+  .row { display: flex; gap: 10px; }
+  .input-wrap { flex: 1; position: relative; }
+  input {
+    width: 100%; padding: 14px 16px 14px 44px;
+    background: var(--bg); border: 1px solid var(--border);
+    color: var(--text); border-radius: 12px; font-size: 15px; outline: none;
+    transition: border-color .15s, box-shadow .15s;
+  }
+  input::placeholder { color: #6b6f96; }
+  input:focus { border-color: var(--primary); box-shadow: 0 0 0 3px rgba(255,44,85,.18); }
+  .ic { position: absolute; left: 14px; top: 50%; transform: translateY(-50%); color: var(--muted); }
+  button {
+    cursor: pointer; border: none; font-family: inherit; font-size: 15px;
+    border-radius: 12px; padding: 0 20px; font-weight: 600; color: #fff;
+    background: linear-gradient(135deg, var(--primary), var(--primary-2));
+    transition: transform .08s, filter .15s, opacity .15s;
+    height: 50px; white-space: nowrap;
+  }
+  button:hover { filter: brightness(1.07); }
+  button:active { transform: translateY(1px); }
+  button:disabled { opacity: .55; cursor: not-allowed; }
+  .btn-ghost {
+    background: var(--card-2); border: 1px solid var(--border); height: 38px; padding: 0 14px; font-size: 13px;
+  }
+  .btn-ghost:hover { filter: brightness(1.1); }
+  .tools { display: flex; gap: 8px; margin-top: 10px; flex-wrap: wrap; }
+
+  .status { margin-top: 14px; font-size: 14px; color: var(--muted); display: flex; align-items: center; gap: 8px; min-height: 20px; }
+  .spinner {
+    width: 16px; height: 16px; border-radius: 50%;
+    border: 2px solid rgba(255,255,255,.2); border-top-color: var(--accent);
+    animation: spin .7s linear infinite;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  .err { color: var(--err); }
+
+  .result { margin-top: 22px; display: none; }
+  .result.show { display: block; animation: fade .3s ease; }
+  @keyframes fade { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
+
+  .card {
+    background: linear-gradient(180deg, var(--card), var(--bg-2));
+    border: 1px solid var(--border); border-radius: 18px; overflow: hidden;
+  }
+  .head { display: flex; gap: 14px; padding: 16px; align-items: center; }
+  .avatar { width: 48px; height: 48px; border-radius: 50%; object-fit: cover; background: var(--card-2); flex-shrink: 0; }
+  .meta { flex: 1; min-width: 0; }
+  .author { font-weight: 600; font-size: 15px; }
+  .badge { display: inline-flex; align-items: center; gap: 4px; font-size: 12px; padding: 2px 8px; border-radius: 20px; background: var(--card-2); color: var(--accent); margin-left: 8px; }
+  .title { color: var(--muted); font-size: 13px; margin-top: 3px; word-break: break-word; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+  .cover-thumb { width: 100%; aspect-ratio: 16/9; object-fit: cover; background: #000; display: block; }
+
+  .body { padding: 16px; }
+  .video-box { border-radius: 14px; overflow: hidden; background: #000; }
+  video { width: 100%; max-height: 70vh; display: block; background: #000; }
+
+  .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 12px; }
+  .cell { position: relative; border-radius: 12px; overflow: hidden; background: var(--bg); border: 1px solid var(--border); aspect-ratio: 3/4; }
+  .cell img, .cell video { width: 100%; height: 100%; object-fit: cover; display: block; }
+  .cell .dl {
+    position: absolute; right: 8px; bottom: 8px; width: 34px; height: 34px; border-radius: 10px;
+    background: rgba(15,18,38,.75); border: 1px solid var(--border); display: grid; place-items: center; color: #fff;
+    backdrop-filter: blur(4px); opacity: 0; transition: opacity .15s;
+  }
+  .cell:hover .dl { opacity: 1; }
+  .cell .live { position: absolute; left: 8px; top: 8px; font-size: 11px; padding: 2px 7px; border-radius: 6px; background: rgba(255,44,85,.85); color:#fff; }
+
+  .actions { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 16px; }
+  .btn-primary { background: linear-gradient(135deg, var(--primary), var(--primary-2)); height: 44px; padding: 0 18px; }
+  .btn-line { background: var(--card-2); border: 1px solid var(--border); height: 44px; padding: 0 16px; }
+
+  .toast {
+    position: fixed; left: 50%; bottom: 30px; transform: translateX(-50%) translateY(40px);
+    background: var(--card-2); border: 1px solid var(--border); color: var(--text);
+    padding: 12px 18px; border-radius: 12px; font-size: 14px; opacity: 0; pointer-events: none;
+    transition: opacity .25s, transform .25s; z-index: 50; box-shadow: 0 16px 40px rgba(0,0,0,.4);
+  }
+  .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+
+  .hint { color: var(--muted); font-size: 12px; margin-top: 12px; line-height: 1.7; }
+  .hint code { background: var(--card-2); padding: 1px 6px; border-radius: 5px; color: var(--accent); }
+  a { color: var(--accent); text-decoration: none; }
+  .pill { display: inline-flex; gap: 6px; align-items: center; font-size: 12px; color: var(--muted); margin-top: 6px; }
+  .dot { width: 6px; height: 6px; border-radius: 50%; background: var(--ok); }
+  .empty-state { text-align: center; padding: 40px 16px; color: var(--muted); font-size: 14px; }
+</style>
+</head>
+<body>
+  <div class="wrap">
+    <div class="brand">
+      <div class="logo">D</div>
+      <div>
+        <h1>无水印下载器</h1>
+        <div class="pill"><span class="dot"></span> 抖音 · TikTok · 图集 · 视频</div>
+      </div>
+    </div>
+    <div class="sub">粘贴抖音或 TikTok 分享链接，一键解析并下载无水印原画。</div>
+
+    <div class="search">
+      <div class="row">
+        <div class="input-wrap">
+          <svg class="ic" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>
+          <input id="url" placeholder="粘贴抖音 / TikTok 链接，例如 https://v.douyin.com/xxxxx" />
+        </div>
+        <button id="parse" onclick="doParse()">解析</button>
+      </div>
+      <div class="tools">
+        <button class="btn-ghost" onclick="pasteClip()">从剪贴板粘贴</button>
+        <button class="btn-ghost" onclick="clearAll()">清空</button>
+      </div>
+      <div class="status" id="status"></div>
+    </div>
+
+    <div class="result" id="result"></div>
+
+    <div class="hint">
+      支持的链接形态：<code>v.douyin.com</code> 短链 · <code>douyin.com/video/xxx</code> · <code>douyin.com/note/xxx</code> · 图集(slides) · <code>vm.tiktok.com</code> 短链 · <code>tiktok.com/@user/video/xxx</code><br/>
+      视频通过服务器代理下载，可直接保存；图集支持单独下载或一键打包 ZIP。
+    </div>
+  </div>
+
+  <div class="toast" id="toast"></div>
+
+<script>
+  const $ = (s) => document.querySelector(s);
+  const result = $('#result');
+  const statusEl = $('#status');
+  const parseBtn = $('#parse');
+
+  function toast(msg) {
+    const t = $('#toast');
+    t.textContent = msg; t.classList.add('show');
+    clearTimeout(t._t); t._t = setTimeout(() => t.classList.remove('show'), 2200);
+  }
+
+  function setStatus(html, loading) {
+    statusEl.innerHTML = html;
+    parseBtn.disabled = !!loading;
+    if (loading) statusEl.querySelector('.spinner') ? null : null;
+  }
+
+  function loading(msg) {
+    statusEl.innerHTML = '<span class="spinner"></span>' + (msg || '正在解析…');
+    parseBtn.disabled = true;
+  }
+
+  async function doParse() {
+    const url = $('#url').value.trim();
+    if (!url) { toast('请先粘贴链接'); return; }
+    result.classList.remove('show'); result.innerHTML = '';
+    loading('正在解析，可能需要数秒…');
+    try {
+      const r = await fetch('/api/parse', {
+        method: 'POST', headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({url})
+      });
+      const j = await r.json();
+      if (!j.ok) { statusEl.innerHTML = '<span class="err">✗ ' + escapeHtml(j.msg || '解析失败') + '</span>'; parseBtn.disabled = false; return; }
+      statusEl.innerHTML = '<span class="dot" style="display:inline-block;width:8px;height:8px;border-radius:50%;background:var(--ok)"></span> 解析成功';
+      render(j.data);
+    } catch (e) {
+      statusEl.innerHTML = '<span class="err">✗ 网络错误，请重试</span>';
+    }
+    parseBtn.disabled = false;
+  }
+
+  function proxyURL(item, download) {
+    const p = new URLSearchParams();
+    p.set('url', item.url);
+    if (item.referer) p.set('referer', item.referer);
+    if (item.filename) p.set('filename', item.filename);
+    if (download) p.set('download', '1');
+    return '/api/media?' + p.toString();
+  }
+
+  function proxyImg(o) {
+    if (!o || !o.url) return '';
+    const p = new URLSearchParams();
+    p.set('url', o.url);
+    if (o.referer) p.set('referer', o.referer);
+    return '/api/media?' + p.toString();
+  }
+
+  function escapeHtml(s) { return (s||'').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+
+  function fmtTime(ts) {
+    if (!ts) return '';
+    const d = new Date(ts * 1000);
+    if (isNaN(d)) return '';
+    return d.toLocaleString('zh-CN', {hour12: false});
+  }
+  function fmtDur(s) {
+    s = s || 0; if (!s) return '';
+    const m = Math.floor(s/60), r = s%60; return m + ':' + String(r).padStart(2,'0');
+  }
+
+  function render(d) {
+    const platformLabel = d.platform === 'tiktok' ? 'TikTok' : '抖音';
+    const typeLabel = {video:'视频', images:'图文', slides:'图集'}[d.type] || d.type;
+    const avatar = d.avatar ? `<img class="avatar" src="${proxyImg(d.avatar)}" onerror="this.style.visibility='hidden'"/>` : `<div class="avatar"></div>`;
+    const cover = d.cover && d.type === 'video' ? `<img class="cover-thumb" src="${proxyImg(d.cover)}" alt="cover"/>` : '';
+
+    let body = '';
+    if (d.type === 'video' && d.media[0]) {
+      const v = d.media[0];
+      body = `<div class="video-box"><video src="${proxyURL(v, false)}" controls preload="metadata" poster="${d.cover?proxyImg(d.cover):''}"></video></div>`;
+    } else {
+      const cells = d.media.map((m, i) => {
+        if (m.type === 'dynamic') {
+          return `<div class="cell"><span class="live">动图</span><video src="${proxyURL(m, false)}" muted loop playsinline onmouseover="this.play()" onmouseout="this.pause();this.currentTime=0"></video><a class="dl" href="${proxyURL(m, true)}" title="下载动图" download><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg></a></div>`;
+        }
+        return `<div class="cell"><img loading="lazy" src="${proxyURL(m, false)}" alt="${escapeHtml(m.filename)}"/><a class="dl" href="${proxyURL(m, true)}" title="下载图片" download><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg></a></div>`;
+      }).join('');
+      body = `<div class="grid">${cells}</div>`;
+    }
+
+    const itemsEnc = encodeURIComponent(JSON.stringify(d.media));
+    const zipNameEnc = encodeURIComponent((d.title || 'media').slice(0, 30));
+    const dlIcon = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="margin-right:7px"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>';
+    const zipIcon = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="margin-right:7px"><path d="M21 8v13H3V8"/><path d="M1 3h22v5H1z"/><path d="M10 12h4"/></svg>';
+    const allIcon = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="margin-right:7px"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>';
+    let actionsHtml = '';
+    if (d.type === 'video' && d.media[0]) {
+      const v = d.media[0];
+      actionsHtml += `<a class="btn-primary" style="display:inline-flex;align-items:center;text-decoration:none" href="${proxyURL(v, true)}" download>${dlIcon}下载视频</a>`;
+    } else if (d.media.length > 1) {
+      actionsHtml += `<button class="btn-primary" onclick="downloadZip('${itemsEnc}', '${zipNameEnc}')">${zipIcon}打包下载全部 (${d.media.length} 个)</button>`;
+      actionsHtml += `<button class="btn-line" style="height:44px" onclick="downloadAll('${itemsEnc}', event)">${allIcon}逐个下载</button>`;
+    } else if (d.media[0]) {
+      const m0 = d.media[0];
+      actionsHtml += `<a class="btn-primary" style="display:inline-flex;align-items:center;text-decoration:none" href="${proxyURL(m0, true)}" download>${dlIcon}下载图片</a>`;
+    }
+
+    result.innerHTML = `
+      <div class="card">
+        ${cover}
+        <div class="head">
+          ${avatar}
+          <div class="meta">
+            <div><span class="author">${escapeHtml(d.author || '未知作者')}</span><span class="badge">${platformLabel} · ${typeLabel}</span></div>
+            <div class="title">${escapeHtml(d.title || '')}</div>
+            <div class="pill">${fmtDur(d.duration)?'<span>时长 '+fmtDur(d.duration)+'</span>·':''}${fmtTime(d.create_time)?'<span>'+fmtTime(d.create_time)+'</span>':''}${d.media.length?'<span>共 '+d.media.length+' 个文件</span>':''}</div>
+          </div>
+        </div>
+        <div class="body">
+          ${body}
+          <div class="actions">${actionsHtml}</div>
+        </div>
+      </div>`;
+    result.classList.add('show');
+  }
+
+  async function downloadAll(itemsEnc, ev) {
+    const items = JSON.parse(decodeURIComponent(itemsEnc));
+    const btn = (ev && ev.currentTarget) || (window.event && window.event.currentTarget) || null;
+    const origText = btn ? btn.innerHTML : '';
+    if (btn) { btn.disabled = true; btn.style.opacity = '0.6'; }
+    let done = 0;
+    const total = items.length;
+    const sleep = (ms) => new Promise(r => setTimeout(r, ms));
+    for (let i = 0; i < total; i++) {
+      const m = items[i];
+      if (btn) btn.textContent = '下载中 ' + (i + 1) + '/' + total + '…';
+      const a = document.createElement('a');
+      a.href = proxyURL(m, true);
+      a.download = m.filename || ('media_' + (i + 1));
+      document.body.appendChild(a);
+      a.click();
+      setTimeout(() => a.remove(), 1500);
+      done++;
+      if (i < total - 1) await sleep(900);
+    }
+    if (btn) {
+      btn.textContent = '已下载 ' + done + ' 个';
+      toast('已触发 ' + done + ' 个文件下载');
+      await sleep(1800);
+      btn.disabled = false; btn.style.opacity = '1'; btn.innerHTML = origText;
+    } else {
+      toast('已触发 ' + done + ' 个文件下载');
+    }
+  }
+
+  async function downloadZip(itemsEnc, nameEnc) {
+    const items = JSON.parse(decodeURIComponent(itemsEnc));
+    const name = decodeURIComponent(nameEnc || 'media');
+    toast('正在打包 ' + items.length + ' 个文件…');
+    try {
+      const r = await fetch('/api/zip', {
+        method: 'POST', headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({items, name})
+      });
+      if (!r.ok) { toast('打包失败'); return; }
+      const blob = await r.blob();
+      const a = document.createElement('a');
+      a.href = URL.createObjectURL(blob);
+      a.download = (name || 'media') + '.zip';
+      document.body.appendChild(a); a.click();
+      setTimeout(() => { URL.revokeObjectURL(a.href); a.remove(); }, 1000);
+      toast('已开始下载 ZIP');
+    } catch (e) { toast('打包出错'); }
+  }
+
+  async function pasteClip() {
+    try {
+      const t = await navigator.clipboard.readText();
+      if (t) { $('#url').value = t.trim(); toast('已粘贴'); }
+      else toast('剪贴板为空');
+    } catch { toast('无法读取剪贴板，请手动粘贴'); }
+  }
+
+  function clearAll() {
+    $('#url').value = ''; result.classList.remove('show'); result.innerHTML = '';
+    statusEl.innerHTML = '';
+  }
+
+  $('#url').addEventListener('keydown', (e) => { if (e.key === 'Enter') doParse(); });
+  $('#url').addEventListener('paste', () => setTimeout(() => {
+    const v = $('#url').value.trim();
+    if (/https?:\/\//.test(v) && v.split(/\s+/).length > 1) {
+      const m = v.match(/https?:\/\/[^\s，。、]+/);
+      if (m) $('#url').value = m[0];
+    }
+  }, 0));
+</script>
+</body>
+</html>
