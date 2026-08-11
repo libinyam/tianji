@@ -59,7 +59,9 @@ export default function DouyinDownloader() {
   const [videoBlobUrl, setVideoBlobUrl] = useState<string | null>(null);
   const [videoBlob, setVideoBlob] = useState<Blob | null>(null);
   const [videoState, setVideoState] = useState<VideoState>("idle");
-  const [videoProgress, setVideoProgress] = useState<{ loaded: number; total: number } | null>(null);
+  const [videoProgress, setVideoProgress] = useState<{ loaded: number; total: number } | null>(
+    null,
+  );
   const [downloadingAll, setDownloadingAll] = useState(false);
   const [doneHint, setDoneHint] = useState<string | null>(null);
 
@@ -140,8 +142,7 @@ export default function DouyinDownloader() {
   }, [result, trackUrl]);
 
   const videoItem = result?.media.find((m) => m.type === "video" || m.type === "dynamic") || null;
-  const imageItems =
-    result?.media.filter((m) => m.type === "image" || m.type === "dynamic") || [];
+  const imageItems = result?.media.filter((m) => m.type === "image" || m.type === "dynamic") || [];
 
   const loadVideo = async () => {
     if (!videoItem) return;
@@ -240,10 +241,7 @@ export default function DouyinDownloader() {
         <div className="rounded-lg border border-void-600 bg-void-800 p-4">
           <div className="flex flex-col gap-3 sm:flex-row">
             <div className="relative flex-1">
-              <Link2
-                size={15}
-                className="absolute left-3 top-1/2 -translate-y-1/2 text-mist-500"
-              />
+              <Link2 size={15} className="absolute left-3 top-1/2 -translate-y-1/2 text-mist-500" />
               <input
                 value={url}
                 onChange={(e) => setUrl(e.target.value)}
@@ -291,7 +289,8 @@ export default function DouyinDownloader() {
 
           <p className="mt-3 text-xs leading-relaxed text-mist-500">
             支持：<span className="text-mist-400">v.douyin.com 短链</span> · 图文/图集(slides) ·{" "}
-            <span className="text-mist-400">vm.tiktok.com 短链</span> · tiktok.com/@user。视频通过服务端分块代理下载，可保存原画。
+            <span className="text-mist-400">vm.tiktok.com 短链</span> ·
+            tiktok.com/@user。视频通过服务端分块代理下载，可保存原画。
           </p>
         </div>
 
@@ -339,7 +338,11 @@ export default function DouyinDownloader() {
                 ) : (
                   <div className="relative aspect-video overflow-hidden rounded-md bg-black">
                     {coverUrl && (
-                      <img src={coverUrl} alt="" className="h-full w-full object-cover opacity-80" />
+                      <img
+                        src={coverUrl}
+                        alt=""
+                        className="h-full w-full object-cover opacity-80"
+                      />
                     )}
                     <div className="absolute inset-0 flex flex-col items-center justify-center gap-2">
                       <button
