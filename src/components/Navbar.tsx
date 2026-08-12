@@ -21,10 +21,9 @@ const NAV = [
   { to: "/", label: "讨论区", end: true },
   { to: "/library", label: "资源库" },
   { to: "/ideas", label: "灵感广场" },
-  { to: "/tools", label: "工具箱" },
   { to: "/workshop", label: "协作工坊" },
   { to: "/portfolio", label: "作品集" },
-  { to: "/leaderboard", label: "声望榜" },
+  { to: "/tools", label: "工具箱" },
 ];
 
 interface NavbarProps {
