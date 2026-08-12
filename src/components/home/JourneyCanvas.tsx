@@ -91,7 +91,11 @@ export default function JourneyCanvas() {
         <span>01 — 05</span>
       </div>
 
-      <svg className="absolute inset-5 h-[calc(100%-40px)] w-[calc(100%-40px)]" viewBox="0 0 640 430" aria-hidden="true">
+      <svg
+        className="absolute inset-5 h-[calc(100%-40px)] w-[calc(100%-40px)]"
+        viewBox="0 0 640 430"
+        aria-hidden="true"
+      >
         <path
           d="M104 110 C172 58 236 88 306 175 S404 195 474 130 S545 146 576 214"
           className="fill-none stroke-tian-500/70 [stroke-dasharray:3_5]"
@@ -139,7 +143,9 @@ export default function JourneyCanvas() {
       })}
 
       <div className="absolute bottom-4 left-4 right-4 z-30 rounded-lg border border-void-600 bg-void-800/95 px-4 py-3 shadow-card">
-        <p className="font-mono text-[9px] tracking-[0.08em] text-tian-500">{activeStage.evidence}</p>
+        <p className="font-mono text-[9px] tracking-[0.08em] text-tian-500">
+          {activeStage.evidence}
+        </p>
         <p className="mt-1 text-xs leading-relaxed text-mist-400">{activeStage.result}</p>
         <span className="mt-1 inline-flex items-center gap-1 text-[11px] font-medium text-tian-500">
           查看这一阶段 <ArrowRight size={13} />
